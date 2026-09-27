@@ -26,7 +26,7 @@
 /* Títulos das colunas em negrito (PROPOSTA) */
 .tituloColuna {
   font-size: var(--font-size-text);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: var(--tracking-text);
   line-height: var(--leading-normal);
 }
