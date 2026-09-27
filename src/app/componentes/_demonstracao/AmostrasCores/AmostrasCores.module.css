@@ -1,0 +1,40 @@
+.grade {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  background: var(--color-bg);
+}
+
+.cor {
+  display: block;
+  height: var(--space-96);
+}
+
+.nome {
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  overflow-wrap: anywhere;
+}
+
+.hex {
+  font-size: var(--font-size-text);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
