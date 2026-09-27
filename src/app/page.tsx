@@ -3,6 +3,7 @@ import { CardPublico } from "@/components/CardPublico/CardPublico";
 import { Estatisticas } from "@/components/Estatisticas/Estatisticas";
 import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -92,30 +93,33 @@ export default function PaginaInicial() {
 
         {/* 5. Who We Are / Missão, Visão e Valores (Site Antigo) */}
         <section className={estilos.secaoAlt}>
-          <div className="container">
-            <h2 className={estilos.margemBaixoLarga}>Quem Somos</h2>
-            <div className={estilos.gradeTres}>
-              <div>
-                <h3>Missão</h3>
+          <div className={`container ${estilos.gradeCards}`} style={{ alignItems: "center" }}>
+            <div>
+              <PlaceholderImagem style={{ minHeight: "400px" }} />
+            </div>
+            <div>
+              <h2 className={estilos.margemBaixoLarga}>Quem Somos</h2>
+              <div className={estilos.margemBaixoMedia}>
+                <h3 className="tipo-h5">Missão</h3>
                 <p>
                   Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
                 </p>
               </div>
-              <div>
-                <h3>Visão</h3>
+              <div className={estilos.margemBaixoMedia}>
+                <h3 className="tipo-h5">Visão</h3>
                 <p>
                   Ser referência em Tratamento Conservador da Escoliose na América Latina.
                 </p>
               </div>
-              <div>
-                <h3>Valores</h3>
+              <div className={estilos.margemBaixoMedia}>
+                <h3 className="tipo-h5">Valores</h3>
                 <p>
                   Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
                 </p>
               </div>
-            </div>
-            <div className={estilos.margemBaixoMedia} style={{ marginTop: "var(--space-32)" }}>
-              <Botao href="/sobre">Nossa história e diretoria</Botao>
+              <div style={{ marginTop: "var(--space-32)" }}>
+                <Botao href="/sobre">Nossa história e diretoria</Botao>
+              </div>
             </div>
           </div>
         </section>

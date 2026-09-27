@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PlaceholderImagem } from "../PlaceholderImagem/PlaceholderImagem";
 import estilos from "./Hero.module.css";
 
 type PropsHero = {
@@ -19,7 +20,9 @@ export function Hero({ titulo, elementoTitulo: Titulo = "h1", cartao, sobHeaderF
   return (
     <section data-hero="" className={`${estilos.hero} ${sobHeaderFixo ? estilos.sobHeaderFixo : ""}`}>
       {/* Lugar da foto sangrada (fotos ainda não recebidas) */}
-      <div className={estilos.foto} aria-hidden="true" />
+      <div className={estilos.foto}>
+        <PlaceholderImagem />
+      </div>
       <div className={`container ${estilos.conteudo}`}>
         <Titulo className={`tipo-h1 ${estilos.titulo}`}>{titulo}</Titulo>
         {cartao && (
