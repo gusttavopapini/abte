@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Regras do Cloud Firestore da ABTE.
+// O navegador NUNCA lê nem grava no Firestore diretamente: todo acesso aos
+// dados passa pelo servidor (Admin SDK), que ignora estas regras e faz a
+// própria checagem de sessão e papel.
+// Por isso, tudo é negado por padrão. Qualquer exceção futura precisa de
+// uma regra específica e de um teste em testes/regras.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}
