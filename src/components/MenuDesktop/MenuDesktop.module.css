@@ -1,16 +1,16 @@
 .lista {
   display: flex;
   align-items: center;
-  /* 16px entre itens: com 24px o menu não cabia em 1024px (ver resumo da etapa 1) */
-  gap: var(--space-16);
+  gap: var(--space-24);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
   min-height: var(--control-min-height-mobile);
-  color: var(--color-text);
+  color: var(--color-primary);
   font-size: var(--font-size-text);
+  font-weight: 300;
   line-height: var(--leading-snug);
   text-decoration: none;
   white-space: nowrap;
@@ -18,11 +18,11 @@
 
 .link:hover {
   color: var(--color-primary-hover);
-  text-decoration: underline;
+  /* Sem underline para manter visual mais clean da referencia */
 }
 
 .botaoTexto {
-  gap: var(--space-8);
+  gap: 4px;
 }
 
 .itemComSubmenu {
