@@ -57,15 +57,30 @@
   transform: rotate(180deg);
 }
 
-/* Painel do submenu: fundo branco, sem sombra */
+/* Painel do submenu: fundo branco, espaçado e arredondado */
 .submenu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 15px); /* Espaçamento entre menu e dropdown */
   left: 0;
   z-index: 60;
   display: flex;
   flex-direction: column;
   min-width: max-content;
-  padding: var(--space-8) var(--card-padding);
+  padding: var(--space-16) 0;
   background: var(--color-bg);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.submenu .link {
+  display: flex;
+  width: 100%;
+  padding: var(--space-8) var(--space-24);
+  /* Sobrescreve o align-items centralizado padrão do link, caso queira */
+  justify-content: flex-start;
+}
+
+.submenu .link:hover {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
