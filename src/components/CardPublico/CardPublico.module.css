@@ -5,6 +5,8 @@
   gap: var(--space-32);
   padding: var(--card-padding);
   color: var(--color-text);
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .a {

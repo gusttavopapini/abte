@@ -15,7 +15,7 @@ type PropsCard = {
 // [A] fica sobre #76ACF5: rótulo e frase com 24px fixos (regra do #76ACF5).
 export function CardPublico({ letra, frase, titulo, texto, botao }: PropsCard) {
   const destaque = letra === "A";
-  const classeTopo = destaque ? "texto-sobre-destaque" : "tipo-texto-lg";
+  const classeTopo = "tipo-texto";
   return (
     <article className={`${estilos.card} ${destaque ? estilos.a : estilos.b}`}>
       <div className={`${estilos.topo} ${classeTopo}`}>
@@ -23,8 +23,8 @@ export function CardPublico({ letra, frase, titulo, texto, botao }: PropsCard) {
         <p className={estilos.frase}>{frase}</p>
       </div>
       <div className={estilos.meio}>
-        <h3>{titulo}</h3>
-        <p className="tipo-texto-xl">{texto}</p>
+        <h3 className="tipo-texto-xl">{titulo}</h3>
+        <p className="tipo-texto-lg" style={{ fontWeight: 300 }}>{texto}</p>
       </div>
       <div>
         <Botao href={botao.href}>{botao.rotulo}</Botao>
