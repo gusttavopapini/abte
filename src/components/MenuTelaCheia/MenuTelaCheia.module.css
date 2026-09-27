@@ -58,9 +58,11 @@
   text-decoration: none;
 }
 
-.link:hover {
+.link:hover,
+.linkAtivo {
   color: var(--color-primary-hover);
   text-decoration: underline;
+  font-weight: 600;
 }
 
 .botaoTexto {

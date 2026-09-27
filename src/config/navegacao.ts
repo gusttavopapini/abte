@@ -36,13 +36,11 @@ export const CHAMADA_DOACAO: LinkDeNavegacao = { rotulo: "Doe para a ABTE", href
 
 // Rodapé
 export const RODAPE_MENU: LinkDeNavegacao[] = [
-  { rotulo: "Sobre", href: "/sobre" },
-  { rotulo: "Encontre um profissional", href: "/profissionais" },
+  { rotulo: "Profissionais", href: "/profissionais" },
   { rotulo: "Blog", href: "/blog" },
-  { rotulo: "Artigos científicos", href: "/artigos" },
+  { rotulo: "Artigos", href: "/artigos" },
   { rotulo: "Loja", href: "/loja" },
-  { rotulo: "Seja associado", href: "/seja-associado" },
-  { rotulo: "Doe", href: "/doe" },
+  { rotulo: "Contato", href: "/contato" },
 ];
 
 export const RODAPE_LEGAL: LinkDeNavegacao[] = [
