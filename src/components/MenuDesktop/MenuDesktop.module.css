@@ -29,6 +29,9 @@
 
 .itemComSubmenu {
   position: relative;
+  height: var(--control-min-height-mobile);
+  display: flex;
+  align-items: center;
 }
 
 .grupo {
