@@ -13,6 +13,8 @@
   min-height: calc(var(--space-96) * 2);
   padding: var(--card-padding);
   color: var(--color-text);
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 /* Xadrez: 1º e 4º em #76ACF5, 2º e 3º em branco */

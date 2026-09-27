@@ -10,8 +10,8 @@ export function Estatisticas({ itens }: { itens: Estatistica[] }) {
     <ul role="list" className={estilos.grade}>
       {itens.map((item, indice) => (
         <li key={indice} className={`${estilos.card} ${estilos[`posicao${indice % 4}`]}`}>
-          <p className={`tipo-h1 ${estilos.numero}`}>{item.numero}</p>
-          <p className="texto-sobre-destaque">{item.legenda}</p>
+          <p className={`tipo-h2 ${estilos.numero}`}>{item.numero}</p>
+          <p className="tipo-texto">{item.legenda}</p>
         </li>
       ))}
     </ul>
