@@ -7,30 +7,38 @@
   padding-block: var(--section-space);
 }
 
-.margemBaixoLarga {
-  margin-bottom: var(--space-64);
+/* Grids delicados e arejados */
+.gradeLadoALado {
+  display: grid;
+  gap: var(--space-64);
 }
 
-.margemBaixoMedia {
-  margin-bottom: var(--space-32);
-}
-
-.larguraTexto {
-  max-width: 800px;
+.gradeMeioAMeio {
+  display: grid;
+  gap: var(--space-64);
 }
 
 .gradeCards {
   display: grid;
   gap: var(--gutter);
+  margin-top: var(--space-64);
 }
 
 .gradeTres {
   display: grid;
-  gap: var(--gutter);
+  gap: var(--space-32);
   margin-top: var(--space-32);
 }
 
 @media (min-width: 768px) {
+  .gradeLadoALado {
+    grid-template-columns: 1fr 1fr;
+    align-items: flex-start;
+  }
+  .gradeMeioAMeio {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
   .gradeCards {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -50,4 +58,54 @@
   gap: var(--space-16);
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.tituloSecao {
+  margin-bottom: var(--space-32);
+  font-weight: 300;
+  color: var(--color-primary);
+}
+
+.caixaFlutuante {
+  background: var(--color-bg);
+  padding: var(--space-64);
+  max-width: 500px;
+  position: absolute;
+  bottom: var(--space-64);
+  left: var(--space-64);
+}
+
+.contatoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .contatoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.contatoBox {
+  background: var(--color-surface-strong);
+  color: var(--color-on-primary);
+  padding: var(--page-margin);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.contatoInfo {
+  background: var(--color-surface-soft);
+  padding: var(--page-margin);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+@media (min-width: 768px) {
+  .contatoBox,
+  .contatoInfo {
+    padding: var(--space-64);
+  }
 }

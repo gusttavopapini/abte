@@ -35,8 +35,9 @@
 
   /* Tipografia */
   --font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* PAINEL (Public Sans); pilha de fallback PROPOSTA */
-  --font-weight-regular: 400; /* estimado nos prints */
-  --font-weight-bold: 600; /* PROPOSTA; prints do post do blog não recebidos */
+  --font-weight-light: 300;
+  --font-weight-regular: 300; /* atualizado para 300 para visual mais delicado */
+  --font-weight-bold: 400; /* Atualizado para 400 para manter a delicadeza geral */
   --font-size-display: clamp(3.5rem, 0.878rem + 10.758vw, 12.375rem); /* max medido em 1710px; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h1: clamp(2.5rem, 1.521rem + 4.015vw, 5.8125rem); /* max medido; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h2: clamp(2rem, 1.705rem + 1.212vw, 3rem); /* max medido 47.5; min AJUSTE APROVADO PELA DESIGNER */
@@ -66,7 +67,7 @@
   --gutter: 16px; /* medido */
   --card-padding: 20px; /* medido 20.5 */
   --panel-padding: 24px; /* medido */
-  --section-space: clamp(64px, 5.61vw, 96px); /* valores PROPOSTA na v3; escala fluida aprovada pela designer */
+  --section-space: clamp(96px, 8vw, 160px); /* Aumentado para mais respiro e delicadeza */
   --content-max: 1648px; /* PROPOSTA; medido 1646 de conteúdo na janela de 1710 */
 
   /* Controles */

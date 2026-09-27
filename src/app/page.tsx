@@ -36,9 +36,9 @@ export default function PaginaInicial() {
       <main>
         {/* 2. Afirmação + cards de público */}
         <section className={`container ${estilos.secao}`}>
-          <div className={`${estilos.margemBaixoLarga} ${estilos.larguraTexto}`}>
-            <h2>Juntos transformamos a jornada da escoliose no Brasil</h2>
-            <p className="tipo-texto-xl">
+          <div className={estilos.gradeLadoALado}>
+            <h2 className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
+            <p className="tipo-texto-xl" style={{ fontWeight: 300 }}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
           </div>
@@ -60,85 +60,103 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 3. By The Numbers / Números da ABTE */}
+        {/* 3. By The Numbers / Estatísticas (Imagem na esquerda, números na direita) */}
         <section className={estilos.secaoAlt}>
-          <div className="container">
-            <h2 className={estilos.margemBaixoLarga}>Mutirões que Transformam Vidas</h2>
-            <Estatisticas
-              itens={[
-                { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
-                { numero: "500", legenda: "Atendimentos realizados" },
-                { numero: "69", legenda: "Fisioterapeutas membros" },
-                { numero: "23", legenda: "Médicos associados" },
-              ]}
-            />
+          <div className={`container ${estilos.gradeMeioAMeio}`}>
+            <PlaceholderImagem style={{ minHeight: "500px" }} />
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <h2 className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
+              <Estatisticas
+                itens={[
+                  { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
+                  { numero: "500", legenda: "Atendimentos realizados" },
+                  { numero: "69", legenda: "Fisioterapeutas membros" },
+                  { numero: "23", legenda: "Médicos associados" },
+                ]}
+              />
+            </div>
           </div>
         </section>
 
-        {/* 4. Stories / Blog & Loja do site antigo */}
+        {/* 4. Who We Are / Missão, Visão e Valores (Side-by-side) */}
         <section className={`container ${estilos.secao}`}>
-          <div className={estilos.blocoCentralizado}>
-            <h2 className={estilos.margemBaixoMedia}>Conteúdo confiável e Loja</h2>
-            <p className={`tipo-texto-xl ${estilos.margemBaixoLarga}`}>
-              A cada quinzena, nossos profissionais trazem informações baseadas em evidências. Além disso, cada produto comprado na nossa loja é uma ação pela escoliose!
-            </p>
-            <div className={estilos.botoesCentro}>
-              <Botao href="/blog">Acesse o Blog</Botao>
-              <Botao href="/loja" variante="secundario">
-                Ver produtos (Em breve)
-              </Botao>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Who We Are / Missão, Visão e Valores (Site Antigo) */}
-        <section className={estilos.secaoAlt}>
-          <div className={`container ${estilos.gradeCards}`} style={{ alignItems: "center" }}>
+          <div className={estilos.gradeLadoALado}>
+            <h2 className={estilos.tituloSecao}>Quem Somos</h2>
             <div>
-              <PlaceholderImagem style={{ minHeight: "400px" }} />
-            </div>
-            <div>
-              <h2 className={estilos.margemBaixoLarga}>Quem Somos</h2>
-              <div className={estilos.margemBaixoMedia}>
-                <h3 className="tipo-h5">Missão</h3>
-                <p>
+              <div style={{ marginBottom: "var(--space-32)" }}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Missão</h3>
+                <p style={{ fontWeight: 300 }}>
                   Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
                 </p>
               </div>
-              <div className={estilos.margemBaixoMedia}>
-                <h3 className="tipo-h5">Visão</h3>
-                <p>
+              <div style={{ marginBottom: "var(--space-32)" }}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Visão</h3>
+                <p style={{ fontWeight: 300 }}>
                   Ser referência em Tratamento Conservador da Escoliose na América Latina.
                 </p>
               </div>
-              <div className={estilos.margemBaixoMedia}>
-                <h3 className="tipo-h5">Valores</h3>
-                <p>
+              <div style={{ marginBottom: "var(--space-32)" }}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Valores</h3>
+                <p style={{ fontWeight: 300 }}>
                   Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
                 </p>
               </div>
-              <div style={{ marginTop: "var(--space-32)" }}>
+              <div>
                 <Botao href="/sobre">Nossa história e diretoria</Botao>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 6. Ready to find your balance? / CTA Final */}
-        <section className={`container ${estilos.secao}`}>
-          <div className={estilos.blocoCentralizado}>
-            <h2 className={estilos.margemBaixoMedia}>Faça parte dessa rede</h2>
-            <p className={`tipo-texto-xl ${estilos.margemBaixoLarga}`}>
-              Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
-            </p>
-            <div className={estilos.botoesCentro}>
-              <Botao href="/seja-associado">Quero me associar</Botao>
-              <Botao href="/doe" variante="secundario">
-                Quero fazer uma doação
-              </Botao>
+        {/* 5. Ready to find your balance? / CTA Final flutuante na imagem */}
+        <section className={estilos.secao} style={{ paddingBottom: 0 }}>
+          <div style={{ position: "relative", width: "100%", height: "600px" }}>
+            <PlaceholderImagem />
+            <div className={estilos.caixaFlutuante}>
+              <h2 className={estilos.tituloSecao} style={{ marginBottom: "var(--space-16)" }}>Faça parte dessa rede</h2>
+              <p className="tipo-texto-lg" style={{ fontWeight: 300, marginBottom: "var(--space-32)" }}>
+                Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
+              </p>
+              <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
+                <Botao href="/seja-associado">Quero me associar</Botao>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* 6. Contact Us / Form e Info (Side-by-side box) */}
+        <section className={estilos.contatoGrid}>
+          <div className={estilos.contatoBox}>
+            <h2 className="tipo-h2" style={{ fontWeight: 300 }}>Contato</h2>
+            <form style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
+              <div style={{ display: "flex", gap: "var(--space-16)" }}>
+                <input type="text" placeholder="Nome" style={{ flex: 1, padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
+                <input type="text" placeholder="Sobrenome" style={{ flex: 1, padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
+              </div>
+              <input type="email" placeholder="E-mail" style={{ padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
+              <textarea placeholder="Mensagem" rows={4} style={{ padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }}></textarea>
+              <button type="button" style={{ alignSelf: "flex-start", marginTop: "var(--space-16)", padding: "10px 32px", background: "white", color: "var(--color-primary)", fontWeight: "bold" }}>Enviar</button>
+            </form>
+          </div>
+          <div className={estilos.contatoInfo}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-32)" }}>
+              <div>
+                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Endereço</p>
+                <p style={{ fontWeight: 300 }}>Sede da ABTE<br />Brasil</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Legal</p>
+                <p style={{ fontWeight: 300, cursor: "pointer" }}>Termos de Uso<br />Política de Privacidade<br />Acessibilidade</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Contato</p>
+                <p style={{ fontWeight: 300 }}>contato@abteescoliose.com.br</p>
+              </div>
+            </div>
+            <h1 className="tipo-display" style={{ marginTop: "auto", fontWeight: 600, color: "var(--color-primary)", margin: 0 }}>ABTE.</h1>
+          </div>
+        </section>
+
       </main>
     </LayoutPublico>
   );

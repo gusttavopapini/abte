@@ -6,7 +6,7 @@ import "./globals.css";
 // build e servido pelo próprio site, sem requisição ao Google no navegador.
 const publicSans = Public_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "600"],
+  weight: ["300", "400", "600"],
   display: "swap",
 });
 
