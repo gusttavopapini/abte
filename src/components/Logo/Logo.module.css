@@ -11,3 +11,9 @@
   text-decoration: none;
   white-space: nowrap;
 }
+
+.imagem {
+  height: 60px; /* Ajuste para o tamanho no header */
+  width: auto;
+  object-fit: contain;
+}

@@ -3,6 +3,7 @@ import { CardPublico } from "@/components/CardPublico/CardPublico";
 import { Estatisticas } from "@/components/Estatisticas/Estatisticas";
 import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { Logo } from "@/components/Logo/Logo";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import estilos from "./page.module.css";
 
@@ -153,7 +154,9 @@ export default function PaginaInicial() {
                 <p style={{ fontWeight: 300 }}>contato@abteescoliose.com.br</p>
               </div>
             </div>
-            <h1 className="tipo-display" style={{ marginTop: "auto", fontWeight: 600, color: "var(--color-primary)", margin: 0 }}>ABTE.</h1>
+            <div style={{ marginTop: "auto" }}>
+              <Logo />
+            </div>
           </div>
         </section>
 

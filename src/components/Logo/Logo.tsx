@@ -8,7 +8,7 @@ import estilos from "./Logo.module.css";
 export function Logo({ className, aoClicar }: { className?: string; aoClicar?: () => void }) {
   return (
     <Link href="/" className={`${estilos.logo} ${className ?? ""}`} aria-label="ABTE, página inicial" onClick={aoClicar}>
-      <span aria-hidden="true">ABTE</span>
+      <img src="/logo-abte.png" alt="" className={estilos.imagem} />
     </Link>
   );
 }
