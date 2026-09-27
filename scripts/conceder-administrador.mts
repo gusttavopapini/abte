@@ -1,5 +1,5 @@
 // Dá o papel "administrador" a um usuário que já existe no Firebase Authentication.
-// Uso: npm run admin:conceder -- email@exemplo.com
+// Uso: npm run admin:conceder -- email@exemplo.com [--nome "Nome Sobrenome"]
 //
 // Lê as credenciais do Admin SDK do .env.local e nunca as exibe.
 import { cert, initializeApp } from "firebase-admin/app";
@@ -8,10 +8,34 @@ import { getAuth } from "firebase-admin/auth";
 const PAPEL = "administrador";
 
 async function principal() {
-  const email = process.argv[2]?.trim();
+  const args = process.argv.slice(2);
+  let email = "";
+  let nome = "";
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith("--nome=")) {
+      nome = args[i].substring(7).trim();
+    } else if (args[i] === "--nome") {
+      if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+        nome = args[i + 1].trim();
+        i++;
+      }
+    } else if (!args[i].startsWith("--") && !email) {
+      email = args[i].trim();
+    }
+  }
+
   if (!email) {
-    console.error("Informe o e-mail. Exemplo: npm run admin:conceder -- email@exemplo.com");
+    console.error("Informe o e-mail. Exemplo: npm run admin:conceder -- email@exemplo.com [--nome \"Nome Sobrenome\"]");
     process.exit(1);
+  }
+
+  if (nome !== "") {
+    nome = nome.replace(/\s+/g, " ");
+    if (nome.length < 2 || nome.length > 100) {
+      console.error("O nome deve ter entre 2 e 100 caracteres.");
+      process.exit(1);
+    }
   }
 
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
@@ -34,6 +58,11 @@ async function principal() {
     console.error(`Nenhum usuário com o e-mail ${email} no projeto ${projectId}.`);
     console.error("Crie o usuário primeiro no console: Authentication > Usuários > Adicionar usuário.");
     process.exit(1);
+  }
+
+  if (nome) {
+    await auth.updateUser(usuario.uid, { displayName: nome });
+    console.log(`Nome atualizado para "${nome}".`);
   }
 
   // Mantém outras claims que o usuário já tenha.

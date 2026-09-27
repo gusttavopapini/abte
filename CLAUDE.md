@@ -36,7 +36,7 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 | `npm run lint:css` | Stylelint: falha com cor em hex/rgb/hsl/nome ou font-size em px fora do tokens.css |
 | `npm run typecheck` | Checagem de tipos (tsc) |
 | `npm run test:regras` | Testes das regras do Firestore no emulador (exige Java) |
-| `npm run admin:conceder -- email@exemplo.com` | Dá o papel "administrador" a um usuário existente (usa o .env.local) |
+| `npm run admin:conceder -- email@exemplo.com [--nome "Nome"]` | Dá o papel "administrador" a um usuário existente (usa o .env.local) |
 
 ## Estrutura de pastas
 
