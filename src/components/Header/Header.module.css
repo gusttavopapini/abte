@@ -7,7 +7,7 @@
 .solida {
   position: sticky;
   top: 0;
-  background: var(--color-bg);
+  background: var(--color-bg-alt);
 }
 
 /* Home: transparente sobre o hero */
