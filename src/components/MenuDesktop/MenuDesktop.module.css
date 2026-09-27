@@ -74,7 +74,7 @@
   min-width: max-content;
   padding: var(--space-8); /* Padding reduzido para a caixa abraçar melhor as opções */
   background: var(--color-bg);
-  border-radius: 15px;
+  border-radius: 5px;
 }
 
 /* Ponte invisível para evitar que o dropdown feche quando o mouse passa pelo gap */
@@ -93,7 +93,7 @@
   width: 100%;
   padding: var(--space-8) var(--space-16);
   /* Arredondamento do item para o efeito hover */
-  border-radius: 10px;
+  border-radius: 5px;
   justify-content: flex-start;
   transition: all 0.2s ease;
 }

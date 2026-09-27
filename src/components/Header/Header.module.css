@@ -45,12 +45,12 @@
 .menuFundoBranco {
   background: var(--color-bg);
   padding: 8px 24px;
-  border-radius: 20px;
+  border-radius: 5px;
 }
 
 .doe {
   white-space: nowrap;
-  border-radius: 20px !important; /* Arredondamento conforme solicitado */
+  border-radius: 5px !important; /* Arredondamento conforme solicitado */
 }
 
 .hamburguer {
