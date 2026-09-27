@@ -19,9 +19,9 @@
   background: transparent;
 }
 
-/* Depois que o hero sai da tela */
+/* Depois que o hero sai da tela (mantemos transparente conforme pedido) */
 .comFundo {
-  background: var(--color-bg);
+  background: transparent;
 }
 
 .demonstracao {
@@ -44,8 +44,6 @@
 .colunaCentro {
   display: flex;
   justify-content: center;
-  background: white;
-  padding: 4px 24px;
 }
 
 .colunaDireita {
