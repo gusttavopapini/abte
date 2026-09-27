@@ -1,0 +1,182 @@
+/* Estilo base do site da ABTE.
+   Todos os valores vêm de src/styles/tokens.css. Raio 0 e sem sombra. */
+@import "../styles/tokens.css";
+
+/* ---------- Reset simples ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+}
+
+p,
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: break-word;
+}
+
+/* ---------- Foco: anel duplo só no foco por teclado ---------- */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Títulos (caixa de frase, peso regular) ---------- */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--font-weight-regular);
+}
+
+h1,
+.tipo-h1 {
+  font-size: var(--font-size-h1);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-text);
+}
+
+h2,
+.tipo-h2 {
+  font-size: var(--font-size-h2);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-heading);
+}
+
+h3,
+.tipo-h3 {
+  font-size: var(--font-size-h3);
+  /* Entrelinha do H3 NÃO VERIFICADA: usa --leading-snug */
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-h3);
+}
+
+.tipo-display {
+  font-size: var(--font-size-display);
+  /* Entrelinha do display NÃO VERIFICADA: usa --leading-tight */
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-text);
+}
+
+.tipo-texto-xl {
+  font-size: var(--font-size-text-xl);
+  line-height: var(--leading-snug);
+}
+
+.tipo-texto-lg {
+  font-size: var(--font-size-text-lg);
+  line-height: var(--leading-normal);
+}
+
+.tipo-texto {
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.tipo-pequeno {
+  font-size: var(--font-size-small);
+  /* Entrelinha do pequeno NÃO VERIFICADA: usa --leading-normal */
+  line-height: var(--leading-normal);
+}
+
+/* ---------- Regra do #76ACF5 ----------
+   Todo texto sobre --color-surface-strong precisa de pelo menos 24px em
+   qualquer tela: rótulo e frase do card [A] e legendas das estatísticas.
+   Única exceção à regra de font-size só por token (aprovada na etapa 1). */
+.texto-sobre-destaque {
+  /* stylelint-disable-next-line declaration-property-unit-disallowed-list */
+  font-size: max(1.5rem, 24px);
+  line-height: var(--leading-normal);
+}
+
+/* ---------- Utilitários ---------- */
+
+/* Largura do conteúdo: --content-max (PROPOSTA) mais as margens laterais */
+.container {
+  width: 100%;
+  max-width: calc(var(--content-max) + var(--page-margin) * 2);
+  margin-inline: auto;
+  padding-inline: var(--page-margin);
+}
+
+/* Esconde da tela, mas mantém para leitores de tela */
+.somente-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Movimento reduzido: nada anima ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
