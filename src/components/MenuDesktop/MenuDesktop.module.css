@@ -63,13 +63,13 @@
 /* Painel do submenu: fundo branco, espaçado e arredondado */
 .submenu {
   position: absolute;
-  top: calc(100% + 20px); /* Espaçamento ajustado (ainda mais afastado) */
+  top: calc(100% + 5px); /* Espaçamento idêntico ao da imagem 1 */
   left: 0;
   z-index: 60;
   display: flex;
   flex-direction: column;
   min-width: max-content;
-  padding: var(--space-16) var(--space-8);
+  padding: var(--space-8); /* Padding reduzido para a caixa abraçar melhor as opções */
   background: var(--color-bg);
   border-radius: 15px;
 }
@@ -78,10 +78,10 @@
 .submenu::before {
   content: "";
   position: absolute;
-  top: -25px; /* Sobe para cobrir todo o espaço de 20px entre o menu e o dropdown */
+  top: -15px; /* Sobe para cobrir todo o espaço de 5px entre o menu e o dropdown */
   left: 0;
   right: 0;
-  height: 25px;
+  height: 15px;
   background: transparent;
 }
 
