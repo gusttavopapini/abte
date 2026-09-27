@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-32);
-  padding: var(--card-padding);
+  padding: calc(var(--card-padding) + 30px);
   color: var(--color-text);
   border-radius: 5px;
   overflow: hidden;
