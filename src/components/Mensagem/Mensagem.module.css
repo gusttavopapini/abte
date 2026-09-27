@@ -1,0 +1,14 @@
+.mensagem {
+  padding: var(--space-16);
+  background: var(--color-feedback-bg);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.erro {
+  color: var(--color-error);
+}
+
+.sucesso {
+  color: var(--color-success);
+}

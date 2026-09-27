@@ -1,0 +1,23 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-32);
+  padding: var(--card-padding);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
+/* Etiqueta de categoria em caixa branca */
+.categoria {
+  align-self: flex-start;
+  padding: var(--space-8);
+  background: var(--color-bg);
+  font-size: var(--font-size-text);
+}
+
+.autoria {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-text);
+}

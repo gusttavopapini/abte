@@ -1,0 +1,60 @@
+/* Hero: foto sangrada de largura total (~1,18:1 em 1710px), H1 no topo à
+   esquerda e cartão branco no canto inferior esquerdo. */
+.hero {
+  position: relative;
+  display: flex;
+  aspect-ratio: 1.18;
+}
+
+.foto {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-alt);
+}
+
+.sobHeaderFixo {
+  /* Altura do header fixo: botão de 56px mais o respiro vertical */
+  padding-top: calc(var(--button-height) + var(--space-16) * 2);
+}
+
+.conteudo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-32);
+  padding-block: var(--page-margin);
+}
+
+.titulo {
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  width: calc((100% - var(--gutter) * 2) / 3);
+  padding: var(--card-padding);
+  background: var(--color-bg);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-20);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cartao {
+    width: calc((100% - var(--gutter)) / 2);
+  }
+}
+
+/* Celular: cartão na largura total menos a margem, ainda sobre a foto */
+@media (max-width: 767px) {
+  .cartao {
+    width: 100%;
+  }
+}

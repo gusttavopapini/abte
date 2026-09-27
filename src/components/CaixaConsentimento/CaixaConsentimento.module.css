@@ -1,0 +1,79 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.linha {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  cursor: pointer;
+}
+
+.caixa {
+  position: relative;
+  flex: none;
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.entrada {
+  appearance: none;
+  width: var(--space-24);
+  height: var(--space-24);
+  margin: 0;
+  border: 0;
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.entrada:checked {
+  background: var(--color-primary);
+}
+
+.marca {
+  position: absolute;
+  inset: 0;
+  color: var(--color-on-primary);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.entrada:checked + .marca {
+  visibility: visible;
+}
+
+/* Erro: contorno de 2px em --color-error (espessura PROPOSTA) */
+.comErro {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.comErro:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-error), var(--focus-ring);
+}
+
+.texto {
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.texto a:hover {
+  color: var(--color-primary-hover);
+}
+
+.erro {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* Celular: a linha clicável tem pelo menos 44px de altura */
+@media (max-width: 767px) {
+  .linha {
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
+}

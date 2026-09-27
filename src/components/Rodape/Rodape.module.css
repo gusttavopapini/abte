@@ -1,0 +1,92 @@
+.rodape {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-32);
+  padding: var(--panel-padding);
+  background: var(--color-footer-bg);
+  color: var(--color-text);
+}
+
+/* Colunas de links no topo; quebram em linhas conforme o espaço */
+.colunas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-32);
+}
+
+.coluna {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Títulos das colunas em negrito (PROPOSTA) */
+.tituloColuna {
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-text);
+  line-height: var(--leading-normal);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.link {
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.redes {
+  display: flex;
+  gap: var(--space-8);
+}
+
+/* Área de toque de 44px; ícone de 24px (tamanho NÃO VERIFICADO) */
+.rede {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--control-min-height-mobile);
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-icon-social);
+}
+
+.icone {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.pe {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.copyright {
+  font-size: var(--font-size-text);
+}
+
+@media (max-width: 767px) {
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
+
+  .lista {
+    gap: 0;
+  }
+}

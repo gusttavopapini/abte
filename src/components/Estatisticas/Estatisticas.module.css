@@ -1,0 +1,33 @@
+/* Grade 2x2 em todas as telas */
+.grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-32);
+  min-height: calc(var(--space-96) * 2);
+  padding: var(--card-padding);
+  color: var(--color-text);
+}
+
+/* Xadrez: 1º e 4º em #76ACF5, 2º e 3º em branco */
+.posicao0,
+.posicao3 {
+  background: var(--color-surface-strong);
+}
+
+.posicao1,
+.posicao2 {
+  background: var(--color-bg);
+}
+
+.numero {
+  color: var(--color-number);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+}

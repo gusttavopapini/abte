@@ -1,0 +1,71 @@
+.lista {
+  display: flex;
+  align-items: center;
+  /* 16px entre itens: com 24px o menu não cabia em 1024px (ver resumo da etapa 1) */
+  gap: var(--space-16);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-snug);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.botaoTexto {
+  gap: var(--space-8);
+}
+
+.itemComSubmenu {
+  position: relative;
+}
+
+.grupo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.seta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-24);
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+}
+
+.seta:hover {
+  color: var(--color-primary-hover);
+}
+
+.icone {
+  width: var(--space-16);
+  height: var(--space-16);
+  flex: none;
+}
+
+[aria-expanded="true"] > .icone {
+  transform: rotate(180deg);
+}
+
+/* Painel do submenu: fundo branco, sem sombra */
+.submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+  padding: var(--space-8) var(--card-padding);
+  background: var(--color-bg);
+}

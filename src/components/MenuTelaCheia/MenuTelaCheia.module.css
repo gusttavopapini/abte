@@ -1,0 +1,103 @@
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-bg);
+}
+
+/* Mesma barra do header: o botão de fechar fica no lugar do hambúrguer */
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding-block: var(--space-16);
+}
+
+.fechar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  color: var(--color-text);
+}
+
+.iconeFechar {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-32);
+  padding-top: var(--space-16);
+  padding-bottom: var(--section-space);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-h3);
+  letter-spacing: var(--tracking-h3);
+  line-height: var(--leading-snug);
+  text-align: left;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.botaoTexto {
+  gap: var(--space-8);
+}
+
+.grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.alternar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  color: var(--color-text);
+}
+
+.iconeSeta {
+  flex: none;
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+[aria-expanded="true"] > .iconeSeta {
+  transform: rotate(180deg);
+}
+
+/* Submenu vira lista expansível, recuada */
+.sublista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-top: var(--space-8);
+  padding-left: var(--space-24);
+}

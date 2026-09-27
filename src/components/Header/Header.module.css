@@ -1,0 +1,75 @@
+.header {
+  z-index: 50;
+  width: 100%;
+}
+
+/* Páginas internas: fundo branco, fixo no topo ao rolar (PROPOSTA) */
+.solida {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg);
+}
+
+/* Home: transparente sobre o hero */
+.transparente {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  background: transparent;
+}
+
+/* Depois que o hero sai da tela */
+.comFundo {
+  background: var(--color-bg);
+}
+
+.demonstracao {
+  position: relative;
+  z-index: auto;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding-block: var(--space-16);
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.doe {
+  white-space: nowrap;
+}
+
+.hamburguer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  color: var(--color-text);
+}
+
+.icone {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+/* Abaixo de 1024px o menu vira hambúrguer (única exceção de layout) */
+@media (max-width: 1023px) {
+  .somenteDesktop {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hamburguer {
+    display: none;
+  }
+}

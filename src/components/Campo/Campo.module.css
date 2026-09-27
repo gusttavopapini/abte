@@ -1,0 +1,67 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* Campo branco sem borda */
+.entrada {
+  width: 100%;
+  height: var(--input-height);
+  padding: 0 var(--space-8);
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.entrada::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.areaTexto {
+  height: var(--textarea-height);
+  min-height: var(--textarea-height);
+  padding: var(--space-8);
+  resize: vertical;
+}
+
+/* Erro: contorno de 2px em --color-error (espessura PROPOSTA).
+   Feito com sombra interna para não mudar o tamanho do campo e conviver
+   com o anel de foco. */
+.comErro {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.comErro:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-error), var(--focus-ring);
+}
+
+/* Mensagem de erro em caixa branca, abaixo do campo */
+.erro {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+@media (max-width: 767px) {
+  .entrada {
+    height: auto;
+    min-height: var(--control-min-height-mobile);
+  }
+
+  .areaTexto {
+    min-height: max(var(--textarea-height), var(--control-min-height-mobile));
+  }
+}

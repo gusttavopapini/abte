@@ -1,0 +1,16 @@
+.pular {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: 100;
+  padding: var(--space-8) var(--space-16);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-text);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.pular:focus {
+  transform: none;
+}
