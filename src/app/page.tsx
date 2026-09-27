@@ -14,7 +14,7 @@ export const metadata = {
 export default function PaginaInicial() {
   return (
     <LayoutPublico header="transparente">
-      {/* S1. Hero */}
+      {/* 1. Hero */}
       <Hero
         titulo="ABTE. Informação confiável, profissionais certificados e apoio para pacientes e famílias."
         sobHeaderFixo
@@ -33,12 +33,12 @@ export default function PaginaInicial() {
       />
 
       <main>
-        {/* S3. Afirmação + cards de público */}
+        {/* 2. Afirmação + cards de público */}
         <section className={`container ${estilos.secao}`}>
           <div className={`${estilos.margemBaixoLarga} ${estilos.larguraTexto}`}>
             <h2>Juntos transformamos a jornada da escoliose no Brasil</h2>
             <p className="tipo-texto-xl">
-              Nossa missão é promover o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
+              Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
           </div>
           <div className={estilos.gradeCards}>
@@ -59,10 +59,10 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* S4. Números da ABTE */}
+        {/* 3. By The Numbers / Números da ABTE */}
         <section className={estilos.secaoAlt}>
           <div className="container">
-            <h2 className={estilos.margemBaixoLarga}>A ABTE em números</h2>
+            <h2 className={estilos.margemBaixoLarga}>Mutirões que Transformam Vidas</h2>
             <Estatisticas
               itens={[
                 { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
@@ -74,30 +74,63 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* S6. Quem somos / Mutirões */}
+        {/* 4. Stories / Blog & Loja do site antigo */}
         <section className={`container ${estilos.secao}`}>
-          <div className={estilos.larguraTexto}>
-            <h2 className={estilos.margemBaixoMedia}>Conheça nossa história</h2>
-            <p className={`tipo-texto-xl ${estilos.margemBaixoMedia}`}>
-              Nascemos em 2018 como o projeto Tratando Escoliose e fomos fundados oficialmente como Associação Brasileira em 2021. Desde então, expandimos nossa atuação para toda a América do Sul, sempre focados em disseminar os métodos reconhecidos pela SOSORT (Sociedade Internacional de Reabilitação Ortopédica e Tratamento Conservador da Escoliose).
-            </p>
-            <div>
-              <Botao href="/sobre">Leia a história completa</Botao>
-            </div>
-          </div>
-        </section>
-
-        {/* Placeholders: Conteúdo (Blog/Loja) */}
-        <section className={estilos.secaoAlt}>
-          <div className={`container ${estilos.blocoCentralizado}`}>
+          <div className={estilos.blocoCentralizado}>
             <h2 className={estilos.margemBaixoMedia}>Conteúdo confiável e Loja</h2>
             <p className={`tipo-texto-xl ${estilos.margemBaixoLarga}`}>
-              A cada quinzena, nossos profissionais trazem informações baseadas em evidências, dicas de cuidado e novidades sobre pesquisas. Além disso, cada produto comprado na nossa futura loja será uma ação pela escoliose!
+              A cada quinzena, nossos profissionais trazem informações baseadas em evidências. Além disso, cada produto comprado na nossa loja é uma ação pela escoliose!
             </p>
             <div className={estilos.botoesCentro}>
               <Botao href="/blog">Acesse o Blog</Botao>
               <Botao href="/loja" variante="secundario">
                 Ver produtos (Em breve)
+              </Botao>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Who We Are / Missão, Visão e Valores (Site Antigo) */}
+        <section className={estilos.secaoAlt}>
+          <div className="container">
+            <h2 className={estilos.margemBaixoLarga}>Quem Somos</h2>
+            <div className={estilos.gradeTres}>
+              <div>
+                <h3>Missão</h3>
+                <p>
+                  Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
+                </p>
+              </div>
+              <div>
+                <h3>Visão</h3>
+                <p>
+                  Ser referência em Tratamento Conservador da Escoliose na América Latina.
+                </p>
+              </div>
+              <div>
+                <h3>Valores</h3>
+                <p>
+                  Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
+                </p>
+              </div>
+            </div>
+            <div className={estilos.margemBaixoMedia} style={{ marginTop: "var(--space-32)" }}>
+              <Botao href="/sobre">Nossa história e diretoria</Botao>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Ready to find your balance? / CTA Final */}
+        <section className={`container ${estilos.secao}`}>
+          <div className={estilos.blocoCentralizado}>
+            <h2 className={estilos.margemBaixoMedia}>Faça parte dessa rede</h2>
+            <p className={`tipo-texto-xl ${estilos.margemBaixoLarga}`}>
+              Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
+            </p>
+            <div className={estilos.botoesCentro}>
+              <Botao href="/seja-associado">Quero me associar</Botao>
+              <Botao href="/doe" variante="secundario">
+                Quero fazer uma doação
               </Botao>
             </div>
           </div>

@@ -24,9 +24,18 @@
   gap: var(--gutter);
 }
 
+.gradeTres {
+  display: grid;
+  gap: var(--gutter);
+  margin-top: var(--space-32);
+}
+
 @media (min-width: 768px) {
   .gradeCards {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .gradeTres {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
