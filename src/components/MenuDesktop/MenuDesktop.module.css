@@ -63,7 +63,7 @@
 /* Painel do submenu: fundo branco, espaçado e arredondado */
 .submenu {
   position: absolute;
-  top: calc(100% + 5px); /* Espaçamento de 5px conforme solicitado */
+  top: calc(100% + 10px); /* Espaçamento ajustado (+5px de afastamento) */
   left: 0;
   z-index: 60;
   display: flex;
