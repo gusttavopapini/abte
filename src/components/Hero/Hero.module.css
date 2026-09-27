@@ -43,7 +43,7 @@
   width: calc((100% - var(--gutter) * 2) / 3);
   padding: var(--card-padding);
   background: var(--color-bg);
-  border-radius: 10px !important;
+  border-radius: 5px !important;
   overflow: hidden;
 }
 
