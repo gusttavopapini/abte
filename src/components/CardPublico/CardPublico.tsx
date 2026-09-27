@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Botao } from "@/components/Botao/Botao";
-import { Rotulo } from "@/components/Rotulo/Rotulo";
+import { IconeUsuarios, IconeEstetoscopio } from "@/components/Icones/Icones";
 import estilos from "./CardPublico.module.css";
 
 type PropsCard = {
@@ -12,14 +12,18 @@ type PropsCard = {
 };
 
 // Cards de público [A] e [B] (design-system.md seção 8.3).
-// [A] fica sobre #76ACF5: rótulo e frase com 24px fixos (regra do #76ACF5).
+// Agora usam ícones em vez da letra.
 export function CardPublico({ letra, frase, titulo, texto, botao }: PropsCard) {
   const destaque = letra === "A";
   const classeTopo = "tipo-texto";
   return (
     <article className={`${estilos.card} ${destaque ? estilos.a : estilos.b}`}>
       <div className={`${estilos.topo} ${classeTopo}`}>
-        <Rotulo texto={letra} />
+        {letra === "A" ? (
+          <IconeUsuarios className={estilos.iconeDestaque} />
+        ) : (
+          <IconeEstetoscopio className={estilos.iconeDestaque} />
+        )}
         <p className={estilos.frase}>{frase}</p>
       </div>
       <div className={estilos.meio}>
