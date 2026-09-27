@@ -1,0 +1,23 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.link {
+  align-self: flex-start;
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+}
+
+@media (max-width: 767px) {
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
+}

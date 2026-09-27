@@ -1,0 +1,13 @@
+.dados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.dados dt {
+  font-size: var(--font-size-small);
+}
+
+.dados dd {
+  overflow-wrap: anywhere;
+}
