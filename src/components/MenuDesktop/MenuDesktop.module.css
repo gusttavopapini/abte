@@ -60,13 +60,13 @@
 /* Painel do submenu: fundo branco, espaçado e arredondado */
 .submenu {
   position: absolute;
-  top: calc(100% + 15px); /* Espaçamento entre menu e dropdown */
+  top: calc(100% + 25px); /* Espaçamento aumentado (+10px) */
   left: 0;
   z-index: 60;
   display: flex;
   flex-direction: column;
   min-width: max-content;
-  padding: var(--space-16) 0;
+  padding: var(--space-16) var(--space-8); /* Padding horizontal para o hover arredondado não colar na borda */
   background: var(--color-bg);
   border-radius: 15px;
   overflow: hidden;
@@ -75,9 +75,11 @@
 .submenu .link {
   display: flex;
   width: 100%;
-  padding: var(--space-8) var(--space-24);
-  /* Sobrescreve o align-items centralizado padrão do link, caso queira */
+  padding: var(--space-8) var(--space-16);
+  /* Arredondamento do item para o efeito hover */
+  border-radius: 10px;
   justify-content: flex-start;
+  transition: all 0.2s ease;
 }
 
 .submenu .link:hover {
