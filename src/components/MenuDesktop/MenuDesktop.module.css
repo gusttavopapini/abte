@@ -16,8 +16,10 @@
   white-space: nowrap;
 }
 
-.link:hover {
+.link:hover,
+.linkAtivo {
   color: var(--color-primary-hover);
+  font-weight: 600;
   /* Sem underline para manter visual mais clean da referencia */
 }
 
@@ -43,7 +45,8 @@
   color: var(--color-text);
 }
 
-.seta:hover {
+.seta:hover,
+.setaAtiva {
   color: var(--color-primary-hover);
 }
 
@@ -82,7 +85,9 @@
   transition: all 0.2s ease;
 }
 
-.submenu .link:hover {
+.submenu .link:hover,
+.submenu .linkAtivo {
   background-color: var(--color-primary);
   color: var(--color-on-primary);
+  font-weight: 600;
 }
