@@ -3,7 +3,6 @@ import { CardPublico } from "@/components/CardPublico/CardPublico";
 import { Estatisticas } from "@/components/Estatisticas/Estatisticas";
 import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
-import { Logo } from "@/components/Logo/Logo";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import estilos from "./page.module.css";
 
@@ -121,41 +120,6 @@ export default function PaginaInicial() {
               <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
                 <Botao href="/seja-associado">Quero me associar</Botao>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. Contact Us / Form e Info (Side-by-side box) */}
-        <section className={estilos.contatoGrid}>
-          <div className={estilos.contatoBox}>
-            <h2 className="tipo-h2" style={{ fontWeight: 300 }}>Contato</h2>
-            <form style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
-              <div style={{ display: "flex", gap: "var(--space-16)" }}>
-                <input type="text" placeholder="Nome" style={{ flex: 1, padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
-                <input type="text" placeholder="Sobrenome" style={{ flex: 1, padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
-              </div>
-              <input type="email" placeholder="E-mail" style={{ padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }} />
-              <textarea placeholder="Mensagem" rows={4} style={{ padding: "var(--space-8)", border: "none", borderBottom: "1px solid white", background: "transparent", color: "white" }}></textarea>
-              <button type="button" style={{ alignSelf: "flex-start", marginTop: "var(--space-16)", padding: "10px 32px", background: "white", color: "var(--color-primary)", fontWeight: "bold" }}>Enviar</button>
-            </form>
-          </div>
-          <div className={estilos.contatoInfo}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-32)" }}>
-              <div>
-                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Endereço</p>
-                <p style={{ fontWeight: 300 }}>Sede da ABTE<br />Brasil</p>
-              </div>
-              <div>
-                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Legal</p>
-                <p style={{ fontWeight: 300, cursor: "pointer" }}>Termos de Uso<br />Política de Privacidade<br />Acessibilidade</p>
-              </div>
-              <div>
-                <p style={{ fontWeight: "bold", marginBottom: "var(--space-8)" }}>Contato</p>
-                <p style={{ fontWeight: 300 }}>contato@abteescoliose.com.br</p>
-              </div>
-            </div>
-            <div style={{ marginTop: "auto" }}>
-              <Logo />
             </div>
           </div>
         </section>
