@@ -21,13 +21,18 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centraliza o título e o cartão verticalmente */
+  justify-content: space-between;
   gap: var(--space-32);
   padding-block: var(--page-margin);
-  height: 100%; /* Garante que o container ocupa toda a altura para centralizar */
+  height: 100%;
+  /* Garante que o container ocupa toda a altura */
 }
 
 .titulo {
+  margin-block: auto;
+  /* Centraliza o título verticalmente empurrando o cartão para o rodapé */
+  max-width: 50%;
+  /* Limita a largura a metade da página */
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
 }
