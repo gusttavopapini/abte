@@ -77,7 +77,11 @@
 }
 
 .copyright {
-  font-size: var(--font-size-text);
+  font-size: var(--font-size-small);
+}
+
+.logoFooter img {
+  height: 90px;
 }
 
 @media (max-width: 767px) {

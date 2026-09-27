@@ -52,7 +52,7 @@ export function Rodape() {
       </div>
 
       <div className={estilos.pe}>
-        <Logo />
+        <Logo className={estilos.logoFooter} />
         <p className={estilos.copyright}>
           © {ano} ABTE, Associação Brasileira de Tratamento da Escoliose. Todos os direitos reservados.
         </p>
