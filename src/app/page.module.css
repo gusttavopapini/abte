@@ -68,7 +68,7 @@
 
 .caixaFlutuante {
   background: var(--color-bg);
-  padding: 20px;
+  padding: 35px;
   max-width: 500px;
   position: absolute;
   top: 50%;
