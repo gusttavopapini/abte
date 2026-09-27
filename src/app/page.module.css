@@ -1,0 +1,44 @@
+.secao {
+  padding-block: var(--section-space);
+}
+
+.secaoAlt {
+  background-color: var(--color-bg-alt);
+  padding-block: var(--section-space);
+}
+
+.margemBaixoLarga {
+  margin-bottom: var(--space-64);
+}
+
+.margemBaixoMedia {
+  margin-bottom: var(--space-32);
+}
+
+.larguraTexto {
+  max-width: 800px;
+}
+
+.gradeCards {
+  display: grid;
+  gap: var(--gutter);
+}
+
+@media (min-width: 768px) {
+  .gradeCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.blocoCentralizado {
+  text-align: center;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+.botoesCentro {
+  display: flex;
+  gap: var(--space-16);
+  justify-content: center;
+  flex-wrap: wrap;
+}
