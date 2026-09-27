@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-32);
-  padding: var(--panel-padding);
+  padding: calc(var(--panel-padding) + 10px);
   background: var(--color-footer-bg);
   color: var(--color-text);
   border-radius: 5px;
