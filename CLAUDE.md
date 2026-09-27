@@ -83,7 +83,7 @@ src/
 
 ## Plano de etapas
 
-1. **Base** em fechamento (falta testar login, publicar regras e enviar ao GitHub)
+1. **Base** ✅ concluída
 2. Páginas públicas estáticas (inclui a página Doe com Pix estático, se confirmado)
 3. Modelo de dados no Firestore, papéis administrador e editor, cadastro de usuários pelo painel, registro de alterações, lixeira, "Configurações do site" com os dados do Pix (editável só pelo administrador), regras e testes; SEM coleções de pedidos, doações e cupons
 4. Painel administrativo, em partes com revisão entre elas: 4a profissionais e diretoria; 4b blog e artigos; 4c produtos; 4d biblioteca de mídia (Cloud Storage, que exige o plano Blaze)
