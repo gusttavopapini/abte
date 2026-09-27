@@ -21,9 +21,10 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; /* Centraliza o título e o cartão verticalmente */
   gap: var(--space-32);
   padding-block: var(--page-margin);
+  height: 100%; /* Garante que o container ocupa toda a altura para centralizar */
 }
 
 .titulo {

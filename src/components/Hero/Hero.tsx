@@ -24,7 +24,7 @@ export function Hero({ titulo, elementoTitulo: Titulo = "h1", cartao, sobHeaderF
         <PlaceholderImagem />
       </div>
       <div className={`container ${estilos.conteudo}`}>
-        <Titulo className={`tipo-h1 ${estilos.titulo}`}>{titulo}</Titulo>
+        <Titulo className={`tipo-h2 ${estilos.titulo}`}>{titulo}</Titulo>
         {cartao && (
           <div className={estilos.cartao}>
             <div className="tipo-texto-lg">{cartao.texto}</div>
