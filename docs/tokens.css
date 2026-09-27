@@ -1,0 +1,88 @@
+/* ABTE · tokens v3.1 · 26/09/2026
+   Máximos medidos na janela de 1710px (Mac Retina, zoom 100%), arredondados para inteiros.
+   Importar: https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&display=swap
+
+   Breakpoints (AJUSTE APROVADO PELA DESIGNER), para usar em @media:
+     celular  até 767px        @media (max-width: 767px)
+     tablet   768px a 1023px   @media (min-width: 768px) and (max-width: 1023px)
+     desktop  1024px ou mais   @media (min-width: 1024px)
+   Abaixo de 1024px o menu vira hambúrguer com menu em tela cheia.
+   Celular: controles com min-height: var(--control-min-height-mobile). */
+:root {
+
+  /* Cores */
+  --color-primary: #00449F; /* PAINEL */
+  --color-primary-hover: #00337A; /* AJUSTE APROVADO PELA DESIGNER; hover do botão primário e do link */
+  --color-text: #00449F; /* PAINEL */
+  --color-on-primary: #FFFFFF; /* medido */
+  --color-bg: #FFFFFF; /* medido */
+  --color-bg-alt: #E0F2F7; /* PAINEL */
+  --color-surface-strong: #76ACF5; /* PAINEL; AJUSTE APROVADO: só com texto de 24px ou mais */
+  --color-surface-soft: #ADD8E6; /* medido; card [B], rodapé, botão secundário */
+  --color-footer-bg: #ADD8E6; /* medido */
+  --color-contact-bg: #ADD8E6; /* AJUSTE APROVADO PELA DESIGNER (antes #76ACF5) */
+  --color-number: #00449F; /* AJUSTE APROVADO PELA DESIGNER; números em #76ACF5 e em branco */
+  --color-placeholder: #4073B7; /* AJUSTE APROVADO PELA DESIGNER (antes #A3D0F5) */
+  --color-error: #9F1D35; /* AJUSTE APROVADO PELA DESIGNER; sempre sobre --color-feedback-bg */
+  --color-success: #0F6B5C; /* AJUSTE APROVADO PELA DESIGNER; sempre sobre --color-feedback-bg */
+  --color-feedback-bg: #FFFFFF; /* AJUSTE APROVADO PELA DESIGNER; caixa branca de mensagens */
+  --color-neutral: #6B7280; /* PAINEL; uso não observado */
+  --color-icon-social: #000000; /* medido */
+
+  /* Foco */
+  --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #00449F; /* AJUSTE APROVADO PELA DESIGNER; usar em box-shadow com outline: none */
+
+  /* Tipografia */
+  --font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* PAINEL (Public Sans); pilha de fallback PROPOSTA */
+  --font-weight-regular: 400; /* estimado nos prints */
+  --font-weight-bold: 600; /* PROPOSTA; prints do post do blog não recebidos */
+  --font-size-display: clamp(56px, 11.58vw, 198px); /* max medido em 1710px; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-h1: clamp(40px, 5.44vw, 93px); /* max medido; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-h2: clamp(32px, 2.81vw, 48px); /* max medido 47.5; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-h3: clamp(24px, 2.11vw, 36px); /* max medido 36.5; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-text-xl: clamp(24px, 1.75vw, 30px); /* max medido 29.5; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-text-lg: clamp(18px, 1.40vw, 24px); /* max medido 23.5; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-text: clamp(16px, 1.17vw, 20px); /* max medido 20; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-small: clamp(14px, 0.94vw, 16px); /* max medido 15.5; min AJUSTE APROVADO PELA DESIGNER */
+  --tracking-heading: -0.04em; /* medido -0.044em */
+  --tracking-h3: -0.025em; /* medido -0.026em */
+  --tracking-text: 0; /* medido */
+  --leading-tight: 0.9; /* medido; H1 do hero */
+  --leading-snug: 1.05; /* medido 1.03 a 1.06; H2 e texto extra grande */
+  --leading-normal: 1.4; /* medido 1.4 a 1.43; texto e texto grande */
+
+  /* Espaçamento */
+  --space-8: 8px; /* medido (calha About; logos 10.5) */
+  --space-16: 16px; /* medido */
+  --space-20: 20px; /* medido 20.5 e 19.5 */
+  --space-24: 24px; /* medido 24 e 26 */
+  --space-32: 32px; /* medido */
+  --space-64: 64px; /* PROPOSTA; mínimo do espaço entre seções */
+  --space-96: 96px; /* PROPOSTA; máximo do espaço entre seções */
+
+  /* Layout */
+  --page-margin: clamp(16px, 1.87vw, 32px); /* max medido; min AJUSTE APROVADO PELA DESIGNER */
+  --gutter: 16px; /* medido */
+  --card-padding: 20px; /* medido 20.5 */
+  --panel-padding: 24px; /* medido */
+  --section-space: clamp(64px, 5.61vw, 96px); /* valores PROPOSTA na v3; escala fluida aprovada pela designer */
+  --content-max: 1648px; /* PROPOSTA; medido 1646 de conteúdo na janela de 1710 */
+
+  /* Controles */
+  --button-height: 56px; /* medido 55.5 */
+  --button-padding-x: 24px; /* medido 26 */
+  --button-submit-height: 40px; /* medido 41 */
+  --input-height: 32px; /* medido 33 (desktop) */
+  --textarea-height: 72px; /* medido 70.5 */
+  --control-min-height-mobile: 44px; /* AJUSTE APROVADO PELA DESIGNER */
+
+  /* Forma */
+  --radius: 0; /* medido */
+  --shadow: none; /* observado */
+
+  /* Fora dos tokens:
+     Blog: NÃO VERIFICADO (prints não recebidos)
+     Movimento: NÃO VERIFICADO
+     --color-border e espessura: NÃO VERIFICADO
+     Raio de fotos de equipe e produto: NÃO VERIFICADO */
+}
