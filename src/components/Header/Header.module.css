@@ -44,6 +44,8 @@
 .colunaCentro {
   display: flex;
   justify-content: center;
+  background: var(--color-bg);
+  padding: 8px 24px;
 }
 
 .colunaDireita {
