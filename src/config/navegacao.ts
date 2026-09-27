@@ -14,9 +14,8 @@ export type ItemDoMenu = {
 };
 
 export const MENU_PRINCIPAL: ItemDoMenu[] = [
-  { rotulo: "Sobre", href: "/sobre" },
   {
-    rotulo: "Encontre um profissional",
+    rotulo: "Profissionais",
     href: "/profissionais",
     submenu: [
       { rotulo: "Fisioterapeutas", href: "/profissionais/fisioterapeutas" },
@@ -26,15 +25,9 @@ export const MENU_PRINCIPAL: ItemDoMenu[] = [
       { rotulo: "Outros", href: "/profissionais/outros" },
     ],
   },
-  {
-    rotulo: "Conteúdo",
-    submenu: [
-      { rotulo: "Blog", href: "/blog" },
-      { rotulo: "Artigos científicos", href: "/artigos" },
-    ],
-  },
+  { rotulo: "Blog", href: "/blog" },
+  { rotulo: "Artigos", href: "/artigos" },
   { rotulo: "Loja", href: "/loja" },
-  { rotulo: "Seja associado", href: "/seja-associado" },
   { rotulo: "Contato", href: "/contato" },
 ];
 

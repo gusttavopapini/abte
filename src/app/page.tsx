@@ -14,7 +14,7 @@ export const metadata = {
 
 export default function PaginaInicial() {
   return (
-    <LayoutPublico header="solida">
+    <LayoutPublico header="transparente">
       {/* 1. Hero */}
       <Hero
         titulo="ABTE. Informação confiável, profissionais certificados e apoio para pacientes e famílias."
