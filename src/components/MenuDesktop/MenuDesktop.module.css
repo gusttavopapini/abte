@@ -63,7 +63,7 @@
 /* Painel do submenu: fundo branco, espaçado e arredondado */
 .submenu {
   position: absolute;
-  top: calc(100% + 15px); /* Espaçamento ajustado (+5px de afastamento adicional) */
+  top: calc(100% + 20px); /* Espaçamento ajustado (ainda mais afastado) */
   left: 0;
   z-index: 60;
   display: flex;
@@ -78,10 +78,10 @@
 .submenu::before {
   content: "";
   position: absolute;
-  top: -20px; /* Sobe para cobrir todo o espaço de 15px entre o menu e o dropdown */
+  top: -25px; /* Sobe para cobrir todo o espaço de 20px entre o menu e o dropdown */
   left: 0;
   right: 0;
-  height: 20px;
+  height: 25px;
   background: transparent;
 }
 
