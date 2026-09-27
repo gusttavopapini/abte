@@ -21,6 +21,7 @@
   color: var(--color-text);
   font-size: var(--font-size-text);
   line-height: var(--leading-normal);
+  border-radius: 5px;
 }
 
 .entrada::placeholder {
@@ -53,6 +54,7 @@
   color: var(--color-error);
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
+  border-radius: 5px;
 }
 
 @media (max-width: 767px) {

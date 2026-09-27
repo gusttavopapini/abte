@@ -6,6 +6,7 @@
   padding: var(--panel-padding);
   background: var(--color-footer-bg);
   color: var(--color-text);
+  border-radius: 5px;
 }
 
 /* Colunas de links no topo; quebram em linhas conforme o espaço */

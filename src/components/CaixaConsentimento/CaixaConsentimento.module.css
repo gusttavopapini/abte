@@ -26,6 +26,7 @@
   border: 0;
   background: var(--color-bg);
   cursor: pointer;
+  border-radius: 5px;
 }
 
 .entrada:checked {
@@ -68,6 +69,7 @@
   color: var(--color-error);
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
+  border-radius: 5px;
 }
 
 /* Celular: a linha clicável tem pelo menos 44px de altura */
