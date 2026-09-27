@@ -10,7 +10,6 @@
   min-height: var(--control-min-height-mobile);
   color: var(--color-primary);
   font-size: var(--font-size-small);
-  text-transform: uppercase;
   font-weight: 300;
   text-decoration: none;
   white-space: nowrap;
