@@ -94,6 +94,13 @@
   transform: translateY(-4px);
   box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
+
+.iconeValor {
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
 .caixaFlutuante {
   position: absolute;
   inset: 0;

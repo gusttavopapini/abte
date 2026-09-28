@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { AnimacaoEntrada } from "@/components/AnimacaoEntrada/AnimacaoEntrada";
+import { IconeAlvo, IconeOlho, IconeCoracao } from "@/components/Icones/Icones";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -101,7 +102,10 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.1}>
               <div className={estilos.cardValor}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Missão</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                  <IconeAlvo className={estilos.iconeValor} />
+                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Missão</h3>
+                </div>
                 <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
                   Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
                 </p>
@@ -110,7 +114,10 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.3}>
               <div className={estilos.cardValor}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Visão</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                  <IconeOlho className={estilos.iconeValor} />
+                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Visão</h3>
+                </div>
                 <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
                   Ser referência em Tratamento Conservador da Escoliose na América Latina.
                 </p>
@@ -119,7 +126,10 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.5}>
               <div className={estilos.cardValor}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Valores</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                  <IconeCoracao className={estilos.iconeValor} />
+                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Valores</h3>
+                </div>
                 <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
                   Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
                 </p>
