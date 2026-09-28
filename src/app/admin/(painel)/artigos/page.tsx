@@ -20,7 +20,7 @@ export default async function PaginaAdminArtigos() {
   const artigos = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  }));
+  })) as ArtigoCatalogo[];
 
   return (
     <div>

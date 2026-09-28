@@ -19,7 +19,7 @@ export default async function PaginaAdminBlog() {
   const posts = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  }));
+  })) as PostBlog[];
 
   return (
     <div>
