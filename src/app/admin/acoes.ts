@@ -5,7 +5,7 @@
 // Host), o que protege contra requisições forjadas de outros sites.
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authAdmin } from "@/lib/firebase/servidor";
+import { authAdmin } from "@/lib/firebase/admin-auth";
 import { NOME_COOKIE_SESSAO, ROTA_LOGIN, VALIDADE_SESSAO_MS } from "@/lib/auth/constantes";
 import { ehPapelDoPainel } from "@/lib/auth/papeis";
 

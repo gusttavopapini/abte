@@ -3,7 +3,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authAdmin } from "@/lib/firebase/servidor";
+import { authAdmin } from "@/lib/firebase/admin-auth";
 import { NOME_COOKIE_SESSAO, ROTA_LOGIN } from "./constantes";
 import { ehPapelDoPainel, type PapelDoPainel } from "./papeis";
 
