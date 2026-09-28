@@ -19,45 +19,21 @@ export function LayoutPainel({ children, usuario }: PropsLayoutPainel) {
         </div>
         
         <nav className={estilos.menu}>
-          {/* Grupo: Blog */}
           <div className={estilos.grupoMenu}>
-            <h3 className={estilos.tituloGrupo}>Blog</h3>
             <ul className={estilos.listaMenu}>
               <li>
-                <Link href="/admin/blog/publicados" className={estilos.linkMenu}>
-                  Posts Publicados
+                <Link href="/admin" className={estilos.linkMenu}>
+                  Visão Geral
                 </Link>
               </li>
               <li>
-                <Link href="/admin/blog/rascunhos" className={estilos.linkMenu}>
-                  Rascunhos
+                <Link href="/admin/blog" className={estilos.linkMenu}>
+                  Blog
                 </Link>
               </li>
               <li>
-                <Link href="/admin/blog/novo" className={estilos.linkMenu}>
-                  Novo Post
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Grupo: Artigos */}
-          <div className={estilos.grupoMenu}>
-            <h3 className={estilos.tituloGrupo}>Artigos</h3>
-            <ul className={estilos.listaMenu}>
-              <li>
-                <Link href="/admin/artigos/publicados" className={estilos.linkMenu}>
-                  Publicados
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/artigos/rascunhos" className={estilos.linkMenu}>
-                  Rascunhos
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/artigos/novo" className={estilos.linkMenu}>
-                  Novo Artigo
+                <Link href="/admin/artigos" className={estilos.linkMenu}>
+                  Artigos
                 </Link>
               </li>
             </ul>
