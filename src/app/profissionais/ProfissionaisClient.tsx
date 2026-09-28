@@ -48,7 +48,7 @@ export function ProfissionaisClient() {
         <div className={`container ${estilos.container}`}>
           <div className={estilos.cabecalho}>
             <h1 className={`tipo-h1 ${estilos.titulo}`}>Profissionais</h1>
-            <p className={`tipo-texto-xl ${estilos.descricao}`}>
+            <p className={`tipo-texto-lg ${estilos.descricao}`}>
               Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede.
             </p>
           </div>
