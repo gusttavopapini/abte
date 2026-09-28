@@ -16,7 +16,7 @@ export default async function PaginaAdminBlog() {
   const db = firestoreAdmin();
   const snapshot = await db.collection("posts").orderBy("criadoEm", "desc").get();
   
-  const posts = snapshot.docs.map(doc => ({
+  const posts = snapshot.docs.map((doc: any) => ({
     id: doc.id,
     ...doc.data()
   })) as PostBlog[];

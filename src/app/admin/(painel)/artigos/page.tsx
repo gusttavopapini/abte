@@ -17,7 +17,7 @@ export default async function PaginaAdminArtigos() {
   const db = firestoreAdmin();
   const snapshot = await db.collection("artigos").orderBy("criadoEm", "desc").get();
   
-  const artigos = snapshot.docs.map(doc => ({
+  const artigos = snapshot.docs.map((doc: any) => ({
     id: doc.id,
     ...doc.data()
   })) as ArtigoCatalogo[];

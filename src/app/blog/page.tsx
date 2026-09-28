@@ -15,7 +15,7 @@ export default async function PaginaBlog() {
     .get();
 
   const posts = snapshot.docs
-    .map(doc => {
+    .map((doc: any) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -26,7 +26,7 @@ export default async function PaginaBlog() {
         status: data.status,
       };
     })
-    .filter(post => post.status === "publicado");
+    .filter((post: any) => post.status === "publicado");
 
   return (
     <LayoutPublico header="solida">

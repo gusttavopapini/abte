@@ -24,7 +24,7 @@ export default async function PaginaArtigos() {
     .get();
 
   const artigos = snapshot.docs
-    .map(doc => {
+    .map((doc: any) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -36,7 +36,7 @@ export default async function PaginaArtigos() {
         status: data.status,
       };
     })
-    .filter(artigo => artigo.status === "publicado");
+    .filter((artigo: any) => artigo.status === "publicado");
 
   return (
     <LayoutPublico header="solida">
