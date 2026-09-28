@@ -131,3 +131,74 @@ export async function atualizarArtigo(formData: FormData) {
   revalidatePath("/artigos");
   redirect("/admin/artigos");
 }
+
+export async function salvarProfissional(formData: FormData) {
+  await exigirSessaoDoPainel();
+
+  const nome = formData.get("nome")?.toString() || "";
+  const especialidade = formData.get("especialidade")?.toString() || "";
+  const tag = formData.get("tag")?.toString() || "";
+  const linkedinUrl = formData.get("linkedinUrl")?.toString() || "";
+  const imagemUrl = formData.get("imagemUrl")?.toString() || "";
+  const acao = formData.get("acao")?.toString();
+  
+  const status = acao === "publicar" ? "publicado" : "rascunho";
+
+  const db = firestoreAdmin();
+  await db.collection("profissionais").add({
+    nome,
+    especialidade,
+    tag,
+    linkedinUrl,
+    imagemUrl,
+    status,
+    criadoEm: new Date(),
+    atualizadoEm: new Date(),
+  });
+
+  revalidatePath("/admin/profissionais");
+  revalidatePath("/profissionais");
+  return { sucesso: true };
+}
+
+export async function atualizarProfissional(formData: FormData) {
+  await exigirSessaoDoPainel();
+
+  const id = formData.get("id")?.toString();
+  if (!id) throw new Error("ID não fornecido");
+
+  const nome = formData.get("nome")?.toString() || "";
+  const especialidade = formData.get("especialidade")?.toString() || "";
+  const tag = formData.get("tag")?.toString() || "";
+  const linkedinUrl = formData.get("linkedinUrl")?.toString() || "";
+  const imagemUrl = formData.get("imagemUrl")?.toString() || "";
+  const acao = formData.get("acao")?.toString();
+  
+  const status = acao === "publicar" ? "publicado" : "rascunho";
+
+  const db = firestoreAdmin();
+  await db.collection("profissionais").doc(id).update({
+    nome,
+    especialidade,
+    tag,
+    linkedinUrl,
+    imagemUrl,
+    status,
+    atualizadoEm: new Date(),
+  });
+
+  revalidatePath("/admin/profissionais");
+  revalidatePath("/profissionais");
+  return { sucesso: true };
+}
+
+export async function excluirProfissional(id: string) {
+  await exigirSessaoDoPainel();
+
+  const db = firestoreAdmin();
+  await db.collection("profissionais").doc(id).delete();
+
+  revalidatePath("/admin/profissionais");
+  revalidatePath("/profissionais");
+  return { sucesso: true };
+}

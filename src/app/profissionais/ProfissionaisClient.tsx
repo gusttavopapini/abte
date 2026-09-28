@@ -7,19 +7,15 @@ import estilos from "./page.module.css";
 
 const TAGS = ["Todos", "Fisioterapeutas", "Médicos", "Ortesistas", "Psicólogos", "Outros"];
 
-const PROFISSIONAIS_MOCK = [
-  { nome: "Don Francis", especialidade: "Fisioterapeuta", tag: "Fisioterapeutas", linkedinUrl: "https://linkedin.com" },
-  { nome: "Ashley Jonest", especialidade: "Médica", tag: "Médicos", linkedinUrl: "https://linkedin.com" },
-  { nome: "Tess Brown", especialidade: "Ortesista", tag: "Ortesistas", linkedinUrl: "https://linkedin.com" },
-  { nome: "Lisa Rose", especialidade: "Psicóloga", tag: "Psicólogos", linkedinUrl: "https://linkedin.com" },
-  { nome: "Kevin Nye", especialidade: "Fisioterapeuta", tag: "Fisioterapeutas", linkedinUrl: "https://linkedin.com" },
-  { nome: "Alex Young", especialidade: "Médico", tag: "Médicos", linkedinUrl: "https://linkedin.com" },
-  { nome: "Andrew Cole", especialidade: "Fisioterapeuta", tag: "Fisioterapeutas", linkedinUrl: "https://linkedin.com" },
-  { nome: "Debbie Green", especialidade: "Ortesista", tag: "Ortesistas", linkedinUrl: "https://linkedin.com" },
-  { nome: "Alissa Rose", especialidade: "Psicóloga", tag: "Psicólogos", linkedinUrl: "https://linkedin.com" },
-];
+type Profissional = {
+  nome: string;
+  especialidade: string;
+  tag: string;
+  linkedinUrl?: string;
+  imagemUrl?: string;
+};
 
-export function ProfissionaisClient() {
+export function ProfissionaisClient({ profissionaisIniciais }: { profissionaisIniciais: Profissional[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -34,13 +30,12 @@ export function ProfissionaisClient() {
     } else {
       params.set("tag", tag);
     }
-    // Faz a atualização da URL silenciosamente sem scroll jump
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const profissionaisFiltrados = tagAtiva === "Todos" 
-    ? PROFISSIONAIS_MOCK 
-    : PROFISSIONAIS_MOCK.filter(p => p.tag === tagAtiva);
+    ? profissionaisIniciais 
+    : profissionaisIniciais.filter(p => p.tag === tagAtiva);
 
   return (
     <LayoutPublico header="solida">
@@ -72,6 +67,7 @@ export function ProfissionaisClient() {
                 nome={prof.nome}
                 especialidade={prof.especialidade}
                 linkedinUrl={prof.linkedinUrl}
+                imagemUrl={prof.imagemUrl}
               />
             ))}
           </div>
