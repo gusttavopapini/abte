@@ -120,9 +120,9 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
         titulo={editando ? "Editar Profissional" : "Novo Profissional"}
       >
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
-          <Campo id="nome" name="nome" type="text" rotulo="Nome Completo" obrigatorio defaultValue={editando?.nome || ""} placeholder="Ex: Dra. Maria Silva" />
+          <Campo id="nome" name="nome" type="text" rotulo="Nome Completo" obrigatorio defaultValue={editando?.nome || ""} placeholder="Ex: Dra. Maria Silva" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
           
-          <Campo id="especialidade" name="especialidade" type="text" rotulo="Especialidade (Exibição)" obrigatorio defaultValue={editando?.especialidade || ""} placeholder="Ex: Ortopedista Pediátrico" />
+          <Campo id="especialidade" name="especialidade" type="text" rotulo="Especialidade (Exibição)" obrigatorio defaultValue={editando?.especialidade || ""} placeholder="Ex: Ortopedista Pediátrico" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label htmlFor="tag" style={{ fontWeight: 500, fontSize: "14px" }}>Tag (Filtro do site) *</label>
@@ -135,11 +135,11 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
             </select>
           </div>
 
-          <Campo id="linkedinUrl" name="linkedinUrl" type="url" rotulo="URL do LinkedIn" defaultValue={editando?.linkedinUrl || ""} placeholder="https://linkedin.com/in/..." />
+          <Campo id="linkedinUrl" name="linkedinUrl" type="url" rotulo="URL do LinkedIn" defaultValue={editando?.linkedinUrl || ""} placeholder="https://linkedin.com/in/..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
-          <Campo id="imagemUrl" name="imagemUrl" type="url" rotulo="URL da Foto (Opcional)" defaultValue={editando?.imagemUrl || ""} placeholder="https://..." />
+          <Campo id="imagemUrl" name="imagemUrl" type="url" rotulo="URL da Foto (Opcional)" defaultValue={editando?.imagemUrl || ""} placeholder="https://..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
-          <div style={{ marginTop: "var(--space-8)", display: "flex", justifyContent: "flex-end", gap: "var(--space-12)" }}>
+          <div style={{ marginTop: "var(--space-16)", display: "flex", justifyContent: "flex-end", gap: "var(--space-24)" }}>
             <Botao type="button" variante="secundario" onClick={() => setModalAberto(false)}>Cancelar</Botao>
             <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
           </div>
