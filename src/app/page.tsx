@@ -64,13 +64,10 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 3. By The Numbers / Estatísticas (Imagem na esquerda, números na direita) */}
+        {/* 3. By The Numbers / Estatísticas (Imagem na direita, números na esquerda) */}
         <section className={estilos.secaoAlt}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
-            <AnimacaoEntrada direcao="esquerda">
-              <PlaceholderImagem style={{ minHeight: "500px", height: "100%" }} />
-            </AnimacaoEntrada>
-            <AnimacaoEntrada direcao="direita" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <AnimacaoEntrada direcao="esquerda" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <h2 className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
                 itens={[
@@ -80,6 +77,9 @@ export default function PaginaInicial() {
                   { numero: "23", legenda: "Médicos associados" },
                 ]}
               />
+            </AnimacaoEntrada>
+            <AnimacaoEntrada direcao="direita">
+              <PlaceholderImagem style={{ minHeight: "500px", height: "100%" }} />
             </AnimacaoEntrada>
           </div>
         </section>
