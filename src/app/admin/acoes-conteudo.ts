@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirSessaoDoPainel } from "@/lib/auth/sessao";
 
@@ -33,6 +34,7 @@ export async function salvarPost(formData: FormData) {
     atualizadoEm: new Date(),
   });
 
+  revalidatePath("/admin/blog");
   redirect("/admin/blog");
 }
 
@@ -60,5 +62,6 @@ export async function salvarArtigo(formData: FormData) {
     atualizadoEm: new Date(),
   });
 
+  revalidatePath("/admin/artigos");
   redirect("/admin/artigos");
 }
