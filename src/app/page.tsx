@@ -4,6 +4,7 @@ import { Estatisticas } from "@/components/Estatisticas/Estatisticas";
 import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { AnimacaoEntrada } from "@/components/AnimacaoEntrada/AnimacaoEntrada";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -36,35 +37,41 @@ export default function PaginaInicial() {
       <main>
         {/* 2. Afirmação + cards de público */}
         <section className={`container ${estilos.secao}`}>
-          <div className={estilos.gradeLadoALado}>
+          <AnimacaoEntrada direcao="cima" className={estilos.gradeLadoALado}>
             <h2 className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
             <p className="tipo-texto-xl" style={{ fontWeight: 300 }}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
-          </div>
+          </AnimacaoEntrada>
           <div className={estilos.gradeCards}>
-            <CardPublico
-              letra="A"
-              frase="Quero cuidar da minha coluna ou da do meu filho."
-              titulo="Para pacientes e famílias"
-              texto="Encontre profissionais capacitados para o tratamento da escoliose perto de você e tenha acesso a materiais informativos de alta qualidade."
-              botao={{ rotulo: "Encontre um profissional", href: "/profissionais" }}
-            />
-            <CardPublico
-              letra="B"
-              frase="Quero me especializar e fazer parte da rede."
-              titulo="Para profissionais de saúde"
-              texto="Junte-se à Associação. Faça parte de uma rede de especialistas qualificados e ajude a transformar a vida de pessoas com escoliose."
-              botao={{ rotulo: "Seja associado", href: "/seja-associado" }}
-            />
+            <AnimacaoEntrada atraso={0.2}>
+              <CardPublico
+                letra="A"
+                frase="Quero cuidar da minha coluna ou da do meu filho."
+                titulo="Para pacientes e famílias"
+                texto="Encontre profissionais capacitados para o tratamento da escoliose perto de você e tenha acesso a materiais informativos de alta qualidade."
+                botao={{ rotulo: "Encontre um profissional", href: "/profissionais" }}
+              />
+            </AnimacaoEntrada>
+            <AnimacaoEntrada atraso={0.4}>
+              <CardPublico
+                letra="B"
+                frase="Quero me especializar e fazer parte da rede."
+                titulo="Para profissionais de saúde"
+                texto="Junte-se à Associação. Faça parte de uma rede de especialistas qualificados e ajude a transformar a vida de pessoas com escoliose."
+                botao={{ rotulo: "Seja associado", href: "/seja-associado" }}
+              />
+            </AnimacaoEntrada>
           </div>
         </section>
 
         {/* 3. By The Numbers / Estatísticas (Imagem na esquerda, números na direita) */}
         <section className={estilos.secaoAlt}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
-            <PlaceholderImagem style={{ minHeight: "500px" }} />
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <AnimacaoEntrada direcao="esquerda">
+              <PlaceholderImagem style={{ minHeight: "500px", height: "100%" }} />
+            </AnimacaoEntrada>
+            <AnimacaoEntrada direcao="direita" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <h2 className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
                 itens={[
@@ -74,15 +81,17 @@ export default function PaginaInicial() {
                   { numero: "23", legenda: "Médicos associados" },
                 ]}
               />
-            </div>
+            </AnimacaoEntrada>
           </div>
         </section>
 
         {/* 4. Who We Are / Missão, Visão e Valores (Side-by-side) */}
         <section className={`container ${estilos.secao}`}>
           <div className={estilos.gradeLadoALado}>
-            <h2 className={estilos.tituloSecao}>Quem Somos</h2>
-            <div>
+            <AnimacaoEntrada direcao="esquerda">
+              <h2 className={estilos.tituloSecao}>Quem Somos</h2>
+            </AnimacaoEntrada>
+            <AnimacaoEntrada direcao="cima" atraso={0.2}>
               <div style={{ marginBottom: "var(--space-32)" }}>
                 <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Missão</h3>
                 <p style={{ fontWeight: 300 }}>
@@ -104,15 +113,15 @@ export default function PaginaInicial() {
               <div>
                 <Botao href="/sobre">Nossa história e diretoria</Botao>
               </div>
-            </div>
+            </AnimacaoEntrada>
           </div>
         </section>
 
         {/* 5. Ready to find your balance? / CTA Final flutuante na imagem */}
         <section className={estilos.secao} style={{ paddingBottom: 0 }}>
-          <div style={{ position: "relative", width: "100%", height: "600px" }}>
+          <div style={{ position: "relative", width: "100%", height: "600px", overflow: "hidden" }}>
             <PlaceholderImagem />
-            <div className={estilos.caixaFlutuante}>
+            <AnimacaoEntrada className={estilos.caixaFlutuante} direcao="cima" atraso={0.3}>
               <h2 className={estilos.tituloSecao} style={{ marginBottom: "var(--space-16)" }}>Faça parte dessa rede</h2>
               <p className="tipo-texto-lg" style={{ fontWeight: 300, marginBottom: "var(--space-32)" }}>
                 Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
@@ -120,7 +129,7 @@ export default function PaginaInicial() {
               <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
                 <Botao href="/seja-associado">Quero me associar</Botao>
               </div>
-            </div>
+            </AnimacaoEntrada>
           </div>
         </section>
 

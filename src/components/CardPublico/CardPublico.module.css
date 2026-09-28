@@ -7,6 +7,12 @@
   color: var(--color-text);
   border-radius: 5px;
   overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 68, 159, 0.15); /* Sombra elegante */
 }
 
 .a {

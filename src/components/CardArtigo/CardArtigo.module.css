@@ -5,6 +5,11 @@
   padding: 0;
   gap: var(--space-8);
   height: 100%;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.card:hover {
+  transform: translateX(4px);
 }
 
 .meta {
