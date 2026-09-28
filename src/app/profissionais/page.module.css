@@ -1,0 +1,68 @@
+.secao {
+  background-color: var(--color-bg-alt);
+  min-height: 100vh;
+}
+
+.container {
+  padding-block: var(--section-space);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin-bottom: var(--space-64);
+  max-width: 800px;
+}
+
+.titulo {
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+.descricao {
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin-bottom: var(--space-32);
+}
+
+.tag {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tagAtiva,
+.tag:hover {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-32);
+}
+
+@media (min-width: 768px) {
+  .grade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
