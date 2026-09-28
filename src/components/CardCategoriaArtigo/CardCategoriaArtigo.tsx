@@ -21,7 +21,7 @@ export function CardCategoriaArtigo({ nome, imagemUrl, slug }: Props) {
       )}
       <div className={estilos.rodape}>
         <span className={estilos.nome}>{nome}</span>
-        <Botao href={`/artigos?categoria=${slug}`} variante="primario" className={estilos.botao}>
+        <Botao href={`/artigos/categoria/${slug}`} variante="primario" className={estilos.botao}>
           Todos os artigos
         </Botao>
       </div>

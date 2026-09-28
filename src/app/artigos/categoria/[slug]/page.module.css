@@ -1,0 +1,48 @@
+.secao {
+  background-color: var(--color-bg);
+  min-height: 100vh;
+}
+
+.container {
+  padding-block: var(--section-space);
+}
+
+.cabecalho {
+  margin-bottom: var(--space-64);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.voltar {
+  margin-left: -24px; /* Compensar o padding padrão interno do botão para ficar alinhado */
+}
+
+.titulo {
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+.descricao {
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+.gradeTres {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-64) var(--space-32);
+}
+
+@media (min-width: 768px) {
+  .gradeTres {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gradeTres {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
