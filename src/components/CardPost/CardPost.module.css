@@ -1,0 +1,44 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg); /* O fundo da página é bg-alt, os cards são bg para destacar */
+  border-radius: 5px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.imagemContainer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--card-padding);
+  gap: var(--space-16);
+}
+
+.titulo {
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+.resumo {
+  color: var(--color-primary);
+  font-weight: 300;
+  flex: 1; /* Empurra o botão pro fundo */
+}
+
+.botaoLerMais {
+  align-self: flex-start;
+}
