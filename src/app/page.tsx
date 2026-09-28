@@ -5,7 +5,6 @@ import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { AnimacaoEntrada } from "@/components/AnimacaoEntrada/AnimacaoEntrada";
-import { CarrosselQuemSomos } from "@/components/CarrosselQuemSomos/CarrosselQuemSomos";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -84,23 +83,39 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 4. Who We Are / Missão, Visão e Valores (Side-by-side) */}
+        {/* 4. Who We Are / Missão, Visão e Valores (3 cards) */}
         <section className={`container ${estilos.secao}`}>
-          <div className={estilos.quemSomosGrid}>
-            
-            <AnimacaoEntrada direcao="esquerda">
-              <div style={{ aspectRatio: '9/16', background: 'var(--color-surface-soft)', borderRadius: '5px', overflow: 'hidden', height: '100%' }}>
-                <PlaceholderImagem style={{ height: '100%' }} />
+          <div className={estilos.blocoCentralizado}>
+            <AnimacaoEntrada direcao="baixo">
+              <h2 className={estilos.tituloSecao} style={{ textAlign: "center", marginBottom: "var(--space-16)" }}>Quem Somos</h2>
+            </AnimacaoEntrada>
+          </div>
+          
+          <div className={estilos.gradeTres}>
+            <AnimacaoEntrada direcao="cima" atraso={0.1}>
+              <div className={estilos.cardValor}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Missão</h3>
+                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                  Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
+                </p>
               </div>
             </AnimacaoEntrada>
-            
-            <AnimacaoEntrada direcao="cima" atraso={0.2} className={estilos.quemSomosConteudo}>
-              <h2 className={estilos.tituloSecao} style={{ marginBottom: 0 }}>Quem Somos</h2>
-              
-              <CarrosselQuemSomos />
 
-              <div>
-                <Botao href="/sobre">Nossa história e diretoria</Botao>
+            <AnimacaoEntrada direcao="cima" atraso={0.3}>
+              <div className={estilos.cardValor}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Visão</h3>
+                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                  Ser referência em Tratamento Conservador da Escoliose na América Latina.
+                </p>
+              </div>
+            </AnimacaoEntrada>
+
+            <AnimacaoEntrada direcao="cima" atraso={0.5}>
+              <div className={estilos.cardValor}>
+                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Valores</h3>
+                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                  Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
+                </p>
               </div>
             </AnimacaoEntrada>
           </div>

@@ -13,11 +13,6 @@
   gap: var(--space-64);
 }
 
-.quemSomosGrid {
-  display: grid;
-  gap: var(--space-64);
-}
-
 .gradeMeioAMeio {
   display: grid;
   gap: var(--space-64);
@@ -39,10 +34,6 @@
   .gradeLadoALado {
     grid-template-columns: 1fr 1fr;
     align-items: flex-start;
-  }
-  .quemSomosGrid {
-    grid-template-columns: 350px 1fr;
-    align-items: stretch;
   }
   .gradeMeioAMeio {
     grid-template-columns: 1fr 1fr;
@@ -74,14 +65,20 @@
   font-weight: 300;
   color: var(--color-primary);
 }
-
-.quemSomosConteudo {
+.cardValor {
+  background: var(--color-surface-soft);
+  padding: var(--space-32);
+  border-radius: 5px;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
+.cardValor:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
 .caixaFlutuante {
   position: absolute;
   inset: 0;
