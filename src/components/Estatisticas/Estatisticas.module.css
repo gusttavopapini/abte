@@ -15,6 +15,12 @@
   color: var(--color-text);
   border-radius: 5px;
   overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 /* Xadrez: 1º e 4º em #76ACF5, 2º e 3º em branco */
@@ -32,4 +38,5 @@
   color: var(--color-number);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
+  font-size: var(--font-size-h1); /* Aumentado a pedido */
 }
