@@ -13,7 +13,7 @@
 }
 
 .imagem {
-  height: 60px; /* Ajuste para o tamanho no header */
+  height: 90px; /* Tamanho aumentado conforme pedido */
   width: auto;
   object-fit: contain;
 }
