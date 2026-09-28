@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
 import estilos from "./page.module.css";
@@ -20,7 +20,23 @@ const PROFISSIONAIS_MOCK = [
 ];
 
 export function ProfissionaisClient() {
-  const [tagAtiva, setTagAtiva] = useState("Todos");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tagUrl = searchParams.get("tag");
+  const tagAtiva = tagUrl && TAGS.includes(tagUrl) ? tagUrl : "Todos";
+
+  const handleTagClick = (tag: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tag === "Todos") {
+      params.delete("tag");
+    } else {
+      params.set("tag", tag);
+    }
+    // Faz a atualização da URL silenciosamente sem scroll jump
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const profissionaisFiltrados = tagAtiva === "Todos" 
     ? PROFISSIONAIS_MOCK 
@@ -31,7 +47,7 @@ export function ProfissionaisClient() {
       <main className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.cabecalho}>
-            <h1 className={`tipo-display ${estilos.titulo}`}>Profissionais</h1>
+            <h1 className={`tipo-h1 ${estilos.titulo}`}>Profissionais</h1>
             <p className={`tipo-texto-xl ${estilos.descricao}`}>
               Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede.
             </p>
@@ -41,7 +57,7 @@ export function ProfissionaisClient() {
             {TAGS.map((tag) => (
               <button 
                 key={tag} 
-                onClick={() => setTagAtiva(tag)}
+                onClick={() => handleTagClick(tag)}
                 className={`${estilos.tag} ${tagAtiva === tag ? estilos.tagAtiva : ""}`}
               >
                 {tag}
