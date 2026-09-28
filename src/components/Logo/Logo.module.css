@@ -13,7 +13,7 @@
 }
 
 .imagem {
-  height: 180px; /* Tamanho extra grande conforme pedido */
+  height: 100px;
   width: auto;
   object-fit: contain;
 }
