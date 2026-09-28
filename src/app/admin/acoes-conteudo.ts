@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { bancoAdmin } from "@/lib/firebase/servidor";
+import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirSessaoDoPainel } from "@/lib/auth/sessao";
 
 export async function salvarPost(formData: FormData) {
@@ -22,7 +22,7 @@ export async function salvarPost(formData: FormData) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 
-  const db = bancoAdmin();
+  const db = firestoreAdmin();
   await db.collection("posts").add({
     titulo,
     imagem,
@@ -48,7 +48,7 @@ export async function salvarArtigo(formData: FormData) {
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
 
-  const db = bancoAdmin();
+  const db = firestoreAdmin();
   await db.collection("artigos").add({
     titulo,
     categoria,
