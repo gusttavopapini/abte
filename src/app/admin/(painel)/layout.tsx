@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+
 import { exigirSessaoDoPainel } from "@/lib/auth/sessao";
 import { LayoutPainel } from "../_componentes/LayoutPainel/LayoutPainel";
 import { EstruturaPainel } from "../_componentes/EstruturaPainel/EstruturaPainel";
@@ -18,7 +18,7 @@ export default async function LayoutAdminProtegido({ children }: { children: Rea
 
   // Se não estiver logado, o exigirSessaoDoPainel já redirecionou para /admin/entrar (verificado pelo middleware/função).
   // Porém a tipagem diz que pode ser sucesso.
-  if (resultado.situacao === "sucesso") {
+  if (resultado.situacao === "autorizado") {
     return (
       <LayoutPainel usuario={resultado.usuario}>
         {children}
