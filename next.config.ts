@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 const semIndexacao = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["firebase-admin", "jose", "jwks-rsa"],
+  serverExternalPackages: ["firebase-admin"],
+  transpilePackages: ["jwks-rsa", "jose"],
   // Não anuncia o framework no cabeçalho das respostas.
   poweredByHeader: false,
   async headers() {
