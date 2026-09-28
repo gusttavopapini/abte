@@ -67,15 +67,20 @@
 }
 
 .caixaFlutuante {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-64);
+  pointer-events: none; /* Deixa clicar na imagem através do wrapper flex se precisar */
+}
+
+.caixaFlutuanteConteudo {
   background: var(--color-bg);
   padding: 35px;
   max-width: 500px;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: var(--space-64);
   border-radius: 5px;
-  overflow: hidden;
+  pointer-events: auto; /* Reativa os cliques */
 }
 
 .contatoGrid {

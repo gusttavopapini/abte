@@ -121,15 +121,17 @@ export default function PaginaInicial() {
         <section className={estilos.secao} style={{ paddingBottom: 0 }}>
           <div style={{ position: "relative", width: "100%", height: "600px", overflow: "hidden" }}>
             <PlaceholderImagem />
-            <AnimacaoEntrada className={estilos.caixaFlutuante} direcao="cima" atraso={0.3}>
-              <h2 className={estilos.tituloSecao} style={{ marginBottom: "var(--space-16)" }}>Faça parte dessa rede</h2>
-              <p className="tipo-texto-lg" style={{ fontWeight: 300, marginBottom: "var(--space-32)" }}>
-                Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
-              </p>
-              <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
-                <Botao href="/seja-associado">Quero me associar</Botao>
-              </div>
-            </AnimacaoEntrada>
+            <div className={estilos.caixaFlutuante}>
+              <AnimacaoEntrada className={estilos.caixaFlutuanteConteudo} direcao="cima" atraso={0.3}>
+                <h2 className={estilos.tituloSecao} style={{ marginBottom: "var(--space-16)" }}>Faça parte dessa rede</h2>
+                <p className="tipo-texto-lg" style={{ fontWeight: 300, marginBottom: "var(--space-32)" }}>
+                  Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
+                </p>
+                <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
+                  <Botao href="/seja-associado">Quero me associar</Botao>
+                </div>
+              </AnimacaoEntrada>
+            </div>
           </div>
         </section>
 
