@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { Botao } from "@/components/Botao/Botao";
 
@@ -67,7 +68,9 @@ export default async function PaginaAdminArtigos() {
                     </span>
                   </td>
                   <td style={{ padding: "var(--space-16) 0" }}>
-                    <span style={{ opacity: 0.5, fontSize: "14px" }}>Editar (em breve)</span>
+                    <Link href={`/admin/artigos/editar/${artigo.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>
+                      Editar
+                    </Link>
                   </td>
                 </tr>
               ))

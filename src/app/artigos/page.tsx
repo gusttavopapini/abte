@@ -3,8 +3,10 @@ import { CardCategoriaArtigo } from "@/components/CardCategoriaArtigo/CardCatego
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { firestoreAdmin } from "@/lib/firebase/servidor";
 
 export const metadata = { title: "Artigos Científicos | ABTE" };
+export const dynamic = "force-dynamic";
 
 const CATEGORIAS_MOCK = [
   { slug: "fisioterapia", nome: "Fisioterapia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
@@ -15,13 +17,27 @@ const CATEGORIAS_MOCK = [
   { slug: "exercicios", nome: "Exercícios Específicos", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
 ];
 
-const ARTIGOS_MOCK = [
-  { slug: "artigo-1", titulo: "Indicações da técnica Vertebral Body Tethering (VBT)", resumo: "O Vertebral Body Tethering ou VBT é uma técnica cirúrgica para o tratamento das escolioses idiopáticas que preserva a mobilidade da coluna. A técnica tem como princípio...", autor: "Dr. João Silva", data: "25 Set 2026" },
-  { slug: "artigo-2", titulo: "Reabilitação pós-artrodese na escoliose idiopática do adolescente", resumo: "O cenário clínico: A Escoliose Idiopática do Adolescente (EIA) é uma alteração estrutural tridimensional da coluna vertebral, de origem multifatorial, diagnosticada quando a...", autor: "Fisio. Maria Costa", data: "20 Set 2026" },
-  { slug: "artigo-3", titulo: "Entendendo a fisiologia do tratamento postural", resumo: "As fibras musculares podem mudar? O que a ciência realmente diz sobre adaptação muscular e reeducação postural: uma revisão da literatura. Resumo: Durante mui...", autor: "Dr. Pedro Santos", data: "15 Set 2026" },
-];
+export default async function PaginaArtigos() {
+  const db = firestoreAdmin();
+  const snapshot = await db.collection("artigos")
+    .orderBy("criadoEm", "desc")
+    .get();
 
-export default function PaginaArtigos() {
+  const artigos = snapshot.docs
+    .map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        titulo: data.titulo || "Sem título",
+        resumo: data.resumo || "",
+        autor: data.autores || "Autor Desconhecido",
+        data: data.criadoEm?.toDate ? data.criadoEm.toDate().toLocaleDateString("pt-BR") : "",
+        slug: doc.id,
+        status: data.status,
+      };
+    })
+    .filter(artigo => artigo.status === "publicado");
+
   return (
     <LayoutPublico header="solida">
       <main className={estilos.secao}>
@@ -71,16 +87,20 @@ export default function PaginaArtigos() {
             </header>
 
             <div className={estilos.gradeTres}>
-              {ARTIGOS_MOCK.map((artigo) => (
-                <CardArtigo 
-                  key={artigo.slug}
-                  titulo={artigo.titulo}
-                  resumo={artigo.resumo}
-                  autor={artigo.autor}
-                  data={artigo.data}
-                  slug={artigo.slug}
-                />
-              ))}
+              {artigos.length === 0 ? (
+                <p style={{ gridColumn: "1 / -1", opacity: 0.6 }}>Nenhum artigo publicado ainda.</p>
+              ) : (
+                artigos.map((artigo) => (
+                  <CardArtigo 
+                    key={artigo.slug}
+                    titulo={artigo.titulo}
+                    resumo={artigo.resumo}
+                    autor={artigo.autor}
+                    data={artigo.data}
+                    slug={artigo.slug}
+                  />
+                ))
+              )}
             </div>
           </div>
         </section>

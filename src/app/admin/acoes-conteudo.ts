@@ -65,3 +65,69 @@ export async function salvarArtigo(formData: FormData) {
   revalidatePath("/admin/artigos");
   redirect("/admin/artigos");
 }
+
+export async function atualizarPost(formData: FormData) {
+  await exigirSessaoDoPainel();
+
+  const id = formData.get("id")?.toString();
+  if (!id) throw new Error("ID não fornecido");
+
+  const titulo = formData.get("titulo")?.toString() || "";
+  const imagem = formData.get("imagem")?.toString() || "";
+  const conteudo = formData.get("conteudo")?.toString() || "";
+  const acao = formData.get("acao")?.toString();
+  
+  const status = acao === "publicar" ? "publicado" : "rascunho";
+  
+  const slug = titulo
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+  const db = firestoreAdmin();
+  await db.collection("posts").doc(id).update({
+    titulo,
+    imagem,
+    conteudo,
+    status,
+    slug,
+    atualizadoEm: new Date(),
+  });
+
+  revalidatePath("/admin/blog");
+  revalidatePath("/blog");
+  redirect("/admin/blog");
+}
+
+export async function atualizarArtigo(formData: FormData) {
+  await exigirSessaoDoPainel();
+
+  const id = formData.get("id")?.toString();
+  if (!id) throw new Error("ID não fornecido");
+
+  const titulo = formData.get("titulo")?.toString() || "";
+  const categoria = formData.get("categoria")?.toString() || "";
+  const autores = formData.get("autores")?.toString() || "";
+  const link = formData.get("link")?.toString() || "";
+  const resumo = formData.get("resumo")?.toString() || "";
+  const acao = formData.get("acao")?.toString();
+  
+  const status = acao === "publicar" ? "publicado" : "rascunho";
+
+  const db = firestoreAdmin();
+  await db.collection("artigos").doc(id).update({
+    titulo,
+    categoria,
+    autores,
+    link,
+    resumo,
+    status,
+    atualizadoEm: new Date(),
+  });
+
+  revalidatePath("/admin/artigos");
+  revalidatePath("/artigos");
+  redirect("/admin/artigos");
+}
