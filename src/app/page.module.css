@@ -13,6 +13,11 @@
   gap: var(--space-64);
 }
 
+.quemSomosGrid {
+  display: grid;
+  gap: var(--space-64);
+}
+
 .gradeMeioAMeio {
   display: grid;
   gap: var(--space-64);
@@ -34,6 +39,10 @@
   .gradeLadoALado {
     grid-template-columns: 1fr 1fr;
     align-items: flex-start;
+  }
+  .quemSomosGrid {
+    grid-template-columns: 350px 1fr;
+    align-items: stretch;
   }
   .gradeMeioAMeio {
     grid-template-columns: 1fr 1fr;
@@ -64,6 +73,13 @@
   margin-bottom: var(--space-32);
   font-weight: 300;
   color: var(--color-primary);
+}
+
+.quemSomosConteudo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 
 .caixaFlutuante {

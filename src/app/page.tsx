@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero/Hero";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { AnimacaoEntrada } from "@/components/AnimacaoEntrada/AnimacaoEntrada";
+import { CarrosselQuemSomos } from "@/components/CarrosselQuemSomos/CarrosselQuemSomos";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -85,29 +86,19 @@ export default function PaginaInicial() {
 
         {/* 4. Who We Are / Missão, Visão e Valores (Side-by-side) */}
         <section className={`container ${estilos.secao}`}>
-          <div className={estilos.gradeLadoALado}>
+          <div className={estilos.quemSomosGrid}>
+            
             <AnimacaoEntrada direcao="esquerda">
-              <h2 className={estilos.tituloSecao}>Quem Somos</h2>
+              <div style={{ aspectRatio: '9/16', background: 'var(--color-surface-soft)', borderRadius: '5px', overflow: 'hidden', height: '100%' }}>
+                <PlaceholderImagem style={{ height: '100%' }} />
+              </div>
             </AnimacaoEntrada>
-            <AnimacaoEntrada direcao="cima" atraso={0.2}>
-              <div style={{ marginBottom: "var(--space-32)" }}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Missão</h3>
-                <p style={{ fontWeight: 300 }}>
-                  Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
-                </p>
-              </div>
-              <div style={{ marginBottom: "var(--space-32)" }}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Visão</h3>
-                <p style={{ fontWeight: 300 }}>
-                  Ser referência em Tratamento Conservador da Escoliose na América Latina.
-                </p>
-              </div>
-              <div style={{ marginBottom: "var(--space-32)" }}>
-                <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-8)" }}>Valores</h3>
-                <p style={{ fontWeight: 300 }}>
-                  Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
-                </p>
-              </div>
+            
+            <AnimacaoEntrada direcao="cima" atraso={0.2} className={estilos.quemSomosConteudo}>
+              <h2 className={estilos.tituloSecao} style={{ marginBottom: 0 }}>Quem Somos</h2>
+              
+              <CarrosselQuemSomos />
+
               <div>
                 <Botao href="/sobre">Nossa história e diretoria</Botao>
               </div>
