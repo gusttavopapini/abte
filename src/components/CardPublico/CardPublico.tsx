@@ -5,7 +5,6 @@ import estilos from "./CardPublico.module.css";
 
 type PropsCard = {
   letra: "A" | "B";
-  frase: ReactNode;
   titulo: ReactNode;
   texto: ReactNode;
   botao: { rotulo: string; href: string };
@@ -13,7 +12,7 @@ type PropsCard = {
 
 // Cards de público [A] e [B] (design-system.md seção 8.3).
 // Agora usam ícones em vez da letra.
-export function CardPublico({ letra, frase, titulo, texto, botao }: PropsCard) {
+export function CardPublico({ letra, titulo, texto, botao }: PropsCard) {
   const destaque = letra === "A";
   const classeTopo = "tipo-texto";
   return (
@@ -24,7 +23,6 @@ export function CardPublico({ letra, frase, titulo, texto, botao }: PropsCard) {
         ) : (
           <IconeEstetoscopio className={estilos.iconeDestaque} />
         )}
-        <p className={estilos.frase}>{frase}</p>
       </div>
       <div className={estilos.meio}>
         <h3 className="tipo-texto-xl">{titulo}</h3>

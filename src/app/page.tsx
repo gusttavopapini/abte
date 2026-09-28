@@ -47,7 +47,6 @@ export default function PaginaInicial() {
             <AnimacaoEntrada atraso={0.2}>
               <CardPublico
                 letra="A"
-                frase="Quero cuidar da minha coluna ou da do meu filho."
                 titulo="Para pacientes e famílias"
                 texto="Encontre profissionais capacitados para o tratamento da escoliose perto de você e tenha acesso a materiais informativos de alta qualidade."
                 botao={{ rotulo: "Encontre um profissional", href: "/profissionais" }}
@@ -56,7 +55,6 @@ export default function PaginaInicial() {
             <AnimacaoEntrada atraso={0.4}>
               <CardPublico
                 letra="B"
-                frase="Quero me especializar e fazer parte da rede."
                 titulo="Para profissionais de saúde"
                 texto="Junte-se à Associação. Faça parte de uma rede de especialistas qualificados e ajude a transformar a vida de pessoas com escoliose."
                 botao={{ rotulo: "Seja associado", href: "/seja-associado" }}
