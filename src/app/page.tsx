@@ -91,7 +91,14 @@ export default function PaginaInicial() {
             </AnimacaoEntrada>
           </div>
           
-          <div className={estilos.gradeTres}>
+          <div className={estilos.gradeQuatro}>
+            {/* O Vídeo atuando como 1º card */}
+            <AnimacaoEntrada direcao="esquerda">
+              <div style={{ aspectRatio: '9/16', background: 'var(--color-surface-soft)', borderRadius: '5px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <PlaceholderImagem style={{ flex: 1, minHeight: '100%' }} />
+              </div>
+            </AnimacaoEntrada>
+
             <AnimacaoEntrada direcao="cima" atraso={0.1}>
               <div className={estilos.cardValor}>
                 <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, marginBottom: "var(--space-16)" }}>Missão</h3>

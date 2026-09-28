@@ -30,6 +30,12 @@
   margin-top: var(--space-32);
 }
 
+.gradeQuatro {
+  display: grid;
+  gap: var(--space-32);
+  margin-top: var(--space-32);
+}
+
 @media (min-width: 768px) {
   .gradeLadoALado {
     grid-template-columns: 1fr 1fr;
@@ -44,6 +50,15 @@
   }
   .gradeTres {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .gradeQuatro {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gradeQuatro {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
