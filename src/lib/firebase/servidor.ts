@@ -3,15 +3,13 @@
 // qualquer código que vá para o navegador.
 import "server-only";
 
-import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth, type Auth } from "firebase-admin/auth";
-import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import * as admin from "firebase-admin";
 
 const NOME_APP = "abte-servidor";
 
-function obterApp(): App {
-  const existente = getApps().find((app) => app.name === NOME_APP);
-  if (existente) return getApp(NOME_APP);
+function obterApp(): admin.app.App {
+  const existente = admin.apps.find((app) => app && app.name === NOME_APP);
+  if (existente) return admin.app(NOME_APP);
 
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
@@ -27,14 +25,13 @@ function obterApp(): App {
     );
   }
 
-  return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), projectId }, NOME_APP);
+  return admin.initializeApp({ credential: admin.credential.cert({ projectId, clientEmail, privateKey }), projectId }, NOME_APP);
 }
 
-export function authAdmin(): Auth {
-  return getAuth(obterApp());
+export function authAdmin(): admin.auth.Auth {
+  return admin.auth(obterApp());
 }
 
-// Ainda não usado na etapa 1; o modelo de dados chega na etapa 3.
-export function firestoreAdmin(): Firestore {
-  return getFirestore(obterApp());
+export function firestoreAdmin(): admin.firestore.Firestore {
+  return admin.firestore(obterApp());
 }
