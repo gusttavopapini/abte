@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Editar Artigo | Painel" };
 
-export default async function PaginaEditarArtigo({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function PaginaEditarArtigo({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const db = firestoreAdmin();
   const doc = await db.collection("artigos").doc(id).get();
   
