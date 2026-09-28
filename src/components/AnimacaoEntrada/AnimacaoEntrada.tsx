@@ -1,17 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { motion, type Variants } from "framer-motion";
+import type { ReactNode, CSSProperties } from "react";
 
 type Props = {
   children: ReactNode;
   atraso?: number;
   className?: string;
+  style?: CSSProperties;
   direcao?: "cima" | "baixo" | "esquerda" | "direita" | "nenhuma";
 };
 
-export function AnimacaoEntrada({ children, atraso = 0, className, direcao = "cima" }: Props) {
-  const variacoes = {
+export function AnimacaoEntrada({ children, atraso = 0, className, style, direcao = "cima" }: Props) {
+  const variacoes: Variants = {
     oculto: {
       opacity: 0,
       y: direcao === "cima" ? 30 : direcao === "baixo" ? -30 : 0,
@@ -36,6 +37,7 @@ export function AnimacaoEntrada({ children, atraso = 0, className, direcao = "ci
       viewport={{ once: true, margin: "-50px" }}
       variants={variacoes}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>

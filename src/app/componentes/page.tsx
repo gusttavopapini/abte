@@ -96,14 +96,12 @@ export default function PaginaComponentes() {
         <div className={estilos.duasColunas}>
           <CardPublico
             letra="A"
-            frase="[exemplo] Quero cuidar da minha coluna."
             titulo="[exemplo] Para pacientes e famílias"
             texto="[exemplo] Texto de apoio do card, com uma ou duas frases curtas."
             botao={{ rotulo: "Encontre um profissional", href: "/profissionais" }}
           />
           <CardPublico
             letra="B"
-            frase="[exemplo] Quero fazer parte da rede."
             titulo="[exemplo] Para profissionais de saúde"
             texto="[exemplo] Texto de apoio do card, com uma ou duas frases curtas."
             botao={{ rotulo: "Seja associado", href: "/seja-associado" }}
