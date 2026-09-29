@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlaceholderImagem } from "../PlaceholderImagem/PlaceholderImagem";
 import estilos from "./Hero.module.css";
 
@@ -22,6 +22,15 @@ export function Hero({ imagens = [], sobHeaderFixo }: PropsHero) {
   const anterior = () => {
     setSlideAtual((atual) => (atual === 0 ? imagensReais.length - 1 : atual - 1));
   };
+
+  // Passagem automática
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setSlideAtual((atual) => (atual + 1) % imagensReais.length);
+    }, 5000); // Muda a cada 5 segundos
+
+    return () => clearInterval(intervalo);
+  }, [imagensReais.length]);
 
   return (
     <section data-hero="" className={`${estilos.hero} ${sobHeaderFixo ? estilos.sobHeaderFixo : ""}`}>
