@@ -133,19 +133,10 @@ export default function PaginaComponentes() {
 
       <Secao titulo="Hero" largura="total">
         <Hero
-          elementoTitulo="p"
-          titulo="[exemplo] Título do hero em duas linhas"
-          cartao={{
-            texto: "[exemplo] Texto do cartão do hero, com uma ou duas frases.",
-            botoes: (
-              <>
-                <Botao href="/profissionais">Encontre um profissional</Botao>
-                <Botao href="/seja-associado" variante="secundario">
-                  Seja associado
-                </Botao>
-              </>
-            ),
-          }}
+          imagens={[
+            "https://picsum.photos/id/1018/1920/800",
+            "https://picsum.photos/id/1015/1920/800",
+          ]}
         />
       </Secao>
 
