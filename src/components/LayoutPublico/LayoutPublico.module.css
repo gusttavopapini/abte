@@ -6,16 +6,7 @@
   box-shadow: none;
 }
 
-.fim {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gutter);
+.rodapeGlobal {
   padding-top: var(--section-space);
   padding-bottom: var(--page-margin);
-}
-
-@media (max-width: 767px) {
-  .fim {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
