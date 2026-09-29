@@ -1,67 +1,97 @@
-/* Hero: foto sangrada de largura total (~1,18:1 em 1710px), H1 no topo à
-   esquerda e cartão branco no canto inferior esquerdo. */
+/* Hero: foto sangrada de largura total. */
 .hero {
   position: relative;
   display: flex;
-  aspect-ratio: 1.18;
-}
-
-.foto {
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 60vh; /* Altura padrão para hero */
+  min-height: 400px;
+  max-height: 600px;
   background: var(--color-bg-alt);
-}
-
-.sobHeaderFixo {
-  /* Altura do header fixo: botão de 56px mais o respiro vertical */
-  padding-top: calc(var(--button-height) + var(--space-16) * 2);
-}
-
-.conteudo {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-32);
-  padding-block: var(--page-margin);
-  height: 100%;
-  /* Garante que o container ocupa toda a altura */
-}
-
-.titulo {
-  margin-top: 20%;
-  max-width: 50%;
-  /* Limita a largura a metade da página */
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-heading);
-}
-
-.cartao {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-20);
-  width: calc((100% - var(--gutter) * 2) / 3);
-  padding: calc(var(--card-padding) + 15px);
-  background: var(--color-bg);
-  border-radius: 5px !important;
   overflow: hidden;
 }
 
-.botoes {
+.sobHeaderFixo {
+  /* Se precisar de espaço por causa de header transparente, embora
+     geralmente o hero transparente fique *por baixo* do header. */
+}
+
+.carrossel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.ativo {
+  z-index: 2;
+}
+
+/* Setas de navegação */
+.seta {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 2rem;
+  padding: 1rem;
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.3s;
+  border-radius: 5px;
+}
+
+.seta:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.setaEsquerda {
+  left: 20px;
+}
+
+.setaDireita {
+  right: 20px;
+}
+
+/* Contadores / Dots */
+.dotsContainer {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-20);
+  gap: 10px;
+  z-index: 3;
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  .cartao {
-    width: calc((100% - var(--gutter)) / 2);
-  }
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
-/* Celular: cartão na largura total menos a margem, ainda sobre a foto */
+.dotAtivo {
+  background: rgba(255, 255, 255, 1);
+}
+
 @media (max-width: 767px) {
-  .cartao {
-    width: 100%;
+  .hero {
+    height: 50vh;
+  }
+  .seta {
+    font-size: 1.5rem;
+    padding: 0.5rem;
   }
 }

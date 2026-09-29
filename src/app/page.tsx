@@ -19,20 +19,12 @@ export default function PaginaInicial() {
     <LayoutPublico header="transparente">
       {/* 1. Hero */}
       <Hero
-        titulo="ABTE. Informação confiável, profissionais certificados e apoio para pacientes e famílias."
         sobHeaderFixo
-        cartao={{
-          texto:
-            "Aqui você encontra conteúdos e profissionais referência nacional no tratamento conservador da escoliose. Base científica, excelência em atendimento e um olhar atento para quem vive essa jornada.",
-          botoes: (
-            <>
-              <Botao href="/profissionais">Conheça nossos membros</Botao>
-              <Botao href="/seja-associado" variante="secundario">
-                Seja associado
-              </Botao>
-            </>
-          ),
-        }}
+        imagens={[
+          "https://picsum.photos/id/1018/1920/800",
+          "https://picsum.photos/id/1015/1920/800",
+          "https://picsum.photos/id/1016/1920/800",
+        ]}
       />
 
       <main>
