@@ -46,7 +46,7 @@ export default async function PaginaArtigos() {
         <section className={estilos.hero}>
           <div className={`container ${estilos.heroGrid}`}>
             <div>
-               <h1 className={`tipo-display ${estilos.heroTitulo}`}>Artigos Científicos</h1>
+               <h1 className={`tipo-h1 ${estilos.heroTitulo}`}>Artigos Científicos</h1>
                <p className={`tipo-texto-lg ${estilos.heroDescricao}`}>
                  Acesse nosso acervo de publicações científicas, pesquisas e estudos de caso para aprofundar seu conhecimento sobre o tratamento da escoliose.
                </p>
