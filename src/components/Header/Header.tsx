@@ -24,21 +24,52 @@ type PropsHeader = {
 export function Header({ variante = "solida", demonstracao = false }: PropsHeader) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [heroSaiu, setHeroSaiu] = useState(false);
+  const [escondido, setEscondido] = useState(false);
+  const ultimoScroll = useRef(0);
+
   const headerRef = useRef<HTMLElement>(null);
   const hamburguerRef = useRef<HTMLButtonElement>(null);
   const idMenu = useId();
   const sufixo = demonstracao ? ", exemplo" : "";
 
+  // Lógica do hero transparente e esconder/mostrar no scroll
   useEffect(() => {
-    if (variante !== "transparente" || demonstracao) return;
-    const hero = document.querySelector("[data-hero]");
-    if (!hero) return;
-    const alturaHeader = headerRef.current?.offsetHeight ?? 0;
-    const observador = new IntersectionObserver(([entrada]) => setHeroSaiu(!entrada.isIntersecting), {
-      rootMargin: `-${alturaHeader}px 0px 0px 0px`,
-    });
-    observador.observe(hero);
-    return () => observador.disconnect();
+    if (demonstracao) return;
+
+    // Interseção do Hero
+    let observador: IntersectionObserver | null = null;
+    if (variante === "transparente") {
+      const hero = document.querySelector("[data-hero]");
+      if (hero) {
+        const alturaHeader = headerRef.current?.offsetHeight ?? 0;
+        observador = new IntersectionObserver(([entrada]) => setHeroSaiu(!entrada.isIntersecting), {
+          rootMargin: `-${alturaHeader}px 0px 0px 0px`,
+        });
+        observador.observe(hero);
+      }
+    }
+
+    // Controle do Scroll
+    const controlarScroll = () => {
+      const scrollAtual = window.scrollY;
+
+      // Se o scroll atual for maior que o último scroll E maior que a altura do header, esconde.
+      if (scrollAtual > ultimoScroll.current && scrollAtual > 80) {
+        setEscondido(true);
+      } else {
+        // Se rolou para cima ou está no topo, mostra.
+        setEscondido(false);
+      }
+
+      ultimoScroll.current = scrollAtual;
+    };
+
+    window.addEventListener("scroll", controlarScroll, { passive: true });
+
+    return () => {
+      if (observador) observador.disconnect();
+      window.removeEventListener("scroll", controlarScroll);
+    };
   }, [variante, demonstracao]);
 
   const fecharMenu = useCallback((devolverFoco = true) => {
@@ -51,6 +82,7 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
     estilos.header,
     variante === "transparente" ? estilos.transparente : estilos.solida,
     variante === "transparente" && heroSaiu ? estilos.comFundo : "",
+    escondido ? estilos.escondido : "",
     demonstracao ? estilos.demonstracao : "",
   ].join(" ");
 
