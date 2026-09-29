@@ -13,12 +13,12 @@
 .colunas {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-32);
+  gap: clamp(var(--space-32), 8vw, 120px);
 }
 
 .coluna {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   flex-direction: column;
   gap: var(--space-8);
 }
