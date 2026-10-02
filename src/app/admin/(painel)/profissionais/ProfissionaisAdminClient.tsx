@@ -5,7 +5,6 @@ import { Modal } from "@/components/Modal/Modal";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { Rotulo } from "@/components/Rotulo/Rotulo";
 import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
 
 type Profissional = {

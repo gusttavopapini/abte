@@ -10,14 +10,13 @@ type PropsCard = {
   botao: { rotulo: string; href: string };
 };
 
-// Cards de público [A] e [B] (design-system.md seção 8.3).
-// Agora usam ícones em vez da letra.
+// Cards de público [A] e [B] (design-system.md seção 8.3). A letra escolhe a
+// cor do card e o ícone do topo.
 export function CardPublico({ letra, titulo, texto, botao }: PropsCard) {
   const destaque = letra === "A";
-  const classeTopo = "tipo-texto";
   return (
     <article className={`${estilos.card} ${destaque ? estilos.a : estilos.b}`}>
-      <div className={`${estilos.topo} ${classeTopo}`}>
+      <div className={`${estilos.topo} tipo-texto`}>
         {letra === "A" ? (
           <IconeUsuarios className={estilos.iconeDestaque} />
         ) : (

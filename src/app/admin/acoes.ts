@@ -11,7 +11,7 @@ import { ehPapelDoPainel } from "@/lib/auth/papeis";
 
 const CAMINHO_COOKIE = "/admin";
 
-export type ResultadoLogin = { ok: true } | { ok: false; motivo: "nao-autorizado" | "erro" };
+type ResultadoLogin = { ok: true } | { ok: false; motivo: "nao-autorizado" | "erro" };
 
 // Troca o token do login (gerado no navegador) por um cookie de sessão
 // httpOnly. Só cria a sessão para quem tem papel no painel.

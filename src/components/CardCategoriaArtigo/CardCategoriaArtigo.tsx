@@ -1,4 +1,3 @@
-import Link from "next/link";
 import estilos from "./CardCategoriaArtigo.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { Botao } from "@/components/Botao/Botao";

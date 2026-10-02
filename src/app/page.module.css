@@ -68,13 +68,6 @@
   margin-inline: auto;
 }
 
-.botoesCentro {
-  display: flex;
-  gap: var(--space-16);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 .tituloSecao {
   margin-bottom: var(--space-32);
   font-weight: 300;
@@ -118,37 +111,3 @@
   pointer-events: auto; /* Reativa os cliques */
 }
 
-.contatoGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .contatoGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.contatoBox {
-  background: var(--color-surface-strong);
-  color: var(--color-on-primary);
-  padding: var(--page-margin);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-32);
-}
-
-.contatoInfo {
-  background: var(--color-surface-soft);
-  padding: var(--page-margin);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-32);
-}
-
-@media (min-width: 768px) {
-  .contatoBox,
-  .contatoInfo {
-    padding: var(--space-64);
-  }
-}

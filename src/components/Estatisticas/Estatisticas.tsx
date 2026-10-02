@@ -1,6 +1,6 @@
 import estilos from "./Estatisticas.module.css";
 
-export type Estatistica = { numero: string; legenda: string };
+type Estatistica = { numero: string; legenda: string };
 
 // Estatísticas (design-system.md seção 8.4): 4 cards em xadrez, alternando
 // #76ACF5 e branco. Legendas com 24px fixos (regra do #76ACF5).

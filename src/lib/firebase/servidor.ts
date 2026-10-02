@@ -4,7 +4,6 @@
 import "server-only";
 
 import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
-
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 const NOME_APP = "abte-servidor";
@@ -30,9 +29,7 @@ export function obterApp(): App {
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), projectId }, NOME_APP);
 }
 
-
-
-// Ainda não usado na etapa 1; o modelo de dados chega na etapa 3.
+// Firestore pelo Admin SDK: único caminho de acesso aos dados.
 export function firestoreAdmin(): Firestore {
   return getFirestore(obterApp());
 }

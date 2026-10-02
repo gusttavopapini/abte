@@ -27,17 +27,6 @@
   margin-bottom: var(--space-32);
 }
 
-.tituloGrupo {
-  padding: 0 var(--space-24);
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text);
-  margin-bottom: var(--space-16);
-  opacity: 0.7;
-}
-
 .listaMenu {
   list-style: none;
   padding: 0;

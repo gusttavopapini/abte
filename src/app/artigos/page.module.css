@@ -42,12 +42,6 @@
   background-color: var(--color-surface-soft);
 }
 
-.heroImagem {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 /* Categorias e Artigos */
 .bloco {
   padding-block: var(--section-space);

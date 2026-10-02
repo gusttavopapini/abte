@@ -14,7 +14,7 @@ type Erros = Partial<Record<"nome" | "sobrenome" | "email" | "consentimento", st
 const VAZIO: Valores = { nome: "", sobrenome: "", email: "", assunto: "", mensagem: "", consentimento: false };
 
 // Na página /componentes, mostra o bloco já com erro ou com sucesso.
-export type EstadoInicialContato = "padrao" | "erro" | "sucesso";
+type EstadoInicialContato = "padrao" | "erro" | "sucesso";
 
 // Ordem dos campos: o foco vai para o primeiro com erro.
 const ORDEM: (keyof Erros)[] = ["nome", "sobrenome", "email", "consentimento"];
