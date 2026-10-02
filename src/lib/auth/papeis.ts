@@ -9,7 +9,7 @@ export function ehPapelDoPainel(valor: unknown): valor is PapelDoPainel {
   return typeof valor === "string" && (PAPEIS_DO_PAINEL as readonly string[]).includes(valor);
 }
 
-export type DecisaoDeAcesso =
+type DecisaoDeAcesso =
   | { permitido: true; papel: PapelDoPainel }
   | { permitido: false; motivo: "sem-sessao" | "sem-papel" };
 
