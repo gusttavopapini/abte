@@ -2,42 +2,22 @@ import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
-
-type PostData = {
-  titulo?: string;
-  conteudo?: string;
-  imagem?: string;
-  status?: string;
-  criadoEm?: { toDate?: () => Date };
-};
+import { lerPosts } from "@/lib/dados/colecoes";
 
 export default async function PaginaPost({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const db = firestoreAdmin();
-  
-  let doc = await db.collection("posts").doc(resolvedParams.slug).get();
-  
-  if (!doc.exists) {
-    const querySnapshot = await db.collection("posts").where("slug", "==", resolvedParams.slug).limit(1).get();
-    if (!querySnapshot.empty) {
-      doc = querySnapshot.docs[0];
-    }
+  const { slug } = await params;
+
+  // Procura primeiro pelo id do documento e, se não achar, pelo campo slug.
+  let post = (await lerPosts().doc(slug).get()).data();
+  if (!post) {
+    const consulta = await lerPosts().where("slug", "==", slug).limit(1).get();
+    post = consulta.docs[0]?.data();
   }
 
-  if (!doc.exists) {
-    notFound();
-  }
+  // Inexistente ou rascunho: página não encontrada.
+  if (!post || post.status !== "publicado") notFound();
 
-  const post = doc.data() as PostData;
-  if (post.status !== "publicado") {
-    notFound(); // Se for rascunho, não exibe
-  }
-
-  let dataFormatada = "";
-  if (post.criadoEm?.toDate) {
-    dataFormatada = post.criadoEm.toDate().toLocaleDateString("pt-BR");
-  }
+  const dataFormatada = post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "";
 
   return (
     <LayoutPublico header="solida">

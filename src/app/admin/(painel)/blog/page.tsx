@@ -1,27 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerPosts } from "@/lib/dados/colecoes";
 import { Botao } from "@/components/Botao/Botao";
 
 export const metadata: Metadata = { title: "Blog" };
 
-type PostBlog = {
-  id: string;
-  titulo: string;
-  status: string;
-  criadoEm?: { toDate?: () => Date };
-};
-
 export default async function PaginaAdminBlog() {
   await exigirPapelDoPainel();
-  const db = firestoreAdmin();
-  const snapshot = await db.collection("posts").orderBy("criadoEm", "desc").get();
-  
-  const posts = snapshot.docs.map((doc: any) => ({
-    id: doc.id,
-    ...doc.data()
-  })) as PostBlog[];
+  const snapshot = await lerPosts().orderBy("criadoEm", "desc").get();
+  const posts = snapshot.docs.map((documento) => documento.data());
 
   return (
     <div>
@@ -51,7 +39,7 @@ export default async function PaginaAdminBlog() {
                 </td>
               </tr>
             ) : (
-              posts.map((post: PostBlog) => (
+              posts.map((post) => (
                 <tr key={post.id} style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" }}>
                   <td style={{ padding: "var(--space-16) 0", fontWeight: 500 }}>{post.titulo}</td>
                   <td style={{ padding: "var(--space-16) 0" }}>
@@ -68,7 +56,7 @@ export default async function PaginaAdminBlog() {
                     </span>
                   </td>
                   <td style={{ padding: "var(--space-16) 0", opacity: 0.8 }}>
-                    {post.criadoEm?.toDate ? post.criadoEm.toDate().toLocaleDateString("pt-BR") : "N/A"}
+                    {post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "N/A"}
                   </td>
                   <td style={{ padding: "var(--space-16) 0" }}>
                     <Link href={`/admin/blog/editar/${post.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>

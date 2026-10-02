@@ -1,32 +1,29 @@
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerPosts } from "@/lib/dados/colecoes";
 
 export const metadata = { title: "Blog" };
 
-// Opt-out of static rendering if you want real-time updates without redeploy:
+// Sempre lê o Firestore na hora: um post publicado aparece sem novo deploy.
 export const dynamic = "force-dynamic";
 
 export default async function PaginaBlog() {
-  const db = firestoreAdmin();
-  const snapshot = await db.collection("posts")
-    .orderBy("criadoEm", "desc")
-    .get();
+  const snapshot = await lerPosts().orderBy("criadoEm", "desc").get();
 
   const posts = snapshot.docs
-    .map((doc: any) => {
-      const data = doc.data();
+    .map((documento) => {
+      const post = documento.data();
       return {
-        id: doc.id,
-        titulo: data.titulo || "Sem título",
-        slug: data.slug || doc.id,
-        resumo: data.conteudo ? data.conteudo.substring(0, 120) + "..." : "",
-        imagemUrl: data.imagem || "https://placehold.co/600x400/e2e8f0/1e3a8a",
-        status: data.status,
+        id: post.id,
+        titulo: post.titulo || "Sem título",
+        slug: post.slug || post.id,
+        resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
+        imagemUrl: post.imagem || "https://placehold.co/600x400/e2e8f0/1e3a8a",
+        status: post.status,
       };
     })
-    .filter((post: any) => post.status === "publicado");
+    .filter((post) => post.status === "publicado");
 
   return (
     <LayoutPublico header="solida">

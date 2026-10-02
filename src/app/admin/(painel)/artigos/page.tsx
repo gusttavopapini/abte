@@ -1,28 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerArtigos } from "@/lib/dados/colecoes";
 import { Botao } from "@/components/Botao/Botao";
 
 export const metadata: Metadata = { title: "Artigos" };
 
-type ArtigoCatalogo = {
-  id: string;
-  titulo: string;
-  categoria: string;
-  status: string;
-  criadoEm?: { toDate?: () => Date };
-};
-
 export default async function PaginaAdminArtigos() {
   await exigirPapelDoPainel();
-  const db = firestoreAdmin();
-  const snapshot = await db.collection("artigos").orderBy("criadoEm", "desc").get();
-  
-  const artigos = snapshot.docs.map((doc: any) => ({
-    id: doc.id,
-    ...doc.data()
-  })) as ArtigoCatalogo[];
+  const snapshot = await lerArtigos().orderBy("criadoEm", "desc").get();
+  const artigos = snapshot.docs.map((documento) => documento.data());
 
   return (
     <div>
@@ -52,7 +39,7 @@ export default async function PaginaAdminArtigos() {
                 </td>
               </tr>
             ) : (
-              artigos.map((artigo: ArtigoCatalogo) => (
+              artigos.map((artigo) => (
                 <tr key={artigo.id} style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" }}>
                   <td style={{ padding: "var(--space-16) 0", fontWeight: 500 }}>{artigo.titulo}</td>
                   <td style={{ padding: "var(--space-16) 0", opacity: 0.8, textTransform: "capitalize" }}>{artigo.categoria?.replace("-", " ")}</td>

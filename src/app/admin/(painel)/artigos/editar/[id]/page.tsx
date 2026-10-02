@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Botao } from "@/components/Botao/Botao";
 import { atualizarArtigo } from "@/app/admin/acoes-conteudo";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerArtigos } from "@/lib/dados/colecoes";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 
@@ -13,14 +13,8 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
   const { id } = await params;
   // Id inválido é tratado como registro inexistente: volta para a lista.
   if (!ehIdDeDocumentoValido(id)) redirect("/admin/artigos");
-  const db = firestoreAdmin();
-  const doc = await db.collection("artigos").doc(id).get();
-  
-  if (!doc.exists) {
-    redirect("/admin/artigos");
-  }
-
-  const artigo = doc.data();
+  const artigo = (await lerArtigos().doc(id).get()).data();
+  if (!artigo) redirect("/admin/artigos");
 
   return (
     <div>
@@ -38,7 +32,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
             type="text" 
             id="titulo" 
             name="titulo" 
-            defaultValue={artigo?.titulo}
+            defaultValue={artigo.titulo}
             placeholder="Ex: The effect of bracing on scoliosis..."
             style={{ padding: "var(--space-12)", borderRadius: "5px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", background: "transparent", color: "var(--color-text)", width: "100%", fontSize: "var(--font-size-base)" }}
             required
@@ -50,7 +44,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
           <select 
             id="categoria" 
             name="categoria" 
-            defaultValue={artigo?.categoria}
+            defaultValue={artigo.categoria}
             style={{ padding: "var(--space-12)", borderRadius: "5px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", background: "var(--color-bg)", color: "var(--color-text)", width: "100%", fontSize: "var(--font-size-base)" }}
             required
           >
@@ -71,7 +65,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
             type="text" 
             id="autores" 
             name="autores" 
-            defaultValue={artigo?.autores}
+            defaultValue={artigo.autores}
             placeholder="Ex: Negrini et al., 2018"
             style={{ padding: "var(--space-12)", borderRadius: "5px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", background: "transparent", color: "var(--color-text)", width: "100%", fontSize: "var(--font-size-base)" }}
             required
@@ -84,7 +78,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
             type="text" 
             id="link" 
             name="link" 
-            defaultValue={artigo?.link}
+            defaultValue={artigo.link}
             placeholder="https://pubmed.ncbi.nlm.nih.gov/..."
             style={{ padding: "var(--space-12)", borderRadius: "5px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", background: "transparent", color: "var(--color-text)", width: "100%", fontSize: "var(--font-size-base)" }}
             required
@@ -96,7 +90,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
           <textarea 
             id="resumo" 
             name="resumo" 
-            defaultValue={artigo?.resumo}
+            defaultValue={artigo.resumo}
             rows={10}
             placeholder="Descreva brevemente os achados do artigo..."
             style={{ padding: "var(--space-12)", borderRadius: "5px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", background: "transparent", color: "var(--color-text)", width: "100%", fontSize: "var(--font-size-base)", resize: "vertical" }}

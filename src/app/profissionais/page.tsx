@@ -1,25 +1,21 @@
 import { Suspense } from "react";
+import { lerProfissionais } from "@/lib/dados/colecoes";
 import { ProfissionaisClient } from "./ProfissionaisClient";
-
-import { firestoreAdmin } from "@/lib/firebase/servidor";
 
 export const metadata = { title: "Profissionais" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaProfissionais() {
-  const db = firestoreAdmin();
-  const snapshot = await db.collection("profissionais")
-    .where("status", "==", "publicado")
-    .get();
+  const snapshot = await lerProfissionais().where("status", "==", "publicado").get();
 
-  const profissionais = snapshot.docs.map(doc => {
-    const data = doc.data();
+  const profissionais = snapshot.docs.map((documento) => {
+    const profissional = documento.data();
     return {
-      nome: data.nome || "",
-      especialidade: data.especialidade || "",
-      tag: data.tag || "Outros",
-      linkedinUrl: data.linkedinUrl || "",
-      imagemUrl: data.imagemUrl || "",
+      nome: profissional.nome,
+      especialidade: profissional.especialidade,
+      tag: profissional.tag || "Outros",
+      linkedinUrl: profissional.linkedinUrl,
+      imagemUrl: profissional.imagemUrl,
     };
   });
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { type ReactNode, useEffect } from "react";
 import estilos from "./Modal.module.css";
 
@@ -27,7 +29,7 @@ export function Modal({ aberto, aoFechar, titulo, children }: PropsModal) {
       <div className={estilos.modal} onClick={(e) => e.stopPropagation()}>
         <header className={estilos.cabecalho}>
           <h2 className={estilos.titulo}>{titulo}</h2>
-          <button className={estilos.botaoFechar} onClick={aoFechar} aria-label="Fechar">
+          <button type="button" className={estilos.botaoFechar} onClick={aoFechar} aria-label="Fechar">
             &times;
           </button>
         </header>

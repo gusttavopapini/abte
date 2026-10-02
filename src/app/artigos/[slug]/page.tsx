@@ -2,43 +2,22 @@ import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
-
-type ArtigoData = {
-  titulo?: string;
-  resumo?: string;
-  autores?: string;
-  link?: string;
-  status?: string;
-  criadoEm?: { toDate?: () => Date };
-};
+import { lerArtigos } from "@/lib/dados/colecoes";
 
 export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const db = firestoreAdmin();
-  
-  let doc = await db.collection("artigos").doc(resolvedParams.slug).get();
-  
-  if (!doc.exists) {
-    const querySnapshot = await db.collection("artigos").where("slug", "==", resolvedParams.slug).limit(1).get();
-    if (!querySnapshot.empty) {
-      doc = querySnapshot.docs[0];
-    }
+  const { slug } = await params;
+
+  // Procura primeiro pelo id do documento e, se não achar, pelo campo slug.
+  let artigo = (await lerArtigos().doc(slug).get()).data();
+  if (!artigo) {
+    const consulta = await lerArtigos().where("slug", "==", slug).limit(1).get();
+    artigo = consulta.docs[0]?.data();
   }
 
-  if (!doc.exists) {
-    notFound();
-  }
+  // Inexistente ou rascunho: página não encontrada.
+  if (!artigo || artigo.status !== "publicado") notFound();
 
-  const artigo = doc.data() as ArtigoData;
-  if (artigo.status !== "publicado") {
-    notFound(); // Se for rascunho, não exibe
-  }
-
-  let dataFormatada = "";
-  if (artigo.criadoEm?.toDate) {
-    dataFormatada = artigo.criadoEm.toDate().toLocaleDateString("pt-BR");
-  }
+  const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
 
   return (
     <LayoutPublico header="solida">

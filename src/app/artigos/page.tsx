@@ -3,7 +3,7 @@ import { CardCategoriaArtigo } from "@/components/CardCategoriaArtigo/CardCatego
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
-import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerArtigos } from "@/lib/dados/colecoes";
 
 export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
@@ -18,25 +18,22 @@ const CATEGORIAS_MOCK = [
 ];
 
 export default async function PaginaArtigos() {
-  const db = firestoreAdmin();
-  const snapshot = await db.collection("artigos")
-    .orderBy("criadoEm", "desc")
-    .get();
+  const snapshot = await lerArtigos().orderBy("criadoEm", "desc").get();
 
   const artigos = snapshot.docs
-    .map((doc: any) => {
-      const data = doc.data();
+    .map((documento) => {
+      const artigo = documento.data();
       return {
-        id: doc.id,
-        titulo: data.titulo || "Sem título",
-        resumo: data.resumo || "",
-        autor: data.autores || "Autor Desconhecido",
-        data: data.criadoEm?.toDate ? data.criadoEm.toDate().toLocaleDateString("pt-BR") : "",
-        slug: doc.id,
-        status: data.status,
+        id: artigo.id,
+        titulo: artigo.titulo || "Sem título",
+        resumo: artigo.resumo,
+        autor: artigo.autores || "Autor Desconhecido",
+        data: artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "",
+        slug: artigo.id,
+        status: artigo.status,
       };
     })
-    .filter((artigo: any) => artigo.status === "publicado");
+    .filter((artigo) => artigo.status === "publicado");
 
   return (
     <LayoutPublico header="solida">

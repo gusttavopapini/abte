@@ -6,17 +6,9 @@ import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
+import type { Profissional as ProfissionalDoBanco } from "@/lib/dados/tipos";
 
-type Profissional = {
-  id: string;
-  nome: string;
-  especialidade: string;
-  tag: string;
-  linkedinUrl: string;
-  imagemUrl: string;
-  status: string;
-  criadoEm?: { toDate?: () => Date };
-};
+type Profissional = Omit<ProfissionalDoBanco, "criadoEm" | "atualizadoEm">;
 
 type Props = {
   profissionaisIniciais: Profissional[];
