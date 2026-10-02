@@ -3,15 +3,35 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import { exigirSessaoDoPainel } from "@/lib/auth/sessao";
+import { exigirPapelDoPainel } from "@/lib/auth/sessao";
+import { ehIdDeDocumentoValido, lerTextoDoFormulario } from "@/lib/validacao";
+
+// Limites de tamanho dos campos curtos. Textos longos (conteúdo e resumo) não
+// têm limite aqui.
+const LIMITE_TITULO = 200;
+const LIMITE_URL = 2048;
+const LIMITE_CATEGORIA = 60;
+const LIMITE_AUTORES = 300;
+const LIMITE_NOME = 120;
+const LIMITE_ESPECIALIDADE = 120;
+const LIMITE_TAG = 40;
+const LIMITE_ACAO = 20;
+
+// Lê o id do documento enviado pelo formulário e recusa qualquer valor que não
+// seja um id válido do Firestore.
+function lerIdDoFormulario(dados: FormData): string {
+  const id = dados.get("id");
+  if (!ehIdDeDocumentoValido(id)) throw new Error("Registro não encontrado.");
+  return id;
+}
 
 export async function salvarPost(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const titulo = formData.get("titulo")?.toString() || "";
-  const imagem = formData.get("imagem")?.toString() || "";
-  const conteudo = formData.get("conteudo")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const titulo = lerTextoDoFormulario(formData, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
+  const imagem = lerTextoDoFormulario(formData, "imagem", { rotulo: "Imagem de capa", limite: LIMITE_URL });
+  const conteudo = lerTextoDoFormulario(formData, "conteudo", { rotulo: "Conteúdo" });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
   
@@ -39,14 +59,14 @@ export async function salvarPost(formData: FormData) {
 }
 
 export async function salvarArtigo(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const titulo = formData.get("titulo")?.toString() || "";
-  const categoria = formData.get("categoria")?.toString() || "";
-  const autores = formData.get("autores")?.toString() || "";
-  const link = formData.get("link")?.toString() || "";
-  const resumo = formData.get("resumo")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const titulo = lerTextoDoFormulario(formData, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
+  const categoria = lerTextoDoFormulario(formData, "categoria", { rotulo: "Categoria", limite: LIMITE_CATEGORIA });
+  const autores = lerTextoDoFormulario(formData, "autores", { rotulo: "Autores", limite: LIMITE_AUTORES });
+  const link = lerTextoDoFormulario(formData, "link", { rotulo: "Link", limite: LIMITE_URL });
+  const resumo = lerTextoDoFormulario(formData, "resumo", { rotulo: "Resumo" });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
 
@@ -67,15 +87,14 @@ export async function salvarArtigo(formData: FormData) {
 }
 
 export async function atualizarPost(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const id = formData.get("id")?.toString();
-  if (!id) throw new Error("ID não fornecido");
+  const id = lerIdDoFormulario(formData);
 
-  const titulo = formData.get("titulo")?.toString() || "";
-  const imagem = formData.get("imagem")?.toString() || "";
-  const conteudo = formData.get("conteudo")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const titulo = lerTextoDoFormulario(formData, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
+  const imagem = lerTextoDoFormulario(formData, "imagem", { rotulo: "Imagem de capa", limite: LIMITE_URL });
+  const conteudo = lerTextoDoFormulario(formData, "conteudo", { rotulo: "Conteúdo" });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
   
@@ -102,17 +121,16 @@ export async function atualizarPost(formData: FormData) {
 }
 
 export async function atualizarArtigo(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const id = formData.get("id")?.toString();
-  if (!id) throw new Error("ID não fornecido");
+  const id = lerIdDoFormulario(formData);
 
-  const titulo = formData.get("titulo")?.toString() || "";
-  const categoria = formData.get("categoria")?.toString() || "";
-  const autores = formData.get("autores")?.toString() || "";
-  const link = formData.get("link")?.toString() || "";
-  const resumo = formData.get("resumo")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const titulo = lerTextoDoFormulario(formData, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
+  const categoria = lerTextoDoFormulario(formData, "categoria", { rotulo: "Categoria", limite: LIMITE_CATEGORIA });
+  const autores = lerTextoDoFormulario(formData, "autores", { rotulo: "Autores", limite: LIMITE_AUTORES });
+  const link = lerTextoDoFormulario(formData, "link", { rotulo: "Link", limite: LIMITE_URL });
+  const resumo = lerTextoDoFormulario(formData, "resumo", { rotulo: "Resumo" });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
 
@@ -133,14 +151,14 @@ export async function atualizarArtigo(formData: FormData) {
 }
 
 export async function salvarProfissional(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const nome = formData.get("nome")?.toString() || "";
-  const especialidade = formData.get("especialidade")?.toString() || "";
-  const tag = formData.get("tag")?.toString() || "";
-  const linkedinUrl = formData.get("linkedinUrl")?.toString() || "";
-  const imagemUrl = formData.get("imagemUrl")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const nome = lerTextoDoFormulario(formData, "nome", { rotulo: "Nome", limite: LIMITE_NOME });
+  const especialidade = lerTextoDoFormulario(formData, "especialidade", { rotulo: "Especialidade", limite: LIMITE_ESPECIALIDADE });
+  const tag = lerTextoDoFormulario(formData, "tag", { rotulo: "Tag", limite: LIMITE_TAG });
+  const linkedinUrl = lerTextoDoFormulario(formData, "linkedinUrl", { rotulo: "URL do LinkedIn", limite: LIMITE_URL });
+  const imagemUrl = lerTextoDoFormulario(formData, "imagemUrl", { rotulo: "URL da foto", limite: LIMITE_URL });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
 
@@ -162,17 +180,16 @@ export async function salvarProfissional(formData: FormData) {
 }
 
 export async function atualizarProfissional(formData: FormData) {
-  await exigirSessaoDoPainel();
+  await exigirPapelDoPainel();
 
-  const id = formData.get("id")?.toString();
-  if (!id) throw new Error("ID não fornecido");
+  const id = lerIdDoFormulario(formData);
 
-  const nome = formData.get("nome")?.toString() || "";
-  const especialidade = formData.get("especialidade")?.toString() || "";
-  const tag = formData.get("tag")?.toString() || "";
-  const linkedinUrl = formData.get("linkedinUrl")?.toString() || "";
-  const imagemUrl = formData.get("imagemUrl")?.toString() || "";
-  const acao = formData.get("acao")?.toString();
+  const nome = lerTextoDoFormulario(formData, "nome", { rotulo: "Nome", limite: LIMITE_NOME });
+  const especialidade = lerTextoDoFormulario(formData, "especialidade", { rotulo: "Especialidade", limite: LIMITE_ESPECIALIDADE });
+  const tag = lerTextoDoFormulario(formData, "tag", { rotulo: "Tag", limite: LIMITE_TAG });
+  const linkedinUrl = lerTextoDoFormulario(formData, "linkedinUrl", { rotulo: "URL do LinkedIn", limite: LIMITE_URL });
+  const imagemUrl = lerTextoDoFormulario(formData, "imagemUrl", { rotulo: "URL da foto", limite: LIMITE_URL });
+  const acao = lerTextoDoFormulario(formData, "acao", { rotulo: "Ação", limite: LIMITE_ACAO });
   
   const status = acao === "publicar" ? "publicado" : "rascunho";
 
@@ -192,8 +209,9 @@ export async function atualizarProfissional(formData: FormData) {
   return { sucesso: true };
 }
 
-export async function excluirProfissional(id: string) {
-  await exigirSessaoDoPainel();
+export async function excluirProfissional(id: unknown) {
+  await exigirPapelDoPainel();
+  if (!ehIdDeDocumentoValido(id)) throw new Error("Registro não encontrado.");
 
   const db = firestoreAdmin();
   await db.collection("profissionais").doc(id).delete();

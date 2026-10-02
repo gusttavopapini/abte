@@ -10,6 +10,7 @@
     "lint:css": "stylelint \"src/**/*.css\"",
     "typecheck": "tsc --noEmit",
     "test:regras": "firebase emulators:exec --only firestore --project demo-abte-regras 'node --test testes/regras/*.test.mts'",
+    "test:unidade": "node --test testes/unidade/*.test.mts",
     "admin:conceder": "node --env-file=.env.local scripts/conceder-administrador.mts"
   },
   "dependencies": {

@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { Botao } from "@/components/Botao/Botao";
 import { atualizarPost } from "@/app/admin/acoes-conteudo";
+import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Editar Post | Blog | Painel" };
 
 export default async function PaginaEditarPost({ params }: { params: Promise<{ id: string }> }) {
+  await exigirPapelDoPainel();
   const { id } = await params;
+  // Id inválido é tratado como registro inexistente: volta para a lista.
+  if (!ehIdDeDocumentoValido(id)) redirect("/admin/blog");
   const db = firestoreAdmin();
   const doc = await db.collection("posts").doc(id).get();
   

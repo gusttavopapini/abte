@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { Botao } from "@/components/Botao/Botao";
 
@@ -14,6 +15,7 @@ type ArtigoCatalogo = {
 };
 
 export default async function PaginaAdminArtigos() {
+  await exigirPapelDoPainel();
   const db = firestoreAdmin();
   const snapshot = await db.collection("artigos").orderBy("criadoEm", "desc").get();
   
