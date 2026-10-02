@@ -3,7 +3,7 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { ProfissionaisAdminClient } from "./ProfissionaisAdminClient";
 
-export const metadata: Metadata = { title: "Profissionais | Painel" };
+export const metadata: Metadata = { title: "Profissionais" };
 
 export default async function PaginaAdminProfissionais() {
   await exigirPapelDoPainel();

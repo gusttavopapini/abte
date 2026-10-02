@@ -5,7 +5,7 @@ import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 
-export const metadata = { title: "Artigos Científicos | ABTE" };
+export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
 const CATEGORIAS_MOCK = [
@@ -40,7 +40,7 @@ export default async function PaginaArtigos() {
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         
         {/* Hero Area */}
         <section className={estilos.hero}>
@@ -105,7 +105,7 @@ export default async function PaginaArtigos() {
           </div>
         </section>
 
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

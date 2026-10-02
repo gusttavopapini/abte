@@ -39,7 +39,7 @@ export function ProfissionaisClient({ profissionaisIniciais }: { profissionaisIn
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.cabecalho}>
             <h1 className={`tipo-h1 ${estilos.titulo}`}>Profissionais</h1>
@@ -72,7 +72,7 @@ export function ProfissionaisClient({ profissionaisIniciais }: { profissionaisIn
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

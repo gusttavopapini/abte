@@ -41,7 +41,7 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/blog" variante="link">
@@ -69,7 +69,7 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
             </div>
           </article>
         </div>
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

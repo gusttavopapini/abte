@@ -6,7 +6,7 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Editar Post | Blog | Painel" };
+export const metadata: Metadata = { title: "Editar Post | Blog" };
 
 export default async function PaginaEditarPost({ params }: { params: Promise<{ id: string }> }) {
   await exigirPapelDoPainel();

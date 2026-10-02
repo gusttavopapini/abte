@@ -42,7 +42,7 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/artigos" variante="link">
@@ -73,7 +73,7 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
             )}
           </article>
         </div>
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

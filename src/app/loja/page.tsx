@@ -1,6 +1,6 @@
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 
-export const metadata = { title: "Loja | ABTE" };
+export const metadata = { title: "Loja" };
 
 export default function PaginaLoja() {
   return (

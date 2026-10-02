@@ -27,7 +27,7 @@ export default function PaginaInicial() {
         ]}
       />
 
-      <main>
+      <div>
         {/* 2. Afirmação + cards de público */}
         <section className={`container ${estilos.secao}`}>
           <AnimacaoEntrada direcao="cima" className={estilos.gradeLadoALado}>
@@ -148,7 +148,7 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

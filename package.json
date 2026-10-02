@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test:regras": "firebase emulators:exec --only firestore --project demo-abte-regras 'node --test testes/regras/*.test.mts'",
     "test:unidade": "node --test testes/unidade/*.test.mts",
-    "admin:conceder": "node --env-file=.env.local scripts/conceder-administrador.mts"
+    "admin:conceder": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/conceder-administrador.mts"
   },
   "dependencies": {
     "firebase": "^12.19.0",

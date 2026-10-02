@@ -1,7 +1,8 @@
 // Dá o papel "administrador" a um usuário que já existe no Firebase Authentication.
 // Uso: npm run admin:conceder -- email@exemplo.com [--nome "Nome Sobrenome"]
 //
-// Lê as credenciais do Admin SDK do .env.local e nunca as exibe.
+// Lê as credenciais do Admin SDK do .env e depois do .env.local (o .env.local
+// prevalece, igual ao Next.js) e nunca as exibe. O arquivo oficial é o .env.local.
 import { cert, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 

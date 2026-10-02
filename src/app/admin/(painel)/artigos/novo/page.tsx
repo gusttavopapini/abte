@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Botao } from "@/components/Botao/Botao";
 import { salvarArtigo } from "@/app/admin/acoes-conteudo";
 
-export const metadata: Metadata = { title: "Novo Artigo | Painel" };
+export const metadata: Metadata = { title: "Novo Artigo" };
 
 export default function PaginaNovoArtigo() {
   return (

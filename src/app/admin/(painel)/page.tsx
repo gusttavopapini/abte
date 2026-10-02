@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Visão Geral | Painel" };
+export const metadata: Metadata = { title: "Visão Geral" };
 
 export default function PaginaPainel() {
   return (

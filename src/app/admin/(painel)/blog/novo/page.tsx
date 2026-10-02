@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Botao } from "@/components/Botao/Botao";
 import { salvarPost } from "@/app/admin/acoes-conteudo";
 
-export const metadata: Metadata = { title: "Novo Post | Blog | Painel" };
+export const metadata: Metadata = { title: "Novo Post | Blog" };
 
 export default function PaginaNovoPost() {
   return (

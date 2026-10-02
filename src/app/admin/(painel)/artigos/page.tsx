@@ -4,7 +4,7 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { Botao } from "@/components/Botao/Botao";
 
-export const metadata: Metadata = { title: "Artigos | Painel" };
+export const metadata: Metadata = { title: "Artigos" };
 
 type ArtigoCatalogo = {
   id: string;

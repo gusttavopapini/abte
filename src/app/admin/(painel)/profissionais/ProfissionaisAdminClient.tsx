@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Modal } from "@/components/Modal/Modal";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
+import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Rotulo } from "@/components/Rotulo/Rotulo";
 import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
 
@@ -27,14 +28,17 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState<Profissional | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [erroAoSalvar, setErroAoSalvar] = useState<string | null>(null);
 
   const abrirNovo = () => {
     setEditando(null);
+    setErroAoSalvar(null);
     setModalAberto(true);
   };
 
   const abrirEdicao = (prof: Profissional) => {
     setEditando(prof);
+    setErroAoSalvar(null);
     setModalAberto(true);
   };
 
@@ -48,14 +52,22 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSalvando(true);
+    setErroAoSalvar(null);
     const formData = new FormData(e.currentTarget);
     formData.append("acao", "publicar"); // Forçamos publicar para não complicar o modal, ou você pode adicionar opções.
     
-    if (editando) {
-      formData.append("id", editando.id);
-      await atualizarProfissional(formData);
-    } else {
-      await salvarProfissional(formData);
+    try {
+      if (editando) {
+        formData.append("id", editando.id);
+        await atualizarProfissional(formData);
+      } else {
+        await salvarProfissional(formData);
+      }
+    } catch {
+      // O detalhe técnico fica no registro do servidor; aqui só a mensagem em português.
+      setErroAoSalvar("Não foi possível salvar o profissional. Confira os dados e tente de novo.");
+      setSalvando(false);
+      return;
     }
     
     setModalAberto(false);
@@ -138,6 +150,8 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
           <Campo id="linkedinUrl" name="linkedinUrl" type="url" rotulo="URL do LinkedIn" defaultValue={editando?.linkedinUrl || ""} placeholder="https://linkedin.com/in/..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
           <Campo id="imagemUrl" name="imagemUrl" type="url" rotulo="URL da Foto (Opcional)" defaultValue={editando?.imagemUrl || ""} placeholder="https://..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
+
+          {erroAoSalvar && <Mensagem tipo="erro">{erroAoSalvar}</Mensagem>}
 
           <div style={{ marginTop: "var(--space-16)", display: "flex", justifyContent: "flex-end", gap: "var(--space-24)" }}>
             <Botao type="button" variante="secundario" onClick={() => setModalAberto(false)}>Cancelar</Botao>

@@ -3,7 +3,7 @@ import { ProfissionaisClient } from "./ProfissionaisClient";
 
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 
-export const metadata = { title: "Profissionais | ABTE" };
+export const metadata = { title: "Profissionais" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaProfissionais() {

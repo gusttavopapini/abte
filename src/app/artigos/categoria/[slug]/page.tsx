@@ -30,7 +30,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.cabecalho}>
              <Botao href="/artigos" variante="link" className={estilos.voltar}>
@@ -55,7 +55,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </LayoutPublico>
   );
 }

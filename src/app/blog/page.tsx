@@ -3,7 +3,7 @@ import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 
-export const metadata = { title: "Blog | ABTE" };
+export const metadata = { title: "Blog" };
 
 // Opt-out of static rendering if you want real-time updates without redeploy:
 export const dynamic = "force-dynamic";
@@ -30,7 +30,7 @@ export default async function PaginaBlog() {
 
   return (
     <LayoutPublico header="solida">
-      <main className={estilos.secao}>
+      <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
           <div className={estilos.cabecalho}>
             <h1 className={`tipo-h1 ${estilos.titulo}`}>Blog da ABTE</h1>
@@ -55,7 +55,7 @@ export default async function PaginaBlog() {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </LayoutPublico>
   );
 }
