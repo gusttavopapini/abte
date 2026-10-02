@@ -15,10 +15,10 @@
 | Stack | **Next.js (App Router, TypeScript) + Firebase**: Cloud Firestore (banco), Firebase Authentication (login), Cloud Storage for Firebase (imagens e PDFs) |
 | CMS | Nenhum. O painel administrativo é construído sob medida |
 | Contas definitivas | **Em nome da ABTE** (Firebase de produção, hospedagem, domínio, pagamento futuro) |
-| Desenvolvimento | Projeto Firebase `abte-dev` na conta Google da Bianca. Repositório privado no GitHub da Bianca (transferível para a ABTE depois) |
+| Desenvolvimento | Projeto Firebase `abte-dev` numa conta Google de desenvolvimento. Repositório privado no GitHub (transferível para a ABTE depois) |
 | Pagamento online | **DESATIVADO.** Nada de pagamento é criado agora. Quando for ativado, o gateway será a **Stripe** |
 | Loja | **Vitrine sem compra**, com aviso "Em breve" |
-| Doação | **Pix estático** (chave e QR code da ABTE, sem gateway) enquanto a Stripe não é ativada. **[CONFIRMAR COM A BIANCA antes da etapa 2]** |
+| Doação | **Pix estático** (chave e QR code da ABTE, sem gateway) enquanto a Stripe não é ativada. **[A CONFIRMAR antes da etapa 2]** |
 | Design | design-system.md e tokens v3.1 |
 
 Ordem de prioridade em caso de conflito: 1) tokens.css / tokens.json, 2) design-system.md, 3) ABTE_design_redesign.md, 4) este arquivo. As decisões da tabela acima valem sobre qualquer trecho antigo que diga o contrário.
@@ -51,7 +51,7 @@ Ordem de prioridade em caso de conflito: 1) tokens.css / tokens.json, 2) design-
 | Foco | Tratamento conservador da escoliose, baseado em evidência. Métodos Schroth ISST, BSPTS Conceito Rigo, SEAS, SSOL, Lyon |
 | Público | Pacientes (muitos adolescentes), pais e famílias, profissionais de saúde |
 | Atuação | Brasil, Paraguai e Bolívia |
-| Contato do projeto de redesign | Patrícia Baracat (presidente da diretoria 2025-2027) |
+| Contato do projeto de redesign | Presidência da diretoria 2025-2027 |
 
 ### Missão (texto do site)
 "Nossa missão é compartilhar informações, promover ações sociais e desenvolver materiais com embasamento técnico-científico a respeito da escoliose de forma gratuita, universalmente acessível e útil para todos. Além de promover a união de profissionais especializados no tratamento da escoliose."
@@ -343,7 +343,7 @@ Exemplo: Kit ABTE
 | H1 | Inconsistente | Home sem H1. Fisioterapeutas com dezenas de H1 (um por profissional). Doação com 2 H1 |
 | Hierarquia | Saltos (H2 → H5, H4 → H6) | Headings usados como estilo visual, não como estrutura |
 | URLs | Mistas | `/blogtratandoescoliose` (legado), `/doação` com acento, `/especialidades` para "Profissionais" |
-| Alt text | Muitas imagens com nome de arquivo como alt (ex: "IMG_1140 - Thais Bojadsen.jpeg", "Gemini_Generated_Image_...") | Refazer alt descritivo |
+| Alt text | Muitas imagens com nome de arquivo como alt (ex: "IMG_1140 - Nome da pessoa.jpeg", "Gemini_Generated_Image_...") | Refazer alt descritivo |
 | Dados estruturados | Não observados no HTML extraído **[NÃO VERIFICADO]** | Oportunidade: Organization, Physician/MedicalBusiness, Article, Product |
 
 ---
@@ -643,7 +643,7 @@ Cadência: **quinzenal**. Do mais recente ao mais antigo:
 - **Campos do formulário de Contato**, fluxo de checkout e gateway de pagamento da doação (não afeta o sistema novo: pagamento desativado, futuro Stripe).
 - **Área de membros** (login, perfis) e conteúdo restrito.
 - **Sitemap.xml** e robots.txt.
-- **[RESOLVIDO: decisão da designer, ver design-system.md seção 4 e 9]** **Comportamento mobile** (layout responsivo do Wix). O mobile novo é o mesmo design do desktop, readaptado.
+- **[RESOLVIDO: decisão de design, ver design-system.md seção 4 e 9]** **Comportamento mobile** (layout responsivo do Wix). O mobile novo é o mesmo design do desktop, readaptado.
 
 ---
 
@@ -657,15 +657,15 @@ Cadência: **quinzenal**. Do mais recente ao mais antigo:
 | Arquivos (imagens e PDFs) | **Cloud Storage for Firebase.** Exige o plano Blaze (pagamento por uso, com cartão vinculado) desde fevereiro de 2026; o uso gratuito continua valendo dentro das cotas. Só entra na etapa 4 |
 | Login | **Firebase Authentication**, e-mail e senha, sem cadastro público |
 | Painel administrativo | **Obrigatório**, com login e senha, construído sob medida em `/admin` |
-| Quem acessa o painel | **Bianca (administradora) + membros da diretoria ABTE (editores)** |
+| Quem acessa o painel | **Administrador (acesso total) + editores (conteúdo)** |
 | Conteúdo gerenciado pelo painel | **Produtos da loja, posts do blog, artigos científicos, profissionais (todas as categorias), diretoria e configurações do site (dados do Pix)** |
 | Contas definitivas | **Em nome da ABTE**: projeto Firebase de produção, hospedagem, domínio e, no futuro, Stripe |
-| Ambiente de desenvolvimento | Projeto Firebase `abte-dev` na conta Google da Bianca, plano gratuito, Firestore em `southamerica-east1`. Repositório privado no GitHub da Bianca, transferível para a ABTE |
+| Ambiente de desenvolvimento | Projeto Firebase `abte-dev` numa conta Google de desenvolvimento, plano gratuito, Firestore em `southamerica-east1`. Repositório privado no GitHub, transferível para a ABTE |
 | Pagamento online | **DESATIVADO.** Nenhum gateway, SDK, chave de API, carrinho, checkout ou webhook é criado agora |
 | Gateway futuro | **Stripe**, quando o pagamento for ativado |
 | Loja | **Vitrine sem compra**: lista e página de produto com preço e aviso "Em breve" no lugar do botão de compra |
-| Doação | **Pix estático** (chave e QR code da ABTE, sem gateway), com valores sugeridos (R$25, R$50, R$100) e valor livre. **[CONFIRMAR COM A BIANCA antes da etapa 2]** |
-| Design | Design system v3.1 (tokens.css, tokens.json, design-system.md), aprovado pela designer |
+| Doação | **Pix estático** (chave e QR code da ABTE, sem gateway), com valores sugeridos (R$25, R$50, R$100) e valor livre. **[A CONFIRMAR antes da etapa 2]** |
+| Design | Design system v3.1 (tokens.css, tokens.json, design-system.md), aprovado |
 | Responsivo | Mesmo design em todas as telas, só mudam tamanhos, colunas e altura mínima de controles. Breakpoints 767 / 1023 px |
 
 > Qualquer item que não esteja nesta tabela ainda é decisão em aberto (seção 14). Não assuma.
@@ -691,8 +691,8 @@ Cadência: **quinzenal**. Do mais recente ao mais antigo:
 - Rota protegida `/admin`, fora do sitemap e com `noindex`
 - **Sessão no servidor:** cookie de sessão do Firebase, httpOnly e sameSite strict, validado no servidor em toda rota do painel, com checagem de sessão revogada
 - **Papéis por custom claim** no Firebase Authentication:
-  - **Administrador** (Bianca): acesso total, cria e desativa usuários, configurações do site (inclusive dados do Pix)
-  - **Editor** (diretoria): cadastra e edita conteúdo (posts, artigos, profissionais, diretoria, produtos). Não acessa configurações nem usuários
+  - **Administrador**: acesso total, cria e desativa usuários, configurações do site (inclusive dados do Pix)
+  - **Editor**: cadastra e edita conteúdo (posts, artigos, profissionais, diretoria, produtos). Não acessa configurações nem usuários
   - Usuário sem papel não acessa nada do painel
 - **Registro de alterações:** quem criou, editou, excluiu ou restaurou o quê e quando (gravado só pelo servidor, ninguém edita)
 - **Lixeira:** exclusão com confirmação, item vai para a lixeira e pode ser restaurado
@@ -782,7 +782,7 @@ Coleções que ainda dependem das decisões da seção 14: `contatos`, `assinant
 **Agora**
 - Nada de pagamento é criado: nenhum gateway, SDK, chave de API, carrinho, checkout, webhook, coleção de pedidos ou de doações
 - **Loja:** vitrine sem compra, com aviso "Em breve"
-- **Doação por Pix estático** [CONFIRMAR COM A BIANCA antes da etapa 2]:
+- **Doação por Pix estático** [A CONFIRMAR antes da etapa 2]:
   - QR code e código "copia e cola" gerados pelo servidor a partir dos dados de `configuracoes/site`, sem gateway e sem custo
   - Valores sugeridos (R$25, R$50, R$100), cada um gerando seu QR code com o valor preenchido, e opção de valor livre
   - Botão "Copiar código Pix" (é o mais usado no celular)
@@ -839,7 +839,7 @@ Manter os **mesmos slugs** dos posts e produtos para não perder posicionamento 
 - **Admin SDK:** todo acesso aos dados pelo servidor
 
 **Ambientes:**
-- Desenvolvimento: projeto `abte-dev`, conta Google da Bianca
+- Desenvolvimento: projeto `abte-dev`, numa conta Google de desenvolvimento
 - Produção: projeto próprio, conta da ABTE, criado na etapa 9
 
 **Hospedagem:** em aberto. Firebase App Hosting é a candidata natural (roda Next.js e fica no mesmo console), mas ainda não foi decidida. Algumas integrações dela exigem conta de faturamento.
@@ -860,7 +860,7 @@ Manter os **mesmos slugs** dos posts e produtos para não perder posicionamento 
 4. **Região do projeto de produção** do Firestore e do Storage (antes da etapa 9)
 5. **Domínio:** onde `abteescoliose.com.br` está registrado e quem tem acesso (antes da etapa 9)
 6. **Serviço de e-mail do formulário de contato** e onde as mensagens ficam guardadas (antes do envio real do formulário)
-7. **Papéis no painel:** a divisão Administrador (Bianca) x Editor (diretoria) está correta? Algum membro precisa de acesso restrito a uma área? (antes da etapa 3)
+7. **Papéis no painel:** a divisão Administrador x Editor está correta? Algum membro precisa de acesso restrito a uma área? (antes da etapa 3)
 8. **Associação:** continua no Google Forms ou vira formulário no site com cadastro no banco?
 9. **Newsletter:** a lista de 2 mil+ e-mails vai para qual ferramenta?
 10. **Área de membros** (hoje 33 cadastrados no Wix): continua existindo? Para quê?

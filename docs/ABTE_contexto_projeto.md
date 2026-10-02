@@ -1,6 +1,6 @@
 # Projeto ABTE: contexto completo
 
-> Texto de contexto para um Projeto do Claude. Atualizado em 01/10/2026, com base no código do repositório `gusttavopapini/abte` e nos documentos em `docs/`.
+> Texto de contexto para um Projeto do Claude. Atualizado em 01/10/2026, com base no código deste repositório e nos documentos em `docs/`.
 >
 > As seções 8 e 9 registram o diagnóstico feito ANTES da limpeza de código da branch `limpeza/codigo-limpo`. O estado mais recente fica no `CLAUDE.md`, seção "Divergências conhecidas e pendentes".
 
@@ -42,10 +42,10 @@ Reconstruir o site da ABTE em **código próprio**, saindo 100% do Wix. O site n
 - mídias;
 - configurações.
 
-### Pessoas envolvidas
-- **Bianca:** designer e gestora do projeto, e **administradora** do painel. Não é desenvolvedora: revisa tudo pela tela, nas larguras de 390, 768, 1280 e 1710 px. Toda ação dela no console do Firebase, no GitHub ou na Vercel precisa ser explicada **passo a passo, em linguagem simples**.
-- **Diretoria da ABTE:** usará o painel como **editora** de conteúdo.
-- **Repositório:** GitHub `gusttavopapini/abte`, branch `main`.
+### Papéis e revisão
+- **Administrador do painel:** acesso total. A gestão do projeto não é feita por desenvolvedores: a revisão é visual, nas larguras de 390, 768, 1280 e 1710 px. Toda ação no console do Firebase, no GitHub ou na Vercel precisa ser explicada **passo a passo, em linguagem simples**.
+- **Editores:** usarão o painel para cadastrar e editar conteúdo.
+- **Repositório:** GitHub (privado), branch `main`.
 
 ### Volume de conteúdo a migrar do Wix
 - 66 posts do blog;
@@ -100,8 +100,8 @@ Todos esses números precisam ser confirmados antes do uso.
 - O navegador **nunca** lê nem grava no Firestore. Todo acesso passa pelo **servidor**, com o Admin SDK.
 - As **regras do Firestore negam tudo**. Toda coleção nova continua negada e ganha teste. Qualquer exceção precisa de regra específica e de teste.
 - **Papéis** ficam na custom claim `papel` do Authentication:
-  - `administrador` (Bianca): acesso total, usuários e configurações, inclusive o Pix;
-  - `editor` (diretoria): edita conteúdo, mas não mexe em usuários nem em configurações;
+  - `administrador`: acesso total, usuários e configurações, inclusive o Pix;
+  - `editor`: edita conteúdo, mas não mexe em usuários nem em configurações;
   - sem papel: nada do painel.
 - **Sessão:**
   - fica num cookie de sessão do Firebase chamado `__session` (httpOnly, sameSite strict, secure em produção, 5 dias, caminho `/admin`);
@@ -140,7 +140,7 @@ src/
 
 ## 4. Design
 
-- **Origem:** o visual aprovado pela diretoria vem de um template do Wix ("Justir" / "Medical Company"). O projeto **recria o visual** e **não copia código** do Wix.
+- **Origem:** o visual aprovado vem de um template do Wix ("Justir" / "Medical Company"). O projeto **recria o visual** e **não copia código** do Wix.
 - **Fonte da verdade, em ordem de prioridade:**
   1. `docs/tokens.css` e `docs/tokens.json` (v3.1);
   2. `docs/design-system.md`;
@@ -180,7 +180,7 @@ src/
   - Não criar carrinho, checkout, webhook nem variáveis de pagamento sem pedido explícito.
   - Quando for ativado, o gateway será a **Stripe**.
 - **Loja:** vitrine com o aviso "Em breve".
-- **Doação:** Pix estático (QR code e copia e cola; valores de R$25, R$50, R$100 e valor livre; sem registro automático). **Ainda a confirmar com a Bianca.**
+- **Doação:** Pix estático (QR code e copia e cola; valores de R$25, R$50, R$100 e valor livre; sem registro automático). **Ainda a confirmar.**
 - **Imagens:** nunca linkar `static.wixstatic.com` nem outro CDN do Wix. As imagens precisam ser baixadas e reenviadas.
 - **Segredos:** só em arquivo `.env*` local, nunca no código, num commit ou no terminal.
 - **Organização:** componentes pequenos, um por pasta com seu CSS Module, e comentários do código em português.
@@ -285,7 +285,7 @@ O desenvolvimento passou por **duas fases com ferramentas de IA diferentes**.
    - escrever testes de permissão.
 3. **Tirar o que engana o visitante:** remover os artigos falsos, desativar o envio do contato com um aviso honesto e resolver os links que dão 404.
 4. **Acessibilidade:** colocar o H1 na home, dar ao carrossel um botão de pausa e respeitar `reduced-motion`.
-5. **Design:** alinhar o código ao design system ou atualizar as regras, conforme a decisão da Bianca.
+5. **Design:** alinhar o código ao design system ou atualizar as regras, conforme a decisão de design.
 6. **Retomar o plano oficial pela etapa 3** (modelo de dados, usuários, registro de alterações, lixeira e configurações) e depois completar a etapa 4.
 7. **Atualizar o `CLAUDE.md`** com o estado real.
 
@@ -302,7 +302,7 @@ O desenvolvimento passou por **duas fases com ferramentas de IA diferentes**.
 - Newsletter, área de membros e comentários no blog.
 - Marca "Tratando Escoliose": continua visível ou fica só como legado.
 - Logo em vetor, fotos, números oficiais, depoimentos e logos de parceiros.
-- **Design pós-Gemini:** os cantos de 5px, as sombras, o peso 300 e as animações foram aprovados pela designer?
+- **Design pós-Gemini:** os cantos de 5px, as sombras, o peso 300 e as animações foram aprovados?
 - **Quando o pagamento for ativado:** frete, recorrência, recibo e nota fiscal.
 
 ---

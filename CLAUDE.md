@@ -2,9 +2,9 @@
 
 ## Resumo do projeto
 
-Reconstrução do site da **ABTE, Associação Brasileira de Tratamento da Escoliose**, que hoje está no Wix, em código próprio (saída 100% do Wix). O site público mostra conteúdo institucional, diretório de profissionais, blog, artigos, loja (só vitrine) e doação. O conteúdo é mantido por um **painel administrativo sob medida** (sem CMS pronto), usado pela **Bianca como administradora** e pela **diretoria da ABTE como editores**.
+Reconstrução do site da **ABTE, Associação Brasileira de Tratamento da Escoliose**, que hoje está no Wix, em código próprio (saída 100% do Wix). O site público mostra conteúdo institucional, diretório de profissionais, blog, artigos, loja (só vitrine) e doação. O conteúdo é mantido por um **painel administrativo sob medida** (sem CMS pronto), com dois papéis: **administrador** (acesso total, inclusive usuários e configurações) e **editor** (cadastra e edita conteúdo).
 
-A Bianca é designer e gestora do projeto, não desenvolvedora: revisa pela tela (390, 768, 1280 e 1710 px). Sempre que ela precisar agir no console do Firebase ou no GitHub, explique passo a passo, em linguagem simples.
+A gestão do projeto não é feita por desenvolvedores: a revisão é visual, em 390, 768, 1280 e 1710 px. Sempre que for preciso agir no console do Firebase ou no GitHub, explique passo a passo, em linguagem simples.
 
 ## Stack e versões instaladas (etapa 1)
 
@@ -92,7 +92,7 @@ src/
 
 ## Arquitetura Firebase
 
-- **Desenvolvimento:** projeto `abte-dev`, na conta Google da Bianca (plano gratuito, Firestore em southamerica-east1, Authentication por e-mail e senha).
+- **Desenvolvimento:** projeto `abte-dev`, numa conta Google de desenvolvimento, separada da conta da ABTE (plano gratuito, Firestore em southamerica-east1, Authentication por e-mail e senha).
 - **Produção:** projeto próprio, em conta da ABTE, criado na etapa 9. Nada no código depende do `abte-dev`: tudo que identifica o projeto vem de variáveis de ambiente (`.env.example` lista todas). O `.firebaserc` só define o alias padrão da CLI.
 - **Acesso aos dados sempre pelo servidor**, com o Admin SDK. O navegador não lê nem grava no Firestore.
 - **Regras do Firestore negam todo acesso direto do navegador.** Toda coleção nova continua negada e ganha teste em `testes/regras/`. Qualquer exceção precisa de regra específica e teste.
@@ -115,14 +115,14 @@ src/
 8. Doação com pagamento online: DESATIVADO (quando ativado, via Stripe)
 9. SEO e lançamento (inclui projeto Firebase de produção na conta da ABTE, hospedagem e alerta de orçamento no Google Cloud)
 
-Situação real em 02/10/2026: partes das etapas 2, 4 e 5 já existem no código, feitas fora de ordem numa sessão com outra ferramenta (27 a 29/09); a etapa 3 não foi feita. A branch `limpeza/codigo-limpo` organizou esse código sem mudar comportamento nem visual. Detalhes em "Divergências conhecidas e pendentes".
+Situação real em 02/10/2026: partes das etapas 2, 4 e 5 já existem no código, feitas fora de ordem (27 a 29/09); a etapa 3 não foi feita. A branch `limpeza/codigo-limpo` organizou esse código sem mudar comportamento nem visual. Detalhes em "Divergências conhecidas e pendentes".
 
 ## Decisões tomadas sobre pagamento
 
 - Pagamento online **desativado**.
 - Gateway definido para quando for ativado: **Stripe**.
 - Loja como **vitrine**, com aviso "Em breve".
-- Doação por **Pix estático** (QR code e código copia e cola, valores sugeridos de R$25, R$50, R$100 e valor livre, sem registro automático das doações), **a confirmar com a Bianca**.
+- Doação por **Pix estático** (QR code e código copia e cola, valores sugeridos de R$25, R$50, R$100 e valor livre, sem registro automático das doações), **a confirmar**.
 - **Nunca** instalar gateway, carrinho, checkout ou webhook sem pedido explícito.
 
 ## Decisões em aberto: NUNCA assumir
@@ -149,9 +149,9 @@ Confirmação da doação por Pix e dados do Pix da ABTE (chave, titular, cidade
 
 ## Divergências conhecidas e pendentes
 
-Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada aqui foi decidido: cada item espera a Bianca ou a etapa certa. Não corrigir sem pedido, porque quase todos mudam o que se vê ou se faz.
+Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada aqui foi decidido: cada item espera o responsável pela decisão ou a etapa certa. Não corrigir sem pedido, porque quase todos mudam o que se vê ou se faz.
 
-**Design (decisão da Bianca)**
+**Design (decisão de design, a definir)**
 - **Peso 300 contra 400 e 600 do design system:** `src/styles/tokens.css` tem `--font-weight-light: 300`, `--font-weight-regular: 300` e `--font-weight-bold: 400`; `docs/tokens.css` tem regular 400 e bold 600. A fonte é carregada em 300, 400 e 600.
 - **Raios e sombras:** o design system pede raio 0 e nenhuma sombra; o código tem cantos de 4, 5, 8 e 20 px e sombras em cards, modal e hover (ver "Exceções de design").
 - **P15, tokens diferentes de `docs/tokens.css`:** além dos pesos, `--section-space` passou de `clamp(64px, 5.61vw, 96px)` para `clamp(96px, 8vw, 160px)` (commit e070500). Os tamanhos de fonte em rem são a conversão legítima da etapa 1.

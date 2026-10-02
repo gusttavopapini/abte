@@ -3,14 +3,14 @@
 > Arquivo para o agente gerador de prompts do Claude Code.
 > Complementa o arquivo `ABTE_contexto_redesign.md` (arquitetura, dados, banco, painel e pagamentos).
 > **Atualizado em 26/09/2026** com o design system v3.1 e as decisões de escopo (stack Next.js + Firebase, pagamento desativado, loja como vitrine, doação por Pix).
-> Levantamento feito em 26/09/2026 a partir de https://tratandoescoliose.wixsite.com/my-site-4 (rascunho aprovado pela diretoria).
+> Levantamento feito em 26/09/2026 a partir de https://tratandoescoliose.wixsite.com/my-site-4 (rascunho aprovado).
 > Onde algo é inferência ou não pôde ser verificado, está marcado com **[INFERÊNCIA]**, **[NÃO VERIFICADO]** ou **[PREENCHER]**.
 
 ---
 
 > **ATUALIZAÇÃO (26/09/2026):** a seção 3 (design tokens) deste arquivo foi **substituída** pelo design system v3.1. Ordem de prioridade para o agente: **1) tokens.css / tokens.json, 2) design-system.md, 3) este arquivo, 4) ABTE_contexto_redesign.md**. Onde houver conflito, vale o de maior prioridade. Fonte confirmada: Public Sans. Cor primária: #00449F.
 >
-> **Escopo vigente:** pagamento online **desativado** (futuro: Stripe). Loja é **vitrine sem compra**, com aviso "Em breve". Doação por **Pix estático** (chave e QR code), a confirmar com a Bianca antes da etapa 2. Componentes de carrinho e checkout não são construídos agora.
+> **Escopo vigente:** pagamento online **desativado** (futuro: Stripe). Loja é **vitrine sem compra**, com aviso "Em breve". Doação por **Pix estático** (chave e QR code), a confirmar antes da etapa 2. Componentes de carrinho e checkout não são construídos agora.
 
 ## 0. Resumo para o agente (leia primeiro)
 
@@ -31,7 +31,7 @@
 | Template base | "Justir" (Wix), demo em https://www.wix.com/demone2/justir |
 | Páginas do template | Home, About, Our Technology, For Providers, Accessibility Statement, Privacy Policy, Terms & conditions |
 | Páginas existentes no rascunho ABTE | Home, Blog (lista), Post (individual). Itens de menu sem link: Médicos, Ortesistas, Psicólogos, Outros, Fisioterapeutas, Artigos, Loja, Contato |
-| Aprovação | Diretoria ABTE (informado pela Bianca) |
+| Aprovação | ABTE |
 
 > Como as páginas internas da ABTE ainda não foram montadas no rascunho, os **padrões de layout das páginas internas** foram tirados das páginas About, Our Technology e For Providers do template demo. Confirme com o usuário se essas páginas também fazem parte do que foi aprovado.
 
@@ -209,7 +209,7 @@ O template não tem diretório, loja nem doação. Criar estes componentes segui
 - **L1 Card de produto:** imagem, nome, preço normal riscado + promocional, selo ("Monte seu kit", "Esgotado", "Digital")
 - **L2 Página de produto:** galeria, H1, preço, descrição, compartilhar. No lugar de quantidade e "Adicionar ao carrinho", aviso "Em breve" informando que a compra online ainda não está disponível
 - **L3 Carrinho e checkout:** DESATIVADO. Quando o pagamento for ativado (Stripe): resumo, cupom, frete (produtos físicos), pagamento
-- **D1 Doação por Pix** [CONFIRMAR COM A BIANCA antes da etapa 2]: valores sugeridos (R$25, R$50, R$100) + valor livre, QR code Pix gerado para o valor escolhido, botão "Copiar código Pix", nome do titular e, se a ABTE quiser, CNPJ. Sem campo "Doação em nome de" e sem dados do doador (nada é registrado)
+- **D1 Doação por Pix** [A CONFIRMAR antes da etapa 2]: valores sugeridos (R$25, R$50, R$100) + valor livre, QR code Pix gerado para o valor escolhido, botão "Copiar código Pix", nome do titular e, se a ABTE quiser, CNPJ. Sem campo "Doação em nome de" e sem dados do doador (nada é registrado)
 - **Estados de interface:** vazio, carregando, erro, sucesso (formulários, filtros sem resultado, código Pix copiado)
 
 ---
@@ -254,7 +254,7 @@ O template não tem diretório, loja nem doação. Criar estes componentes segui
 
 ---
 
-## 10.1 Regra de responsividade (DECISÃO DA DESIGNER)
+## 10.1 Regra de responsividade (DECISÃO DE DESIGN)
 
 **O mobile e o tablet são o MESMO design do desktop, apenas readaptado em tamanho.** Não existe layout mobile diferente, não se cria componente novo para o celular e não se muda a ordem, as cores ou o estilo das seções.
 

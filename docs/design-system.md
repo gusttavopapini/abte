@@ -19,7 +19,7 @@ Nenhum valor visual mudou. Os tokens continuam na versão 3.1. Só o escopo de c
 | 1 | Pagamento online desativado (futuro: Stripe). Carrinho e checkout não são construídos agora | Decisão do projeto |
 | 2 | Ícone da sacola do carrinho não é usado enquanto o pagamento estiver desativado | Decisão do projeto |
 | 3 | Página de produto sem compra: aviso "Em breve" no lugar de quantidade e "Adicionar ao carrinho" | Decisão do projeto |
-| 4 | Doação por Pix estático: valores em botões, QR code e "Copiar código Pix" (a confirmar com a Bianca) | Decisão do projeto |
+| 4 | Doação por Pix estático: valores em botões, QR code e "Copiar código Pix" (a confirmar) | Decisão do projeto |
 
 ### v3 para v3.1
 | # | Mudança | Origem |
@@ -337,7 +337,7 @@ Ver `tokens.css` e `tokens.json`, versão 3.1. Tamanhos de fonte só em `clamp()
 | Entrelinha de display, H3 e pequeno | Script |
 | Ícones (biblioteca e tamanho) | DevTools |
 | Cards numerados, linha do tempo, For Providers | Prints dessas páginas |
-| Ativo e desabilitado dos botões | Prints ou decisão da designer |
+| Ativo e desabilitado dos botões | Prints ou decisão de design |
 
 Ainda em PROPOSTA:
 - Pilha de fallback.
