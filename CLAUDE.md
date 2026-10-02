@@ -10,7 +10,7 @@ A Bianca é designer e gestora do projeto, não desenvolvedora: revisa pela tela
 
 | Item | Versão |
 |---|---|
-| Node.js (máquina de desenvolvimento) | 26.10 (mínimo 22.18, por causa dos scripts `.mts`) |
+| Node.js (máquina de desenvolvimento) | 25.9 (conferido em 02/10/2026; mínimo 22.18, por causa dos scripts `.mts` e dos testes em TypeScript) |
 | Next.js (App Router, TypeScript) | 16.3.6 |
 | React | 19.2.8 |
 | TypeScript | 5.9 |
@@ -21,8 +21,9 @@ A Bianca é designer e gestora do projeto, não desenvolvedora: revisa pela tela
 | @firebase/rules-unit-testing (dev) | 5.0.2 |
 | ESLint (eslint-config-next) | 9.39 |
 | Stylelint | 17.15 |
+| framer-motion (animações de entrada da home) | 13.4.4 (fora do plano original: ver Divergências, P17) |
 
-CSS puro com CSS Modules e `src/styles/tokens.css` global. **Sem Tailwind, Bootstrap ou kits de UI.** Public Sans (400 e 600) via `next/font/google`, auto-hospedada no build.
+CSS puro com CSS Modules e `src/styles/tokens.css` global. **Sem Tailwind, Bootstrap ou kits de UI.** Public Sans via `next/font/google`, auto-hospedada no build. O design system prevê os pesos 400 e 600; o código carrega 300, 400 e 600 (ver Divergências).
 
 Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** (`src/proxy.ts`); `cookies()` é assíncrono. Antes de escrever código, consulte a documentação em `node_modules/next/dist/docs/`.
 
@@ -36,32 +37,51 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 | `npm run lint:css` | Stylelint: falha com cor em hex/rgb/hsl/nome ou font-size em px fora do tokens.css |
 | `npm run typecheck` | Checagem de tipos (tsc) |
 | `npm run test:regras` | Testes das regras do Firestore no emulador (exige Java) |
-| `npm run admin:conceder -- email@exemplo.com [--nome "Nome"]` | Dá o papel "administrador" a um usuário existente (usa o .env.local) |
+| `npm run test:unidade` | Testes de unidade das funções puras (acesso ao painel, validações, slug), com `node --test`, sem emulador |
+| `npm run admin:conceder -- email@exemplo.com [--nome "Nome"]` | Dá o papel "administrador" a um usuário existente (lê o .env e depois o .env.local; o .env.local prevalece) |
 
 ## Estrutura de pastas
 
 ```
-docs/                     arquivos de referência (design system, tokens, contexto)
+docs/                     arquivos de referência (design system, tokens, contexto, ABTE_contexto_projeto.md)
 firestore.rules           regras do Firestore (nega tudo)
 firebase.json, .firebaserc  Firebase CLI (Firestore + emulador; projeto padrão abte-dev)
+.env.example              modelo das variáveis de ambiente (sem valores)
 scripts/                  scripts de linha de comando (Admin SDK)
 testes/regras/            testes das regras (node:test + emulador)
+testes/unidade/           testes de unidade das funções puras (node:test)
 src/
   proxy.ts                checagem rápida de cookie no /admin (redireciona ao login)
-  styles/tokens.css       tokens v3.1 (única fonte de valores visuais)
+  styles/tokens.css       tokens v3.1 (única fonte de valores visuais; difere de docs/tokens.css, ver P15)
   app/
     globals.css           reset, base, classes tipográficas, .container, .texto-sobre-destaque
     layout.tsx            layout raiz (html pt-BR, fonte)
-    page.tsx              home provisória
+    page.tsx              home
     not-found.tsx         404 provisória
+    blog/, artigos/, profissionais/, contato/, loja/   páginas públicas
     componentes/          página de revisão visual (noindex)
-    admin/                painel: entrar, recuperar senha, página protegida, ações de servidor
-  components/<Nome>/      um componente por pasta, com seu CSS Module
-  config/navegacao.ts     menu, rodapé, e-mail e redes (um único arquivo)
+    admin/                painel
+      acoes.ts            ações de servidor do login (criar e encerrar sessão)
+      acoes-conteudo.ts   ações de servidor de posts, artigos e profissionais
+      entrar/             login e recuperação de senha
+      (painel)/           telas protegidas (layout com checagem de sessão e papel)
+      _componentes/       componentes só do painel (um por pasta, com CSS Module)
+  components/<Nome>/      componentes do site, um por pasta, com seu CSS Module
+  config/navegacao.ts     menu, rodapé, e-mail, redes e funções de item ativo do menu
+  config/profissionais.ts lista única das tags de profissionais
   lib/firebase/cliente.ts SDK web (navegador, só login)
-  lib/firebase/servidor.ts Admin SDK (server-only)
-  lib/auth/               sessão, papéis e constantes
+  lib/firebase/servidor.ts e admin-auth.ts   Admin SDK (server-only)
+  lib/auth/               sessão (server-only), papéis e decisão de acesso (pura), constantes
+  lib/dados/              tipos das coleções e leitura tipada do Firestore (colecoes.ts é server-only)
+  lib/validacao.ts        validações puras (id do Firestore, campos de formulário, e-mail)
+  lib/slug.ts             geração de slug (pura)
 ```
+
+## Rotas
+
+- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (dados de exemplo fixos no código), `/contato`, `/loja` (só título), `/componentes` (revisão visual, noindex).
+- **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/profissionais` (criar, editar e excluir num modal).
+- **Links do menu e do rodapé que ainda dão 404:** `/doe`, `/seja-associado`, `/acessibilidade`, `/politica-de-privacidade`, `/termos-de-uso`.
 
 ## Arquivos de referência (ordem de prioridade em caso de conflito)
 
@@ -77,9 +97,11 @@ src/
 - **Acesso aos dados sempre pelo servidor**, com o Admin SDK. O navegador não lê nem grava no Firestore.
 - **Regras do Firestore negam todo acesso direto do navegador.** Toda coleção nova continua negada e ganha teste em `testes/regras/`. Qualquer exceção precisa de regra específica e teste.
 - **Papéis por custom claim** `papel` no Authentication: `administrador` ou `editor`. Sem papel, nada do painel.
-- **Sessão por cookie** de sessão do Firebase (`__session`, httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/admin`), validado no servidor em toda página do painel com checagem de revogação (`exigirSessaoDoPainel()` em `src/lib/auth/sessao.ts`). "Sair" revoga a sessão e apaga o cookie.
-- **Admin SDK só no servidor:** `src/lib/firebase/servidor.ts` e `src/lib/auth/sessao.ts` importam `server-only`.
-- **Testes:** toda etapa que mexe com dados inclui testes de regras e de permissões (sessão e papel) das ações de servidor.
+- **Sessão por cookie** de sessão do Firebase (`__session`, httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/admin`), validado no servidor em toda página do painel com checagem de revogação (`src/lib/auth/sessao.ts`). O layout do painel usa `exigirSessaoDoPainel()` para mostrar "Acesso não autorizado" a quem não tem papel; **toda ação de servidor e toda página do painel que lê dados começam por `exigirPapelDoPainel()`**, que falha fechada (sem sessão vai para o login; sem papel interrompe antes de ler ou gravar). A decisão fica na função pura `decidirAcessoAoPainel()` (`src/lib/auth/papeis.ts`), testada em `test:unidade`. Administrador e editor ainda têm o mesmo acesso. "Sair" revoga a sessão e apaga o cookie.
+- **Admin SDK só no servidor:** `src/lib/firebase/servidor.ts`, `src/lib/firebase/admin-auth.ts`, `src/lib/auth/sessao.ts` e `src/lib/dados/colecoes.ts` importam `server-only`.
+- **Leitura tipada:** as páginas leem o Firestore por `lerPosts()`, `lerArtigos()` e `lerProfissionais()` (`src/lib/dados/colecoes.ts`), com conversores somente de leitura; os tipos ficam em `src/lib/dados/tipos.ts`. As gravações ficam nas ações de servidor, que validam o id (`ehIdDeDocumentoValido`) e limitam o tamanho dos campos curtos.
+- **Variáveis de ambiente:** o arquivo oficial dos segredos é o **`.env.local`** (modelo em `.env.example`). Hoje as credenciais também estão num `.env` criado durante o deploy de teste na Vercel; o Next.js e o `admin:conceder` leem os dois, e o `.env.local` prevalece. Nenhum dos dois entra no Git.
+- **Testes:** toda etapa que mexe com dados inclui testes de regras e de permissões (sessão e papel) das ações de servidor. Funções puras (decisão de acesso, validações, slug) têm testes em `testes/unidade/` (`npm run test:unidade`).
 
 ## Plano de etapas
 
@@ -92,6 +114,8 @@ src/
 7. Loja com pagamento: DESATIVADO (quando ativado, via Stripe)
 8. Doação com pagamento online: DESATIVADO (quando ativado, via Stripe)
 9. SEO e lançamento (inclui projeto Firebase de produção na conta da ABTE, hospedagem e alerta de orçamento no Google Cloud)
+
+Situação real em 02/10/2026: partes das etapas 2, 4 e 5 já existem no código, feitas fora de ordem numa sessão com outra ferramenta (27 a 29/09); a etapa 3 não foi feita. A branch `limpeza/codigo-limpo` organizou esse código sem mudar comportamento nem visual. Detalhes em "Divergências conhecidas e pendentes".
 
 ## Decisões tomadas sobre pagamento
 
@@ -121,3 +145,173 @@ Confirmação da doação por Pix e dados do Pix da ABTE (chave, titular, cidade
 - **Organização:** componentes pequenos e reutilizáveis, um por pasta com seu CSS Module. Comentários do código em português.
 
 @AGENTS.md
+
+
+## Divergências conhecidas e pendentes
+
+Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada aqui foi decidido: cada item espera a Bianca ou a etapa certa. Não corrigir sem pedido, porque quase todos mudam o que se vê ou se faz.
+
+**Design (decisão da Bianca)**
+- **Peso 300 contra 400 e 600 do design system:** `src/styles/tokens.css` tem `--font-weight-light: 300`, `--font-weight-regular: 300` e `--font-weight-bold: 400`; `docs/tokens.css` tem regular 400 e bold 600. A fonte é carregada em 300, 400 e 600.
+- **Raios e sombras:** o design system pede raio 0 e nenhuma sombra; o código tem cantos de 4, 5, 8 e 20 px e sombras em cards, modal e hover (ver "Exceções de design").
+- **P15, tokens diferentes de `docs/tokens.css`:** além dos pesos, `--section-space` passou de `clamp(64px, 5.61vw, 96px)` para `clamp(96px, 8vw, 160px)` (commit e070500). Os tamanhos de fonte em rem são a conversão legítima da etapa 1.
+- **Variáveis usadas e nunca definidas** (o navegador ignora a declaração): `--space-12` e `--font-size-base` (formulários de post e artigo do painel), `--color-surface` (seleção de tag no modal de profissionais) e `--color-text-muted` (`src/app/blog/[slug]/page.module.css`).
+- **Preto sem token próprio** (`#000` e `rgba(0,0,0,…)`): o único token com esse valor é `--color-icon-social`, dos ícones do rodapé; não foi usado em fundos e sombras para não amarrar uma coisa à outra.
+
+**Acessibilidade e comportamento adiados (mudam o que se vê ou se faz)**
+- **H1 na home:** a home não tem H1 (o hero virou carrossel sem título).
+- **reduced-motion:** as animações do framer-motion (`AnimacaoEntrada`) e o carrossel ignoram `prefers-reduced-motion`.
+- **Carrossel do Hero:** avança sozinho a cada 5 segundos, sem botão de pausa; texto alternativo genérico ("Slide 1").
+- **aria-pressed:** os botões do filtro de `/profissionais` não anunciam qual está ativo.
+- **Modal:** não fecha com Esc, não prende o foco e não tem `role="dialog"`; a exclusão de profissional usa `confirm()`.
+- **Saltos de título** (H1 direto para H3) em `/blog`, `/profissionais` e `/artigos/categoria/[slug]`; o `globals.css` estiliza h2 e h3 pela tag, então trocar o nível muda o tamanho.
+- **Submenu de Profissionais:** os itens nunca ficam marcados como ativos (o caminho não inclui `?tag=`).
+- **P16, slug que muda ao editar:** o slug do post é refeito a partir do título a cada edição (links antigos quebram), e dois títulos iguais geram o mesmo slug.
+- **Erros no painel:** excluir profissional apaga de vez (sem lixeira nem registro de alterações) e não mostra erro se falhar; erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês.
+- **Endereço inválido:** `/blog/[slug]` e `/artigos/[slug]` com um valor que não é id válido do Firestore (ex.: `__x__`) dão erro 500 em vez de 404.
+- **Classificações de artigo:** as do painel (diretrizes, revisão sistemática, colete…) são diferentes das categorias de exemplo da página pública `/artigos`.
+
+**Conteúdo e etapas futuras**
+- O formulário de contato mostra "enviado" sem enviar nada (serviço de e-mail em aberto).
+- `/artigos/categoria/[slug]` mostra 4 artigos de exemplo com autores fictícios, e as categorias estão fixas no código.
+- Links que dão 404 (ver "Rotas") e loja só com título.
+- Imagens provisórias externas (picsum.photos e placehold.co).
+- Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.
+
+**Dependências e hospedagem**
+- **P17, framer-motion fora do plano:** entrou na fase de 27 a 29/09; só a home usa.
+- **Ajustes de Vercel com hospedagem ainda não decidida:** `transpilePackages: ["jwks-rsa", "jose"]` no `next.config.ts` e o override de `jose` 4.15.9 no `package.json`. Não remover sem testar o deploy.
+- `turbopack.root` no `next.config.ts` só evita o aviso de um `package-lock.json` solto na pasta do usuário, fora do projeto.
+- O Git local tem `refs/original/refs/heads/main`, backup de uma reescrita de autoria anterior; não está em nenhuma branch.
+
+## Exceções de design
+
+Valores visuais que ficaram fora dos tokens porque não existe token de **valor idêntico** em `src/styles/tokens.css`. Trocar qualquer um muda o visual e depende da decisão de design. Linhas conferidas em 02/10/2026; se o arquivo mudar, confira de novo.
+
+### A. Erros do Stylelint
+
+`npm run lint:css` deve mostrar exatamente estes 7 erros, e nenhum outro.
+
+| Arquivo | Linha | Valor | Regra violada |
+|---|---|---|---|
+| `src/components/Botao/Botao.module.css` | 37 | `#000` | Cores só pelos tokens (Stylelint color-no-hex) |
+| `src/components/Hero/Hero.module.css` | 41 | `rgba(0, 0, 0, 0.5)` | Cores só pelos tokens (Stylelint function-disallowed-list) |
+| `src/components/Hero/Hero.module.css` | 53 | `rgba(0, 0, 0, 0.8)` | Cores só pelos tokens (Stylelint function-disallowed-list) |
+| `src/components/Modal/Modal.module.css` | 7 | `rgba(0, 0, 0, 0.5)` | Cores só pelos tokens (Stylelint function-disallowed-list) |
+| `src/components/Modal/Modal.module.css` | 23 | `rgba(0, 0, 0, 0.2)` | Cores só pelos tokens (Stylelint function-disallowed-list) |
+| `src/components/Modal/Modal.module.css` | 37 | `20px` | Tamanhos de fonte só pelos tokens (Stylelint declaration-property-unit-disallowed-list) |
+| `src/components/Modal/Modal.module.css` | 44 | `24px` | Tamanhos de fonte só pelos tokens (Stylelint declaration-property-unit-disallowed-list) |
+
+### B. Outros valores literais (o Stylelint não verifica)
+
+Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, em CSS Modules e em estilos inline. Os estilos inline com esses valores ficaram inline de propósito: só os que usavam apenas tokens foram para CSS Module.
+
+| Arquivo | Linhas | Valores | Regra violada |
+|---|---|---|---|
+| `src/app/admin/(painel)/artigos/page.tsx` | 34 | 14px | Tamanhos de fonte só pelos tokens |
+| `src/app/admin/(painel)/artigos/page.tsx` | 29 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/(painel)/artigos/page.tsx` | 28 | 500 | Pesos só pelos tokens |
+| `src/app/admin/(painel)/blog/page.tsx` | 36 | 14px | Tamanhos de fonte só pelos tokens |
+| `src/app/admin/(painel)/blog/page.tsx` | 32 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/(painel)/blog/page.tsx` | 28 | 500 | Pesos só pelos tokens |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 94 | #e74c3c | Cores só pelos tokens |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 114 | 12px | Espaçamento só pelos tokens |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 91, 94, 113, 114 | 14px, 16px | Tamanhos de fonte só pelos tokens |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 108, 110, 114, 121, 123 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 89 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 87, 113 | 500 | Pesos só pelos tokens |
+| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 114 | 4px | Raio 0 (--radius) |
+| `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 36 | 4px | Espaçamento só pelos tokens |
+| `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 10, 17, 64 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 3, 8, 58, 62 | 70px, 100vh, 280px, 100vw 280px | Tamanhos só pelos tokens |
+| `src/app/admin/_componentes/LayoutPainel/LayoutPainel.tsx` | 54 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/_componentes/SeloStatus/SeloStatus.tsx` | 9 | 4px 8px | Espaçamento só pelos tokens |
+| `src/app/admin/_componentes/SeloStatus/SeloStatus.tsx` | 11 | 12px | Tamanhos de fonte só pelos tokens |
+| `src/app/admin/_componentes/SeloStatus/SeloStatus.tsx` | 10 | 4px | Raio 0 (--radius) |
+| `src/app/admin/_componentes/TabelaPainel/TabelaPainel.tsx` | 6, 12 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/admin/_componentes/TabelaPainel/TabelaPainel.tsx` | 16 | 0.7 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/_componentes/TabelaPainel/TabelaPainel.tsx` | 14 | 500 | Pesos só pelos tokens |
+| `src/app/admin/_componentes/TabelaPainel/TabelaPainel.tsx` | 10 | 5px | Raio 0 (--radius) |
+| `src/app/admin/_componentes/estilosDoFormulario.ts` | 16 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/admin/_componentes/estilosDoFormulario.ts` | 9 | 800px | Tamanhos só pelos tokens |
+| `src/app/admin/_componentes/estilosDoFormulario.ts` | 11 | 500 | Pesos só pelos tokens |
+| `src/app/admin/_componentes/estilosDoFormulario.ts` | 15 | 5px | Raio 0 (--radius) |
+| `src/app/artigos/[slug]/page.module.css` | 20 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/artigos/[slug]/page.module.css` | 3, 8 | 100vh, 800px | Tamanhos só pelos tokens |
+| `src/app/artigos/[slug]/page.module.css` | 36 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/artigos/categoria/[slug]/page.module.css` | 19 | -24px | Espaçamento só pelos tokens |
+| `src/app/artigos/categoria/[slug]/page.module.css` | 3 | 100vh | Tamanhos só pelos tokens |
+| `src/app/artigos/page.module.css` | 3, 72, 73 | 8px, 100vh | Tamanhos só pelos tokens |
+| `src/app/artigos/page.module.css` | 67 | 600 | Pesos só pelos tokens |
+| `src/app/artigos/page.module.css` | 40, 75 | 50%, 5px | Raio 0 (--radius) |
+| `src/app/artigos/page.tsx` | 89 | 0.6 | Cores só pelos tokens (opacidade) |
+| `src/app/blog/[slug]/page.module.css` | 20 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/blog/[slug]/page.module.css` | 3, 8 | 100vh, 800px | Tamanhos só pelos tokens |
+| `src/app/blog/[slug]/page.tsx` | 42 | 8px | Raio 0 (--radius) |
+| `src/app/blog/page.module.css` | 3, 17 | 100vh, 800px | Tamanhos só pelos tokens |
+| `src/app/blog/page.tsx` | 41 | 40px | Espaçamento só pelos tokens |
+| `src/app/blog/page.tsx` | 41 | 0.6 | Cores só pelos tokens (opacidade) |
+| `src/app/contato/page.module.css` | 7, 12 | 60vh, 600px | Tamanhos só pelos tokens |
+| `src/app/globals.css` | 149 | 1.5rem 24px | Tamanhos de fonte só pelos tokens |
+| `src/app/globals.css` | 25, 166, 167 | 1px, 100vh | Tamanhos só pelos tokens |
+| `src/app/page.module.css` | 108 | 35px | Espaçamento só pelos tokens |
+| `src/app/page.module.css` | 67, 87, 92, 93, 109 | -4px, 24px, 500px, 800px | Tamanhos só pelos tokens |
+| `src/app/page.module.css` | 79, 110 | 5px | Raio 0 (--radius) |
+| `src/app/page.module.css` | 88 | 0 16px 40px color-mix(in srgb,  10%, transparent) | Sem sombra (--shadow: none) |
+| `src/app/page.tsx` | 74, 135 | 500px, 600px | Tamanhos só pelos tokens |
+| `src/app/page.tsx` | 90 | 5px | Raio 0 (--radius) |
+| `src/app/profissionais/page.module.css` | 39 | 6px 20px | Espaçamento só pelos tokens |
+| `src/app/profissionais/page.module.css` | 38 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/app/profissionais/page.module.css` | 3, 15 | 100vh, 800px | Tamanhos só pelos tokens |
+| `src/app/profissionais/page.module.css` | 40 | 20px | Raio 0 (--radius) |
+| `src/components/BlocoContato/BlocoContato.module.css` | 5 | 25px | Espaçamento só pelos tokens |
+| `src/components/BlocoContato/BlocoContato.module.css` | 8 | 5px | Raio 0 (--radius) |
+| `src/components/Botao/Botao.module.css` | 8 | 5px | Raio 0 (--radius) |
+| `src/components/CaixaConsentimento/CaixaConsentimento.module.css` | 29, 72 | 5px | Raio 0 (--radius) |
+| `src/components/CaixaConsentimento/CaixaConsentimento.module.css` | 50, 54 | inset 0 0 0 2px, inset 0 0 0 2px , | Sem sombra (--shadow: none) |
+| `src/components/Campo/Campo.module.css` | 24, 57 | 5px | Raio 0 (--radius) |
+| `src/components/Campo/Campo.module.css` | 43, 47 | inset 0 0 0 2px, inset 0 0 0 2px , | Sem sombra (--shadow: none) |
+| `src/components/CardArtigo/CardArtigo.module.css` | 46 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/components/CardArtigo/CardArtigo.module.css` | 12 | 4px | Tamanhos só pelos tokens |
+| `src/components/CardArtigo/CardArtigo.module.css` | 21 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/components/CardArtigo/CardArtigo.module.css` | 32, 55 | 500 | Pesos só pelos tokens |
+| `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css` | 30 | 12px 16px | Espaçamento só pelos tokens |
+| `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css` | 11 | -4px | Tamanhos só pelos tokens |
+| `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css` | 5 | 5px | Raio 0 (--radius) |
+| `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css` | 12 | 0 16px 40px color-mix(in srgb,  10%, transparent) | Sem sombra (--shadow: none) |
+| `src/components/CardPost/CardPost.module.css` | 12 | -4px | Tamanhos só pelos tokens |
+| `src/components/CardPost/CardPost.module.css` | 5 | 5px | Raio 0 (--radius) |
+| `src/components/CardPost/CardPost.module.css` | 13 | 0 16px 40px color-mix(in srgb,  10%, transparent) | Sem sombra (--shadow: none) |
+| `src/components/CardProfissional/CardProfissional.module.css` | 10, 48 | 4px, 6px 16px | Espaçamento só pelos tokens |
+| `src/components/CardProfissional/CardProfissional.module.css` | 30, 50 | 5px | Raio 0 (--radius) |
+| `src/components/CardPublico/CardPublico.module.css` | 6 | 30px | Espaçamento só pelos tokens |
+| `src/components/CardPublico/CardPublico.module.css` | 14 | -4px | Tamanhos só pelos tokens |
+| `src/components/CardPublico/CardPublico.module.css` | 8 | 5px | Raio 0 (--radius) |
+| `src/components/CardPublico/CardPublico.module.css` | 15 | 0 16px 40px color-mix(in srgb,  15%, transparent) | Sem sombra (--shadow: none) |
+| `src/components/Estatisticas/Estatisticas.module.css` | 22 | -4px | Tamanhos só pelos tokens |
+| `src/components/Estatisticas/Estatisticas.module.css` | 16 | 5px | Raio 0 (--radius) |
+| `src/components/Estatisticas/Estatisticas.module.css` | 23 | 0 16px 40px color-mix(in srgb,  15%, transparent) | Sem sombra (--shadow: none) |
+| `src/components/Header/Header.module.css` | 47 | 30px | Espaçamento só pelos tokens |
+| `src/components/Header/Header.module.css` | 53, 58 | 5px | Raio 0 (--radius) |
+| `src/components/Hero/Hero.module.css` | 45, 57, 61, 67, 71, 95 | 10px, 1rem, 20px, 0.5rem | Espaçamento só pelos tokens |
+| `src/components/Hero/Hero.module.css` | 44, 94 | 2rem, 1.5rem | Tamanhos de fonte só pelos tokens |
+| `src/components/Hero/Hero.module.css` | 6, 7, 8, 76, 77, 91 | 12px, 50vh, 90vh, 500px, 1200px | Tamanhos só pelos tokens |
+| `src/components/Hero/Hero.module.css` | 49, 78 | 50%, 5px | Raio 0 (--radius) |
+| `src/components/Logo/Logo.module.css` | 16 | 100px | Tamanhos só pelos tokens |
+| `src/components/MenuDesktop/MenuDesktop.module.css` | 26, 68, 83 | 4px, 10px, -20px | Espaçamento só pelos tokens |
+| `src/components/MenuDesktop/MenuDesktop.module.css` | 86 | 20px | Tamanhos só pelos tokens |
+| `src/components/MenuDesktop/MenuDesktop.module.css` | 21, 104 | 600 | Pesos só pelos tokens |
+| `src/components/MenuDesktop/MenuDesktop.module.css` | 76, 95 | 5px | Raio 0 (--radius) |
+| `src/components/MenuTelaCheia/MenuTelaCheia.module.css` | 65 | 600 | Pesos só pelos tokens |
+| `src/components/Modal/Modal.module.css` | 32 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
+| `src/components/Modal/Modal.module.css` | 20, 21 | 90vh, 500px | Tamanhos só pelos tokens |
+| `src/components/Modal/Modal.module.css` | 47 | 0.6 | Cores só pelos tokens (opacidade) |
+| `src/components/Modal/Modal.module.css` | 38 | 600 | Pesos só pelos tokens |
+| `src/components/Modal/Modal.module.css` | 18 | 8px | Raio 0 (--radius) |
+| `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 13, 14 | #000, #fff | Cores só pelos tokens |
+| `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 19 | 1.5rem | Tamanhos de fonte só pelos tokens |
+| `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 22, 23 | 0.1em, 200px | Tamanhos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 6, 16 | 25px, 8vw 120px | Espaçamento só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 90 | 90px | Tamanhos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 32 | 600 | Pesos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 9 | 5px | Raio 0 (--radius) |
