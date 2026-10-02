@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import type { ItemDoMenu } from "@/config/navegacao";
+import { itemEstaAtivo, linkEstaAtivo, type ItemDoMenu } from "@/config/navegacao";
 import { IconeSeta } from "@/components/Icones/Icones";
 import estilos from "./MenuDesktop.module.css";
 
@@ -41,16 +41,14 @@ export function MenuDesktop({ itens, rotulo, className }: { itens: ItemDoMenu[];
     <nav ref={navRef} aria-label={rotulo} className={className}>
       <ul role="list" className={estilos.lista}>
         {itens.map((item, indice) => {
-          const isAtivo = item.href
-            ? pathname === item.href || pathname.startsWith(`${item.href}/`)
-            : item.submenu?.some((sub) => pathname === sub.href || pathname.startsWith(`${sub.href}/`));
+          const ativo = itemEstaAtivo(pathname, item);
 
-          const linkClasses = `${estilos.link} ${isAtivo ? estilos.linkAtivo : ""}`;
+          const classesDoLink = `${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
 
           if (!item.submenu) {
             return (
               <li key={item.rotulo}>
-                <Link href={item.href ?? "/"} className={linkClasses}>
+                <Link href={item.href ?? "/"} className={classesDoLink}>
                   {item.rotulo}
                 </Link>
               </li>
@@ -84,15 +82,15 @@ export function MenuDesktop({ itens, rotulo, className }: { itens: ItemDoMenu[];
             >
               {item.href ? (
                 <span className={estilos.grupo}>
-                  <Link href={item.href} className={linkClasses}>
+                  <Link href={item.href} className={classesDoLink}>
                     {item.rotulo}
                   </Link>
-                  <button {...botaoComum} className={`${estilos.seta} ${isAtivo ? estilos.setaAtiva : ""}`} aria-label={`Submenu de ${item.rotulo}`}>
+                  <button {...botaoComum} className={`${estilos.seta} ${ativo ? estilos.setaAtiva : ""}`} aria-label={`Submenu de ${item.rotulo}`}>
                     <IconeSeta className={estilos.icone} />
                   </button>
                 </span>
               ) : (
-                <button {...botaoComum} className={`${linkClasses} ${estilos.botaoTexto}`}>
+                <button {...botaoComum} className={`${classesDoLink} ${estilos.botaoTexto}`}>
                   {item.rotulo}
                   <IconeSeta className={estilos.icone} />
                 </button>
@@ -100,10 +98,10 @@ export function MenuDesktop({ itens, rotulo, className }: { itens: ItemDoMenu[];
               {estaAberto && (
                 <ul role="list" id={idSubmenu} className={estilos.submenu}>
                   {item.submenu.map((sub) => {
-                    const isSubAtivo = pathname === sub.href || pathname.startsWith(`${sub.href}/`);
+                    const subAtivo = linkEstaAtivo(pathname, sub.href);
                     return (
                       <li key={sub.href}>
-                        <Link href={sub.href} className={`${estilos.link} ${isSubAtivo ? estilos.linkAtivo : ""}`} onClick={() => setAberto(null)}>
+                        <Link href={sub.href} className={`${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={() => setAberto(null)}>
                           {sub.rotulo}
                         </Link>
                       </li>

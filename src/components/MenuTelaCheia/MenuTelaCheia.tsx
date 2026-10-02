@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { CHAMADA_DOACAO, MENU_PRINCIPAL } from "@/config/navegacao";
+import { CHAMADA_DOACAO, MENU_PRINCIPAL, itemEstaAtivo, linkEstaAtivo } from "@/config/navegacao";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeFechar, IconeSeta } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
@@ -92,15 +92,13 @@ export function MenuTelaCheia({
         <nav aria-label="Menu principal">
           <ul role="list" className={estilos.lista}>
             {MENU_PRINCIPAL.map((item, indice) => {
-              const isAtivo = item.href
-                ? pathname === item.href || pathname.startsWith(`${item.href}/`)
-                : item.submenu?.some((sub) => pathname === sub.href || pathname.startsWith(`${sub.href}/`));
-              const linkClasses = `${estilos.link} ${isAtivo ? estilos.linkAtivo : ""}`;
+              const ativo = itemEstaAtivo(pathname, item);
+              const classesDoLink = `${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
 
               if (!item.submenu) {
                 return (
                   <li key={item.rotulo}>
-                    <Link href={item.href ?? "/"} className={linkClasses} onClick={fechar}>
+                    <Link href={item.href ?? "/"} className={classesDoLink} onClick={fechar}>
                       {item.rotulo}
                     </Link>
                   </li>
@@ -120,15 +118,15 @@ export function MenuTelaCheia({
                 <li key={item.rotulo}>
                   {item.href ? (
                     <span className={estilos.grupo}>
-                      <Link href={item.href} className={linkClasses} onClick={fechar}>
+                      <Link href={item.href} className={classesDoLink} onClick={fechar}>
                         {item.rotulo}
                       </Link>
-                      <button {...botaoComum} className={`${estilos.alternar} ${isAtivo ? estilos.alternarAtivo : ""}`} aria-label={`Submenu de ${item.rotulo}`}>
+                      <button {...botaoComum} className={`${estilos.alternar} ${ativo ? estilos.alternarAtivo : ""}`} aria-label={`Submenu de ${item.rotulo}`}>
                         <IconeSeta className={estilos.iconeSeta} />
                       </button>
                     </span>
                   ) : (
-                    <button {...botaoComum} className={`${linkClasses} ${estilos.botaoTexto}`}>
+                    <button {...botaoComum} className={`${classesDoLink} ${estilos.botaoTexto}`}>
                       {item.rotulo}
                       <IconeSeta className={estilos.iconeSeta} />
                     </button>
@@ -136,10 +134,10 @@ export function MenuTelaCheia({
                   {estaExpandido && (
                     <ul role="list" id={idSublista} className={estilos.sublista}>
                       {item.submenu.map((sub) => {
-                        const isSubAtivo = pathname === sub.href || pathname.startsWith(`${sub.href}/`);
+                        const subAtivo = linkEstaAtivo(pathname, sub.href);
                         return (
                           <li key={sub.href}>
-                            <Link href={sub.href} className={`${estilos.link} ${isSubAtivo ? estilos.linkAtivo : ""}`} onClick={fechar}>
+                            <Link href={sub.href} className={`${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={fechar}>
                               {sub.rotulo}
                             </Link>
                           </li>

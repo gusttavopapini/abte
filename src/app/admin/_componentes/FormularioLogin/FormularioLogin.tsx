@@ -9,10 +9,9 @@ import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { obterAuthCliente } from "@/lib/firebase/cliente";
+import { ehEmailValido } from "@/lib/validacao";
 import { mensagemDeErroDoLogin } from "./erros";
 import estilos from "./FormularioLogin.module.css";
-
-const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type ErrosCampo = { email?: string; senha?: string };
 
@@ -32,7 +31,7 @@ export function FormularioLogin() {
 
     const erros: ErrosCampo = {};
     if (!email.trim()) erros.email = "Informe seu e-mail.";
-    else if (!EMAIL_VALIDO.test(email.trim())) erros.email = "Informe um e-mail válido, como nome@exemplo.com.";
+    else if (!ehEmailValido(email.trim())) erros.email = "Informe um e-mail válido, como nome@exemplo.com.";
     if (!senha) erros.senha = "Informe sua senha.";
     setErrosCampo(erros);
     if (erros.email) return emailRef.current?.focus();

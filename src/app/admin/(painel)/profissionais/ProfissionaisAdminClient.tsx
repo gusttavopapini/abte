@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { TabelaPainel, estiloCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 import { Modal } from "@/components/Modal/Modal";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
+import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
 import type { Profissional as ProfissionalDoBanco } from "@/lib/dados/tipos";
 
 type Profissional = Omit<ProfissionalDoBanco, "criadoEm" | "atualizadoEm">;
@@ -27,25 +29,26 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
     setModalAberto(true);
   };
 
-  const abrirEdicao = (prof: Profissional) => {
-    setEditando(prof);
+  const abrirEdicao = (profissional: Profissional) => {
+    setEditando(profissional);
     setErroAoSalvar(null);
     setModalAberto(true);
   };
 
-  const handleExcluir = async (id: string) => {
+  const excluir = async (id: string) => {
     if (confirm("Tem certeza que deseja excluir este profissional?")) {
       await excluirProfissional(id);
-      setProfissionais(prev => prev.filter(p => p.id !== id));
+      setProfissionais((atuais) => atuais.filter((profissional) => profissional.id !== id));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const salvar = async (evento: React.FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
     setSalvando(true);
     setErroAoSalvar(null);
-    const formData = new FormData(e.currentTarget);
-    formData.append("acao", "publicar"); // Forçamos publicar para não complicar o modal, ou você pode adicionar opções.
+    const formData = new FormData(evento.currentTarget);
+    // O modal não tem rascunho: todo profissional salvo aqui é publicado.
+    formData.append("acao", "publicar");
     
     try {
       if (editando) {
@@ -64,9 +67,8 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
     setModalAberto(false);
     setSalvando(false);
     
-    // Atualização otimista na tela ou pode usar useTransition
-    // Recarregar a página ou o componente em uma aplicação real pode ser feito pelo Next router
-    window.location.reload(); 
+    // Recarrega a página para mostrar a lista atualizada.
+    window.location.reload();
   };
 
   return (
@@ -79,62 +81,40 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
         <Botao onClick={abrirNovo}>Adicionar Novo</Botao>
       </header>
       
-      <div style={{ background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "5px" }}>
-        <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 10%, transparent)" }}>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Nome</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Especialidade</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Tag</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profissionais.length === 0 ? (
-              <tr>
-                <td colSpan={4} style={{ paddingTop: "var(--space-24)", textAlign: "center", opacity: 0.7 }}>
-                  Nenhum profissional encontrado.
-                </td>
-              </tr>
-            ) : (
-              profissionais.map((prof) => (
-                <tr key={prof.id} style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" }}>
-                  <td style={{ padding: "var(--space-16) 0", fontWeight: 500 }}>{prof.nome}</td>
-                  <td style={{ padding: "var(--space-16) 0" }}>{prof.especialidade}</td>
-                  <td style={{ padding: "var(--space-16) 0", opacity: 0.8 }}>{prof.tag}</td>
-                  <td style={{ padding: "var(--space-16) 0", display: "flex", gap: "var(--space-16)" }}>
-                    <button onClick={() => abrirEdicao(prof)} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer" }}>
-                      Editar
-                    </button>
-                    <button onClick={() => handleExcluir(prof.id)} style={{ fontSize: "14px", textDecoration: "underline", color: "#e74c3c", background: "none", border: "none", cursor: "pointer" }}>
-                      Excluir
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <TabelaPainel colunas={["Nome", "Especialidade", "Tag", "Ações"]} vazia={profissionais.length === 0} mensagemVazia="Nenhum profissional encontrado.">
+        {profissionais.map((profissional) => (
+          <tr key={profissional.id} style={estiloLinha}>
+            <td style={{ ...estiloCelula, fontWeight: 500 }}>{profissional.nome}</td>
+            <td style={estiloCelula}>{profissional.especialidade}</td>
+            <td style={{ ...estiloCelula, opacity: 0.8 }}>{profissional.tag}</td>
+            <td style={{ ...estiloCelula, display: "flex", gap: "var(--space-16)" }}>
+              <button type="button" onClick={() => abrirEdicao(profissional)} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer" }}>
+                Editar
+              </button>
+              <button type="button" onClick={() => excluir(profissional.id)} style={{ fontSize: "14px", textDecoration: "underline", color: "#e74c3c", background: "none", border: "none", cursor: "pointer" }}>
+                Excluir
+              </button>
+            </td>
+          </tr>
+        ))}
+      </TabelaPainel>
 
       <Modal 
         aberto={modalAberto} 
         aoFechar={() => setModalAberto(false)} 
         titulo={editando ? "Editar Profissional" : "Novo Profissional"}
       >
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
+        <form onSubmit={salvar} style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
           <Campo id="nome" name="nome" type="text" rotulo="Nome Completo" obrigatorio defaultValue={editando?.nome || ""} placeholder="Ex: Dra. Maria Silva" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
           
           <Campo id="especialidade" name="especialidade" type="text" rotulo="Especialidade (Exibição)" obrigatorio defaultValue={editando?.especialidade || ""} placeholder="Ex: Ortopedista Pediátrico" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label htmlFor="tag" style={{ fontWeight: 500, fontSize: "14px" }}>Tag (Filtro do site) *</label>
-            <select id="tag" name="tag" required defaultValue={editando?.tag || "Fisioterapeutas"} style={{ padding: "12px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", borderRadius: "4px", background: "var(--color-surface)", color: "var(--color-text)", fontSize: "16px" }}>
-              <option value="Fisioterapeutas">Fisioterapeutas</option>
-              <option value="Médicos">Médicos</option>
-              <option value="Ortesistas">Ortesistas</option>
-              <option value="Psicólogos">Psicólogos</option>
-              <option value="Outros">Outros</option>
+            <select id="tag" name="tag" required defaultValue={editando?.tag || TAGS_DE_PROFISSIONAIS[0]} style={{ padding: "12px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", borderRadius: "4px", background: "var(--color-surface)", color: "var(--color-text)", fontSize: "16px" }}>
+              {TAGS_DE_PROFISSIONAIS.map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
             </select>
           </div>
 

@@ -7,9 +7,8 @@ import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { obterAuthCliente } from "@/lib/firebase/cliente";
+import { ehEmailValido } from "@/lib/validacao";
 import estilos from "./FormularioRecuperarSenha.module.css";
-
-const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // "Esqueci minha senha": usa o e-mail de redefinição do próprio Firebase.
 // Mostra sempre a mesma confirmação, exista ou não uma conta com o e-mail.
@@ -30,7 +29,7 @@ export function FormularioRecuperarSenha() {
     evento.preventDefault();
     setErroGeral(null);
     const valor = email.trim();
-    const erro = !valor ? "Informe seu e-mail." : !EMAIL_VALIDO.test(valor) ? "Informe um e-mail válido, como nome@exemplo.com." : undefined;
+    const erro = !valor ? "Informe seu e-mail." : !ehEmailValido(valor) ? "Informe um e-mail válido, como nome@exemplo.com." : undefined;
     setErroEmail(erro);
     if (erro) return emailRef.current?.focus();
 

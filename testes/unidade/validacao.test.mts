@@ -1,7 +1,7 @@
 // Testes das validações usadas pelas ações do painel (npm run test:unidade).
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { ehIdDeDocumentoValido, lerTextoDoFormulario } from "../../src/lib/validacao.ts";
+import { ehEmailValido, ehIdDeDocumentoValido, lerTextoDoFormulario } from "../../src/lib/validacao.ts";
 
 describe("Id de documento do Firestore", () => {
   test("aceita ids comuns", () => {
@@ -59,5 +59,24 @@ describe("Leitura de campo do formulário", () => {
     const dados = new FormData();
     dados.set("conteudo", "x".repeat(100_000));
     assert.equal(lerTextoDoFormulario(dados, "conteudo", { rotulo: "Conteúdo" }).length, 100_000);
+  });
+});
+
+describe("Validação de e-mail", () => {
+  test("aceita e-mails comuns", () => {
+    for (const email of ["nome@exemplo.com", "a.b+c@sub.dominio.com.br", "x@y.z"]) {
+      assert.equal(ehEmailValido(email), true, email);
+    }
+  });
+
+  test("recusa sem arroba, sem domínio, sem ponto no domínio ou com espaço", () => {
+    for (const email of ["", "nome", "nome@", "@exemplo.com", "nome@exemplo", "nome @exemplo.com", "nome@exem plo.com", "a@b@c.com"]) {
+      assert.equal(ehEmailValido(email), false, email);
+    }
+  });
+
+  test("não corta espaços: quem chama passa o valor já sem espaços nas pontas", () => {
+    assert.equal(ehEmailValido(" nome@exemplo.com "), false);
+    assert.equal(ehEmailValido(" nome@exemplo.com ".trim()), true);
   });
 });

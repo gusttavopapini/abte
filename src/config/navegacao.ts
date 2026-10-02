@@ -1,6 +1,8 @@
 // Navegação do site, centralizada aqui para facilitar mudanças.
 // Itens e ordem do menu: PROPOSTA da arquitetura, ainda não validada pela ABTE.
 
+import { TAGS_DE_PROFISSIONAIS } from "./profissionais";
+
 export type LinkDeNavegacao = {
   rotulo: string;
   href: string;
@@ -17,19 +19,27 @@ export const MENU_PRINCIPAL: ItemDoMenu[] = [
   {
     rotulo: "Profissionais",
     href: "/profissionais",
-    submenu: [
-      { rotulo: "Fisioterapeutas", href: "/profissionais?tag=Fisioterapeutas" },
-      { rotulo: "Médicos", href: "/profissionais?tag=Médicos" },
-      { rotulo: "Ortesistas", href: "/profissionais?tag=Ortesistas" },
-      { rotulo: "Psicólogos", href: "/profissionais?tag=Psicólogos" },
-      { rotulo: "Outros", href: "/profissionais?tag=Outros" },
-    ],
+    submenu: TAGS_DE_PROFISSIONAIS.map((tag) => ({ rotulo: tag, href: `/profissionais?tag=${tag}` })),
   },
   { rotulo: "Blog", href: "/blog" },
   { rotulo: "Artigos", href: "/artigos" },
   { rotulo: "Loja", href: "/loja" },
   { rotulo: "Contato", href: "/contato" },
 ];
+
+// Um link fica ativo na própria página e nas páginas abaixo dela.
+// Atenção: o pathname não inclui "?tag=...", então os links do submenu de
+// Profissionais nunca ficam ativos (comportamento atual, pendência no CLAUDE.md).
+export function linkEstaAtivo(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+// Item com link segue o próprio link; item só com submenu fica ativo quando
+// algum subitem está.
+export function itemEstaAtivo(pathname: string, item: ItemDoMenu): boolean {
+  if (item.href) return linkEstaAtivo(pathname, item.href);
+  return item.submenu?.some((sub) => linkEstaAtivo(pathname, sub.href)) ?? false;
+}
 
 // Botão de destaque no fim do menu.
 export const CHAMADA_DOACAO: LinkDeNavegacao = { rotulo: "Doe para a ABTE", href: "/doe" };

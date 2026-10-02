@@ -3,6 +3,8 @@ import Link from "next/link";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerPosts } from "@/lib/dados/colecoes";
 import { Botao } from "@/components/Botao/Botao";
+import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
+import { TabelaPainel, estiloCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 
 export const metadata: Metadata = { title: "Blog" };
 
@@ -21,54 +23,24 @@ export default async function PaginaAdminBlog() {
         <Botao href="/admin/blog/novo">Adicionar Novo Post</Botao>
       </header>
       
-      <div style={{ background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "5px" }}>
-        <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 10%, transparent)" }}>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Título</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Status</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Data</th>
-              <th style={{ paddingBottom: "var(--space-16)", fontWeight: 500 }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.length === 0 ? (
-              <tr>
-                <td colSpan={4} style={{ paddingTop: "var(--space-24)", textAlign: "center", opacity: 0.7 }}>
-                  Nenhum post encontrado.
-                </td>
-              </tr>
-            ) : (
-              posts.map((post) => (
-                <tr key={post.id} style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" }}>
-                  <td style={{ padding: "var(--space-16) 0", fontWeight: 500 }}>{post.titulo}</td>
-                  <td style={{ padding: "var(--space-16) 0" }}>
-                    <span style={{ 
-                      display: "inline-block", 
-                      padding: "4px 8px", 
-                      borderRadius: "4px", 
-                      fontSize: "12px",
-                      textTransform: "uppercase",
-                      background: post.status === "publicado" ? "rgba(46, 204, 113, 0.2)" : "rgba(241, 196, 15, 0.2)",
-                      color: post.status === "publicado" ? "#27ae60" : "#d35400"
-                    }}>
-                      {post.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "var(--space-16) 0", opacity: 0.8 }}>
-                    {post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "N/A"}
-                  </td>
-                  <td style={{ padding: "var(--space-16) 0" }}>
-                    <Link href={`/admin/blog/editar/${post.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <TabelaPainel colunas={["Título", "Status", "Data", "Ações"]} vazia={posts.length === 0} mensagemVazia="Nenhum post encontrado.">
+        {posts.map((post) => (
+          <tr key={post.id} style={estiloLinha}>
+            <td style={{ ...estiloCelula, fontWeight: 500 }}>{post.titulo}</td>
+            <td style={estiloCelula}>
+              <SeloStatus status={post.status} />
+            </td>
+            <td style={{ ...estiloCelula, opacity: 0.8 }}>
+              {post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "N/A"}
+            </td>
+            <td style={estiloCelula}>
+              <Link href={`/admin/blog/editar/${post.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>
+                Editar
+              </Link>
+            </td>
+          </tr>
+        ))}
+      </TabelaPainel>
     </div>
   );
 }

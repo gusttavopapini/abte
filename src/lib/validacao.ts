@@ -30,3 +30,11 @@ export function lerTextoDoFormulario(dados: FormData, campo: string, { rotulo, l
   }
   return valor;
 }
+
+// Formato mínimo de e-mail (algo@algo.algo, sem espaços). Usado no login, na
+// recuperação de senha e no formulário de contato.
+const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function ehEmailValido(valor: string): boolean {
+  return EMAIL_VALIDO.test(valor);
+}

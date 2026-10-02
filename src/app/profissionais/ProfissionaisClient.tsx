@@ -1,78 +1,71 @@
 "use client";
 
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
+import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
 import estilos from "./page.module.css";
 
-const TAGS = ["Todos", "Fisioterapeutas", "Médicos", "Ortesistas", "Psicólogos", "Outros"];
+const TODOS = "Todos";
+const OPCOES_DO_FILTRO: readonly string[] = [TODOS, ...TAGS_DE_PROFISSIONAIS];
 
-type Profissional = {
+export type ProfissionalPublico = {
+  id: string;
   nome: string;
   especialidade: string;
   tag: string;
-  linkedinUrl?: string;
-  imagemUrl?: string;
+  linkedinUrl: string;
+  imagemUrl: string;
 };
 
-export function ProfissionaisClient({ profissionaisIniciais }: { profissionaisIniciais: Profissional[] }) {
-  const searchParams = useSearchParams();
+// Filtro por tag e grade de cards da página /profissionais. A tag escolhida
+// fica no endereço (?tag=...), para o link do submenu abrir já filtrado.
+export function ProfissionaisClient({ profissionais }: { profissionais: ProfissionalPublico[] }) {
+  const parametros = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const tagUrl = searchParams.get("tag");
-  const tagAtiva = tagUrl && TAGS.includes(tagUrl) ? tagUrl : "Todos";
+  const tagDoEndereco = parametros.get("tag");
+  const tagAtiva = tagDoEndereco && OPCOES_DO_FILTRO.includes(tagDoEndereco) ? tagDoEndereco : TODOS;
 
-  const handleTagClick = (tag: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (tag === "Todos") {
-      params.delete("tag");
+  function selecionarTag(tag: string) {
+    const novosParametros = new URLSearchParams(parametros.toString());
+    if (tag === TODOS) {
+      novosParametros.delete("tag");
     } else {
-      params.set("tag", tag);
+      novosParametros.set("tag", tag);
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+    router.replace(`${pathname}?${novosParametros.toString()}`, { scroll: false });
+  }
 
-  const profissionaisFiltrados = tagAtiva === "Todos" 
-    ? profissionaisIniciais 
-    : profissionaisIniciais.filter(p => p.tag === tagAtiva);
+  const profissionaisFiltrados =
+    tagAtiva === TODOS ? profissionais : profissionais.filter((profissional) => profissional.tag === tagAtiva);
 
   return (
-    <LayoutPublico header="solida">
-      <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
-          <div className={estilos.cabecalho}>
-            <h1 className={`tipo-h1 ${estilos.titulo}`}>Profissionais</h1>
-            <p className={`tipo-texto-lg ${estilos.descricao}`}>
-              Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede.
-            </p>
-          </div>
-
-          <div className={estilos.filtros}>
-            {TAGS.map((tag) => (
-              <button 
-                key={tag} 
-                onClick={() => handleTagClick(tag)}
-                className={`${estilos.tag} ${tagAtiva === tag ? estilos.tagAtiva : ""}`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-
-          <div className={estilos.grade}>
-            {profissionaisFiltrados.map((prof, i) => (
-              <CardProfissional 
-                key={i}
-                nome={prof.nome}
-                especialidade={prof.especialidade}
-                linkedinUrl={prof.linkedinUrl}
-                imagemUrl={prof.imagemUrl}
-              />
-            ))}
-          </div>
-        </div>
+    <>
+      <div className={estilos.filtros}>
+        {OPCOES_DO_FILTRO.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => selecionarTag(tag)}
+            className={`${estilos.tag} ${tagAtiva === tag ? estilos.tagAtiva : ""}`}
+          >
+            {tag}
+          </button>
+        ))}
       </div>
-    </LayoutPublico>
+
+      <div className={estilos.grade}>
+        {profissionaisFiltrados.map((profissional) => (
+          <CardProfissional
+            key={profissional.id}
+            nome={profissional.nome}
+            especialidade={profissional.especialidade}
+            linkedinUrl={profissional.linkedinUrl}
+            imagemUrl={profissional.imagemUrl}
+          />
+        ))}
+      </div>
+    </>
   );
 }

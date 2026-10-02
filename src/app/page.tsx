@@ -56,7 +56,7 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 3. By The Numbers / Estatísticas (Imagem na direita, números na esquerda) */}
+        {/* 3. Estatísticas: números à esquerda e imagem à direita */}
         <section className={estilos.secaoAlt}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
             <AnimacaoEntrada direcao="esquerda" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -76,7 +76,7 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 4. Who We Are / Missão, Visão e Valores (3 cards) */}
+        {/* 4. Quem somos: vídeo, missão, visão e valores */}
         <section className={`container ${estilos.secao}`}>
           <div className={estilos.blocoCentralizado}>
             <AnimacaoEntrada direcao="baixo">
@@ -130,7 +130,7 @@ export default function PaginaInicial() {
           </div>
         </section>
 
-        {/* 5. Ready to find your balance? / CTA Final flutuante na imagem */}
+        {/* 5. Chamada final: caixa flutuante sobre a imagem */}
         <section className={estilos.secao} style={{ paddingBottom: 0 }}>
           <div style={{ position: "relative", width: "100%", height: "600px", overflow: "hidden" }}>
             <PlaceholderImagem />

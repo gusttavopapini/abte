@@ -8,7 +8,8 @@ import { lerArtigos } from "@/lib/dados/colecoes";
 export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
-const CATEGORIAS_MOCK = [
+// Categorias de EXEMPLO, fixas no código (ainda não vêm do painel).
+const CATEGORIAS_DE_EXEMPLO = [
   { slug: "fisioterapia", nome: "Fisioterapia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
   { slug: "coletes", nome: "Coletes Ortopédicos", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
   { slug: "psicologia", nome: "Psicologia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
@@ -39,7 +40,7 @@ export default async function PaginaArtigos() {
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         
-        {/* Hero Area */}
+        {/* Abertura da página */}
         <section className={estilos.hero}>
           <div className={`container ${estilos.heroGrid}`}>
             <div>
@@ -54,7 +55,7 @@ export default async function PaginaArtigos() {
           </div>
         </section>
 
-        {/* Browse by topic */}
+        {/* Navegar por categoria */}
         <section className={estilos.bloco}>
           <div className="container">
             <header className={estilos.blocoCabecalho}>
@@ -63,7 +64,7 @@ export default async function PaginaArtigos() {
             </header>
             
             <div className={estilos.gradeTres}>
-              {CATEGORIAS_MOCK.map((cat) => (
+              {CATEGORIAS_DE_EXEMPLO.map((cat) => (
                 <CardCategoriaArtigo 
                   key={cat.slug} 
                   nome={cat.nome} 
@@ -75,7 +76,7 @@ export default async function PaginaArtigos() {
           </div>
         </section>
 
-        {/* Most read this week */}
+        {/* Artigos publicados */}
         <section className={estilos.bloco} style={{ backgroundColor: 'var(--color-bg)' }}>
           <div className="container">
             <header className={estilos.blocoCabecalho}>

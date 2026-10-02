@@ -4,7 +4,8 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
 
-const CATEGORIAS_MOCK = [
+// Categorias e artigos de EXEMPLO, fixos no código (ainda não vêm do painel).
+const CATEGORIAS_DE_EXEMPLO = [
   { slug: "fisioterapia", nome: "Fisioterapia" },
   { slug: "coletes", nome: "Coletes Ortopédicos" },
   { slug: "psicologia", nome: "Psicologia" },
@@ -13,7 +14,7 @@ const CATEGORIAS_MOCK = [
   { slug: "exercicios", nome: "Exercícios Específicos" },
 ];
 
-const ARTIGOS_MOCK = [
+const ARTIGOS_DE_EXEMPLO = [
   { slug: "artigo-1", titulo: "Indicações da técnica Vertebral Body Tethering (VBT)", resumo: "O Vertebral Body Tethering ou VBT é uma técnica cirúrgica para o tratamento das escolioses idiopáticas que preserva a mobilidade da coluna...", autor: "Dr. João Silva", data: "25 Set 2026" },
   { slug: "artigo-2", titulo: "Reabilitação pós-artrodese na escoliose idiopática", resumo: "O cenário clínico: A Escoliose Idiopática do Adolescente (EIA) é uma alteração estrutural tridimensional da coluna vertebral...", autor: "Fisio. Maria Costa", data: "20 Set 2026" },
   { slug: "artigo-3", titulo: "Entendendo a fisiologia do tratamento postural", resumo: "As fibras musculares podem mudar? O que a ciência realmente diz sobre adaptação muscular e reeducação postural...", autor: "Dr. Pedro Santos", data: "15 Set 2026" },
@@ -21,8 +22,8 @@ const ARTIGOS_MOCK = [
 ];
 
 export default async function PaginaCategoriaArtigos({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const categoria = CATEGORIAS_MOCK.find(c => c.slug === resolvedParams.slug);
+  const { slug } = await params;
+  const categoria = CATEGORIAS_DE_EXEMPLO.find((exemplo) => exemplo.slug === slug);
 
   if (!categoria) {
     notFound();
@@ -43,7 +44,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
           </div>
 
           <div className={estilos.gradeTres}>
-            {ARTIGOS_MOCK.map((artigo) => (
+            {ARTIGOS_DE_EXEMPLO.map((artigo) => (
               <CardArtigo 
                 key={artigo.slug}
                 titulo={artigo.titulo}

@@ -6,6 +6,7 @@ import { Botao } from "@/components/Botao/Botao";
 import { CaixaConsentimento } from "@/components/CaixaConsentimento/CaixaConsentimento";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { ehEmailValido } from "@/lib/validacao";
 import estilos from "./BlocoContato.module.css";
 
 type Valores = { nome: string; sobrenome: string; email: string; assunto: string; mensagem: string; consentimento: boolean };
@@ -19,14 +20,12 @@ type EstadoInicialContato = "padrao" | "erro" | "sucesso";
 // Ordem dos campos: o foco vai para o primeiro com erro.
 const ORDEM: (keyof Erros)[] = ["nome", "sobrenome", "email", "consentimento"];
 
-const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 function validar(valores: Valores): Erros {
   const erros: Erros = {};
   if (!valores.nome.trim()) erros.nome = "Informe seu nome.";
   if (!valores.sobrenome.trim()) erros.sobrenome = "Informe seu sobrenome.";
   if (!valores.email.trim()) erros.email = "Informe seu e-mail.";
-  else if (!EMAIL_VALIDO.test(valores.email.trim())) erros.email = "Informe um e-mail válido, como nome@exemplo.com.";
+  else if (!ehEmailValido(valores.email.trim())) erros.email = "Informe um e-mail válido, como nome@exemplo.com.";
   if (!valores.consentimento) erros.consentimento = "Para enviar, marque que você leu e concorda com a Política de Privacidade.";
   return erros;
 }
