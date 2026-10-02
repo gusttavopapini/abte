@@ -23,7 +23,7 @@
 
 .titulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .meta {
@@ -32,7 +32,7 @@
   gap: var(--space-8);
   color: var(--color-primary);
   font-size: var(--font-size-text);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   opacity: 0.8;
 }
 
@@ -43,9 +43,20 @@
   color: var(--color-text);
   line-height: var(--leading-normal);
   font-size: var(--font-size-text-lg);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .conteudo p {
   margin: 0;
+}
+
+/* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
+   para valer sobre as regras anteriores, como o estilo inline valia. */
+.textoCorrido {
+  white-space: pre-wrap;
+  margin-bottom: var(--space-32);
+}
+
+.linkOriginal {
+  margin-top: var(--space-24);
 }

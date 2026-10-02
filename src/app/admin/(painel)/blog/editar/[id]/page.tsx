@@ -5,6 +5,7 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerPosts } from "@/lib/dados/colecoes";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
+import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 
 export const metadata: Metadata = { title: "Editar Post | Blog" };
 
@@ -18,10 +19,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <header style={{ marginBottom: "var(--space-32)" }}>
-        <h1 className="tipo-h3" style={{ marginBottom: "var(--space-8)" }}>Editar Post</h1>
-        <p className="tipo-texto">Atualize os dados da publicação.</p>
-      </header>
+      <CabecalhoDoPainel titulo="Editar Post" descricao="Atualize os dados da publicação." />
       
       <FormularioPost acao={atualizarPost} post={post} rotuloPublicar="Atualizar e Publicar" rotuloRascunho="Reverter para Rascunho" />
     </div>

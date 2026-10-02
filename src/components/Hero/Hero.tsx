@@ -37,7 +37,7 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
             className={`${estilos.slide} ${index === slideAtual ? estilos.ativo : ""}`}
             style={{ opacity: index === slideAtual ? 1 : 0, transition: "opacity 0.5s ease-in-out" }}
           >
-            <img src={img} alt={`Slide ${index + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={img} alt={`Slide ${index + 1}`} className={estilos.imagem} />
           </div>
         ))}
 

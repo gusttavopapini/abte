@@ -32,7 +32,7 @@ export default function PaginaInicial() {
         <section className={`container ${estilos.secao}`}>
           <AnimacaoEntrada direcao="cima" className={estilos.gradeLadoALado}>
             <h2 className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
-            <p className="tipo-texto-xl" style={{ fontWeight: 300 }}>
+            <p className={`tipo-texto-xl ${estilos.textoLeve}`}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
           </AnimacaoEntrada>
@@ -59,7 +59,7 @@ export default function PaginaInicial() {
         {/* 3. Estatísticas: números à esquerda e imagem à direita */}
         <section className={estilos.secaoAlt}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
-            <AnimacaoEntrada direcao="esquerda" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <AnimacaoEntrada direcao="esquerda" className={estilos.colunaCentralizada}>
               <h2 className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
                 itens={[
@@ -80,7 +80,7 @@ export default function PaginaInicial() {
         <section className={`container ${estilos.secao}`}>
           <div className={estilos.blocoCentralizado}>
             <AnimacaoEntrada direcao="baixo">
-              <h2 className={estilos.tituloSecao} style={{ textAlign: "center", marginBottom: "var(--space-16)" }}>Quem Somos</h2>
+              <h2 className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
             </AnimacaoEntrada>
           </div>
           
@@ -94,11 +94,11 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.1}>
               <div className={estilos.cardValor}>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                <div className={estilos.cabecalhoDoValor}>
                   <IconeAlvo className={estilos.iconeValor} />
-                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Missão</h3>
+                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Missão</h3>
                 </div>
-                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                <p className={estilos.textoDoValor}>
                   Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
                 </p>
               </div>
@@ -106,11 +106,11 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.3}>
               <div className={estilos.cardValor}>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                <div className={estilos.cabecalhoDoValor}>
                   <IconeOlho className={estilos.iconeValor} />
-                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Visão</h3>
+                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Visão</h3>
                 </div>
-                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                <p className={estilos.textoDoValor}>
                   Ser referência em Tratamento Conservador da Escoliose na América Latina.
                 </p>
               </div>
@@ -118,11 +118,11 @@ export default function PaginaInicial() {
 
             <AnimacaoEntrada direcao="cima" atraso={0.5}>
               <div className={estilos.cardValor}>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-16)", marginBottom: "var(--space-16)" }}>
+                <div className={estilos.cabecalhoDoValor}>
                   <IconeCoracao className={estilos.iconeValor} />
-                  <h3 className="tipo-h4" style={{ color: "var(--color-primary)", fontWeight: 400, margin: 0 }}>Valores</h3>
+                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Valores</h3>
                 </div>
-                <p style={{ fontWeight: 300, color: "var(--color-text)" }}>
+                <p className={estilos.textoDoValor}>
                   Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
                 </p>
               </div>
@@ -131,16 +131,16 @@ export default function PaginaInicial() {
         </section>
 
         {/* 5. Chamada final: caixa flutuante sobre a imagem */}
-        <section className={estilos.secao} style={{ paddingBottom: 0 }}>
+        <section className={`${estilos.secao} ${estilos.semRespiroInferior}`}>
           <div style={{ position: "relative", width: "100%", height: "600px", overflow: "hidden" }}>
             <PlaceholderImagem />
             <div className={estilos.caixaFlutuante}>
               <AnimacaoEntrada className={estilos.caixaFlutuanteConteudo} direcao="cima" atraso={0.3}>
-                <h2 className={estilos.tituloSecao} style={{ marginBottom: "var(--space-16)" }}>Faça parte dessa rede</h2>
-                <p className="tipo-texto-lg" style={{ fontWeight: 300, marginBottom: "var(--space-32)" }}>
+                <h2 className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Faça parte dessa rede</h2>
+                <p className={`tipo-texto-lg ${estilos.textoLeve} ${estilos.textoDaChamada}`}>
                   Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
                 </p>
-                <div style={{ display: "flex", gap: "var(--space-16)", flexWrap: "wrap" }}>
+                <div className={estilos.botoesDaChamada}>
                   <Botao href="/seja-associado">Quero me associar</Botao>
                 </div>
               </AnimacaoEntrada>

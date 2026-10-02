@@ -36,12 +36,12 @@
 
 .titulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .resumo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   flex: 1; /* Empurra o botão pro fundo */
 }
 

@@ -17,12 +17,12 @@
 
 .titulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .descricao {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .filtros {

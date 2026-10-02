@@ -25,13 +25,13 @@
 
 .heroTitulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   margin-bottom: var(--space-16);
 }
 
 .heroDescricao {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .heroImagemContainer {
@@ -77,7 +77,7 @@
 
 .blocoTitulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .gradeTres {
@@ -96,4 +96,10 @@
   .gradeTres {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
+   para valer sobre as regras anteriores, como o estilo inline valia. */
+.blocoClaro {
+  background-color: var(--color-bg);
 }

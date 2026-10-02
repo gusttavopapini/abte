@@ -70,7 +70,7 @@
 
 .tituloSecao {
   margin-bottom: var(--space-32);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   color: var(--color-primary);
 }
 .cardValor {
@@ -111,3 +111,54 @@
   pointer-events: auto; /* Reativa os cliques */
 }
 
+/* Classes que substituíram estilos inline (mesmos valores). Ficam no fim do
+   arquivo para valer sobre .secao e .tituloSecao, como o estilo inline valia. */
+.textoLeve {
+  font-weight: var(--font-weight-light);
+}
+
+.colunaCentralizada {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tituloCompacto {
+  margin-bottom: var(--space-16);
+}
+
+.centralizado {
+  text-align: center;
+}
+
+.cabecalhoDoValor {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
+}
+
+.tituloDoValor {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.textoDoValor {
+  font-weight: var(--font-weight-light);
+  color: var(--color-text);
+}
+
+.semRespiroInferior {
+  padding-bottom: 0;
+}
+
+.textoDaChamada {
+  margin-bottom: var(--space-32);
+}
+
+.botoesDaChamada {
+  display: flex;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}

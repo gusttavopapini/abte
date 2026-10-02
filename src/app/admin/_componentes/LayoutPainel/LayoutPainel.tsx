@@ -49,7 +49,7 @@ export function LayoutPainel({ children, usuario }: PropsLayoutPainel) {
       {/* Conteúdo Principal */}
       <div className={estilos.conteudoPrincipal}>
         <header className={estilos.topoPainel}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-24)" }}>
+          <div className={estilos.areaDoUsuario}>
             {usuario && (
               <span style={{ fontSize: "var(--font-size-small)", opacity: 0.8 }}>
                 {usuario.nome || usuario.email}

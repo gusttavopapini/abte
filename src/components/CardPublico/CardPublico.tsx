@@ -25,7 +25,7 @@ export function CardPublico({ letra, titulo, texto, botao }: PropsCard) {
       </div>
       <div className={estilos.meio}>
         <h3 className="tipo-texto-xl">{titulo}</h3>
-        <p className="tipo-texto-lg" style={{ fontWeight: 300 }}>{texto}</p>
+        <p className={`tipo-texto-lg ${estilos.texto}`}>{texto}</p>
       </div>
       <div>
         <Botao href={botao.href}>{botao.rotulo}</Botao>

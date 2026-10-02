@@ -19,12 +19,12 @@
   font-size: var(--font-size-small);
   color: var(--color-primary);
   opacity: 0.8;
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .autor {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .titulo {
@@ -35,7 +35,7 @@
 .resumo {
   color: var(--color-primary);
   line-height: var(--leading-normal);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   flex: 1;
 }
 

@@ -43,7 +43,7 @@
   color: var(--color-text);
   text-decoration: none;
   transition: background-color 0.2s, color 0.2s;
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .linkMenu:hover {
@@ -72,4 +72,10 @@
   padding: var(--space-32);
   flex: 1;
   overflow-y: auto;
+}
+
+.areaDoUsuario {
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
 }

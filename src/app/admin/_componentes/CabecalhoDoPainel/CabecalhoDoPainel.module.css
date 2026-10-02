@@ -1,0 +1,14 @@
+/* Cabeçalho das telas do painel: título, descrição e, nas listas, o botão de adicionar. */
+.cabecalho {
+  margin-bottom: var(--space-32);
+}
+
+.comAcao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titulo {
+  margin-bottom: var(--space-8);
+}

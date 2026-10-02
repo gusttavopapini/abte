@@ -2,12 +2,11 @@ import { Botao } from "@/components/Botao/Botao";
 import type { Post } from "@/lib/dados/tipos";
 import {
   estiloAreaDeTexto,
-  estiloBotoes,
   estiloEntrada,
   estiloFormulario,
-  estiloGrupo,
   estiloRotulo,
 } from "../estilosDoFormulario";
+import classes from "../estilosDoFormulario.module.css";
 
 type PropsFormularioPost = {
   acao: (dados: FormData) => Promise<void>;
@@ -23,7 +22,7 @@ export function FormularioPost({ acao, post, rotuloPublicar, rotuloRascunho }: P
     <form action={acao} style={estiloFormulario}>
       {post && <input type="hidden" name="id" value={post.id} />}
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="titulo" style={estiloRotulo}>Título do Post</label>
         <input
           type="text"
@@ -36,7 +35,7 @@ export function FormularioPost({ acao, post, rotuloPublicar, rotuloRascunho }: P
         />
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="imagem" style={estiloRotulo}>Imagem de Capa (URL)</label>
         <input
           type="text"
@@ -48,7 +47,7 @@ export function FormularioPost({ acao, post, rotuloPublicar, rotuloRascunho }: P
         />
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="conteudo" style={estiloRotulo}>Conteúdo</label>
         <textarea
           id="conteudo"
@@ -61,7 +60,7 @@ export function FormularioPost({ acao, post, rotuloPublicar, rotuloRascunho }: P
         />
       </div>
 
-      <div style={estiloBotoes}>
+      <div className={classes.botoes}>
         <Botao type="submit" name="acao" value="publicar" variante="primario">{rotuloPublicar}</Botao>
         <Botao type="submit" name="acao" value="rascunho" variante="secundario">{rotuloRascunho}</Botao>
       </div>

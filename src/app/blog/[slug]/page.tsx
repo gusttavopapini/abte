@@ -40,11 +40,11 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
 
             {post.imagem && (
               <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
-                <img src={post.imagem} alt={post.titulo} style={{ width: "100%", height: "auto", display: "block" }} />
+                <img src={post.imagem} alt={post.titulo} className={estilos.imagemDeCapa} />
               </div>
             )}
 
-            <div className={`tipo-texto ${estilos.conteudo}`} style={{ whiteSpace: "pre-wrap" }}>
+            <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
               {post.conteudo}
             </div>
           </article>

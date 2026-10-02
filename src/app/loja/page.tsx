@@ -1,13 +1,14 @@
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import estilos from "./page.module.css";
 
 export const metadata = { title: "Loja" };
 
 export default function PaginaLoja() {
   return (
     <LayoutPublico header="solida">
-      <div className="container" style={{ paddingBlock: "var(--section-space)" }}>
-        <h1 className="tipo-h1" style={{ fontWeight: 300, color: "var(--color-primary)" }}>Loja da ABTE</h1>
-        <p className="tipo-texto-xl" style={{ marginTop: "var(--space-24)", fontWeight: 300 }}>Conheça nossos produtos. Cada compra apoia pacientes com escoliose.</p>
+      <div className={`container ${estilos.secao}`}>
+        <h1 className={`tipo-h1 ${estilos.titulo}`}>Loja da ABTE</h1>
+        <p className={`tipo-texto-xl ${estilos.descricao}`}>Conheça nossos produtos. Cada compra apoia pacientes com escoliose.</p>
       </div>
     </LayoutPublico>
   );

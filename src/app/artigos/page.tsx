@@ -77,7 +77,7 @@ export default async function PaginaArtigos() {
         </section>
 
         {/* Artigos publicados */}
-        <section className={estilos.bloco} style={{ backgroundColor: 'var(--color-bg)' }}>
+        <section className={`${estilos.bloco} ${estilos.blocoClaro}`}>
           <div className="container">
             <header className={estilos.blocoCabecalho}>
               <span className={estilos.blocoMarcador}>Top Artigos</span>

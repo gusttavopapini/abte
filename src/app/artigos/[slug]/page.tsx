@@ -39,12 +39,12 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
               </div>
             </header>
 
-            <div className={`tipo-texto ${estilos.conteudo}`} style={{ whiteSpace: "pre-wrap", marginBottom: "var(--space-32)" }}>
+            <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
               {artigo.resumo}
             </div>
             
             {artigo.link && (
-              <div style={{ marginTop: "var(--space-24)" }}>
+              <div className={estilos.linkOriginal}>
                 <Botao href={artigo.link} target="_blank" rel="noopener noreferrer">
                   Acessar Artigo Original
                 </Botao>

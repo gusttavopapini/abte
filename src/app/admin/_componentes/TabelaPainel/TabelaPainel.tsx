@@ -1,13 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
+import estilos from "./TabelaPainel.module.css";
 
-// Estilos das linhas e células, para as páginas que montam as linhas da tabela.
+// Estilo da linha e classe da célula, para as páginas que montam as linhas da tabela.
+// A borda de 1px fica inline por não ter token (exceção registrada no CLAUDE.md).
 export const estiloLinha: CSSProperties = { borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" };
 
-export const estiloCelula: CSSProperties = { padding: "var(--space-16) 0" };
+export const classeDaCelula = estilos.celula;
 
 const estiloMoldura: CSSProperties = { background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "5px" };
-
-const estiloTabela: CSSProperties = { width: "100%", textAlign: "left", borderCollapse: "collapse" };
 
 const estiloLinhaDoCabecalho: CSSProperties = { borderBottom: "1px solid color-mix(in srgb, var(--color-text) 10%, transparent)" };
 
@@ -27,7 +27,7 @@ type PropsTabelaPainel = {
 export function TabelaPainel({ colunas, vazia, mensagemVazia, children }: PropsTabelaPainel) {
   return (
     <div style={estiloMoldura}>
-      <table style={estiloTabela}>
+      <table className={estilos.tabela}>
         <thead>
           <tr style={estiloLinhaDoCabecalho}>
             {colunas.map((coluna) => (

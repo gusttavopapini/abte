@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
 
-// Estilos comuns aos formulários de post e de artigo do painel, com os mesmos
-// valores que cada formulário tinha antes. Atenção: --space-12 e
-// --font-size-base não existem no tokens.css; o navegador ignora essas duas
-// declarações (pendência registrada no CLAUDE.md).
+// Estilos inline comuns aos formulários de post e de artigo do painel, com os
+// mesmos valores de antes. Ficam inline porque têm valores sem token
+// (exceções no CLAUDE.md); os que só usam tokens estão em
+// estilosDoFormulario.module.css.
+// Atenção: --space-12 e --font-size-base não existem no tokens.css; o
+// navegador ignora essas duas declarações (pendência no CLAUDE.md).
 export const estiloFormulario: CSSProperties = { display: "flex", flexDirection: "column", gap: "var(--space-24)", maxWidth: "800px" };
-
-export const estiloGrupo: CSSProperties = { display: "flex", flexDirection: "column", gap: "var(--space-8)" };
 
 export const estiloRotulo: CSSProperties = { fontWeight: 500 };
 
@@ -23,5 +23,3 @@ export const estiloEntrada: CSSProperties = {
 export const estiloAreaDeTexto: CSSProperties = { ...estiloEntrada, resize: "vertical" };
 
 export const estiloSelecao: CSSProperties = { ...estiloEntrada, background: "var(--color-bg)" };
-
-export const estiloBotoes: CSSProperties = { display: "flex", gap: "var(--space-16)", marginTop: "var(--space-16)" };

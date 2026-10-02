@@ -41,3 +41,9 @@
   height: var(--space-32);
   flex-shrink: 0;
 }
+
+/* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
+   para valer sobre as regras anteriores, como o estilo inline valia. */
+.texto {
+  font-weight: var(--font-weight-light);
+}

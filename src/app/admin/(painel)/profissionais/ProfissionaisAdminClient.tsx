@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { TabelaPainel, estiloCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 import { Modal } from "@/components/Modal/Modal";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
 import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
+import estilos from "./ProfissionaisAdminClient.module.css";
 import type { Profissional as ProfissionalDoBanco } from "@/lib/dados/tipos";
+import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 
 type Profissional = Omit<ProfissionalDoBanco, "criadoEm" | "atualizadoEm">;
 
@@ -73,21 +75,19 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
 
   return (
     <div>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-32)" }}>
-        <div>
-          <h1 className="tipo-h3" style={{ marginBottom: "var(--space-8)" }}>Profissionais</h1>
-          <p className="tipo-texto">Gerencie o diretório de profissionais da ABTE.</p>
-        </div>
-        <Botao onClick={abrirNovo}>Adicionar Novo</Botao>
-      </header>
+      <CabecalhoDoPainel
+        titulo="Profissionais"
+        descricao="Gerencie o diretório de profissionais da ABTE."
+        acao={<Botao onClick={abrirNovo}>Adicionar Novo</Botao>}
+      />
       
       <TabelaPainel colunas={["Nome", "Especialidade", "Tag", "Ações"]} vazia={profissionais.length === 0} mensagemVazia="Nenhum profissional encontrado.">
         {profissionais.map((profissional) => (
           <tr key={profissional.id} style={estiloLinha}>
-            <td style={{ ...estiloCelula, fontWeight: 500 }}>{profissional.nome}</td>
-            <td style={estiloCelula}>{profissional.especialidade}</td>
-            <td style={{ ...estiloCelula, opacity: 0.8 }}>{profissional.tag}</td>
-            <td style={{ ...estiloCelula, display: "flex", gap: "var(--space-16)" }}>
+            <td className={classeDaCelula} style={{ fontWeight: 500 }}>{profissional.nome}</td>
+            <td className={classeDaCelula}>{profissional.especialidade}</td>
+            <td className={classeDaCelula} style={{ opacity: 0.8 }}>{profissional.tag}</td>
+            <td className={`${classeDaCelula} ${estilos.acoes}`}>
               <button type="button" onClick={() => abrirEdicao(profissional)} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer" }}>
                 Editar
               </button>
@@ -104,12 +104,12 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
         aoFechar={() => setModalAberto(false)} 
         titulo={editando ? "Editar Profissional" : "Novo Profissional"}
       >
-        <form onSubmit={salvar} style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
+        <form onSubmit={salvar} className={estilos.formulario}>
           <Campo id="nome" name="nome" type="text" rotulo="Nome Completo" obrigatorio defaultValue={editando?.nome || ""} placeholder="Ex: Dra. Maria Silva" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
           
           <Campo id="especialidade" name="especialidade" type="text" rotulo="Especialidade (Exibição)" obrigatorio defaultValue={editando?.especialidade || ""} placeholder="Ex: Ortopedista Pediátrico" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div className={estilos.grupoDaTag}>
             <label htmlFor="tag" style={{ fontWeight: 500, fontSize: "14px" }}>Tag (Filtro do site) *</label>
             <select id="tag" name="tag" required defaultValue={editando?.tag || TAGS_DE_PROFISSIONAIS[0]} style={{ padding: "12px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", borderRadius: "4px", background: "var(--color-surface)", color: "var(--color-text)", fontSize: "16px" }}>
               {TAGS_DE_PROFISSIONAIS.map((tag) => (
@@ -124,7 +124,7 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
 
           {erroAoSalvar && <Mensagem tipo="erro">{erroAoSalvar}</Mensagem>}
 
-          <div style={{ marginTop: "var(--space-16)", display: "flex", justifyContent: "flex-end", gap: "var(--space-24)" }}>
+          <div className={estilos.botoes}>
             <Botao type="button" variante="secundario" onClick={() => setModalAberto(false)}>Cancelar</Botao>
             <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
           </div>

@@ -1,0 +1,9 @@
+.tabela {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.celula {
+  padding: var(--space-16) 0;
+}

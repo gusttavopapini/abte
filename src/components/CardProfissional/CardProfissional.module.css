@@ -13,14 +13,14 @@
 .nome {
   font-size: var(--font-size-text-xl);
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   line-height: var(--leading-tight);
 }
 
 .especialidade {
   font-size: var(--font-size-small);
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .imagemContainer {
@@ -49,7 +49,7 @@
   font-size: var(--font-size-small);
   border-radius: 5px;
   text-decoration: none;
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   transition: background-color 0.2s;
 }
 

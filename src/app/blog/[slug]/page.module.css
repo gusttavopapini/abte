@@ -23,7 +23,7 @@
 
 .titulo {
   color: var(--color-primary);
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
 }
 
 .meta {
@@ -43,4 +43,16 @@
 
 .conteudo p {
   margin: 0;
+}
+
+/* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
+   para valer sobre as regras anteriores, como o estilo inline valia. */
+.imagemDeCapa {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.textoCorrido {
+  white-space: pre-wrap;
 }

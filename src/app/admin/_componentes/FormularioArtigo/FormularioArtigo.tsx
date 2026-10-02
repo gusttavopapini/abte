@@ -2,13 +2,12 @@ import { Botao } from "@/components/Botao/Botao";
 import type { Artigo } from "@/lib/dados/tipos";
 import {
   estiloAreaDeTexto,
-  estiloBotoes,
   estiloEntrada,
   estiloFormulario,
-  estiloGrupo,
   estiloRotulo,
   estiloSelecao,
 } from "../estilosDoFormulario";
+import classes from "../estilosDoFormulario.module.css";
 
 // Classificações oferecidas no painel. Atenção: são diferentes das categorias
 // de exemplo da página pública /artigos (pendência registrada no CLAUDE.md).
@@ -36,7 +35,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
     <form action={acao} style={estiloFormulario}>
       {artigo && <input type="hidden" name="id" value={artigo.id} />}
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="titulo" style={estiloRotulo}>Título do Artigo</label>
         <input
           type="text"
@@ -49,7 +48,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
         />
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="categoria" style={estiloRotulo}>Classificação / Tipo de Artigo</label>
         <select id="categoria" name="categoria" defaultValue={artigo?.categoria} style={estiloSelecao} required>
           <option value="">Selecione uma categoria...</option>
@@ -59,7 +58,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
         </select>
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="autores" style={estiloRotulo}>Autores / Ano</label>
         <input
           type="text"
@@ -72,7 +71,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
         />
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="link" style={estiloRotulo}>Link do Estudo (URL)</label>
         <input
           type="text"
@@ -85,7 +84,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
         />
       </div>
 
-      <div style={estiloGrupo}>
+      <div className={classes.grupo}>
         <label htmlFor="resumo" style={estiloRotulo}>Resumo ou Pontos Principais</label>
         <textarea
           id="resumo"
@@ -98,7 +97,7 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
         />
       </div>
 
-      <div style={estiloBotoes}>
+      <div className={classes.botoes}>
         <Botao type="submit" name="acao" value="publicar" variante="primario">{rotuloPublicar}</Botao>
         <Botao type="submit" name="acao" value="rascunho" variante="secundario">{rotuloRascunho}</Botao>
       </div>
