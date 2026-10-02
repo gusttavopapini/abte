@@ -24,7 +24,7 @@
   background: transparent;
 }
 
-/* Depois que o hero sai da tela (mantemos transparente conforme pedido) */
+/* Depois que o hero sai da tela, o header continua transparente */
 .comFundo {
   background: transparent;
 }
@@ -44,7 +44,7 @@
 .colunaDireita {
   display: flex;
   align-items: center;
-  gap: 30px; /* 30px de espaçamento conforme solicitado */
+  gap: 30px;
 }
 
 .menuFundoBranco {
@@ -55,7 +55,7 @@
 
 .doe {
   white-space: nowrap;
-  border-radius: 5px !important; /* Arredondamento conforme solicitado */
+  border-radius: 5px !important;
 }
 
 .hamburguer {

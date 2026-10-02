@@ -38,5 +38,5 @@
   color: var(--color-number);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
-  font-size: var(--font-size-h1); /* Aumentado a pedido */
+  font-size: var(--font-size-h1);
 }
