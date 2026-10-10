@@ -109,7 +109,7 @@ src/
 2. Páginas públicas estáticas (inclui a página Doe com Pix estático, se confirmado)
 3. Modelo de dados no Firestore, papéis administrador e editor, cadastro de usuários pelo painel, registro de alterações, lixeira, "Configurações do site" com os dados do Pix (editável só pelo administrador), regras e testes; SEM coleções de pedidos, doações e cupons
 4. Painel administrativo, em partes com revisão entre elas: 4a profissionais e diretoria; 4b blog e artigos; 4c produtos; 4d biblioteca de mídia (Cloud Storage, que exige o plano Blaze)
-5. Páginas dinâmicas (inclui vitrine da loja e página de produto SEM compra, com aviso "Em breve")
+5. Páginas dinâmicas (inclui lista da loja e página de produto; carrinho e conta de cliente só dentro da loja, ver D1; finalização de compra SEM pagamento)
 6. Migração de conteúdo
 7. Loja com pagamento: DESATIVADO (quando ativado, via Stripe)
 8. Doação com pagamento online: DESATIVADO (quando ativado, via Stripe)
@@ -145,9 +145,15 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 - Pagamento online **desativado**.
 - Gateway definido para quando for ativado: **Stripe**.
-- Loja como **vitrine**, com aviso "Em breve".
+- Loja com **carrinho e conta de cliente restritos à área da loja** (D1, 10/10/2026), sem pagamento e sem finalização de compra. Substitui a regra anterior "loja só vitrine".
 - Doação por **Pix estático** (QR code e código copia e cola, valores sugeridos de R$25, R$50, R$100 e valor livre, sem registro automático das doações), **a confirmar**.
-- **Nunca** instalar gateway, carrinho, checkout ou webhook sem pedido explícito.
+- **Nunca** instalar gateway, SDK de pagamento, finalização de compra (checkout) ou webhook sem pedido explícito. Sem coleções `pedidos`, `pedidoItens`, `doacoes` ou `cupons`.
+
+## Decisões registradas
+
+Numeração D: este arquivo não tinha série D antes de 10/10/2026; D1 é o primeiro número usado aqui. Se os registros do Projeto já usam outra numeração, ajustar.
+
+- **D1 (10/10/2026), carrinho e conta de cliente na loja:** pedido explícito de carrinho e conta de cliente, restritos à área da loja (`/loja` e rotas filhas, num subcabeçalho próprio; o cabeçalho do site não ganha login nem carrinho). Substitui a regra "loja só vitrine" e os itens 1 a 3 do registro de alterações de `docs/design-system.md` no que diz respeito ao carrinho. Continuam proibidos: pagamento, gateway, SDK de pagamento, webhook, variáveis de pagamento e finalização de compra (até decisão própria). Conta de cliente pelo Firebase Authentication, criada pelo servidor, sem custom claim `papel`, com sessão em cookie separado do painel; clientes nunca acessam o painel. Detalhes de implementação aguardam aprovação do plano (finalização, login obrigatório no carrinho, ícone de sacola).
 
 ## Decisões em aberto: NUNCA assumir
 
@@ -162,7 +168,7 @@ Confirmação da doação por Pix e dados do Pix da ABTE (chave, titular, cidade
 - **Acessibilidade:** um H1 por página, hierarquia sem saltos, foco visível com `--focus-ring`, tudo operável por teclado, textos alternativos em português, `prefers-reduced-motion` respeitado, erro e sucesso em caixa branca.
 - **Idioma:** tudo em português do Brasil, inclusive textos do sistema, rótulos acessíveis, mensagens de validação e de erro do Firebase (nunca exibir a mensagem técnica em inglês). Em textos visíveis, não use travessão (o sinal longo de pontuação); use vírgula, dois-pontos ou ponto.
 - **Dados:** nunca inventar profissionais, registros, preços, números, depoimentos, parcerias, CNPJ ou chave Pix. Use placeholders claramente marcados como exemplo.
-- **Pagamento:** desativado. Não instalar Stripe nem qualquer outro gateway, não criar carrinho, checkout, rotas de webhook ou variáveis de ambiente de pagamento até pedido explícito.
+- **Pagamento:** desativado. Não instalar Stripe nem qualquer outro gateway ou SDK de pagamento, não criar finalização de compra (checkout), rotas de webhook, variáveis de ambiente de pagamento nem coleções de pedidos, doações ou cupons até pedido explícito. Carrinho e conta de cliente são permitidos só dentro da loja (D1).
 - **Imagens:** nunca linkar static.wixstatic.com nem outro CDN do Wix.
 - **Firebase:** acesso aos dados sempre pelo servidor com Admin SDK, com checagem de sessão e papel; regras negam todo acesso direto do navegador por padrão; toda exceção precisa de regra específica e teste; o Admin SDK nunca vai para o navegador.
 - **Segurança:** segredos só no .env.local, nunca no código, nunca em commit, nunca exibidos no terminal. Painel com noindex. Cookies de sessão httpOnly e sameSite strict.
