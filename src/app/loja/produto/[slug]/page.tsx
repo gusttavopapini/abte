@@ -1,0 +1,95 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { Botao } from "@/components/Botao/Botao";
+import { CardProduto } from "@/components/CardProduto/CardProduto";
+import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { PrecoProduto } from "@/components/PrecoProduto/PrecoProduto";
+import { revelar } from "@/components/Revelar/revelar";
+import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
+import { escolherRelacionados } from "@/lib/produtos";
+import estilos from "./page.module.css";
+
+export const dynamic = "force-dynamic";
+
+// Produto visível (publicado e fora da lixeira) pelo slug, com a lista usada
+// nos relacionados. O cache evita ler duas vezes (metadata e página).
+const lerProdutoDaLoja = cache(async (slug: string) => {
+  const visiveis = await listarProdutosVisiveis();
+  const produto = visiveis.find((item) => item.slug === slug) ?? null;
+  return { produto, visiveis };
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { produto } = await lerProdutoDaLoja((await params).slug);
+  if (!produto) return { title: "Produto não encontrado" };
+  return { title: produto.nome, description: produto.descricao.slice(0, 160) || undefined };
+}
+
+export default async function PaginaProduto({ params }: { params: Promise<{ slug: string }> }) {
+  const { produto, visiveis } = await lerProdutoDaLoja((await params).slug);
+  if (!produto) notFound();
+
+  const categoria = (await lerTopicos("categoriaDeProduto").doc(produto.categoria).get()).data();
+  const relacionados = escolherRelacionados(produto, visiveis);
+  const esgotado = produto.status === "esgotado";
+
+  // Dados estruturados de produto SEM oferta de compra (sem "offers"): não há
+  // venda online. Sem "offers", o Google não mostra preço nem disponibilidade.
+  const dadosEstruturados = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: produto.nome,
+    ...(produto.descricao && { description: produto.descricao }),
+    ...(categoria && !categoria.excluidoEm && { category: categoria.nome }),
+    brand: { "@type": "Organization", name: "ABTE, Associação Brasileira de Tratamento da Escoliose" },
+  };
+
+  return (
+    <div className={`container ${estilos.secao}`}>
+      <Botao href="/loja" variante="link">&larr; Voltar para a loja</Botao>
+
+      <article className={estilos.produto}>
+        <div className={estilos.galeria}>
+          {/* Galeria: disponível com a biblioteca de mídia (etapa 4d). */}
+          <PlaceholderImagem />
+        </div>
+
+        <div className={estilos.detalhes}>
+          {produto.selo && <p className={estilos.selo}>{produto.selo}</p>}
+          <h1 className={`tipo-h2 ${estilos.titulo}`}>{produto.nome}</h1>
+          <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} grande />
+          <p className={estilos.situacao}>
+            {esgotado ? "Esgotado" : "Disponível"} · {produto.tipo === "digital" ? "Produto digital" : "Produto físico"}
+          </p>
+          <div className={estilos.aviso} role="note">
+            <p>Em breve: a compra online ainda não está disponível na loja da ABTE.</p>
+          </div>
+          {produto.descricao && <div className={`tipo-texto ${estilos.descricao}`}>{produto.descricao}</div>}
+        </div>
+      </article>
+
+      {relacionados.length > 0 && (
+        <section aria-labelledby="titulo-relacionados" {...revelar(estilos.relacionados)}>
+          <h2 id="titulo-relacionados" className="tipo-h3">Produtos relacionados</h2>
+          <ul role="list" className={estilos.grade}>
+            {relacionados.map((outro) => (
+              <li key={outro.id}>
+                <CardProduto
+                  nivelDoTitulo={3}
+                  produto={{ nome: outro.nome, slug: outro.slug, preco: outro.preco, precoPromocional: outro.precoPromocional, selo: outro.selo, esgotado: outro.status === "esgotado" }}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <script
+        type="application/ld+json"
+        // "<" escapado para o texto do produto não poder fechar a tag <script>.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados).replace(/</g, "\\u003c") }}
+      />
+    </div>
+  );
+}
