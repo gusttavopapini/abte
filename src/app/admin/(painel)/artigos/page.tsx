@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { lerArtigos } from "@/lib/dados/colecoes";
+import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
 import { Botao } from "@/components/Botao/Botao";
 import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
 import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
@@ -13,6 +13,8 @@ export default async function PaginaAdminArtigos() {
   await exigirPapelDoPainel();
   const snapshot = await lerArtigos().orderBy("criadoEm", "desc").get();
   const artigos = snapshot.docs.map((documento) => documento.data());
+  // Nome de cada categoria pelo id (inclusive as que estão nos excluídos).
+  const categorias = new Map((await lerTopicosDeArtigos("categoria").get()).docs.map((documento) => [documento.id, documento.data().nome]));
 
   return (
     <div>
@@ -26,7 +28,7 @@ export default async function PaginaAdminArtigos() {
         {artigos.map((artigo) => (
           <tr key={artigo.id} style={estiloLinha}>
             <td className={classeDaCelula} style={{ fontWeight: 500 }}>{artigo.titulo}</td>
-            <td className={classeDaCelula} style={{ opacity: 0.8, textTransform: "capitalize" }}>{artigo.categoria.replace("-", " ")}</td>
+            <td className={classeDaCelula} style={{ opacity: 0.8 }}>{categorias.get(artigo.categoria) ?? "Sem categoria"}</td>
             <td className={classeDaCelula}>
               <SeloStatus status={artigo.status} />
             </td>

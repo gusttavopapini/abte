@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
-import { lerArtigos } from "@/lib/dados/colecoes";
+import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
+import type { TopicoDeArtigo } from "@/lib/dados/tipos";
 
 export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -18,6 +19,15 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   if (!artigo || artigo.status !== "publicado") notFound();
 
   const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
+
+  // Tags do artigo, na ordem do nome; as que estão na lixeira não aparecem.
+  const colecaoDeTags = lerTopicosDeArtigos("tag");
+  const tags = artigo.tags.length
+    ? (await colecaoDeTags.firestore.getAll(...artigo.tags.map((id) => colecaoDeTags.doc(id))))
+        .map((documento) => documento.data())
+        .filter((tag): tag is TopicoDeArtigo => tag !== undefined && !tag.excluidoEm)
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+    : [];
 
   return (
     <LayoutPublico header="solida">
@@ -37,6 +47,13 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
                 <span className={estilos.separador}>•</span>
                 <span className={estilos.autor}>por {artigo.autores || "Autor Desconhecido"}</span>
               </div>
+              {tags.length > 0 && (
+                <ul role="list" aria-label="Tags do artigo" className={estilos.tags}>
+                  {tags.map((tag) => (
+                    <li key={tag.id} className={estilos.tag}>{tag.nome}</li>
+                  ))}
+                </ul>
+              )}
             </header>
 
             <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>

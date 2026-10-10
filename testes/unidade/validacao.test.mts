@@ -1,7 +1,13 @@
 // Testes das validações usadas pelas ações do painel (npm run test:unidade).
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { ehEmailValido, ehIdDeDocumentoValido, lerTextoDoFormulario } from "../../src/lib/validacao.ts";
+import {
+  ehEmailValido,
+  ehIdDeDocumentoValido,
+  lerInteiroDoFormulario,
+  lerListaDoFormulario,
+  lerTextoDoFormulario,
+} from "../../src/lib/validacao.ts";
 
 describe("Id de documento do Firestore", () => {
   test("aceita ids comuns", () => {
@@ -78,5 +84,48 @@ describe("Validação de e-mail", () => {
   test("não corta espaços: quem chama passa o valor já sem espaços nas pontas", () => {
     assert.equal(ehEmailValido(" nome@exemplo.com "), false);
     assert.equal(ehEmailValido(" nome@exemplo.com ".trim()), true);
+  });
+});
+
+describe("Leitura de número inteiro do formulário", () => {
+  const opcoes = { rotulo: "Ordem", minimo: 0, maximo: 999, padrao: 0 };
+  const formulario = (valor?: string) => {
+    const dados = new FormData();
+    if (valor !== undefined) dados.set("ordem", valor);
+    return dados;
+  };
+
+  test("campo ausente ou vazio usa o padrão", () => {
+    assert.equal(lerInteiroDoFormulario(formulario(), "ordem", opcoes), 0);
+    assert.equal(lerInteiroDoFormulario(formulario("  "), "ordem", opcoes), 0);
+  });
+
+  test("aceita inteiros dentro do intervalo, inclusive os limites", () => {
+    assert.equal(lerInteiroDoFormulario(formulario("0"), "ordem", opcoes), 0);
+    assert.equal(lerInteiroDoFormulario(formulario(" 12 "), "ordem", opcoes), 12);
+    assert.equal(lerInteiroDoFormulario(formulario("999"), "ordem", opcoes), 999);
+  });
+
+  test("recusa decimal, texto e fora do intervalo, com mensagem em português", () => {
+    assert.throws(() => lerInteiroDoFormulario(formulario("1.5"), "ordem", opcoes), /só números inteiros/);
+    assert.throws(() => lerInteiroDoFormulario(formulario("dez"), "ordem", opcoes), /só números inteiros/);
+    assert.throws(() => lerInteiroDoFormulario(formulario("1000"), "ordem", opcoes), /de 0 a 999/);
+    assert.throws(() => lerInteiroDoFormulario(formulario("-1"), "ordem", opcoes), /de 0 a 999/);
+  });
+});
+
+describe("Leitura de lista do formulário", () => {
+  test("junta os valores repetidos, sem duplicar e sem vazios", () => {
+    const dados = new FormData();
+    for (const valor of ["a", "b", "a", ""]) dados.append("tags", valor);
+    assert.deepEqual(lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: 5 }), ["a", "b"]);
+  });
+
+  test("ignora arquivos e recusa acima do limite", () => {
+    const dados = new FormData();
+    dados.append("tags", new Blob(["x"]));
+    assert.deepEqual(lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: 5 }), []);
+    for (const valor of ["a", "b", "c"]) dados.append("tags", valor);
+    assert.throws(() => lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: 2 }), /no máximo 2 itens/);
   });
 });

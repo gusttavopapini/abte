@@ -3,23 +3,15 @@ import { CardCategoriaArtigo } from "@/components/CardCategoriaArtigo/CardCatego
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
-import { lerArtigos } from "@/lib/dados/colecoes";
+import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
 
 export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
-// Categorias de EXEMPLO, fixas no código (ainda não vêm do painel).
-const CATEGORIAS_DE_EXEMPLO = [
-  { slug: "fisioterapia", nome: "Fisioterapia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-  { slug: "coletes", nome: "Coletes Ortopédicos", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-  { slug: "psicologia", nome: "Psicologia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-  { slug: "cirurgia", nome: "Cirurgia", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-  { slug: "diagnostico", nome: "Diagnóstico", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-  { slug: "exercicios", nome: "Exercícios Específicos", imagemUrl: "https://placehold.co/600x400/e2e8f0/1e3a8a" },
-];
-
 export default async function PaginaArtigos() {
-  const snapshot = await lerArtigos().orderBy("criadoEm", "desc").get();
+  // Categorias cadastradas no painel ("Tópicos dos artigos"), fora da lixeira.
+  // Sem imagem até a biblioteca de mídia (etapa 4d): o card usa o placeholder.
+  const [snapshot, categorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria")]);
 
   const artigos = snapshot.docs
     .map((documento) => {
@@ -64,14 +56,13 @@ export default async function PaginaArtigos() {
             </header>
             
             <div className={estilos.gradeTres}>
-              {CATEGORIAS_DE_EXEMPLO.map((cat) => (
-                <CardCategoriaArtigo 
-                  key={cat.slug} 
-                  nome={cat.nome} 
-                  imagemUrl={cat.imagemUrl} 
-                  slug={cat.slug} 
-                />
-              ))}
+              {categorias.length === 0 ? (
+                <p className={`tipo-texto ${estilos.vazio}`}>Nenhum tópico cadastrado ainda.</p>
+              ) : (
+                categorias.map((categoria) => (
+                  <CardCategoriaArtigo key={categoria.id} nome={categoria.nome} slug={categoria.slug} />
+                ))
+              )}
             </div>
           </div>
         </section>

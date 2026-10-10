@@ -1,0 +1,45 @@
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* Fundo claro para os campos brancos aparecerem */
+.caixa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--panel-padding);
+  background: var(--color-bg-alt);
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+.endereco {
+  margin-top: var(--space-8);
+  font-size: var(--font-size-small);
+}
+
+.linhaExcluido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+}

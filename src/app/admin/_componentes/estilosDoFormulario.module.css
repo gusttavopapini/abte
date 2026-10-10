@@ -11,3 +11,27 @@
   gap: var(--space-16);
   margin-top: var(--space-16);
 }
+
+/* Grupo sem moldura do navegador (tags do artigo) */
+.semMoldura {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ajuda {
+  font-size: var(--font-size-small);
+}
+
+.opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+}

@@ -60,3 +60,19 @@
 .linkOriginal {
   margin-top: var(--space-24);
 }
+
+/* Tags do artigo: etiquetas sem link (páginas por tag ainda não existem) */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.tag {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}

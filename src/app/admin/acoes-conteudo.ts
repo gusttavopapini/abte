@@ -7,13 +7,14 @@ import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { gerarSlug } from "@/lib/slug";
-import { ehIdDeDocumentoValido, lerTextoDoFormulario } from "@/lib/validacao";
+import { COLECAO_DE_TOPICOS } from "@/lib/dados/colecoes";
+import { ehIdDeDocumentoValido, lerListaDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
 // Limites de tamanho dos campos curtos. Textos longos (conteúdo e resumo) não
 // têm limite aqui.
 const LIMITE_TITULO = 200;
 const LIMITE_URL = 2048;
-const LIMITE_CATEGORIA = 60;
+const LIMITE_TAGS_POR_ARTIGO = 20;
 const LIMITE_AUTORES = 300;
 const LIMITE_NOME = 120;
 const LIMITE_ESPECIALIDADE = 120;
@@ -45,10 +46,29 @@ function lerDadosDoPost(dados: FormData) {
   };
 }
 
-function lerDadosDoArtigo(dados: FormData) {
+// Confere no servidor que a categoria e as tags existem e não estão na lixeira.
+async function lerTopicosDoArtigo(dados: FormData) {
+  const categoria = dados.get("categoria");
+  if (!ehIdDeDocumentoValido(categoria)) throw new Error("Escolha uma categoria.");
+  const tags = lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: LIMITE_TAGS_POR_ARTIGO });
+  if (!tags.every(ehIdDeDocumentoValido)) throw new Error("Tag não encontrada.");
+
+  const db = firestoreAdmin();
+  const referencias = [
+    db.collection(COLECAO_DE_TOPICOS.categoria).doc(categoria),
+    ...tags.map((tag) => db.collection(COLECAO_DE_TOPICOS.tag).doc(tag)),
+  ];
+  const documentos = await db.getAll(...referencias);
+  if (documentos.some((documento) => !documento.exists || documento.get("excluidoEm"))) {
+    throw new Error("A categoria ou uma das tags não existe mais. Recarregue a página e escolha de novo.");
+  }
+  return { categoria, tags };
+}
+
+async function lerDadosDoArtigo(dados: FormData) {
   return {
     titulo: lerTextoDoFormulario(dados, "titulo", { rotulo: "Título", limite: LIMITE_TITULO }),
-    categoria: lerTextoDoFormulario(dados, "categoria", { rotulo: "Categoria", limite: LIMITE_CATEGORIA }),
+    ...(await lerTopicosDoArtigo(dados)),
     autores: lerTextoDoFormulario(dados, "autores", { rotulo: "Autores", limite: LIMITE_AUTORES }),
     link: lerTextoDoFormulario(dados, "link", { rotulo: "Link", limite: LIMITE_URL }),
     resumo: lerTextoDoFormulario(dados, "resumo", { rotulo: "Resumo" }),
@@ -89,16 +109,17 @@ export async function atualizarPost(formData: FormData) {
 export async function salvarArtigo(formData: FormData) {
   await exigirPapelDoPainel();
   const agora = new Date();
-  await firestoreAdmin().collection("artigos").add({ ...lerDadosDoArtigo(formData), criadoEm: agora, atualizadoEm: agora });
+  await firestoreAdmin().collection("artigos").add({ ...(await lerDadosDoArtigo(formData)), criadoEm: agora, atualizadoEm: agora });
 
   revalidatePath("/admin/artigos");
+  revalidatePath("/artigos");
   redirect("/admin/artigos");
 }
 
 export async function atualizarArtigo(formData: FormData) {
   await exigirPapelDoPainel();
   const id = validarId(formData.get("id"));
-  await firestoreAdmin().collection("artigos").doc(id).update({ ...lerDadosDoArtigo(formData), atualizadoEm: new Date() });
+  await firestoreAdmin().collection("artigos").doc(id).update({ ...(await lerDadosDoArtigo(formData)), atualizadoEm: new Date() });
 
   revalidatePath("/admin/artigos");
   revalidatePath("/artigos");

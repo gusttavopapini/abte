@@ -1,7 +1,7 @@
 // Testes do gerador de slug dos posts (npm run test:unidade).
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { gerarSlug } from "../../src/lib/slug.ts";
+import { escolherSlugUnico, gerarSlug } from "../../src/lib/slug.ts";
 
 describe("Geração de slug", () => {
   test("minúsculas e hífen no lugar dos espaços", () => {
@@ -29,5 +29,20 @@ describe("Geração de slug", () => {
 
   test("título vazio gera slug vazio", () => {
     assert.equal(gerarSlug(""), "");
+  });
+});
+
+describe("Slug único", () => {
+  test("usa o próprio slug quando está livre", () => {
+    assert.equal(escolherSlugUnico("coletes", new Set(["cirurgia"])), "coletes");
+  });
+
+  test("acrescenta -2, -3... quando já está em uso", () => {
+    assert.equal(escolherSlugUnico("coletes", new Set(["coletes"])), "coletes-2");
+    assert.equal(escolherSlugUnico("coletes", new Set(["coletes", "coletes-2", "coletes-3"])), "coletes-4");
+  });
+
+  test("um número livre no meio da sequência é reaproveitado", () => {
+    assert.equal(escolherSlugUnico("coletes", new Set(["coletes", "coletes-3"])), "coletes-2");
   });
 });

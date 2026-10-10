@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Botao } from "@/components/Botao/Botao";
 import type { Artigo } from "@/lib/dados/tipos";
 import {
@@ -9,28 +10,22 @@ import {
 } from "../estilosDoFormulario";
 import classes from "../estilosDoFormulario.module.css";
 
-// Classificações oferecidas no painel. Atenção: são diferentes das categorias
-// de exemplo da página pública /artigos (pendência registrada no CLAUDE.md).
-const CLASSIFICACOES = [
-  { valor: "diretrizes", rotulo: "Diretrizes (SOSORT guidelines)" },
-  { valor: "revisao-sistematica", rotulo: "Revisão Sistemática" },
-  { valor: "colete", rotulo: "Uso de colete (Bracing)" },
-  { valor: "exercicios", rotulo: "Exercícios Específicos (PSSE)" },
-  { valor: "cirurgia", rotulo: "Cirurgia" },
-  { valor: "qualidade-de-vida", rotulo: "Qualidade de vida / Saúde Mental" },
-  { valor: "outros", rotulo: "Outros" },
-];
+// Categoria ou tag cadastrada em "Tópicos dos artigos".
+type OpcaoDeTopico = { id: string; nome: string };
 
 type PropsFormularioArtigo = {
   acao: (dados: FormData) => Promise<void>;
   // Sem artigo: formulário de criação. Com artigo: edição, com os valores atuais.
-  artigo?: Pick<Artigo, "id" | "titulo" | "categoria" | "autores" | "link" | "resumo">;
+  artigo?: Pick<Artigo, "id" | "titulo" | "categoria" | "tags" | "autores" | "link" | "resumo">;
+  // Tópicos fora da lixeira, lidos do Firestore pela página.
+  categorias: OpcaoDeTopico[];
+  tags: OpcaoDeTopico[];
   rotuloPublicar: string;
   rotuloRascunho: string;
 };
 
 // Formulário de artigo científico, usado em "Adicionar Novo Artigo" e em "Editar Artigo".
-export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho }: PropsFormularioArtigo) {
+export function FormularioArtigo({ acao, artigo, categorias, tags, rotuloPublicar, rotuloRascunho }: PropsFormularioArtigo) {
   return (
     <form action={acao} style={estiloFormulario}>
       {artigo && <input type="hidden" name="id" value={artigo.id} />}
@@ -49,14 +44,34 @@ export function FormularioArtigo({ acao, artigo, rotuloPublicar, rotuloRascunho 
       </div>
 
       <div className={classes.grupo}>
-        <label htmlFor="categoria" style={estiloRotulo}>Classificação / Tipo de Artigo</label>
-        <select id="categoria" name="categoria" defaultValue={artigo?.categoria} style={estiloSelecao} required>
+        <label htmlFor="categoria" style={estiloRotulo}>Categoria</label>
+        <select id="categoria" name="categoria" defaultValue={artigo?.categoria} style={estiloSelecao} required aria-describedby="categoria-ajuda">
           <option value="">Selecione uma categoria...</option>
-          {CLASSIFICACOES.map(({ valor, rotulo }) => (
-            <option key={valor} value={valor}>{rotulo}</option>
+          {categorias.map(({ id, nome }) => (
+            <option key={id} value={id}>{nome}</option>
           ))}
         </select>
+        <p id="categoria-ajuda" className={classes.ajuda}>
+          {categorias.length === 0 ? "Nenhuma categoria cadastrada ainda. " : "Para criar ou renomear categorias, use "}
+          <Link href="/admin/artigos/topicos">{categorias.length === 0 ? "Cadastre em Tópicos dos artigos" : "Tópicos dos artigos"}</Link>.
+        </p>
       </div>
+
+      <fieldset className={`${classes.grupo} ${classes.semMoldura}`}>
+        <legend style={estiloRotulo}>Tags (opcional)</legend>
+        {tags.length === 0 ? (
+          <p className={classes.ajuda}>Nenhuma tag cadastrada ainda.</p>
+        ) : (
+          <div className={classes.opcoes}>
+            {tags.map(({ id, nome }) => (
+              <label key={id} className={classes.opcao}>
+                <input type="checkbox" name="tags" value={id} defaultChecked={artigo?.tags.includes(id)} />
+                {nome}
+              </label>
+            ))}
+          </div>
+        )}
+      </fieldset>
 
       <div className={classes.grupo}>
         <label htmlFor="autores" style={estiloRotulo}>Autores / Ano</label>

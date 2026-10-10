@@ -28,6 +28,8 @@ const COLECOES = [
   "diretoria",
   "posts",
   "artigos",
+  "categoriasDeArtigos",
+  "tagsDeArtigos",
   "produtos",
   "logAlteracoes",
   "qualquerColecao",

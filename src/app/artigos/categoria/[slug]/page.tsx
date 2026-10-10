@@ -1,33 +1,42 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
+import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
 import estilos from "./page.module.css";
 
-// Categorias e artigos de EXEMPLO, fixos no código (ainda não vêm do painel).
-const CATEGORIAS_DE_EXEMPLO = [
-  { slug: "fisioterapia", nome: "Fisioterapia" },
-  { slug: "coletes", nome: "Coletes Ortopédicos" },
-  { slug: "psicologia", nome: "Psicologia" },
-  { slug: "cirurgia", nome: "Cirurgia" },
-  { slug: "diagnostico", nome: "Diagnóstico" },
-  { slug: "exercicios", nome: "Exercícios Específicos" },
-];
+export const dynamic = "force-dynamic";
 
-const ARTIGOS_DE_EXEMPLO = [
-  { slug: "artigo-1", titulo: "Indicações da técnica Vertebral Body Tethering (VBT)", resumo: "O Vertebral Body Tethering ou VBT é uma técnica cirúrgica para o tratamento das escolioses idiopáticas que preserva a mobilidade da coluna...", autor: "Dr. João Silva", data: "25 Set 2026" },
-  { slug: "artigo-2", titulo: "Reabilitação pós-artrodese na escoliose idiopática", resumo: "O cenário clínico: A Escoliose Idiopática do Adolescente (EIA) é uma alteração estrutural tridimensional da coluna vertebral...", autor: "Fisio. Maria Costa", data: "20 Set 2026" },
-  { slug: "artigo-3", titulo: "Entendendo a fisiologia do tratamento postural", resumo: "As fibras musculares podem mudar? O que a ciência realmente diz sobre adaptação muscular e reeducação postural...", autor: "Dr. Pedro Santos", data: "15 Set 2026" },
-  { slug: "artigo-4", titulo: "Abordagem precoce na escoliose infantil", resumo: "A importância do diagnóstico precoce nos primeiros anos de vida da criança e como isso altera positivamente o prognóstico...", autor: "Dra. Ana Costa", data: "05 Set 2026" },
-];
+// Categoria cadastrada no painel, pelo slug; na lixeira conta como inexistente.
+// O cache evita ler duas vezes (metadata e página) na mesma requisição.
+const lerCategoria = cache(async (slug: string) => {
+  const consulta = await lerTopicosDeArtigos("categoria").where("slug", "==", slug).limit(1).get();
+  const categoria = consulta.docs[0]?.data();
+  return categoria && !categoria.excluidoEm ? categoria : null;
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const categoria = await lerCategoria((await params).slug);
+  return { title: categoria ? `Artigos sobre ${categoria.nome}` : "Categoria não encontrada" };
+}
 
 export default async function PaginaCategoriaArtigos({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const categoria = CATEGORIAS_DE_EXEMPLO.find((exemplo) => exemplo.slug === slug);
+  const categoria = await lerCategoria(slug);
 
   if (!categoria) {
     notFound();
   }
+
+  // Só artigos publicados desta categoria, do mais novo para o mais antigo.
+  // Ordenados aqui para não depender de índice composto no Firestore.
+  const snapshot = await lerArtigos().where("categoria", "==", categoria.id).get();
+  const artigos = snapshot.docs
+    .map((documento) => documento.data())
+    .filter((artigo) => artigo.status === "publicado")
+    .sort((a, b) => (b.criadoEm?.getTime() ?? 0) - (a.criadoEm?.getTime() ?? 0));
 
   return (
     <LayoutPublico header="solida">
@@ -44,16 +53,20 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
           </div>
 
           <div className={estilos.gradeTres}>
-            {ARTIGOS_DE_EXEMPLO.map((artigo) => (
-              <CardArtigo 
-                key={artigo.slug}
-                titulo={artigo.titulo}
-                resumo={artigo.resumo}
-                autor={artigo.autor}
-                data={artigo.data}
-                slug={artigo.slug}
-              />
-            ))}
+            {artigos.length === 0 ? (
+              <p className={`tipo-texto ${estilos.vazio}`}>Nenhum artigo publicado nesta categoria ainda.</p>
+            ) : (
+              artigos.map((artigo) => (
+                <CardArtigo
+                  key={artigo.id}
+                  titulo={artigo.titulo || "Sem título"}
+                  resumo={artigo.resumo}
+                  autor={artigo.autores || "Autor Desconhecido"}
+                  data={artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : ""}
+                  slug={artigo.id}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>

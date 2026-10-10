@@ -38,3 +38,33 @@ const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function ehEmailValido(valor: string): boolean {
   return EMAIL_VALIDO.test(valor);
 }
+
+type OpcoesDoInteiro = {
+  rotulo: string;
+  minimo: number;
+  maximo: number;
+  // Valor usado quando o campo vem vazio.
+  padrao: number;
+};
+
+// Lê um número inteiro de um FormData (ex.: a ordem de exibição). Campo vazio
+// usa o padrão; texto que não é inteiro ou fora do intervalo é recusado com
+// mensagem em português.
+export function lerInteiroDoFormulario(dados: FormData, campo: string, { rotulo, minimo, maximo, padrao }: OpcoesDoInteiro): number {
+  const valor = dados.get(campo);
+  if (typeof valor !== "string" || valor.trim() === "") return padrao;
+  if (!/^-?\d+$/.test(valor.trim())) throw new Error(`O campo "${rotulo}" aceita só números inteiros.`);
+  const numero = Number(valor.trim());
+  if (numero < minimo || numero > maximo) {
+    throw new Error(`O campo "${rotulo}" aceita valores de ${minimo} a ${maximo}.`);
+  }
+  return numero;
+}
+
+// Lê todos os valores de um campo repetido (ex.: caixas de seleção marcadas),
+// sem repetição e sem nada que não seja texto. Acima do limite, recusa.
+export function lerListaDoFormulario(dados: FormData, campo: string, { rotulo, limite }: { rotulo: string; limite: number }): string[] {
+  const valores = [...new Set(dados.getAll(campo).filter((valor): valor is string => typeof valor === "string" && valor !== ""))];
+  if (valores.length > limite) throw new Error(`O campo "${rotulo}" aceita no máximo ${limite} itens.`);
+  return valores;
+}

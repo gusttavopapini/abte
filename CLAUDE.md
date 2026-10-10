@@ -63,6 +63,7 @@ src/
     admin/                painel
       acoes.ts            ações de servidor do login (criar e encerrar sessão)
       acoes-conteudo.ts   ações de servidor de posts, artigos e profissionais
+      acoes-topicos.ts    ações de servidor dos tópicos dos artigos (categorias e tags)
       entrar/             login e recuperação de senha
       (painel)/           telas protegidas (layout com checagem de sessão e papel)
       _componentes/       componentes só do painel (um por pasta, com CSS Module)
@@ -79,8 +80,8 @@ src/
 
 ## Rotas
 
-- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (dados de exemplo fixos no código), `/contato`, `/loja` (só título), `/componentes` (revisão visual, noindex).
-- **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/profissionais` (criar, editar e excluir num modal).
+- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (só título), `/componentes` (revisão visual, noindex).
+- **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/artigos/topicos` (categorias e tags), `/admin/profissionais` (criar, editar e excluir num modal).
 - **Links do menu e do rodapé que ainda dão 404:** `/doe`, `/seja-associado`, `/acessibilidade`, `/politica-de-privacidade`, `/termos-de-uso`.
 
 ## Arquivos de referência (ordem de prioridade em caso de conflito)
@@ -99,7 +100,9 @@ src/
 - **Papéis por custom claim** `papel` no Authentication: `administrador` ou `editor`. Sem papel, nada do painel.
 - **Sessão por cookie** de sessão do Firebase (`__session`, httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/admin`), validado no servidor em toda página do painel com checagem de revogação (`src/lib/auth/sessao.ts`). O layout do painel usa `exigirSessaoDoPainel()` para mostrar "Acesso não autorizado" a quem não tem papel; **toda ação de servidor e toda página do painel que lê dados começam por `exigirPapelDoPainel()`**, que falha fechada (sem sessão vai para o login; sem papel interrompe antes de ler ou gravar). A decisão fica na função pura `decidirAcessoAoPainel()` (`src/lib/auth/papeis.ts`), testada em `test:unidade`. Administrador e editor ainda têm o mesmo acesso. "Sair" revoga a sessão e apaga o cookie.
 - **Admin SDK só no servidor:** `src/lib/firebase/servidor.ts`, `src/lib/firebase/admin-auth.ts`, `src/lib/auth/sessao.ts` e `src/lib/dados/colecoes.ts` importam `server-only`.
-- **Leitura tipada:** as páginas leem o Firestore por `lerPosts()`, `lerArtigos()` e `lerProfissionais()` (`src/lib/dados/colecoes.ts`), com conversores somente de leitura; os tipos ficam em `src/lib/dados/tipos.ts`. As gravações ficam nas ações de servidor, que validam o id (`ehIdDeDocumentoValido`) e limitam o tamanho dos campos curtos.
+- **Leitura tipada:** as páginas leem o Firestore por `lerPosts()`, `lerArtigos()`, `lerProfissionais()` e `lerTopicosDeArtigos()` (com `listarTopicosAtivos()`) (`src/lib/dados/colecoes.ts`), com conversores somente de leitura; os tipos ficam em `src/lib/dados/tipos.ts`. As gravações ficam nas ações de servidor, que validam o id (`ehIdDeDocumentoValido`) e limitam o tamanho dos campos curtos.
+- **Padrões de dados (desde 10/10/2026):** slug criado com o nome, único (verificado numa transação, `escolherSlugUnico()`) e estável ao renomear; exclusão vai para a lixeira (`excluidoEm` preenchido), com "Restaurar" na própria tela; coleções pequenas são filtradas e ordenadas na memória, sem índice composto. Ações que respondem a formulários com `useActionState` devolvem `{ ok, mensagem }` em português.
+- **Teste ponta a ponta:** o build de produção pode rodar contra os emuladores de Firestore e Authentication (variáveis `FIRESTORE_EMULATOR_HOST`, `FIREBASE_AUTH_EMULATOR_HOST` e `FIREBASE_ADMIN_PROJECT_ID=demo-...`), com um cookie de sessão criado no emulador; nenhum dado de teste toca o projeto real.
 - **Variáveis de ambiente:** o arquivo oficial dos segredos é o **`.env.local`** (modelo em `.env.example`). Hoje as credenciais também estão num `.env` criado durante o deploy de teste na Vercel; o Next.js e o `admin:conceder` leem os dois, e o `.env.local` prevalece. Nenhum dos dois entra no Git.
 - **Testes:** toda etapa que mexe com dados inclui testes de regras e de permissões (sessão e papel) das ações de servidor. Funções puras (decisão de acesso, validações, slug) têm testes em `testes/unidade/` (`npm run test:unidade`).
 
@@ -129,8 +132,8 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 | 1 Base | Concluída. |
 | 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`. Sem `/doe`, sem páginas legais. |
 | 3 Modelo de dados | Não feita. Sem `usuarios`, `configuracoes`, `logAlteracoes`, lixeira (`excluidoEm`) ou cadastro de usuários pelo painel. Os papéis existem só como custom claim. |
-| 4 Painel | 4a: profissionais com criar, editar e excluir de vez, modelo simples (nome, especialidade, tag, LinkedIn, URL da foto, status); sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir). 4c e 4d: nada. |
-| 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` leem o Firestore. `/artigos` e `/artigos/categoria/[slug]` ainda usam categorias e artigos de exemplo fixos no código. |
+| 4 Painel | 4a: profissionais com criar, editar e excluir de vez, modelo simples (nome, especialidade, tag, LinkedIn, URL da foto, status); sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir), e tópicos dos artigos (categorias e tags) com criar, renomear, excluir para a lixeira e restaurar. 4c e 4d: nada. |
+| 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` leem o Firestore. `/artigos/categoria/[slug]` lê categorias e artigos do Firestore desde o lote B (10/10/2026). |
 | 6 a 9 | Nada. |
 
 **Firestore (projeto de desenvolvimento, contagem sem ler valores):** só a coleção `posts` existe, com 2 documentos publicados. `artigos` e `profissionais` estão vazias, portanto não há dado a migrar quando os modelos mudarem. No Authentication há 1 usuário, com papel administrador. As regras negam tudo; `testes/regras/firestore.test.mts` cobre 10 coleções (as do modelo planejado e uma qualquer) para visitante, logado sem papel, administrador e editor. `firestore.indexes.json` não tem índices.
@@ -199,13 +202,12 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **P16, slug que muda ao editar:** o slug do post é refeito a partir do título a cada edição (links antigos quebram), e dois títulos iguais geram o mesmo slug.
 - **Erros no painel:** excluir profissional apaga de vez (sem lixeira nem registro de alterações) e não mostra erro se falhar; erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês.
 - **Endereço inválido:** `/blog/[slug]` e `/artigos/[slug]` com um valor que não é id válido do Firestore (ex.: `__x__`) dão erro 500 em vez de 404.
-- **P19, classificações de artigo:** as do painel (diretrizes, revisão sistemática, colete…) são diferentes das categorias de exemplo da página pública `/artigos`.
+- **P19, classificações de artigo:** resolvida em 10/10/2026. Categorias e tags são cadastradas em `/admin/artigos/topicos` e lidas do Firestore pelo painel e pelas páginas públicas. Os cards de categoria ficam sem imagem (placeholder) até a etapa 4d.
 - **P22, exclusão de profissional:** apaga de vez e não mostra erro se falhar (ver "Erros no painel").
 - **Numeração P:** P18, P20, P21 e P23 são citadas nos registros do Projeto, mas não aparecem neste arquivo; as 7 perguntas do diagnóstico original também não. Conferir e trazer para cá.
 
 **Conteúdo e etapas futuras**
 - O formulário de contato mostra "enviado" sem enviar nada (serviço de e-mail em aberto).
-- `/artigos/categoria/[slug]` mostra 4 artigos de exemplo com autores fictícios, e as categorias estão fixas no código.
 - Links que dão 404 (ver "Rotas") e loja só com título.
 - Imagens provisórias externas (picsum.photos e placehold.co).
 - Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.
@@ -221,6 +223,8 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Nome de pessoa na documentação:** `docs/ABTE_contexto_projeto.md` (seção 1) ainda cita a presidente da diretoria pelo nome. `docs/ABTE_contexto_redesign.md` lista profissionais reais com registro, como referência da migração.
 - **Permissão do `.env.local`:** o arquivo pode ser lido por outros usuários da máquina (o `.env` não). Fora do Git; ajuste local, sem efeito no código.
 - **"Mais lidos da semana" em `/artigos`:** a seção mostra os artigos mais recentes; não existe contagem de leitura.
+- **Painel no celular:** a barra lateral tem 280 px fixos e o conteúdo fica com `calc(100vw - 280px)`, sem regra para telas estreitas; em 390 px o painel fica espremido e difícil de usar (`LayoutPainel.module.css`).
+- **Artigos antigos sem categoria válida:** o campo `categoria` agora guarda o id do documento de `categoriasDeArtigos`. Não havia artigos no banco de desenvolvimento; na migração (etapa 6), cada artigo precisa receber o id de uma categoria cadastrada.
 
 ## Exceções de design
 
@@ -246,9 +250,9 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 
 | Arquivo | Linhas | Valores | Regra violada |
 |---|---|---|---|
-| `src/app/admin/(painel)/artigos/page.tsx` | 34 | 14px | Tamanhos de fonte só pelos tokens |
-| `src/app/admin/(painel)/artigos/page.tsx` | 29 | 0.8 | Cores só pelos tokens (opacidade) |
-| `src/app/admin/(painel)/artigos/page.tsx` | 28 | 500 | Pesos só pelos tokens |
+| `src/app/admin/(painel)/artigos/page.tsx` | 36 | 14px | Tamanhos de fonte só pelos tokens |
+| `src/app/admin/(painel)/artigos/page.tsx` | 31 | 0.8 | Cores só pelos tokens (opacidade) |
+| `src/app/admin/(painel)/artigos/page.tsx` | 30 | 500 | Pesos só pelos tokens |
 | `src/app/admin/(painel)/blog/page.tsx` | 36 | 14px | Tamanhos de fonte só pelos tokens |
 | `src/app/admin/(painel)/blog/page.tsx` | 32 | 0.8 | Cores só pelos tokens (opacidade) |
 | `src/app/admin/(painel)/blog/page.tsx` | 28 | 500 | Pesos só pelos tokens |
@@ -282,7 +286,7 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/app/artigos/page.module.css` | 3, 72, 73 | 8px, 100vh | Tamanhos só pelos tokens |
 | `src/app/artigos/page.module.css` | 67 | 600 | Pesos só pelos tokens |
 | `src/app/artigos/page.module.css` | 40, 75 | 50%, 5px | Raio 0 (--radius) |
-| `src/app/artigos/page.tsx` | 89 | 0.6 | Cores só pelos tokens (opacidade) |
+| `src/app/artigos/page.tsx` | 80 | 0.6 | Cores só pelos tokens (opacidade) |
 | `src/app/blog/[slug]/page.module.css` | 20 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
 | `src/app/blog/[slug]/page.module.css` | 3, 8 | 100vh, 800px | Tamanhos só pelos tokens |
 | `src/app/blog/[slug]/page.tsx` | 42 | 8px | Raio 0 (--radius) |
