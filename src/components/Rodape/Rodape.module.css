@@ -109,3 +109,12 @@
     gap: 0;
   }
 }
+
+/* Movimento (PROPOSTA, NÃO VERIFICADO no design system): cor do link no hover.
+   O foco aparece na hora, sem transição. */
+.link {
+  /* Duração e curva da troca de cor */
+  --rodape-transicao: 150ms ease-out;
+
+  transition: color var(--rodape-transicao);
+}

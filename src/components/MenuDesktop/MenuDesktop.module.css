@@ -103,3 +103,32 @@
   color: var(--color-on-primary);
   font-weight: 600;
 }
+
+/* Movimento (PROPOSTA, NÃO VERIFICADO no design system): submenu entra com um
+   leve deslize, a seta gira e a cor do link muda suavemente. O foco aparece
+   na hora, sem transição. */
+.lista {
+  /* Duração das transições do menu */
+  --menu-duracao: 200ms;
+  /* Distância do deslize do submenu: um passo pequeno de espaçamento */
+  --menu-distancia: var(--space-8);
+}
+
+.link {
+  transition: color var(--menu-duracao) ease-out;
+}
+
+.icone {
+  transition: transform var(--menu-duracao) ease-out;
+}
+
+.submenu {
+  animation: submenu-entrar var(--menu-duracao) ease-out;
+}
+
+@keyframes submenu-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--menu-distancia) * -1));
+  }
+}

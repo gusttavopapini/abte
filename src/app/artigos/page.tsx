@@ -4,6 +4,7 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { revelar } from "@/components/Revelar/revelar";
 
 export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
@@ -50,12 +51,12 @@ export default async function PaginaArtigos() {
         {/* Navegar por categoria */}
         <section className={estilos.bloco}>
           <div className="container">
-            <header className={estilos.blocoCabecalho}>
+            <header {...revelar(estilos.blocoCabecalho)}>
               <span className={estilos.blocoMarcador}>Categorias</span>
               <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Navegue por tópicos</h2>
             </header>
             
-            <div className={estilos.gradeTres}>
+            <div {...revelar(estilos.gradeTres, 1)}>
               {categorias.length === 0 ? (
                 <p className={`tipo-texto ${estilos.vazio}`}>Nenhum tópico cadastrado ainda.</p>
               ) : (
@@ -70,12 +71,12 @@ export default async function PaginaArtigos() {
         {/* Artigos publicados */}
         <section className={`${estilos.bloco} ${estilos.blocoClaro}`}>
           <div className="container">
-            <header className={estilos.blocoCabecalho}>
+            <header {...revelar(estilos.blocoCabecalho)}>
               <span className={estilos.blocoMarcador}>Top Artigos</span>
               <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Mais lidos da semana</h2>
             </header>
 
-            <div className={estilos.gradeTres}>
+            <div {...revelar(estilos.gradeTres, 1)}>
               {artigos.length === 0 ? (
                 <p style={{ gridColumn: "1 / -1", opacity: 0.6 }}>Nenhum artigo publicado ainda.</p>
               ) : (

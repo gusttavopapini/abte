@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Header, type VarianteHeader } from "@/components/Header/Header";
 import { PularParaConteudo } from "@/components/PularParaConteudo/PularParaConteudo";
+import { ObservadorDeRevelacao } from "@/components/Revelar/ObservadorDeRevelacao";
 import { Rodape } from "@/components/Rodape/Rodape";
 import estilos from "./LayoutPublico.module.css";
 
@@ -10,6 +11,7 @@ import estilos from "./LayoutPublico.module.css";
 export function LayoutPublico({ children, header = "solida", ocultarRodape = false }: { children: ReactNode; header?: VarianteHeader; ocultarRodape?: boolean }) {
   return (
     <>
+      <ObservadorDeRevelacao />
       <PularParaConteudo />
       <Header variante={header} />
       <main id="conteudo" tabIndex={-1} className={estilos.principal}>

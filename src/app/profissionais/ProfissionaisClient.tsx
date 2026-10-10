@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
 import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
 import estilos from "./page.module.css";
+import { revelar } from "@/components/Revelar/revelar";
 
 const TODOS = "Todos";
 const OPCOES_DO_FILTRO: readonly string[] = [TODOS, ...TAGS_DE_PROFISSIONAIS];
@@ -55,7 +56,7 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
         ))}
       </div>
 
-      <div className={estilos.grade}>
+      <div {...revelar(estilos.grade)}>
         {profissionaisFiltrados.map((profissional) => (
           <CardProfissional
             key={profissional.id}

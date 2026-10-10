@@ -95,3 +95,14 @@
     min-height: var(--control-min-height-mobile);
   }
 }
+
+/* Movimento (PROPOSTA, NÃO VERIFICADO no design system): troca de cor rápida
+   e discreta no hover. O foco aparece na hora, sem transição. */
+.botao {
+  /* Duração e curva da troca de cor */
+  --botao-transicao: 150ms ease-out;
+
+  transition:
+    background-color var(--botao-transicao),
+    color var(--botao-transicao);
+}

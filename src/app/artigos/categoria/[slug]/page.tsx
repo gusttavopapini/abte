@@ -6,6 +6,7 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
 import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
 import estilos from "./page.module.css";
+import { revelar } from "@/components/Revelar/revelar";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
              </p>
           </div>
 
-          <div className={estilos.gradeTres}>
+          <div {...revelar(estilos.gradeTres)}>
             {artigos.length === 0 ? (
               <p className={`tipo-texto ${estilos.vazio}`}>Nenhum artigo publicado nesta categoria ainda.</p>
             ) : (

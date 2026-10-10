@@ -21,7 +21,6 @@ A gestão do projeto não é feita por desenvolvedores: a revisão é visual, em
 | @firebase/rules-unit-testing (dev) | 5.0.2 |
 | ESLint (eslint-config-next) | 9.39 |
 | Stylelint | 17.15 |
-| framer-motion (animações de entrada da home) | 13.4.4 (fora do plano original: ver Divergências, P17) |
 
 CSS puro com CSS Modules e `src/styles/tokens.css` global. **Sem Tailwind, Bootstrap ou kits de UI.** Public Sans via `next/font/google`, auto-hospedada no build. O design system prevê os pesos 400 e 600; o código carrega 300, 400 e 600 (ver Divergências).
 
@@ -67,7 +66,7 @@ src/
       entrar/             login e recuperação de senha
       (painel)/           telas protegidas (layout com checagem de sessão e papel)
       _componentes/       componentes só do painel (um por pasta, com CSS Module)
-  components/<Nome>/      componentes do site, um por pasta, com seu CSS Module
+  components/<Nome>/      componentes do site, um por pasta, com seu CSS Module (Revelar: entrada ao rolar)
   config/navegacao.ts     menu, rodapé, e-mail, redes e funções de item ativo do menu
   config/profissionais.ts lista única das tags de profissionais
   lib/firebase/cliente.ts SDK web (navegador, só login)
@@ -142,7 +141,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 **Segurança:** todas as ações de `acoes-conteudo.ts` e todas as páginas do painel que leem dados começam por `exigirPapelDoPainel()`; as páginas sem leitura de dados (`/admin`, `novo`) ficam protegidas pelo layout. Cookie `__session` httpOnly, sameSite strict, secure em produção, caminho `/admin`, 5 dias. Painel e `/componentes` com noindex (metadata e cabeçalho `X-Robots-Tag`). Nenhum código, dependência ou variável de pagamento.
 
-**Movimento:** o `globals.css` desliga transições e animações CSS com `prefers-reduced-motion`. O framer-motion (`AnimacaoEntrada`, só na home) anima por JavaScript, ignora essa preferência e entrega 11 blocos da home com `opacity: 0` no HTML do servidor: sem JavaScript, esses blocos ficam invisíveis. O carrossel do Hero avança por `setInterval` mesmo com movimento reduzido.
+**Movimento (desde o lote D, 10/10/2026):** só CSS, sem framer-motion (removido). Entrada ao rolar pelo componente `Revelar` (`revelar()` espalhado no próprio elemento, `ObservadorDeRevelacao` no `LayoutPublico`), ligada por um script curto no `<head>` de `app/layout.tsx` só com JavaScript ativo e sem movimento reduzido; sem JavaScript, ou se o observador não carregar em 3 segundos, nada fica escondido. Só opacidade e transform (CLS medido 0). Menus com entrada e seta animadas; botões e links do rodapé com troca de cor suave; foco sempre instantâneo. O `globals.css` desliga transições e animações com `prefers-reduced-motion`, e o carrossel do Hero não avança sozinho nesse caso. O painel não usa nada disso.
 
 ## Decisões tomadas sobre pagamento
 
@@ -193,8 +192,7 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 
 **Acessibilidade e comportamento adiados (mudam o que se vê ou se faz)**
 - **H1 na home:** a home não tem H1 (o hero virou carrossel sem título).
-- **reduced-motion:** as animações do framer-motion (`AnimacaoEntrada`) e o carrossel ignoram `prefers-reduced-motion`.
-- **Carrossel do Hero:** avança sozinho a cada 5 segundos, sem botão de pausa; texto alternativo genérico ("Slide 1").
+- **Carrossel do Hero:** avança sozinho a cada 5 segundos, sem botão de pausa (com movimento reduzido ele para, desde 10/10/2026); texto alternativo genérico ("Slide 1").
 - **aria-pressed:** os botões do filtro de `/profissionais` não anunciam qual está ativo.
 - **Modal:** não fecha com Esc, não prende o foco e não tem `role="dialog"`; a exclusão de profissional usa `confirm()`.
 - **Saltos de título** (H1 direto para H3) em `/blog`, `/profissionais` e `/artigos/categoria/[slug]`; o `globals.css` estiliza h2 e h3 pela tag, então trocar o nível muda o tamanho.
@@ -213,13 +211,14 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.
 
 **Dependências e hospedagem**
-- **P17, framer-motion fora do plano:** entrou na fase de 27 a 29/09; só a home usa.
+- **P17, framer-motion fora do plano:** resolvida em 10/10/2026: trocado por CSS e removido do `package.json`.
 - **Ajustes de Vercel com hospedagem ainda não decidida:** `transpilePackages: ["jwks-rsa", "jose"]` no `next.config.ts` e o override de `jose` 4.15.9 no `package.json`. Não remover sem testar o deploy.
 - `turbopack.root` no `next.config.ts` só evita o aviso de um `package-lock.json` solto na pasta do usuário, fora do projeto.
 - O Git local tem `refs/original/refs/heads/main`, backup de uma reescrita de autoria anterior; não está em nenhuma branch.
 
 **Encontrado em 10/10/2026**
-- **Conteúdo invisível sem JavaScript:** os blocos da home com `AnimacaoEntrada` saem do servidor com `opacity: 0` (ver "Estado atual").
+- **Conteúdo invisível sem JavaScript:** resolvido no lote D (o framer-motion entregava 11 blocos da home com `opacity: 0`).
+- **Menu de desktop:** o hover troca o peso da fonte (300 para 600), o que alarga o texto e empurra os itens vizinhos; já era assim antes do lote D.
 - **Nome de pessoa na documentação:** `docs/ABTE_contexto_projeto.md` (seção 1) ainda cita a presidente da diretoria pelo nome. `docs/ABTE_contexto_redesign.md` lista profissionais reais com registro, como referência da migração.
 - **Permissão do `.env.local`:** o arquivo pode ser lido por outros usuários da máquina (o `.env` não). Fora do Git; ajuste local, sem efeito no código.
 - **"Mais lidos da semana" em `/artigos`:** a seção mostra os artigos mais recentes; não existe contagem de leitura.
@@ -357,3 +356,17 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/Rodape/Rodape.module.css` | 98 | 90px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 34 | 600 | Pesos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 9 | 5px | Raio 0 (--radius) |
+
+### C. Movimento (pendente de confirmação da designer)
+
+O design system marca movimento como NÃO VERIFICADO. Os valores abaixo são PROPOSTA do lote D (10/10/2026), ficam como propriedades locais comentadas nos CSS Modules (nenhum token novo) e esperam a designer. Todos somem com `prefers-reduced-motion`.
+
+| Onde | Propriedade local | Valor | Uso |
+|---|---|---|---|
+| `src/components/Revelar/Revelar.module.css` | `--revelar-duracao`, `--revelar-distancia`, `--revelar-passo`, `--revelar-curva` | 600ms, `var(--space-16)`, 120ms, `cubic-bezier(0.25, 0.1, 0.25, 1)` | Entrada ao rolar (home, `/blog`, `/artigos`, `/artigos/categoria/[slug]`, `/profissionais`) |
+| `src/components/MenuDesktop/MenuDesktop.module.css` | `--menu-duracao`, `--menu-distancia` | 200ms, `var(--space-8)` | Entrada do submenu, giro da seta, cor do link |
+| `src/components/MenuTelaCheia/MenuTelaCheia.module.css` | `--menu-duracao`, `--menu-distancia` | 200ms, `var(--space-8)` | Entrada do menu em tela cheia e das sublistas, giro da seta, cor do link |
+| `src/components/Botao/Botao.module.css` | `--botao-transicao` | 150ms ease-out | Troca de cor no hover |
+| `src/components/Rodape/Rodape.module.css` | `--rodape-transicao` | 150ms ease-out | Cor do link no hover |
+
+Já existiam antes (sem propriedade local): elevação de cards no hover (0.4s, com sombra), carrossel (0.5s), header que se esconde ao rolar (0.3s) e modal do painel (0.2s e 0.3s).

@@ -21,9 +21,19 @@ export const metadata: Metadata = {
   icons: { icon: "data:," },
 };
 
+// Liga o movimento de entrada (componente Revelar) antes da primeira pintura,
+// só com JavaScript ativo, IntersectionObserver disponível e sem preferência
+// por movimento reduzido. Se o observador não avisar em 3 segundos que
+// carregou (data-revelacao-pronta), a marca sai e nada fica escondido.
+const SCRIPT_DO_MOVIMENTO = `(function(){var h=document.documentElement;try{if(!window.matchMedia("(prefers-reduced-motion: no-preference)").matches||!("IntersectionObserver" in window))return;h.classList.add("movimento");setTimeout(function(){if(!h.hasAttribute("data-revelacao-pronta"))h.classList.remove("movimento")},3000)}catch(e){h.classList.remove("movimento")}})();`;
+
 export default function LayoutRaiz({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={publicSans.className}>
+    // suppressHydrationWarning: o script abaixo acrescenta classe e atributo ao <html> antes do React.
+    <html lang="pt-BR" className={publicSans.className} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_DO_MOVIMENTO }} />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -2,6 +2,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
 import { lerPosts } from "@/lib/dados/colecoes";
+import { revelar } from "@/components/Revelar/revelar";
 
 export const metadata = { title: "Blog" };
 
@@ -36,7 +37,7 @@ export default async function PaginaBlog() {
             </p>
           </div>
 
-          <div className={estilos.grade}>
+          <div {...revelar(estilos.grade)}>
             {posts.length === 0 ? (
               <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px 0", opacity: 0.6 }}>Nenhum post publicado ainda.</p>
             ) : (

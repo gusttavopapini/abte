@@ -103,3 +103,34 @@
   padding-top: var(--space-8);
   padding-left: var(--space-24);
 }
+
+/* Movimento (PROPOSTA, NÃO VERIFICADO no design system): o menu e as
+   sublistas entram com um leve deslize, a seta gira e a cor do link muda
+   suavemente. O foco aparece na hora, sem transição. */
+.menu {
+  /* Duração das transições do menu */
+  --menu-duracao: 200ms;
+  /* Distância do deslize: um passo pequeno de espaçamento */
+  --menu-distancia: var(--space-8);
+
+  animation: menu-entrar var(--menu-duracao) ease-out;
+}
+
+.sublista {
+  animation: menu-entrar var(--menu-duracao) ease-out;
+}
+
+.iconeSeta {
+  transition: transform var(--menu-duracao) ease-out;
+}
+
+.link {
+  transition: color var(--menu-duracao) ease-out;
+}
+
+@keyframes menu-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--menu-distancia) * -1));
+  }
+}

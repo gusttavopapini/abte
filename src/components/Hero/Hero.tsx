@@ -19,13 +19,24 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
     setSlideAtual((atual) => (atual === 0 ? imagens.length - 1 : atual - 1));
   };
 
-  // Passagem automática
+  // Passagem automática a cada 5 segundos. Com movimento reduzido, não
+  // avança sozinho (as setas e os pontos continuam funcionando); a preferência
+  // é seguida também se mudar com a página aberta.
   useEffect(() => {
-    const intervalo = setInterval(() => {
-      setSlideAtual((atual) => (atual + 1) % imagens.length);
-    }, 5000); // Muda a cada 5 segundos
-
-    return () => clearInterval(intervalo);
+    const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let intervalo: ReturnType<typeof setInterval> | undefined;
+    const atualizar = () => {
+      clearInterval(intervalo);
+      intervalo = reduzido.matches
+        ? undefined
+        : setInterval(() => setSlideAtual((atual) => (atual + 1) % imagens.length), 5000);
+    };
+    atualizar();
+    reduzido.addEventListener("change", atualizar);
+    return () => {
+      clearInterval(intervalo);
+      reduzido.removeEventListener("change", atualizar);
+    };
   }, [imagens.length]);
 
   return (
