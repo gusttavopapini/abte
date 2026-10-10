@@ -39,22 +39,58 @@
   display: block;
 }
 
-.linkedin {
-  position: absolute;
-  bottom: var(--space-16);
-  left: var(--space-16);
-  background-color: var(--color-primary);
-  color: var(--color-on-primary);
-  padding: 6px 16px;
-  font-size: var(--font-size-small);
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: var(--font-weight-light);
-  transition: background-color 0.2s;
+.metodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
-.linkedin:hover {
-  background-color: var(--color-primary-hover);
+/* Etiqueta de método (design-system.md: etiquetas em #ADD8E6) */
+.metodo {
+  padding: var(--space-8);
+  border-radius: var(--radius);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.texto {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.contatos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/* Contatos: WhatsApp em destaque, os outros como o botão secundário */
+.contato {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  text-decoration: none;
+}
+
+.contato:hover {
+  text-decoration: underline;
+}
+
+.contatoPrincipal {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.contatoPrincipal:hover {
+  background: var(--color-primary-hover);
 }
 
 @media (min-width: 768px) {

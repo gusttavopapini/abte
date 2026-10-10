@@ -1,27 +1,40 @@
 import { Suspense } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
-import { TAG_SEM_CLASSIFICACAO } from "@/config/profissionais";
-import { lerProfissionais } from "@/lib/dados/colecoes";
+import { PAISES, TAGS_DE_PROFISSIONAIS, TAG_SEM_CLASSIFICACAO } from "@/config/profissionais";
+import { lerProfissionais, ordenarProfissionais } from "@/lib/dados/colecoes";
+import type { Profissional } from "@/lib/dados/tipos";
 import { ProfissionaisClient, type ProfissionalPublico } from "./ProfissionaisClient";
 import estilos from "./page.module.css";
 
 export const metadata = { title: "Profissionais" };
 export const dynamic = "force-dynamic";
 
-export default async function PaginaProfissionais() {
-  const snapshot = await lerProfissionais().where("status", "==", "publicado").get();
+// "Cidade Um, Cidade Dois / SP" no Brasil; nos outros países, o nome do país.
+function local({ cidades, pais, uf }: Profissional): string {
+  const regiao = pais === "BR" ? uf : PAISES.find((item) => item.codigo === pais)?.nome ?? "";
+  return [cidades.join(", "), regiao].filter(Boolean).join(" / ");
+}
 
-  const profissionais: ProfissionalPublico[] = snapshot.docs.map((documento) => {
-    const profissional = documento.data();
-    return {
-      id: profissional.id,
-      nome: profissional.nome,
-      especialidade: profissional.especialidade,
-      tag: profissional.tag || TAG_SEM_CLASSIFICACAO,
-      linkedinUrl: profissional.linkedinUrl,
-      imagemUrl: profissional.imagemUrl,
-    };
-  });
+export default async function PaginaProfissionais() {
+  // Só quem está marcado para aparecer no site e fora dos excluídos.
+  const snapshot = await lerProfissionais().where("ativo", "==", true).get();
+  const visiveis = ordenarProfissionais(snapshot.docs.map((documento) => documento.data()).filter((profissional) => !profissional.excluidoEm));
+
+  const profissionais: ProfissionalPublico[] = visiveis.map((profissional) => ({
+    id: profissional.id,
+    tipo: (TAGS_DE_PROFISSIONAIS as readonly string[]).includes(profissional.tipo) ? profissional.tipo : TAG_SEM_CLASSIFICACAO,
+    tratamento: profissional.tratamento,
+    nome: profissional.nome,
+    registro: profissional.registro,
+    metodos: profissional.metodos,
+    local: local(profissional),
+    telerreabilitacao: profissional.telerreabilitacao,
+    whatsapp: profissional.whatsapp,
+    instagram: profissional.instagram,
+    facebook: profissional.facebook,
+    email: profissional.email,
+    bio: profissional.bio,
+  }));
 
   return (
     <LayoutPublico header="solida">

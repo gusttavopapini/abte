@@ -1,97 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useCallback, useEffect, useState } from "react";
 import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
-import { Modal } from "@/components/Modal/Modal";
-import { Botao } from "@/components/Botao/Botao";
-import { Campo } from "@/components/Campo/Campo";
-import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { salvarProfissional, atualizarProfissional, excluirProfissional } from "@/app/admin/acoes-conteudo";
-import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
-import estilos from "./ProfissionaisAdminClient.module.css";
-import type { Profissional as ProfissionalDoBanco } from "@/lib/dados/tipos";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
-
-type Profissional = Omit<ProfissionalDoBanco, "criadoEm" | "atualizadoEm">;
+import { FormularioProfissional, type ProfissionalNaTela } from "@/app/admin/_componentes/FormularioProfissional/FormularioProfissional";
+import { excluirProfissional, restaurarProfissional } from "@/app/admin/acoes-profissionais";
+import { Botao } from "@/components/Botao/Botao";
+import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { Modal } from "@/components/Modal/Modal";
+import estilos from "./ProfissionaisAdminClient.module.css";
 
 type Props = {
-  profissionaisIniciais: Profissional[];
+  ativos: ProfissionalNaTela[];
+  excluidos: ProfissionalNaTela[];
 };
 
-export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
-  const [profissionais, setProfissionais] = useState(profissionaisIniciais);
-  const [modalAberto, setModalAberto] = useState(false);
-  const [editando, setEditando] = useState<Profissional | null>(null);
-  const [salvando, setSalvando] = useState(false);
-  const [erroAoSalvar, setErroAoSalvar] = useState<string | null>(null);
+type Janela = { tipo: "formulario"; profissional: ProfissionalNaTela | null } | { tipo: "excluir"; profissional: ProfissionalNaTela } | null;
 
-  const abrirNovo = () => {
-    setEditando(null);
-    setErroAoSalvar(null);
-    setModalAberto(true);
-  };
+function local(profissional: ProfissionalNaTela): string {
+  const lugar = [profissional.cidades.join(", "), profissional.uf || profissional.pais].filter(Boolean).join(" / ");
+  return profissional.telerreabilitacao ? `${lugar ? `${lugar}, ` : ""}telerreabilitação` : lugar;
+}
 
-  const abrirEdicao = (profissional: Profissional) => {
-    setEditando(profissional);
-    setErroAoSalvar(null);
-    setModalAberto(true);
-  };
+// Confirmação de exclusão: o profissional vai para os excluídos (some do site
+// e pode ser restaurado). Erro aparece dentro da janela, em português.
+function ConfirmarExclusao({ profissional, aoTerminar, aoCancelar }: { profissional: ProfissionalNaTela; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
+  const [resposta, excluir, excluindo] = useActionState(excluirProfissional, null);
+  useEffect(() => {
+    if (resposta?.ok) aoTerminar(resposta.mensagem);
+  }, [resposta, aoTerminar]);
+  return (
+    <form action={excluir} className={estilos.formulario}>
+      <input type="hidden" name="id" value={profissional.id} />
+      <p className="tipo-texto">
+        &ldquo;{profissional.nome}&rdquo; sai do site e vai para os excluídos. Dá para restaurar depois.
+      </p>
+      {resposta?.ok === false && <Mensagem tipo="erro">{resposta.mensagem}</Mensagem>}
+      <div className={estilos.botoes}>
+        <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
+        <Botao type="submit" disabled={excluindo}>{excluindo ? "Excluindo..." : "Excluir"}</Botao>
+      </div>
+    </form>
+  );
+}
 
-  const excluir = async (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este profissional?")) {
-      await excluirProfissional(id);
-      setProfissionais((atuais) => atuais.filter((profissional) => profissional.id !== id));
-    }
-  };
+export function ProfissionaisAdminClient({ ativos, excluidos }: Props) {
+  const [janela, setJanela] = useState<Janela>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [respostaRestaurar, restaurar, restaurando] = useActionState(restaurarProfissional, null);
 
-  const salvar = async (evento: React.FormEvent<HTMLFormElement>) => {
-    evento.preventDefault();
-    setSalvando(true);
-    setErroAoSalvar(null);
-    const formData = new FormData(evento.currentTarget);
-    // O modal não tem rascunho: todo profissional salvo aqui é publicado.
-    formData.append("acao", "publicar");
-    
-    try {
-      if (editando) {
-        formData.append("id", editando.id);
-        await atualizarProfissional(formData);
-      } else {
-        await salvarProfissional(formData);
-      }
-    } catch {
-      // O detalhe técnico fica no registro do servidor; aqui só a mensagem em português.
-      setErroAoSalvar("Não foi possível salvar o profissional. Confira os dados e tente de novo.");
-      setSalvando(false);
-      return;
-    }
-    
-    setModalAberto(false);
-    setSalvando(false);
-    
-    // Recarrega a página para mostrar a lista atualizada.
-    window.location.reload();
-  };
+  const fechar = useCallback(() => setJanela(null), []);
+  const concluir = useCallback((mensagem: string) => {
+    setJanela(null);
+    setAviso(mensagem);
+  }, []);
 
   return (
-    <div>
+    <div className={estilos.pagina}>
       <CabecalhoDoPainel
         titulo="Profissionais"
         descricao="Gerencie o diretório de profissionais da ABTE."
-        acao={<Botao onClick={abrirNovo}>Adicionar Novo</Botao>}
+        acao={<Botao onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional: null }); }}>Adicionar Novo</Botao>}
       />
-      
-      <TabelaPainel colunas={["Nome", "Especialidade", "Tag", "Ações"]} vazia={profissionais.length === 0} mensagemVazia="Nenhum profissional encontrado.">
-        {profissionais.map((profissional) => (
+
+      {aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}
+
+      <TabelaPainel colunas={["Nome", "Tipo", "Local", "No site", "Ações"]} vazia={ativos.length === 0} mensagemVazia="Nenhum profissional cadastrado.">
+        {ativos.map((profissional) => (
           <tr key={profissional.id} style={estiloLinha}>
-            <td className={classeDaCelula} style={{ fontWeight: 500 }}>{profissional.nome}</td>
-            <td className={classeDaCelula}>{profissional.especialidade}</td>
-            <td className={classeDaCelula} style={{ opacity: 0.8 }}>{profissional.tag}</td>
+            <td className={classeDaCelula}>{[profissional.tratamento, profissional.nome].filter(Boolean).join(" ")}</td>
+            <td className={classeDaCelula}>{profissional.tipo}</td>
+            <td className={classeDaCelula}>{local(profissional)}</td>
+            <td className={classeDaCelula}>{profissional.ativo ? "Sim" : "Não (oculto)"}</td>
             <td className={`${classeDaCelula} ${estilos.acoes}`}>
-              <button type="button" onClick={() => abrirEdicao(profissional)} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer" }}>
+              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional }); }} aria-label={`Editar ${profissional.nome}`}>
                 Editar
               </button>
-              <button type="button" onClick={() => excluir(profissional.id)} style={{ fontSize: "14px", textDecoration: "underline", color: "#e74c3c", background: "none", border: "none", cursor: "pointer" }}>
+              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setJanela({ tipo: "excluir", profissional }); }} aria-label={`Excluir ${profissional.nome}`}>
                 Excluir
               </button>
             </td>
@@ -99,36 +84,38 @@ export function ProfissionaisAdminClient({ profissionaisIniciais }: Props) {
         ))}
       </TabelaPainel>
 
-      <Modal 
-        aberto={modalAberto} 
-        aoFechar={() => setModalAberto(false)} 
-        titulo={editando ? "Editar Profissional" : "Novo Profissional"}
+      <section className={estilos.excluidos} aria-labelledby="titulo-excluidos">
+        <h2 id="titulo-excluidos" className="tipo-texto-lg">Excluídos</h2>
+        {respostaRestaurar && <Mensagem tipo={respostaRestaurar.ok ? "sucesso" : "erro"}>{respostaRestaurar.mensagem}</Mensagem>}
+        {excluidos.length === 0 ? (
+          <p className="tipo-texto">Nenhum profissional excluído.</p>
+        ) : (
+          <ul role="list" className={estilos.lista}>
+            {excluidos.map((profissional) => (
+              <li key={profissional.id}>
+                <form action={restaurar} className={estilos.linhaExcluido}>
+                  <input type="hidden" name="id" value={profissional.id} />
+                  <span>{profissional.nome}</span>
+                  <Botao type="submit" variante="secundario" disabled={restaurando} aria-label={`Restaurar ${profissional.nome}`}>Restaurar</Botao>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Modal
+        aberto={janela?.tipo === "formulario"}
+        aoFechar={fechar}
+        titulo={janela?.tipo === "formulario" && janela.profissional ? "Editar Profissional" : "Novo Profissional"}
       >
-        <form onSubmit={salvar} className={estilos.formulario}>
-          <Campo id="nome" name="nome" type="text" rotulo="Nome Completo" obrigatorio defaultValue={editando?.nome || ""} placeholder="Ex: Dra. Maria Silva" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
-          
-          <Campo id="especialidade" name="especialidade" type="text" rotulo="Especialidade (Exibição)" obrigatorio defaultValue={editando?.especialidade || ""} placeholder="Ex: Ortopedista Pediátrico" style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
+        {janela?.tipo === "formulario" && (
+          <FormularioProfissional key={janela.profissional?.id ?? "novo"} profissional={janela.profissional} aoSalvar={concluir} aoCancelar={fechar} />
+        )}
+      </Modal>
 
-          <div className={estilos.grupoDaTag}>
-            <label htmlFor="tag" style={{ fontWeight: 500, fontSize: "14px" }}>Tag (Filtro do site) *</label>
-            <select id="tag" name="tag" required defaultValue={editando?.tag || TAGS_DE_PROFISSIONAIS[0]} style={{ padding: "12px", border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)", borderRadius: "4px", background: "var(--color-surface)", color: "var(--color-text)", fontSize: "16px" }}>
-              {TAGS_DE_PROFISSIONAIS.map((tag) => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
-          </div>
-
-          <Campo id="linkedinUrl" name="linkedinUrl" type="url" rotulo="URL do LinkedIn" defaultValue={editando?.linkedinUrl || ""} placeholder="https://linkedin.com/in/..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
-
-          <Campo id="imagemUrl" name="imagemUrl" type="url" rotulo="URL da Foto (Opcional)" defaultValue={editando?.imagemUrl || ""} placeholder="https://..." style={{ border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)" }} />
-
-          {erroAoSalvar && <Mensagem tipo="erro">{erroAoSalvar}</Mensagem>}
-
-          <div className={estilos.botoes}>
-            <Botao type="button" variante="secundario" onClick={() => setModalAberto(false)}>Cancelar</Botao>
-            <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
-          </div>
-        </form>
+      <Modal aberto={janela?.tipo === "excluir"} aoFechar={fechar} titulo="Excluir profissional">
+        {janela?.tipo === "excluir" && <ConfirmarExclusao profissional={janela.profissional} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
     </div>
   );

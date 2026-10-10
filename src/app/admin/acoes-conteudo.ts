@@ -1,6 +1,7 @@
 "use server";
 
-// Ações de servidor do conteúdo do painel (posts, artigos e profissionais).
+// Ações de servidor do conteúdo do painel (posts e artigos). Profissionais:
+// acoes-profissionais.ts; tópicos dos artigos: acoes-topicos.ts.
 // Toda ação começa por exigirPapelDoPainel(): sem papel, nada é lido nem gravado.
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -16,9 +17,6 @@ const LIMITE_TITULO = 200;
 const LIMITE_URL = 2048;
 const LIMITE_TAGS_POR_ARTIGO = 20;
 const LIMITE_AUTORES = 300;
-const LIMITE_NOME = 120;
-const LIMITE_ESPECIALIDADE = 120;
-const LIMITE_TAG = 40;
 const LIMITE_ACAO = 20;
 
 // Lê o id do documento e recusa qualquer valor que não seja um id válido do Firestore.
@@ -76,17 +74,6 @@ async function lerDadosDoArtigo(dados: FormData) {
   };
 }
 
-function lerDadosDoProfissional(dados: FormData) {
-  return {
-    nome: lerTextoDoFormulario(dados, "nome", { rotulo: "Nome", limite: LIMITE_NOME }),
-    especialidade: lerTextoDoFormulario(dados, "especialidade", { rotulo: "Especialidade", limite: LIMITE_ESPECIALIDADE }),
-    tag: lerTextoDoFormulario(dados, "tag", { rotulo: "Tag", limite: LIMITE_TAG }),
-    linkedinUrl: lerTextoDoFormulario(dados, "linkedinUrl", { rotulo: "URL do LinkedIn", limite: LIMITE_URL }),
-    imagemUrl: lerTextoDoFormulario(dados, "imagemUrl", { rotulo: "URL da foto", limite: LIMITE_URL }),
-    status: lerStatus(dados),
-  };
-}
-
 export async function salvarPost(formData: FormData) {
   await exigirPapelDoPainel();
   const agora = new Date();
@@ -124,38 +111,4 @@ export async function atualizarArtigo(formData: FormData) {
   revalidatePath("/admin/artigos");
   revalidatePath("/artigos");
   redirect("/admin/artigos");
-}
-
-export async function salvarProfissional(formData: FormData) {
-  await exigirPapelDoPainel();
-  const agora = new Date();
-  await firestoreAdmin()
-    .collection("profissionais")
-    .add({ ...lerDadosDoProfissional(formData), criadoEm: agora, atualizadoEm: agora });
-
-  revalidatePath("/admin/profissionais");
-  revalidatePath("/profissionais");
-  return { sucesso: true };
-}
-
-export async function atualizarProfissional(formData: FormData) {
-  await exigirPapelDoPainel();
-  const id = validarId(formData.get("id"));
-  await firestoreAdmin()
-    .collection("profissionais")
-    .doc(id)
-    .update({ ...lerDadosDoProfissional(formData), atualizadoEm: new Date() });
-
-  revalidatePath("/admin/profissionais");
-  revalidatePath("/profissionais");
-  return { sucesso: true };
-}
-
-export async function excluirProfissional(id: unknown) {
-  await exigirPapelDoPainel();
-  await firestoreAdmin().collection("profissionais").doc(validarId(id)).delete();
-
-  revalidatePath("/admin/profissionais");
-  revalidatePath("/profissionais");
-  return { sucesso: true };
 }

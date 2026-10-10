@@ -68,14 +68,25 @@ const conversorArtigo = conversorDeLeitura<Artigo>((id, campos) => ({
 
 const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => ({
   id,
+  tipo: texto(campos.tipo),
+  tratamento: texto(campos.tratamento),
   nome: texto(campos.nome),
-  especialidade: texto(campos.especialidade),
-  tag: texto(campos.tag),
-  linkedinUrl: texto(campos.linkedinUrl),
-  imagemUrl: texto(campos.imagemUrl),
-  status: texto(campos.status),
+  registro: texto(campos.registro),
+  metodos: listaDeTextos(campos.metodos),
+  pais: texto(campos.pais),
+  uf: texto(campos.uf),
+  cidades: listaDeTextos(campos.cidades),
+  telerreabilitacao: campos.telerreabilitacao === true,
+  whatsapp: texto(campos.whatsapp),
+  instagram: texto(campos.instagram),
+  facebook: texto(campos.facebook),
+  email: texto(campos.email),
+  bio: texto(campos.bio),
+  ativo: campos.ativo === true,
+  ordem: numero(campos.ordem),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
+  excluidoEm: data(campos.excluidoEm),
 }));
 
 const conversorTopico = conversorDeLeitura<TopicoDeArtigo>((id, campos) => ({
@@ -120,4 +131,9 @@ export function ordenarTopicos(topicos: TopicoDeArtigo[]): TopicoDeArtigo[] {
 export async function listarTopicosAtivos(tipo: TipoDeTopico): Promise<TopicoDeArtigo[]> {
   const snapshot = await lerTopicosDeArtigos(tipo).get();
   return ordenarTopicos(snapshot.docs.map((documento) => documento.data()).filter((topico) => !topico.excluidoEm));
+}
+
+// Ordem do diretório: pela ordem definida no painel e, no empate, pelo nome.
+export function ordenarProfissionais(profissionais: Profissional[]): Profissional[] {
+  return [...profissionais].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
 }

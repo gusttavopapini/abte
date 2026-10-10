@@ -29,16 +29,31 @@ export type Artigo = {
   atualizadoEm: Date | null;
 };
 
+// Profissional do diretório (modelo de 10/10/2026). Contatos já padronizados
+// pela validação (src/lib/contatos.ts): WhatsApp só com dígitos e código do
+// país, Instagram só o usuário, Facebook o link completo. Sem foto até a
+// biblioteca de mídia (etapa 4d). Com excluidoEm preenchido, está na lixeira.
 export type Profissional = {
   id: string;
+  tipo: string;
+  tratamento: string;
   nome: string;
-  especialidade: string;
-  tag: string;
-  linkedinUrl: string;
-  imagemUrl: string;
-  status: string;
+  registro: string;
+  metodos: string[];
+  pais: string;
+  uf: string;
+  cidades: string[];
+  telerreabilitacao: boolean;
+  whatsapp: string;
+  instagram: string;
+  facebook: string;
+  email: string;
+  bio: string;
+  ativo: boolean;
+  ordem: number;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
+  excluidoEm: Date | null;
 };
 
 // Tópicos dos artigos, editáveis no painel. O slug é criado com o nome e não

@@ -1,0 +1,105 @@
+/* Fundo claro para os campos brancos aparecerem dentro do modal */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  background: var(--color-bg-alt);
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+@media (min-width: 768px) {
+  .linha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* Grupo de caixas de seleção sem a moldura do navegador */
+.grupoSemMoldura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* Mesma aparência do campo de texto (componente Campo), com raio 0 */
+.selecao {
+  width: 100%;
+  min-height: var(--input-height);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+}
+
+.opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.alinharEmbaixo {
+  align-self: end;
+}
+
+.contatos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+.erro {
+  color: var(--color-error);
+  background: var(--color-feedback-bg);
+  padding: var(--space-8);
+  font-size: var(--font-size-small);
+}
+
+.nota {
+  font-size: var(--font-size-small);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .selecao {
+    min-height: var(--control-min-height-mobile);
+  }
+}

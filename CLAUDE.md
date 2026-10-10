@@ -63,17 +63,20 @@ src/
       acoes.ts            ações de servidor do login (criar e encerrar sessão)
       acoes-conteudo.ts   ações de servidor de posts, artigos e profissionais
       acoes-topicos.ts    ações de servidor dos tópicos dos artigos (categorias e tags)
+      acoes-profissionais.ts  ações de servidor dos profissionais (salvar, excluir para a lixeira, restaurar)
       entrar/             login e recuperação de senha
       (painel)/           telas protegidas (layout com checagem de sessão e papel)
       _componentes/       componentes só do painel (um por pasta, com CSS Module)
   components/<Nome>/      componentes do site, um por pasta, com seu CSS Module (Revelar: entrada ao rolar)
   config/navegacao.ts     menu, rodapé, e-mail, redes e funções de item ativo do menu
-  config/profissionais.ts lista única das tags de profissionais
+  config/profissionais.ts tipos de profissional (também as tags do filtro), métodos, países e UFs
   lib/firebase/cliente.ts SDK web (navegador, só login)
   lib/firebase/servidor.ts e admin-auth.ts   Admin SDK (server-only)
   lib/auth/               sessão (server-only), papéis e decisão de acesso (pura), constantes
   lib/dados/              tipos das coleções e leitura tipada do Firestore (colecoes.ts é server-only)
   lib/validacao.ts        validações puras (id do Firestore, campos de formulário, e-mail)
+  lib/contatos.ts         validação e padronização de WhatsApp, Instagram, Facebook e e-mail (pura)
+  lib/profissionais.ts    validação do cadastro de profissional (pura)
   lib/slug.ts             geração de slug (pura)
 ```
 
@@ -131,7 +134,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 | 1 Base | Concluída. |
 | 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`. Sem `/doe`, sem páginas legais. |
 | 3 Modelo de dados | Não feita. Sem `usuarios`, `configuracoes`, `logAlteracoes`, lixeira (`excluidoEm`) ou cadastro de usuários pelo painel. Os papéis existem só como custom claim. |
-| 4 Painel | 4a: profissionais com criar, editar e excluir de vez, modelo simples (nome, especialidade, tag, LinkedIn, URL da foto, status); sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir), e tópicos dos artigos (categorias e tags) com criar, renomear, excluir para a lixeira e restaurar. 4c e 4d: nada. |
+| 4 Painel | 4a: profissionais com o modelo completo (lote C, 10/10/2026: tipo, tratamento, nome, registro, métodos, país, UF, cidades, telerreabilitação, WhatsApp, Instagram, Facebook, e-mail, apresentação, ativo, ordem), contatos validados, exclusão para a lixeira com restauração; sem foto (etapa 4d) e sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir), e tópicos dos artigos (categorias e tags) com criar, renomear, excluir para a lixeira e restaurar. 4c e 4d: nada. |
 | 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` leem o Firestore. `/artigos/categoria/[slug]` lê categorias e artigos do Firestore desde o lote B (10/10/2026). |
 | 6 a 9 | Nada. |
 
@@ -187,21 +190,22 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Peso 300 contra 400 e 600 do design system:** `src/styles/tokens.css` tem `--font-weight-light: 300`, `--font-weight-regular: 300` e `--font-weight-bold: 400`; `docs/tokens.css` tem regular 400 e bold 600. A fonte é carregada em 300, 400 e 600.
 - **Raios e sombras:** o design system pede raio 0 e nenhuma sombra; o código tem cantos de 4, 5, 8 e 20 px e sombras em cards, modal e hover (ver "Exceções de design").
 - **P15, tokens diferentes de `docs/tokens.css`:** além dos pesos, `--section-space` passou de `clamp(64px, 5.61vw, 96px)` para `clamp(96px, 8vw, 160px)` (commit e070500). Os tamanhos de fonte em rem são a conversão legítima da etapa 1.
-- **Variáveis usadas e nunca definidas** (o navegador ignora a declaração): `--space-12` e `--font-size-base` (formulários de post e artigo do painel), `--color-surface` (seleção de tag no modal de profissionais) e `--color-text-muted` (`src/app/blog/[slug]/page.module.css`).
+- **Variáveis usadas e nunca definidas** (o navegador ignora a declaração): `--space-12` e `--font-size-base` (formulários de post e artigo do painel) e `--color-text-muted` (`src/app/blog/[slug]/page.module.css`).
 - **Preto sem token próprio** (`#000` e `rgba(0,0,0,…)`): o único token com esse valor é `--color-icon-social`, dos ícones do rodapé; não foi usado em fundos e sombras para não amarrar uma coisa à outra.
 
 **Acessibilidade e comportamento adiados (mudam o que se vê ou se faz)**
 - **H1 na home:** a home não tem H1 (o hero virou carrossel sem título).
 - **Carrossel do Hero:** avança sozinho a cada 5 segundos, sem botão de pausa (com movimento reduzido ele para, desde 10/10/2026); texto alternativo genérico ("Slide 1").
 - **aria-pressed:** os botões do filtro de `/profissionais` não anunciam qual está ativo.
-- **Modal:** não fecha com Esc, não prende o foco e não tem `role="dialog"`; a exclusão de profissional usa `confirm()`.
+- **Modal:** resolvido em 10/10/2026 (lote C): `role="dialog"`, Esc fecha, foco preso dentro e devolvido ao fechar; a exclusão de profissional usa confirmação dentro do modal.
+- **Profissionais sem foto:** o card mostra o placeholder preto "IMAGEM" até a etapa 4d (Storage e plano Blaze). O filtro de `/profissionais` ainda é só por tipo; os filtros do design (estado, cidade, método, telerreabilitação, busca) ficam para depois.
 - **Saltos de título** (H1 direto para H3) em `/blog`, `/profissionais` e `/artigos/categoria/[slug]`; o `globals.css` estiliza h2 e h3 pela tag, então trocar o nível muda o tamanho.
 - **Submenu de Profissionais:** os itens nunca ficam marcados como ativos (o caminho não inclui `?tag=`).
 - **P16, slug que muda ao editar:** o slug do post é refeito a partir do título a cada edição (links antigos quebram), e dois títulos iguais geram o mesmo slug.
-- **Erros no painel:** excluir profissional apaga de vez (sem lixeira nem registro de alterações) e não mostra erro se falhar; erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês.
+- **Erros no painel:** erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês. Ainda não existe registro de alterações (etapa 3).
 - **Endereço inválido:** `/blog/[slug]` e `/artigos/[slug]` com um valor que não é id válido do Firestore (ex.: `__x__`) dão erro 500 em vez de 404.
 - **P19, classificações de artigo:** resolvida em 10/10/2026. Categorias e tags são cadastradas em `/admin/artigos/topicos` e lidas do Firestore pelo painel e pelas páginas públicas. Os cards de categoria ficam sem imagem (placeholder) até a etapa 4d.
-- **P22, exclusão de profissional:** apaga de vez e não mostra erro se falhar (ver "Erros no painel").
+- **P22, exclusão de profissional:** resolvida em 10/10/2026. Vai para os excluídos (`excluidoEm`), sai do site e pode ser restaurada; falhas aparecem em português.
 - **Numeração P:** P18, P20, P21 e P23 são citadas nos registros do Projeto, mas não aparecem neste arquivo; as 7 perguntas do diagnóstico original também não. Conferir e trazer para cá.
 
 **Conteúdo e etapas futuras**
@@ -255,13 +259,6 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/app/admin/(painel)/blog/page.tsx` | 36 | 14px | Tamanhos de fonte só pelos tokens |
 | `src/app/admin/(painel)/blog/page.tsx` | 32 | 0.8 | Cores só pelos tokens (opacidade) |
 | `src/app/admin/(painel)/blog/page.tsx` | 28 | 500 | Pesos só pelos tokens |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 94 | #e74c3c | Cores só pelos tokens |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 114 | 12px | Espaçamento só pelos tokens |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 91, 94, 113, 114 | 14px, 16px | Tamanhos de fonte só pelos tokens |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 108, 110, 114, 121, 123 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 89 | 0.8 | Cores só pelos tokens (opacidade) |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 87, 113 | 500 | Pesos só pelos tokens |
-| `src/app/admin/(painel)/profissionais/ProfissionaisAdminClient.tsx` | 114 | 4px | Raio 0 (--radius) |
 | `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 36 | 4px | Espaçamento só pelos tokens |
 | `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 10, 17, 64 | 1px | Espessura de linha sem token (--color-border NÃO VERIFICADO) |
 | `src/app/admin/_componentes/LayoutPainel/LayoutPainel.module.css` | 3, 8, 58, 62 | 70px, 100vh, 280px, 100vw 280px | Tamanhos só pelos tokens |
@@ -323,8 +320,8 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/CardPost/CardPost.module.css` | 12 | -4px | Tamanhos só pelos tokens |
 | `src/components/CardPost/CardPost.module.css` | 5 | 5px | Raio 0 (--radius) |
 | `src/components/CardPost/CardPost.module.css` | 13 | 0 16px 40px color-mix(in srgb,  10%, transparent) | Sem sombra (--shadow: none) |
-| `src/components/CardProfissional/CardProfissional.module.css` | 10, 48 | 4px, 6px 16px | Espaçamento só pelos tokens |
-| `src/components/CardProfissional/CardProfissional.module.css` | 30, 50 | 5px | Raio 0 (--radius) |
+| `src/components/CardProfissional/CardProfissional.module.css` | 10 | 4px | Espaçamento só pelos tokens |
+| `src/components/CardProfissional/CardProfissional.module.css` | 30 | 5px | Raio 0 (--radius) |
 | `src/components/CardPublico/CardPublico.module.css` | 6 | 30px | Espaçamento só pelos tokens |
 | `src/components/CardPublico/CardPublico.module.css` | 14 | -4px | Tamanhos só pelos tokens |
 | `src/components/CardPublico/CardPublico.module.css` | 8 | 5px | Raio 0 (--radius) |

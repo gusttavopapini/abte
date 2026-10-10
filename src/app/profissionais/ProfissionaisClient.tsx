@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
+import { CardProfissional, type ProfissionalDoCard } from "@/components/CardProfissional/CardProfissional";
 import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
@@ -9,13 +9,10 @@ import { revelar } from "@/components/Revelar/revelar";
 const TODOS = "Todos";
 const OPCOES_DO_FILTRO: readonly string[] = [TODOS, ...TAGS_DE_PROFISSIONAIS];
 
-export type ProfissionalPublico = {
+export type ProfissionalPublico = ProfissionalDoCard & {
   id: string;
-  nome: string;
-  especialidade: string;
-  tag: string;
-  linkedinUrl: string;
-  imagemUrl: string;
+  // Tipo do profissional, usado pelo filtro (?tag=...).
+  tipo: string;
 };
 
 // Filtro por tag e grade de cards da página /profissionais. A tag escolhida
@@ -39,7 +36,7 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
   }
 
   const profissionaisFiltrados =
-    tagAtiva === TODOS ? profissionais : profissionais.filter((profissional) => profissional.tag === tagAtiva);
+    tagAtiva === TODOS ? profissionais : profissionais.filter((profissional) => profissional.tipo === tagAtiva);
 
   return (
     <>
@@ -58,13 +55,7 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
 
       <div {...revelar(estilos.grade)}>
         {profissionaisFiltrados.map((profissional) => (
-          <CardProfissional
-            key={profissional.id}
-            nome={profissional.nome}
-            especialidade={profissional.especialidade}
-            linkedinUrl={profissional.linkedinUrl}
-            imagemUrl={profissional.imagemUrl}
-          />
+          <CardProfissional key={profissional.id} profissional={profissional} />
         ))}
       </div>
     </>
