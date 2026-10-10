@@ -67,6 +67,8 @@ src/
       acoes-topicos.ts    ações de servidor dos tópicos dos artigos (categorias e tags)
       acoes-profissionais.ts  ações de servidor dos profissionais (salvar, excluir para a lixeira, restaurar)
       acoes-produtos.ts   ações de servidor dos produtos da loja (cadastro, sem pagamento)
+    loja/acoes-conta.ts   ações da conta de cliente (cadastro, entrar, sair, excluir)
+    loja/acoes-carrinho.ts  ações do carrinho (adicionar, trocar quantidade, remover)
       entrar/             login e recuperação de senha
       (painel)/           telas protegidas (layout com checagem de sessão e papel)
       _componentes/       componentes só do painel (um por pasta, com CSS Module)
@@ -76,7 +78,8 @@ src/
   lib/firebase/cliente.ts SDK web (navegador, só login)
   lib/firebase/servidor.ts e admin-auth.ts   Admin SDK (server-only)
   lib/auth/               sessão do painel e do cliente (server-only), verificação do cookie, papéis e decisão de acesso (pura), destino seguro, constantes
-  lib/loja/               cadastro de cliente (validação pura) e contas (Admin SDK recebido por parâmetro)
+  lib/loja/               cadastro de cliente e regras do carrinho (puras) e contas (Admin SDK recebido por parâmetro)
+  lib/dados/carrinho.ts   leitura do carrinho e dos produtos dele (server-only)
   lib/dados/              tipos das coleções e leitura tipada do Firestore (colecoes.ts é server-only)
   lib/validacao.ts        validações puras (id do Firestore, campos de formulário, e-mail)
   lib/contatos.ts         validação e padronização de WhatsApp, Instagram, Facebook e e-mail (pura)
@@ -87,7 +90,7 @@ src/
 
 ## Rotas
 
-- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (lista com filtro `?categoria=`, subcabeçalho próprio da loja), `/loja/produto/[slug]` (produto com relacionados e aviso "Em breve"), `/loja/entrar`, `/loja/entrar/recuperar-senha`, `/loja/cadastro`, `/loja/conta` (conta de cliente, noindex), `/componentes` (revisão visual, noindex).
+- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (lista com filtro `?categoria=`, subcabeçalho próprio da loja), `/loja/produto/[slug]` (produto com relacionados e aviso "Em breve"), `/loja/entrar`, `/loja/entrar/recuperar-senha`, `/loja/cadastro`, `/loja/conta` (conta de cliente, noindex), `/loja/carrinho` (exige conta, noindex), `/componentes` (revisão visual, noindex).
 - **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/artigos/topicos` (categorias e tags), `/admin/profissionais`, `/admin/loja`, `/admin/loja/novo`, `/admin/loja/editar/[id]`, `/admin/loja/categorias` (criar, editar e excluir num modal).
 - **Links do menu e do rodapé que ainda dão 404:** `/doe`, `/seja-associado`, `/acessibilidade`, `/politica-de-privacidade`, `/termos-de-uso`.
 
@@ -132,7 +135,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 **Git.** A main está em `207c9b1` (igual a `origin/main`). As branches de limpeza estão empilhadas e sem merge: `limpeza/codigo-limpo` (9 commits à frente da main) e `limpeza/sem-pessoas` (2 commits acima dela, 11 à frente da main). O trabalho de loja e ajustes segue em `feature/loja-e-ajustes`, criada a partir de `limpeza/sem-pessoas`.
 
-**Verificações automáticas:** typecheck passa; lint com 0 erros e 6 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 40 de 40; `test:unidade` 22 de 22.
+**Verificações automáticas (fim da sessão de 10/10/2026, branch `feature/loja-e-ajustes`):** typecheck passa; lint com 0 erros e 5 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 60 de 60 (15 coleções); `test:unidade` 73 de 73; `test:sessao` 8 de 8. No início da sessão: lint com 6 avisos, `test:regras` 40, `test:unidade` 22.
 
 **Etapas do plano no código**
 | Etapa | O que existe |
@@ -141,10 +144,10 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 | 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`. Sem `/doe`, sem páginas legais. |
 | 3 Modelo de dados | Não feita. Sem `usuarios`, `configuracoes`, `logAlteracoes`, lixeira (`excluidoEm`) ou cadastro de usuários pelo painel. Os papéis existem só como custom claim. |
 | 4 Painel | 4a: profissionais com o modelo completo (lote C, 10/10/2026: tipo, tratamento, nome, registro, métodos, país, UF, cidades, telerreabilitação, WhatsApp, Instagram, Facebook, e-mail, apresentação, ativo, ordem), contatos validados, exclusão para a lixeira com restauração; sem foto (etapa 4d) e sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir), e tópicos dos artigos (categorias e tags) com criar, renomear, excluir para a lixeira e restaurar. 4c: produtos (lote E1, 10/10/2026) com nome, slug único e estável, descrição, preço e preço promocional em centavos, categoria editável, tipo físico ou digital, disponível ou esgotado, selo, ordem e publicado; lixeira com restauração; sem galeria (etapa 4d). 4d: nada. |
-| 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` leem o Firestore. `/artigos/categoria/[slug]` lê categorias e artigos do Firestore desde o lote B (10/10/2026). |
+| 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` e a loja (lista, produto, conta de cliente e carrinho, sem pagamento) leem o Firestore. `/artigos/categoria/[slug]` lê categorias e artigos do Firestore desde o lote B (10/10/2026). |
 | 6 a 9 | Nada. |
 
-**Firestore (projeto de desenvolvimento, contagem sem ler valores):** só a coleção `posts` existe, com 2 documentos publicados. `artigos` e `profissionais` estão vazias, portanto não há dado a migrar quando os modelos mudarem. No Authentication há 1 usuário, com papel administrador. As regras negam tudo; `testes/regras/firestore.test.mts` cobre 10 coleções (as do modelo planejado e uma qualquer) para visitante, logado sem papel, administrador e editor. `firestore.indexes.json` não tem índices.
+**Firestore:** coleções usadas pelo código: `posts`, `artigos`, `categoriasDeArtigos`, `tagsDeArtigos`, `profissionais`, `produtos`, `categoriasDeProdutos`, `clientes` e `carrinhos`; todas negadas ao navegador e cobertas por `testes/regras`. No projeto de desenvolvimento (contagem sem ler valores, no início da sessão), só a coleção `posts` existia, com 2 documentos publicados; os testes desta sessão rodaram nos emuladores e não gravaram nada no projeto. `artigos` e `profissionais` estão vazias, portanto não há dado a migrar quando os modelos mudarem. No Authentication há 1 usuário, com papel administrador. As regras negam tudo; `testes/regras/firestore.test.mts` cobre 10 coleções (as do modelo planejado e uma qualquer) para visitante, logado sem papel, administrador e editor. `firestore.indexes.json` não tem índices.
 
 **Storage:** o bucket padrão do projeto de desenvolvimento não existe (consulta pelo Admin SDK), ou seja, o Cloud Storage não está ativo. Não há `storage.rules` nem emulador de Storage no `firebase.json`. Fotos de profissionais, imagens de tópicos e galeria de produtos dependem da etapa 4d e do plano Blaze.
 
@@ -164,7 +167,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 Numeração D: este arquivo não tinha série D antes de 10/10/2026; D1 é o primeiro número usado aqui. Se os registros do Projeto já usam outra numeração, ajustar.
 
-- **D1 (10/10/2026), carrinho e conta de cliente na loja:** pedido explícito de carrinho e conta de cliente, restritos à área da loja (`/loja` e rotas filhas, num subcabeçalho próprio; o cabeçalho do site não ganha login nem carrinho). Substitui a regra "loja só vitrine" e os itens 1 a 3 do registro de alterações de `docs/design-system.md` no que diz respeito ao carrinho. Continuam proibidos: pagamento, gateway, SDK de pagamento, webhook, variáveis de pagamento e finalização de compra (até decisão própria). Conta de cliente pelo Firebase Authentication, criada pelo servidor, sem custom claim `papel`, com sessão em cookie separado do painel; clientes nunca acessam o painel. Detalhes de implementação aguardam aprovação do plano (finalização, login obrigatório no carrinho, ícone de sacola).
+- **D1 (10/10/2026), carrinho e conta de cliente na loja:** pedido explícito de carrinho e conta de cliente, restritos à área da loja (`/loja` e rotas filhas, num subcabeçalho próprio; o cabeçalho do site não ganha login nem carrinho). Substitui a regra "loja só vitrine" e os itens 1 a 3 do registro de alterações de `docs/design-system.md` no que diz respeito ao carrinho. Continuam proibidos: pagamento, gateway, SDK de pagamento, webhook, variáveis de pagamento e finalização de compra (até decisão própria). Conta de cliente pelo Firebase Authentication, criada pelo servidor, sem custom claim `papel`, com sessão em cookie separado do painel; clientes nunca acessam o painel. Implementado em 10/10/2026 (lotes E1 a E4), com estas decisões aprovadas: finalização como botão "Finalizar compra: em breve" desativado, com o carrinho guardado na conta (opções de envio por e-mail ou WhatsApp e Stripe ficam para depois); carrinho só com conta de cliente; relacionados da mesma categoria, publicados, sem o próprio produto, até 3, pela ordem do painel; exclusão para a lixeira (`excluidoEm`); subcabeçalho com o texto "Carrinho (n)", sem o ícone de sacola, até a designer decidir; cookie `abte_cliente` com caminho `/loja`. O carrinho guarda só id e quantidade (`carrinhos/{uid}`); preço e disponibilidade são lidos do produto no servidor a cada vez.
 
 ## Decisões em aberto: NUNCA assumir
 
@@ -217,6 +220,8 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 **Conteúdo e etapas futuras**
 - O formulário de contato mostra "enviado" sem enviar nada (serviço de e-mail em aberto).
 - Links que dão 404 (ver "Rotas").
+- **Carrinho (n) no subcabeçalho:** conta todas as unidades guardadas, inclusive de produtos que esgotaram ou saíram da loja; o total do carrinho conta só os disponíveis.
+- **Storage e plano Blaze:** ação pendente de quem administra a conta: ativar o plano Blaze no projeto de desenvolvimento, com alerta de orçamento, para a galeria de produtos e as fotos (etapa 4d).
 - **Loja:** produtos sem imagem (placeholder) até a etapa 4d; os endereços antigos do Wix (`/product-page/...`, `/category/...`) precisam de redirecionamento na etapa 9. Dados estruturados de produto sem `offers` (não aparecem preço nem disponibilidade no Google).
 - Imagens provisórias externas (picsum.photos e placehold.co).
 - Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.

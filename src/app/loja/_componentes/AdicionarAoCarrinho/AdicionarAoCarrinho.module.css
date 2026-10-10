@@ -1,0 +1,32 @@
+.formulario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: flex-end;
+  width: 100%;
+}
+
+.formulario > [role] {
+  flex-basis: 100%;
+}
+
+.quantidade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.rotulo {
+  font-size: var(--font-size-small);
+}
+
+.selecao {
+  min-width: var(--button-height);
+  min-height: var(--button-height);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+}

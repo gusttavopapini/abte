@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { Botao } from "@/components/Botao/Botao";
@@ -7,6 +8,9 @@ import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderIma
 import { PrecoProduto } from "@/components/PrecoProduto/PrecoProduto";
 import { revelar } from "@/components/Revelar/revelar";
 import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
+import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
+import { quantidadeMaxima } from "@/lib/loja/carrinho";
+import { AdicionarAoCarrinho } from "../../_componentes/AdicionarAoCarrinho/AdicionarAoCarrinho";
 import { escolherRelacionados } from "@/lib/produtos";
 import estilos from "./page.module.css";
 
@@ -30,7 +34,10 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const { produto, visiveis } = await lerProdutoDaLoja((await params).slug);
   if (!produto) notFound();
 
-  const categoria = (await lerTopicos("categoriaDeProduto").doc(produto.categoria).get()).data();
+  const [categoria, cliente] = await Promise.all([
+    lerTopicos("categoriaDeProduto").doc(produto.categoria).get().then((documento) => documento.data()),
+    lerSessaoCliente(),
+  ]);
   const relacionados = escolherRelacionados(produto, visiveis);
   const esgotado = produto.status === "esgotado";
 
@@ -62,8 +69,18 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
           <p className={estilos.situacao}>
             {esgotado ? "Esgotado" : "Disponível"} · {produto.tipo === "digital" ? "Produto digital" : "Produto físico"}
           </p>
+          {/* Carrinho só com conta de cliente (decisão D1); a compra online ainda não existe. */}
+          {esgotado ? (
+            <p className={estilos.situacao}>Produto esgotado: não dá para adicionar ao carrinho.</p>
+          ) : cliente ? (
+            <AdicionarAoCarrinho produtoId={produto.id} maximo={quantidadeMaxima(produto.tipo)} />
+          ) : (
+            <p>
+              <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`}>Entre na sua conta da loja</Link> para adicionar ao carrinho.
+            </p>
+          )}
           <div className={estilos.aviso} role="note">
-            <p>Em breve: a compra online ainda não está disponível na loja da ABTE.</p>
+            <p>Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho.</p>
           </div>
           {produto.descricao && <div className={`tipo-texto ${estilos.descricao}`}>{produto.descricao}</div>}
         </div>
