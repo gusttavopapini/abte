@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
-import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
-import type { TopicoDeArtigo } from "@/lib/dados/tipos";
+import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
+import type { Topico } from "@/lib/dados/tipos";
 
 export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -21,11 +21,11 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
 
   // Tags do artigo, na ordem do nome; as que estão na lixeira não aparecem.
-  const colecaoDeTags = lerTopicosDeArtigos("tag");
+  const colecaoDeTags = lerTopicos("tag");
   const tags = artigo.tags.length
     ? (await colecaoDeTags.firestore.getAll(...artigo.tags.map((id) => colecaoDeTags.doc(id))))
         .map((documento) => documento.data())
-        .filter((tag): tag is TopicoDeArtigo => tag !== undefined && !tag.excluidoEm)
+        .filter((tag): tag is Topico => tag !== undefined && !tag.excluidoEm)
         .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
     : [];
 

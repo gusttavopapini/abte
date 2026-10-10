@@ -1,0 +1,65 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+/* Ações da tabela como links de texto */
+.acao {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.acao:hover {
+  color: var(--color-primary-hover);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: flex-end;
+}
+
+.excluidos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-32);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.linhaExcluido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16);
+  background: var(--color-bg-alt);
+}

@@ -1,0 +1,95 @@
+"use client";
+
+import { useActionState, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { excluirProduto, restaurarProduto } from "@/app/admin/acoes-produtos";
+import { Botao } from "@/components/Botao/Botao";
+import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { Modal } from "@/components/Modal/Modal";
+import estilos from "./ProdutosAdminClient.module.css";
+
+export type LinhaDeProduto = { id: string; nome: string; categoria: string; preco: string; situacao: string; publicado: boolean };
+
+// Confirmação de exclusão: o produto vai para os excluídos (sai da loja e
+// pode ser restaurado). Erro aparece dentro da janela, em português.
+function ConfirmarExclusao({ produto, aoTerminar, aoCancelar }: { produto: LinhaDeProduto; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
+  const [resposta, excluir, excluindo] = useActionState(excluirProduto, null);
+  useEffect(() => {
+    if (resposta?.ok) aoTerminar(resposta.mensagem);
+  }, [resposta, aoTerminar]);
+  return (
+    <form action={excluir} className={estilos.formulario}>
+      <input type="hidden" name="id" value={produto.id} />
+      <p className="tipo-texto">&ldquo;{produto.nome}&rdquo; sai da loja e vai para os excluídos. Dá para restaurar depois.</p>
+      {resposta?.ok === false && <Mensagem tipo="erro">{resposta.mensagem}</Mensagem>}
+      <div className={estilos.botoes}>
+        <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
+        <Botao type="submit" disabled={excluindo}>{excluindo ? "Excluindo..." : "Excluir"}</Botao>
+      </div>
+    </form>
+  );
+}
+
+export function ProdutosAdminClient({ ativos, excluidos, salvo }: { ativos: LinhaDeProduto[]; excluidos: LinhaDeProduto[]; salvo: boolean }) {
+  const [excluindo, setExcluindo] = useState<LinhaDeProduto | null>(null);
+  const [aviso, setAviso] = useState<string | null>(salvo ? "Produto salvo." : null);
+  const [respostaRestaurar, restaurar, restaurando] = useActionState(restaurarProduto, null);
+  const fechar = useCallback(() => setExcluindo(null), []);
+  const concluir = useCallback((mensagem: string) => {
+    setExcluindo(null);
+    setAviso(mensagem);
+  }, []);
+
+  return (
+    <div className={estilos.pagina}>
+      <CabecalhoDoPainel
+        titulo="Loja: produtos"
+        descricao="Cadastro dos produtos da loja. Não há pagamento online: a finalização da compra aparece como “em breve”."
+        acao={<Botao href="/admin/loja/novo">Adicionar Produto</Botao>}
+      />
+      {aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}
+
+      <TabelaPainel colunas={["Nome", "Categoria", "Preço", "Situação", "Na loja", "Ações"]} vazia={ativos.length === 0} mensagemVazia="Nenhum produto cadastrado.">
+        {ativos.map((produto) => (
+          <tr key={produto.id} style={estiloLinha}>
+            <td className={classeDaCelula}>{produto.nome}</td>
+            <td className={classeDaCelula}>{produto.categoria}</td>
+            <td className={classeDaCelula}>{produto.preco}</td>
+            <td className={classeDaCelula}>{produto.situacao}</td>
+            <td className={classeDaCelula}>{produto.publicado ? "Sim" : "Não (rascunho)"}</td>
+            <td className={`${classeDaCelula} ${estilos.acoes}`}>
+              <Link href={`/admin/loja/editar/${produto.id}`} className={estilos.acao} aria-label={`Editar ${produto.nome}`}>Editar</Link>
+              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setExcluindo(produto); }} aria-label={`Excluir ${produto.nome}`}>Excluir</button>
+            </td>
+          </tr>
+        ))}
+      </TabelaPainel>
+
+      <section className={estilos.excluidos} aria-labelledby="titulo-produtos-excluidos">
+        <h2 id="titulo-produtos-excluidos" className="tipo-texto-lg">Excluídos</h2>
+        {respostaRestaurar && <Mensagem tipo={respostaRestaurar.ok ? "sucesso" : "erro"}>{respostaRestaurar.mensagem}</Mensagem>}
+        {excluidos.length === 0 ? (
+          <p className="tipo-texto">Nenhum produto excluído.</p>
+        ) : (
+          <ul role="list" className={estilos.lista}>
+            {excluidos.map((produto) => (
+              <li key={produto.id}>
+                <form action={restaurar} className={estilos.linhaExcluido}>
+                  <input type="hidden" name="id" value={produto.id} />
+                  <span>{produto.nome}</span>
+                  <Botao type="submit" variante="secundario" disabled={restaurando} aria-label={`Restaurar ${produto.nome}`}>Restaurar</Botao>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Modal aberto={excluindo !== null} aoFechar={fechar} titulo="Excluir produto">
+        {excluindo && <ConfirmarExclusao produto={excluindo} aoTerminar={concluir} aoCancelar={fechar} />}
+      </Modal>
+    </div>
+  );
+}

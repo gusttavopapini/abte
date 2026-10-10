@@ -56,10 +56,11 @@ export type Profissional = {
   excluidoEm: Date | null;
 };
 
-// Tópicos dos artigos, editáveis no painel. O slug é criado com o nome e não
-// muda ao renomear (os endereços públicos continuam valendo). Com excluidoEm
-// preenchido, o tópico está na lixeira: some do site e pode ser restaurado.
-export type TopicoDeArtigo = {
+// Tópicos editáveis no painel: categorias e tags dos artigos e categorias de
+// produto. O slug é criado com o nome e não muda ao renomear (os endereços
+// públicos continuam valendo). Com excluidoEm preenchido, o tópico está na
+// lixeira: some do site e pode ser restaurado.
+export type Topico = {
   id: string;
   nome: string;
   slug: string;
@@ -70,4 +71,28 @@ export type TopicoDeArtigo = {
   excluidoEm: Date | null;
 };
 
-export type TipoDeTopico = "categoria" | "tag";
+// categoria e tag: artigos; categoriaDeProduto: loja.
+export type TipoDeTopico = "categoria" | "tag" | "categoriaDeProduto";
+
+// Produto da loja. Preços em centavos (inteiros) para não haver erro de
+// arredondamento; precoPromocional null quando não há promoção. O slug é
+// criado com o nome, é único e não muda ao renomear. Sem galeria até a
+// biblioteca de mídia (etapa 4d). Com excluidoEm preenchido, está na lixeira.
+export type Produto = {
+  id: string;
+  nome: string;
+  slug: string;
+  descricao: string;
+  preco: number;
+  precoPromocional: number | null;
+  // Id do documento em categoriasDeProdutos.
+  categoria: string;
+  tipo: "fisico" | "digital";
+  status: "disponivel" | "esgotado";
+  selo: string;
+  ordem: number;
+  publicado: boolean;
+  criadoEm: Date | null;
+  atualizadoEm: Date | null;
+  excluidoEm: Date | null;
+};

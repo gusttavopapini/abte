@@ -4,7 +4,7 @@ import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
-import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
+import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
 
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 // Categoria cadastrada no painel, pelo slug; na lixeira conta como inexistente.
 // O cache evita ler duas vezes (metadata e página) na mesma requisição.
 const lerCategoria = cache(async (slug: string) => {
-  const consulta = await lerTopicosDeArtigos("categoria").where("slug", "==", slug).limit(1).get();
+  const consulta = await lerTopicos("categoria").where("slug", "==", slug).limit(1).get();
   const categoria = consulta.docs[0]?.data();
   return categoria && !categoria.excluidoEm ? categoria : null;
 });

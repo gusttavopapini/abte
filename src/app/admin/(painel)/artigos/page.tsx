@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { lerArtigos, lerTopicosDeArtigos } from "@/lib/dados/colecoes";
+import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import { Botao } from "@/components/Botao/Botao";
 import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
 import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
@@ -14,7 +14,7 @@ export default async function PaginaAdminArtigos() {
   const snapshot = await lerArtigos().orderBy("criadoEm", "desc").get();
   const artigos = snapshot.docs.map((documento) => documento.data());
   // Nome de cada categoria pelo id (inclusive as que estão nos excluídos).
-  const categorias = new Map((await lerTopicosDeArtigos("categoria").get()).docs.map((documento) => [documento.id, documento.data().nome]));
+  const categorias = new Map((await lerTopicos("categoria").get()).docs.map((documento) => [documento.id, documento.data().nome]));
 
   return (
     <div>

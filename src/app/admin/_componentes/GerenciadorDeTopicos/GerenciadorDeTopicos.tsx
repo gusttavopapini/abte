@@ -18,6 +18,10 @@ export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: numb
 
 type Props = {
   tipo: TipoDeTopico;
+  // Com ordem de exibição (categorias) ou sem (tags).
+  comOrdem?: boolean;
+  // Início do endereço público do tópico, mostrado no painel (ex.: "/artigos/categoria/").
+  prefixoDoEndereco?: string;
   titulo: string;
   descricao: string;
   ativos: TopicoNaTela[];
@@ -30,15 +34,15 @@ function Resposta({ resposta }: { resposta: RespostaDoTopico | null }) {
   return <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>;
 }
 
-function NovoTopico({ tipo }: { tipo: TipoDeTopico }) {
+function NovoTopico({ tipo, comOrdem }: { tipo: TipoDeTopico; comOrdem: boolean }) {
   const [resposta, acao, pendente] = useActionState(criarTopico, null);
   const id = useId();
   return (
     <form action={acao} className={estilos.caixa}>
       <input type="hidden" name="tipo" value={tipo} />
       <div className={estilos.campos}>
-        <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "categoria" ? "Nova categoria" : "Nova tag"} obrigatorio maxLength={60} />
-        {tipo === "categoria" && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} />}
+        <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "tag" ? "Nova tag" : "Nova categoria"} obrigatorio maxLength={60} />
+        {comOrdem && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} />}
       </div>
       <div className={estilos.botoes}>
         <Botao type="submit" disabled={pendente}>{pendente ? "Adicionando..." : "Adicionar"}</Botao>
@@ -52,7 +56,9 @@ function NovoTopico({ tipo }: { tipo: TipoDeTopico }) {
 // ação, e a resposta precisa continuar visível.
 type AcaoDaSecao = { acao: (dados: FormData) => void; pendente: boolean };
 
-function ItemAtivo({ tipo, topico, excluir }: { tipo: TipoDeTopico; topico: TopicoNaTela; excluir: AcaoDaSecao }) {
+type PropsDoItem = { tipo: TipoDeTopico; topico: TopicoNaTela; excluir: AcaoDaSecao; comOrdem: boolean; prefixoDoEndereco?: string };
+
+function ItemAtivo({ tipo, topico, excluir, comOrdem, prefixoDoEndereco }: PropsDoItem) {
   const [respostaSalvar, salvar, salvando] = useActionState(atualizarTopico, null);
   const id = useId();
   return (
@@ -62,11 +68,11 @@ function ItemAtivo({ tipo, topico, excluir }: { tipo: TipoDeTopico; topico: Topi
         <input type="hidden" name="id" value={topico.id} />
         <div className={estilos.campos}>
           <Campo id={`${id}-nome`} name="nome" rotulo="Nome" obrigatorio maxLength={60} defaultValue={topico.nome} />
-          {tipo === "categoria" && (
+          {comOrdem && (
             <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={topico.ordem} />
           )}
         </div>
-        {tipo === "categoria" && <p className={estilos.endereco}>Endereço: /artigos/categoria/{topico.slug}</p>}
+        {prefixoDoEndereco && <p className={estilos.endereco}>Endereço: {prefixoDoEndereco}{topico.slug}</p>}
       </form>
       {/* Salvar pertence ao formulário acima (atributo form); Excluir tem o próprio formulário. */}
       <div className={estilos.botoes}>
@@ -101,7 +107,7 @@ function ItemExcluido({ tipo, topico, restaurar }: { tipo: TipoDeTopico; topico:
 
 // Cadastro de um tipo de tópico dos artigos: criar, renomear, excluir (vai
 // para os excluídos) e restaurar.
-export function GerenciadorDeTopicos({ tipo, titulo, descricao, ativos, excluidos }: Props) {
+export function GerenciadorDeTopicos({ tipo, comOrdem = false, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
   const idTitulo = useId();
   const [respostaExcluir, acaoExcluir, excluindo] = useActionState(excluirTopico, null);
   const [respostaRestaurar, acaoRestaurar, restaurando] = useActionState(restaurarTopico, null);
@@ -112,14 +118,14 @@ export function GerenciadorDeTopicos({ tipo, titulo, descricao, ativos, excluido
       <h2 id={idTitulo} className="tipo-h3">{titulo}</h2>
       <p className="tipo-texto">{descricao}</p>
 
-      <NovoTopico tipo={tipo} />
+      <NovoTopico tipo={tipo} comOrdem={comOrdem} />
 
       {ativos.length === 0 ? (
         <p className="tipo-texto">Nenhum item cadastrado ainda.</p>
       ) : (
         <ul role="list" className={estilos.lista}>
           {ativos.map((topico) => (
-            <ItemAtivo key={topico.id} tipo={tipo} topico={topico} excluir={excluir} />
+            <ItemAtivo key={topico.id} tipo={tipo} topico={topico} excluir={excluir} comOrdem={comOrdem} prefixoDoEndereco={prefixoDoEndereco} />
           ))}
         </ul>
       )}

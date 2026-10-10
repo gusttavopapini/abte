@@ -46,6 +46,16 @@ export function LayoutPainel({ children, usuario }: PropsLayoutPainel) {
                   Profissionais
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/loja" className={estilos.linkMenu}>
+                  Loja: produtos
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/loja/categorias" className={estilos.linkMenu}>
+                  Loja: categorias
+                </Link>
+              </li>
             </ul>
           </div>
         </nav>

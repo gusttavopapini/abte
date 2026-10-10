@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { lerTopicosDeArtigos, ordenarTopicos } from "@/lib/dados/colecoes";
-import type { TipoDeTopico, TopicoDeArtigo } from "@/lib/dados/tipos";
+import { lerTopicos, ordenarTopicos } from "@/lib/dados/colecoes";
+import type { TipoDeTopico, Topico } from "@/lib/dados/tipos";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { GerenciadorDeTopicos, type TopicoNaTela } from "@/app/admin/_componentes/GerenciadorDeTopicos/GerenciadorDeTopicos";
 import estilos from "./page.module.css";
@@ -9,12 +9,12 @@ import estilos from "./page.module.css";
 export const metadata: Metadata = { title: "Tópicos dos artigos" };
 
 // Só os campos que a tela usa; as datas não vão para o navegador.
-function paraTela({ id, nome, slug, ordem }: TopicoDeArtigo): TopicoNaTela {
+function paraTela({ id, nome, slug, ordem }: Topico): TopicoNaTela {
   return { id, nome, slug, ordem };
 }
 
 async function lerSeparados(tipo: TipoDeTopico) {
-  const todos = ordenarTopicos((await lerTopicosDeArtigos(tipo).get()).docs.map((documento) => documento.data()));
+  const todos = ordenarTopicos((await lerTopicos(tipo).get()).docs.map((documento) => documento.data()));
   return {
     ativos: todos.filter((topico) => !topico.excluidoEm).map(paraTela),
     excluidos: todos.filter((topico) => topico.excluidoEm).map(paraTela),
@@ -33,6 +33,8 @@ export default async function PaginaTopicosDeArtigos() {
       />
       <GerenciadorDeTopicos
         tipo="categoria"
+        comOrdem
+        prefixoDoEndereco="/artigos/categoria/"
         titulo="Categorias"
         descricao="Cada artigo tem uma categoria. As categorias aparecem em /artigos, na seção de tópicos, na ordem definida aqui."
         {...categorias}

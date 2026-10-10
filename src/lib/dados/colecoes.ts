@@ -3,7 +3,7 @@ import "server-only";
 
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import type { Artigo, Post, Profissional, TipoDeTopico, TopicoDeArtigo } from "./tipos";
+import type { Artigo, Post, Produto, Profissional, TipoDeTopico, Topico } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
 function texto(valor: unknown): string {
@@ -89,7 +89,7 @@ const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => (
   excluidoEm: data(campos.excluidoEm),
 }));
 
-const conversorTopico = conversorDeLeitura<TopicoDeArtigo>((id, campos) => ({
+const conversorTopico = conversorDeLeitura<Topico>((id, campos) => ({
   id,
   nome: texto(campos.nome),
   slug: texto(campos.slug),
@@ -99,11 +99,35 @@ const conversorTopico = conversorDeLeitura<TopicoDeArtigo>((id, campos) => ({
   excluidoEm: data(campos.excluidoEm),
 }));
 
-// Nome da coleção de cada tipo de tópico de artigo.
+// Nome da coleção de cada tipo de tópico (artigos e loja).
 export const COLECAO_DE_TOPICOS: Record<TipoDeTopico, string> = {
   categoria: "categoriasDeArtigos",
   tag: "tagsDeArtigos",
+  categoriaDeProduto: "categoriasDeProdutos",
 };
+
+// Inteiro maior ou igual a zero (preço em centavos); qualquer outra coisa vira null.
+function centavos(valor: unknown): number | null {
+  return typeof valor === "number" && Number.isInteger(valor) && valor >= 0 ? valor : null;
+}
+
+const conversorProduto = conversorDeLeitura<Produto>((id, campos) => ({
+  id,
+  nome: texto(campos.nome),
+  slug: texto(campos.slug),
+  descricao: texto(campos.descricao),
+  preco: centavos(campos.preco) ?? 0,
+  precoPromocional: centavos(campos.precoPromocional),
+  categoria: texto(campos.categoria),
+  tipo: campos.tipo === "digital" ? "digital" : "fisico",
+  status: campos.status === "esgotado" ? "esgotado" : "disponivel",
+  selo: texto(campos.selo),
+  ordem: numero(campos.ordem),
+  publicado: campos.publicado === true,
+  criadoEm: data(campos.criadoEm),
+  atualizadoEm: data(campos.atualizadoEm),
+  excluidoEm: data(campos.excluidoEm),
+}));
 
 export function lerPosts() {
   return firestoreAdmin().collection("posts").withConverter(conversorPost);
@@ -117,23 +141,38 @@ export function lerProfissionais() {
   return firestoreAdmin().collection("profissionais").withConverter(conversorProfissional);
 }
 
-export function lerTopicosDeArtigos(tipo: TipoDeTopico) {
+export function lerTopicos(tipo: TipoDeTopico) {
   return firestoreAdmin().collection(COLECAO_DE_TOPICOS[tipo]).withConverter(conversorTopico);
 }
 
 // Ordem das listas de tópicos: pela ordem definida no painel e, no empate, pelo nome.
-export function ordenarTopicos(topicos: TopicoDeArtigo[]): TopicoDeArtigo[] {
+export function ordenarTopicos(topicos: Topico[]): Topico[] {
   return [...topicos].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
 }
 
 // Tópicos fora da lixeira, já ordenados. Coleções pequenas: lidas inteiras e
 // filtradas aqui, sem índice composto no Firestore.
-export async function listarTopicosAtivos(tipo: TipoDeTopico): Promise<TopicoDeArtigo[]> {
-  const snapshot = await lerTopicosDeArtigos(tipo).get();
+export async function listarTopicosAtivos(tipo: TipoDeTopico): Promise<Topico[]> {
+  const snapshot = await lerTopicos(tipo).get();
   return ordenarTopicos(snapshot.docs.map((documento) => documento.data()).filter((topico) => !topico.excluidoEm));
 }
 
 // Ordem do diretório: pela ordem definida no painel e, no empate, pelo nome.
 export function ordenarProfissionais(profissionais: Profissional[]): Profissional[] {
   return [...profissionais].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
+}
+
+export function lerProdutos() {
+  return firestoreAdmin().collection("produtos").withConverter(conversorProduto);
+}
+
+// Ordem da loja: pela ordem definida no painel e, no empate, pelo nome.
+export function ordenarProdutos(produtos: Produto[]): Produto[] {
+  return [...produtos].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
+}
+
+// Produtos que aparecem no site: publicados e fora da lixeira, já ordenados.
+export async function listarProdutosVisiveis(): Promise<Produto[]> {
+  const snapshot = await lerProdutos().where("publicado", "==", true).get();
+  return ordenarProdutos(snapshot.docs.map((documento) => documento.data()).filter((produto) => !produto.excluidoEm));
 }

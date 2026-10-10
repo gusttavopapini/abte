@@ -31,6 +31,7 @@ const COLECOES = [
   "categoriasDeArtigos",
   "tagsDeArtigos",
   "produtos",
+  "categoriasDeProdutos",
   "logAlteracoes",
   "qualquerColecao",
 ];

@@ -1,6 +1,7 @@
 "use server";
 
-// Ações de servidor dos tópicos dos artigos (categorias e tags).
+// Ações de servidor dos tópicos: categorias e tags dos artigos e categorias
+// de produto da loja.
 // Toda ação começa por exigirPapelDoPainel(): sem papel, nada é lido nem gravado.
 // As respostas trazem a mensagem para a tela, sempre em português.
 import { revalidatePath } from "next/cache";
@@ -24,6 +25,11 @@ const TEXTOS: Record<TipoDeTopico, { repetido: string; criado: string; emUso: st
     criado: "Categoria criada",
     emUso: "está em uso por pelo menos um artigo. Troque a categoria desses artigos antes de excluir.",
   },
+  categoriaDeProduto: {
+    repetido: "Já existe uma categoria de produto com esse nome.",
+    criado: "Categoria criada",
+    emUso: "está em uso por pelo menos um produto. Troque a categoria desses produtos antes de excluir.",
+  },
   tag: {
     repetido: "Já existe uma tag com esse nome.",
     criado: "Tag criada",
@@ -36,7 +42,7 @@ class ErroDeValidacao extends Error {}
 
 function lerTipo(dados: FormData): TipoDeTopico {
   const tipo = dados.get("tipo");
-  if (tipo === "categoria" || tipo === "tag") return tipo;
+  if (tipo === "categoria" || tipo === "tag" || tipo === "categoriaDeProduto") return tipo;
   throw new ErroDeValidacao("Tipo de tópico desconhecido.");
 }
 
@@ -79,6 +85,8 @@ function atualizarPaginas() {
   revalidatePath("/artigos");
   revalidatePath("/artigos/categoria/[slug]", "page");
   revalidatePath("/artigos/[slug]", "page");
+  revalidatePath("/admin/loja/categorias");
+  revalidatePath("/loja");
 }
 
 // Dois tópicos ativos com o mesmo nome (ignorando acento e maiúsculas) confundem
@@ -165,11 +173,13 @@ export async function excluirTopico(_anterior: RespostaDoTopico | null, dados: F
     const atual = await referencia.get();
     if (!atual.exists) throw new ErroDeValidacao("Tópico não encontrado.");
     const nome = String(atual.get("nome") ?? "");
-    const artigos = db.collection("artigos");
+    // Uso conta mesmo em itens na lixeira, que podem ser restaurados.
     const emUso =
       tipo === "categoria"
-        ? await artigos.where("categoria", "==", id).limit(1).get()
-        : await artigos.where("tags", "array-contains", id).limit(1).get();
+        ? await db.collection("artigos").where("categoria", "==", id).limit(1).get()
+        : tipo === "tag"
+          ? await db.collection("artigos").where("tags", "array-contains", id).limit(1).get()
+          : await db.collection("produtos").where("categoria", "==", id).limit(1).get();
     if (!emUso.empty) {
       throw new ErroDeValidacao(`"${nome}" ${TEXTOS[tipo].emUso}`);
     }
