@@ -115,7 +115,31 @@ src/
 8. Doação com pagamento online: DESATIVADO (quando ativado, via Stripe)
 9. SEO e lançamento (inclui projeto Firebase de produção na conta da ABTE, hospedagem e alerta de orçamento no Google Cloud)
 
-Situação real em 02/10/2026: partes das etapas 2, 4 e 5 já existem no código, feitas fora de ordem (27 a 29/09); a etapa 3 não foi feita. A branch `limpeza/codigo-limpo` organizou esse código sem mudar comportamento nem visual. Detalhes em "Divergências conhecidas e pendentes".
+Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pendentes".
+
+## Estado atual (verificado em 10/10/2026)
+
+**Git.** A main está em `207c9b1` (igual a `origin/main`). As branches de limpeza estão empilhadas e sem merge: `limpeza/codigo-limpo` (9 commits à frente da main) e `limpeza/sem-pessoas` (2 commits acima dela, 11 à frente da main). O trabalho de loja e ajustes segue em `feature/loja-e-ajustes`, criada a partir de `limpeza/sem-pessoas`.
+
+**Verificações automáticas:** typecheck passa; lint com 0 erros e 6 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 40 de 40; `test:unidade` 22 de 22.
+
+**Etapas do plano no código**
+| Etapa | O que existe |
+|---|---|
+| 1 Base | Concluída. |
+| 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`. Sem `/doe`, sem páginas legais. |
+| 3 Modelo de dados | Não feita. Sem `usuarios`, `configuracoes`, `logAlteracoes`, lixeira (`excluidoEm`) ou cadastro de usuários pelo painel. Os papéis existem só como custom claim. |
+| 4 Painel | 4a: profissionais com criar, editar e excluir de vez, modelo simples (nome, especialidade, tag, LinkedIn, URL da foto, status); sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir). 4c e 4d: nada. |
+| 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` leem o Firestore. `/artigos` e `/artigos/categoria/[slug]` ainda usam categorias e artigos de exemplo fixos no código. |
+| 6 a 9 | Nada. |
+
+**Firestore (projeto de desenvolvimento, contagem sem ler valores):** só a coleção `posts` existe, com 2 documentos publicados. `artigos` e `profissionais` estão vazias, portanto não há dado a migrar quando os modelos mudarem. No Authentication há 1 usuário, com papel administrador. As regras negam tudo; `testes/regras/firestore.test.mts` cobre 10 coleções (as do modelo planejado e uma qualquer) para visitante, logado sem papel, administrador e editor. `firestore.indexes.json` não tem índices.
+
+**Storage:** o bucket padrão do projeto de desenvolvimento não existe (consulta pelo Admin SDK), ou seja, o Cloud Storage não está ativo. Não há `storage.rules` nem emulador de Storage no `firebase.json`. Fotos de profissionais, imagens de tópicos e galeria de produtos dependem da etapa 4d e do plano Blaze.
+
+**Segurança:** todas as ações de `acoes-conteudo.ts` e todas as páginas do painel que leem dados começam por `exigirPapelDoPainel()`; as páginas sem leitura de dados (`/admin`, `novo`) ficam protegidas pelo layout. Cookie `__session` httpOnly, sameSite strict, secure em produção, caminho `/admin`, 5 dias. Painel e `/componentes` com noindex (metadata e cabeçalho `X-Robots-Tag`). Nenhum código, dependência ou variável de pagamento.
+
+**Movimento:** o `globals.css` desliga transições e animações CSS com `prefers-reduced-motion`. O framer-motion (`AnimacaoEntrada`, só na home) anima por JavaScript, ignora essa preferência e entrega 11 blocos da home com `opacity: 0` no HTML do servidor: sem JavaScript, esses blocos ficam invisíveis. O carrossel do Hero avança por `setInterval` mesmo com movimento reduzido.
 
 ## Decisões tomadas sobre pagamento
 
@@ -169,7 +193,9 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **P16, slug que muda ao editar:** o slug do post é refeito a partir do título a cada edição (links antigos quebram), e dois títulos iguais geram o mesmo slug.
 - **Erros no painel:** excluir profissional apaga de vez (sem lixeira nem registro de alterações) e não mostra erro se falhar; erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês.
 - **Endereço inválido:** `/blog/[slug]` e `/artigos/[slug]` com um valor que não é id válido do Firestore (ex.: `__x__`) dão erro 500 em vez de 404.
-- **Classificações de artigo:** as do painel (diretrizes, revisão sistemática, colete…) são diferentes das categorias de exemplo da página pública `/artigos`.
+- **P19, classificações de artigo:** as do painel (diretrizes, revisão sistemática, colete…) são diferentes das categorias de exemplo da página pública `/artigos`.
+- **P22, exclusão de profissional:** apaga de vez e não mostra erro se falhar (ver "Erros no painel").
+- **Numeração P:** P18, P20, P21 e P23 são citadas nos registros do Projeto, mas não aparecem neste arquivo; as 7 perguntas do diagnóstico original também não. Conferir e trazer para cá.
 
 **Conteúdo e etapas futuras**
 - O formulário de contato mostra "enviado" sem enviar nada (serviço de e-mail em aberto).
@@ -183,6 +209,12 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Ajustes de Vercel com hospedagem ainda não decidida:** `transpilePackages: ["jwks-rsa", "jose"]` no `next.config.ts` e o override de `jose` 4.15.9 no `package.json`. Não remover sem testar o deploy.
 - `turbopack.root` no `next.config.ts` só evita o aviso de um `package-lock.json` solto na pasta do usuário, fora do projeto.
 - O Git local tem `refs/original/refs/heads/main`, backup de uma reescrita de autoria anterior; não está em nenhuma branch.
+
+**Encontrado em 10/10/2026**
+- **Conteúdo invisível sem JavaScript:** os blocos da home com `AnimacaoEntrada` saem do servidor com `opacity: 0` (ver "Estado atual").
+- **Nome de pessoa na documentação:** `docs/ABTE_contexto_projeto.md` (seção 1) ainda cita a presidente da diretoria pelo nome. `docs/ABTE_contexto_redesign.md` lista profissionais reais com registro, como referência da migração.
+- **Permissão do `.env.local`:** o arquivo pode ser lido por outros usuários da máquina (o `.env` não). Fora do Git; ajuste local, sem efeito no código.
+- **"Mais lidos da semana" em `/artigos`:** a seção mostra os artigos mais recentes; não existe contagem de leitura.
 
 ## Exceções de design
 
