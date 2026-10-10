@@ -1,8 +1,9 @@
-// Firebase no NAVEGADOR. Usado só na tela de login do painel
-// (entrar com e-mail e senha e pedir o e-mail de redefinição de senha).
+// Firebase no NAVEGADOR. Usado só nas telas de login do painel e da conta de
+// cliente da loja (entrar com e-mail e senha e pedir o e-mail de redefinição
+// de senha).
 // O navegador nunca acessa o Firestore: dados passam sempre pelo servidor.
 import { getApp, getApps, initializeApp, type FirebaseOptions } from "firebase/app";
-import { getAuth, inMemoryPersistence, initializeAuth, type Auth } from "firebase/auth";
+import { connectAuthEmulator, getAuth, inMemoryPersistence, initializeAuth, type Auth } from "firebase/auth";
 
 // Tudo que identifica o projeto vem das variáveis de ambiente (.env.local).
 // As variáveis NEXT_PUBLIC_ precisam ser lidas uma a uma, por nome, para o
@@ -25,6 +26,10 @@ export function obterAuthCliente(): Auth {
     // Sem persistência no navegador: o login só serve para gerar o token,
     // que é trocado por um cookie de sessão no servidor.
     authCliente = initializeAuth(app, { persistence: inMemoryPersistence });
+    // Só nos testes: com a variável definida no build, o login usa o emulador
+    // de Authentication. Em produção ela não existe e esta linha não faz nada.
+    const emulador = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
+    if (emulador) connectAuthEmulator(authCliente, `http://${emulador}`, { disableWarnings: true });
   } catch {
     // Já inicializado (ex.: recarga em desenvolvimento).
     authCliente = getAuth(app);

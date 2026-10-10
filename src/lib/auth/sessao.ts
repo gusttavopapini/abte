@@ -7,6 +7,7 @@ import { cache } from "react";
 import { authAdmin } from "@/lib/firebase/admin-auth";
 import { NOME_COOKIE_SESSAO, ROTA_LOGIN } from "./constantes";
 import { decidirAcessoAoPainel, ehPapelDoPainel, type PapelDoPainel } from "./papeis";
+import { verificarCookieDeSessao } from "./verificacao";
 
 type UsuarioDaSessao = {
   uid: string;
@@ -23,18 +24,17 @@ type UsuarioDoPainel = UsuarioDaSessao & { papel: PapelDoPainel };
 // e a página do painel leem a sessão na mesma requisição.
 export const lerSessao = cache(async (): Promise<UsuarioDaSessao | null> => {
   const cookie = (await cookies()).get(NOME_COOKIE_SESSAO)?.value;
-  if (!cookie) return null;
+  const sessao = await verificarCookieDeSessao(authAdmin(), cookie);
+  if (!sessao) return null;
 
   try {
-    const token = await authAdmin().verifySessionCookie(cookie, true);
-    const papel = ehPapelDoPainel(token.papel) ? token.papel : null;
-    let nome = typeof token.name === "string" ? token.name : "";
+    let nome = sessao.nome;
     if (!nome) {
       // O nome de exibição não vem no token se foi definido depois do login.
-      const usuario = await authAdmin().getUser(token.uid);
+      const usuario = await authAdmin().getUser(sessao.uid);
       nome = usuario.displayName ?? "";
     }
-    return { uid: token.uid, email: token.email ?? "", nome, papel };
+    return { uid: sessao.uid, email: sessao.email, nome, papel: ehPapelDoPainel(sessao.papel) ? sessao.papel : null };
   } catch {
     return null;
   }

@@ -14,7 +14,7 @@ A gestão do projeto não é feita por desenvolvedores: a revisão é visual, em
 | Next.js (App Router, TypeScript) | 16.3.6 |
 | React | 19.2.8 |
 | TypeScript | 5.9 |
-| firebase (SDK web, só no login) | 12.19.0 |
+| firebase (SDK web, só nos logins do painel e da loja) | 12.19.0 |
 | firebase-admin (só no servidor) | 14.5.0 |
 | server-only | 0.0.1 |
 | firebase-tools (CLI e emuladores, dev) | 15.31.0 |
@@ -36,6 +36,7 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 | `npm run lint:css` | Stylelint: falha com cor em hex/rgb/hsl/nome ou font-size em px fora do tokens.css |
 | `npm run typecheck` | Checagem de tipos (tsc) |
 | `npm run test:regras` | Testes das regras do Firestore no emulador (exige Java) |
+| `npm run test:sessao` | Testes de sessão e permissão nos emuladores de Authentication e Firestore (cliente nunca entra no painel, sessão revogada, exclusão de conta); exige Java |
 | `npm run test:unidade` | Testes de unidade das funções puras (acesso ao painel, validações, slug), com `node --test`, sem emulador |
 | `npm run admin:conceder -- email@exemplo.com [--nome "Nome"]` | Dá o papel "administrador" a um usuário existente (lê o .env e depois o .env.local; o .env.local prevalece) |
 
@@ -49,6 +50,7 @@ firebase.json, .firebaserc  Firebase CLI (Firestore + emulador; projeto padrão 
 scripts/                  scripts de linha de comando (Admin SDK)
 testes/regras/            testes das regras (node:test + emulador)
 testes/unidade/           testes de unidade das funções puras (node:test)
+testes/sessao/            testes de sessão e permissão nos emuladores (node:test)
 src/
   proxy.ts                checagem rápida de cookie no /admin (redireciona ao login)
   styles/tokens.css       tokens v3.1 (única fonte de valores visuais; difere de docs/tokens.css, ver P15)
@@ -73,7 +75,8 @@ src/
   config/profissionais.ts tipos de profissional (também as tags do filtro), métodos, países e UFs
   lib/firebase/cliente.ts SDK web (navegador, só login)
   lib/firebase/servidor.ts e admin-auth.ts   Admin SDK (server-only)
-  lib/auth/               sessão (server-only), papéis e decisão de acesso (pura), constantes
+  lib/auth/               sessão do painel e do cliente (server-only), verificação do cookie, papéis e decisão de acesso (pura), destino seguro, constantes
+  lib/loja/               cadastro de cliente (validação pura) e contas (Admin SDK recebido por parâmetro)
   lib/dados/              tipos das coleções e leitura tipada do Firestore (colecoes.ts é server-only)
   lib/validacao.ts        validações puras (id do Firestore, campos de formulário, e-mail)
   lib/contatos.ts         validação e padronização de WhatsApp, Instagram, Facebook e e-mail (pura)
@@ -84,7 +87,7 @@ src/
 
 ## Rotas
 
-- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (lista com filtro `?categoria=`, subcabeçalho próprio da loja), `/loja/produto/[slug]` (produto com relacionados e aviso "Em breve"), `/componentes` (revisão visual, noindex).
+- **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (lista com filtro `?categoria=`, subcabeçalho próprio da loja), `/loja/produto/[slug]` (produto com relacionados e aviso "Em breve"), `/loja/entrar`, `/loja/entrar/recuperar-senha`, `/loja/cadastro`, `/loja/conta` (conta de cliente, noindex), `/componentes` (revisão visual, noindex).
 - **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/artigos/topicos` (categorias e tags), `/admin/profissionais`, `/admin/loja`, `/admin/loja/novo`, `/admin/loja/editar/[id]`, `/admin/loja/categorias` (criar, editar e excluir num modal).
 - **Links do menu e do rodapé que ainda dão 404:** `/doe`, `/seja-associado`, `/acessibilidade`, `/politica-de-privacidade`, `/termos-de-uso`.
 
@@ -103,7 +106,8 @@ src/
 - **Regras do Firestore negam todo acesso direto do navegador.** Toda coleção nova continua negada e ganha teste em `testes/regras/`. Qualquer exceção precisa de regra específica e teste.
 - **Papéis por custom claim** `papel` no Authentication: `administrador` ou `editor`. Sem papel, nada do painel.
 - **Sessão por cookie** de sessão do Firebase (`__session`, httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/admin`), validado no servidor em toda página do painel com checagem de revogação (`src/lib/auth/sessao.ts`). O layout do painel usa `exigirSessaoDoPainel()` para mostrar "Acesso não autorizado" a quem não tem papel; **toda ação de servidor e toda página do painel que lê dados começam por `exigirPapelDoPainel()`**, que falha fechada (sem sessão vai para o login; sem papel interrompe antes de ler ou gravar). A decisão fica na função pura `decidirAcessoAoPainel()` (`src/lib/auth/papeis.ts`), testada em `test:unidade`. Administrador e editor ainda têm o mesmo acesso. "Sair" revoga a sessão e apaga o cookie.
-- **Admin SDK só no servidor:** `src/lib/firebase/servidor.ts`, `src/lib/firebase/admin-auth.ts`, `src/lib/auth/sessao.ts` e `src/lib/dados/colecoes.ts` importam `server-only`.
+- **Conta de cliente da loja (D1, lote E3):** criada pelo servidor com o Admin SDK (`cadastrarCliente`), sem custom claim `papel`, com documento em `clientes` (nome, e-mail, data e versão do consentimento; a senha fica só no Authentication). Sessão no cookie `abte_cliente` (httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/loja`), separado do `__session` do painel; validada por `lerSessaoCliente()` e `exigirSessaoCliente()` (`src/lib/auth/sessao-cliente.ts`), que também exigem o documento em `clientes` (conta do painel não entra na loja). A verificação do cookie fica em `src/lib/auth/verificacao.ts`, sem Next.js, testada no emulador (`test:sessao`). O destino depois do login só aceita caminhos da loja (`destinoSeguroNaLoja`). Excluir a conta pede a senha de novo e apaga usuário, cliente e carrinho.
+- **Admin SDK só no servidor:** `src/lib/firebase/servidor.ts`, `src/lib/firebase/admin-auth.ts`, `src/lib/auth/sessao.ts`, `src/lib/auth/sessao-cliente.ts` e `src/lib/dados/colecoes.ts` importam `server-only`. O SDK do navegador pode apontar para o emulador de Authentication só se `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` estiver definida no build (testes); em produção ela fica vazia.
 - **Leitura tipada:** as páginas leem o Firestore por `lerPosts()`, `lerArtigos()`, `lerProfissionais()` e `lerTopicos()` (com `listarTopicosAtivos()`) e `lerProdutos()` (com `listarProdutosVisiveis()`) (`src/lib/dados/colecoes.ts`), com conversores somente de leitura; os tipos ficam em `src/lib/dados/tipos.ts`. As gravações ficam nas ações de servidor, que validam o id (`ehIdDeDocumentoValido`) e limitam o tamanho dos campos curtos.
 - **Padrões de dados (desde 10/10/2026):** slug criado com o nome, único (verificado numa transação, `escolherSlugUnico()`) e estável ao renomear; exclusão vai para a lixeira (`excluidoEm` preenchido), com "Restaurar" na própria tela; coleções pequenas são filtradas e ordenadas na memória, sem índice composto. Ações que respondem a formulários com `useActionState` devolvem `{ ok, mensagem }` em português.
 - **Teste ponta a ponta:** o build de produção pode rodar contra os emuladores de Firestore e Authentication (variáveis `FIRESTORE_EMULATOR_HOST`, `FIREBASE_AUTH_EMULATOR_HOST` e `FIREBASE_ADMIN_PROJECT_ID=demo-...`), com um cookie de sessão criado no emulador; nenhum dado de teste toca o projeto real.
@@ -216,6 +220,24 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Loja:** produtos sem imagem (placeholder) até a etapa 4d; os endereços antigos do Wix (`/product-page/...`, `/category/...`) precisam de redirecionamento na etapa 9. Dados estruturados de produto sem `offers` (não aparecem preço nem disponibilidade no Google).
 - Imagens provisórias externas (picsum.photos e placehold.co).
 - Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.
+
+**Conta de cliente da loja (lote E3)**
+- **Cadastro público do Firebase:** NÃO VERIFICADO se está desligado no console (Authentication > Configurações > Ações do usuário > "Permitir criação de conta"). A loja não precisa dele: as contas são criadas pelo servidor.
+- **Robôs no cadastro:** há só um campo escondido; sem limite de tentativas nem verificação (reCAPTCHA ou App Check). Avaliar antes do lançamento.
+- **Nome do cookie e hospedagem:** no Firebase Hosting clássico só o cookie `__session` chega ao servidor; se essa for a hospedagem, o cookie da loja terá de se chamar `__session` com caminho `/loja`.
+- **sameSite strict:** quem chega à loja por um link de outro site aparece sem sessão na primeira página (o cookie não vai nessa navegação); ao clicar em qualquer link da loja, a sessão volta.
+- **Consentimento:** o texto do cadastro é provisório (versão `provisorio-2026-10-10`) e aponta para `/politica-de-privacidade`, que ainda dá 404. Ver "Política de privacidade" abaixo.
+- **E-mail repetido:** o cadastro avisa que já existe conta com o e-mail (inevitável num cadastro), o que revela que o e-mail está em uso.
+
+**Política de privacidade (pendência para a ABTE, com assessoria jurídica; nenhum texto conclusivo foi escrito)**
+- Quais dados a loja guarda: nome, e-mail, conteúdo do carrinho, data e versão do consentimento; cookie de sessão `abte_cliente` (e `__session` do painel).
+- Finalidade e base legal de cada um (consentimento, execução de contrato ou outra, a definir pela assessoria).
+- Prazo de guarda e o que acontece com contas inativas.
+- Google (Firebase Authentication e Firestore) como operador, e transferência internacional de dados (região de produção em aberto).
+- Direitos do titular (acesso, correção, exclusão, portabilidade) e como exercê-los; a exclusão da conta já existe em "Minha conta".
+- Contato do encarregado de dados (DPO) da ABTE.
+- Menores de idade: o público inclui adolescentes (art. 14 da LGPD); definir idade mínima ou consentimento dos responsáveis.
+- Versionar o texto e trocar a versão do consentimento (`VERSAO_DO_CONSENTIMENTO` em `src/lib/loja/contas.ts`) quando ele mudar.
 
 **Dependências e hospedagem**
 - **P17, framer-motion fora do plano:** resolvida em 10/10/2026: trocado por CSS e removido do `package.json`.

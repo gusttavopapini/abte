@@ -10,7 +10,7 @@ import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { obterAuthCliente } from "@/lib/firebase/cliente";
 import { ehEmailValido } from "@/lib/validacao";
-import { mensagemDeErroDoLogin } from "./erros";
+import { mensagemDeErroDoLogin } from "@/lib/auth/erros-do-login";
 import estilos from "./FormularioLogin.module.css";
 
 type ErrosCampo = { email?: string; senha?: string };

@@ -1,0 +1,16 @@
+.bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.bloco > * {
+  width: 100%;
+}
+
+.bloco > button,
+.bloco > a {
+  width: auto;
+}
+

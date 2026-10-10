@@ -10,9 +10,17 @@ import { obterAuthCliente } from "@/lib/firebase/cliente";
 import { ehEmailValido } from "@/lib/validacao";
 import estilos from "./FormularioRecuperarSenha.module.css";
 
+type Props = {
+  // Página de login para onde o link "Voltar para o login" leva.
+  rotaDoLogin: string;
+  // Onde a conta é usada, para a mensagem de confirmação (ex.: "do painel", "da loja").
+  deOnde: string;
+};
+
 // "Esqueci minha senha": usa o e-mail de redefinição do próprio Firebase.
 // Mostra sempre a mesma confirmação, exista ou não uma conta com o e-mail.
-export function FormularioRecuperarSenha() {
+// Usado no painel e na loja.
+export function FormularioRecuperarSenha({ rotaDoLogin, deOnde }: Props) {
   const [email, setEmail] = useState("");
   const [erroEmail, setErroEmail] = useState<string>();
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -54,10 +62,10 @@ export function FormularioRecuperarSenha() {
     return (
       <div className={estilos.formulario}>
         <Mensagem tipo="sucesso" ref={confirmacaoRef}>
-          Se houver uma conta do painel com este e-mail, enviamos um link para criar uma nova senha. Confira sua caixa de
+          Se houver uma conta {deOnde} com este e-mail, enviamos um link para criar uma nova senha. Confira sua caixa de
           entrada e também a pasta de spam.
         </Mensagem>
-        <Link href="/admin/entrar" className={estilos.link}>
+        <Link href={rotaDoLogin} className={estilos.link}>
           Voltar para o login
         </Link>
       </div>
@@ -82,7 +90,7 @@ export function FormularioRecuperarSenha() {
       <Botao variante="envio" type="submit" disabled={enviando}>
         {enviando ? "Enviando…" : "Enviar link"}
       </Botao>
-      <Link href="/admin/entrar" className={estilos.link}>
+      <Link href={rotaDoLogin} className={estilos.link}>
         Voltar para o login
       </Link>
     </form>

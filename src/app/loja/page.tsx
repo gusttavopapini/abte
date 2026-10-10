@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { CardProduto } from "@/components/CardProduto/CardProduto";
 import { revelar } from "@/components/Revelar/revelar";
 import { listarProdutosVisiveis, listarTopicosAtivos } from "@/lib/dados/colecoes";
@@ -7,16 +8,19 @@ import estilos from "./page.module.css";
 export const metadata = { title: "Loja" };
 export const dynamic = "force-dynamic";
 
-export default async function PaginaLoja({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
+export default async function PaginaLoja({ searchParams }: { searchParams: Promise<{ categoria?: string; conta?: string }> }) {
   const [produtos, categorias] = await Promise.all([listarProdutosVisiveis(), listarTopicosAtivos("categoriaDeProduto")]);
   // Só categorias com produto na loja viram filtro. Slug desconhecido: mostra tudo.
   const comProduto = categorias.filter((categoria) => produtos.some((produto) => produto.categoria === categoria.id));
-  const { categoria: slugDoFiltro } = await searchParams;
+  const { categoria: slugDoFiltro, conta } = await searchParams;
   const filtro = comProduto.find((categoria) => categoria.slug === slugDoFiltro) ?? null;
   const exibidos = filtro ? produtos.filter((produto) => produto.categoria === filtro.id) : produtos;
 
   return (
     <div className={`container ${estilos.secao}`}>
+      {conta === "excluida" && (
+        <Mensagem tipo="sucesso" className={estilos.aviso}>Sua conta foi excluída, com seu nome, seu e-mail e seu carrinho.</Mensagem>
+      )}
       <h1 className={`tipo-h1 ${estilos.titulo}`}>Loja da ABTE</h1>
       <p className={`tipo-texto-xl ${estilos.descricao}`}>Conheça nossos produtos. Cada compra apoia pacientes com escoliose.</p>
 

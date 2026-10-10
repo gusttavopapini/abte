@@ -1,0 +1,60 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.formulario > * {
+  width: 100%;
+}
+
+.formulario > button,
+.formulario > a {
+  width: auto;
+}
+
+/* Fora da tela e do leitor de tela: só robôs preenchem */
+.escondido {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.consentimento {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--card-padding);
+  background: var(--color-bg);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+}
+
+.erro {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+}
