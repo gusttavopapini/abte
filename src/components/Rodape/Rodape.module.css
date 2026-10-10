@@ -17,13 +17,15 @@
   justify-content: center;
 }
 
+/* Textos alinhados à esquerda dentro de cada coluna; o grupo de colunas
+   continua centralizado no rodapé (.colunas). */
 .coluna {
   display: flex;
   flex: 0 1 auto;
   flex-direction: column;
   gap: var(--space-8);
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 /* Títulos das colunas em negrito (PROPOSTA) */
@@ -38,7 +40,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  align-items: center;
+  align-items: flex-start;
 }
 
 .link {
@@ -53,8 +55,10 @@
   text-decoration: underline;
 }
 
+/* Os ícones ficam centralizados na coluna, como antes do alinhamento à esquerda */
 .redes {
   display: flex;
+  align-self: center;
   gap: var(--space-8);
   justify-content: center;
 }
@@ -82,8 +86,12 @@
   gap: var(--space-8);
 }
 
+/* O logo continua centralizado (.pe); o texto de direitos ocupa a largura
+   toda e fica alinhado à esquerda. */
 .copyright {
+  align-self: stretch;
   font-size: var(--font-size-small);
+  text-align: left;
 }
 
 .logoFooter img {

@@ -350,6 +350,6 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 19 | 1.5rem | Tamanhos de fonte só pelos tokens |
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 22, 23 | 0.1em, 200px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 6, 16 | 25px, 8vw 120px | Espaçamento só pelos tokens |
-| `src/components/Rodape/Rodape.module.css` | 90 | 90px | Tamanhos só pelos tokens |
-| `src/components/Rodape/Rodape.module.css` | 32 | 600 | Pesos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 98 | 90px | Tamanhos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 34 | 600 | Pesos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 9 | 5px | Raio 0 (--radius) |
