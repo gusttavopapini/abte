@@ -18,59 +18,73 @@ type PropsHeader = {
   demonstracao?: boolean;
 };
 
+// Rolagem (em px) a partir da qual o header pode se esconder e ganha fundo
+// sólido; acima dela, o header fica como no topo da página.
+const LIMITE_DE_ROLAGEM_PX = 80;
+// Movimentos menores que isto são ignorados, para o header não piscar com
+// pequenas oscilações da rolagem (trackpad).
+const TOLERANCIA_DE_ROLAGEM_PX = 8;
+
 // Header do site (design-system.md seção 8.1).
-// Fixo no topo (PROPOSTA). Na variante transparente, ganha o fundo
-// --color-bg quando o hero (elemento com data-hero) sai da tela.
+// Fixo no topo (PROPOSTA). Esconde ao rolar para baixo e volta ao rolar para
+// cima. Depois de rolar, quando visível, ganha fundo --color-bg para não
+// ficar transparente sobre o conteúdo (exceção de design pendente). Nunca se
+// esconde com o menu em tela cheia ou um submenu aberto (algum
+// aria-expanded="true" dentro dele) nem com o foco de teclado dentro dele.
 export function Header({ variante = "solida", demonstracao = false }: PropsHeader) {
   const [menuAberto, setMenuAberto] = useState(false);
-  const [heroSaiu, setHeroSaiu] = useState(false);
+  const [rolado, setRolado] = useState(false);
   const [escondido, setEscondido] = useState(false);
-  const ultimoScroll = useRef(0);
 
   const headerRef = useRef<HTMLElement>(null);
   const hamburguerRef = useRef<HTMLButtonElement>(null);
   const idMenu = useId();
   const sufixo = demonstracao ? ", exemplo" : "";
 
-  // Lógica do hero transparente e esconder/mostrar no scroll
   useEffect(() => {
     if (demonstracao) return;
+    let ultimaPosicao = window.scrollY;
+    let quadro = 0;
 
-    // Interseção do Hero
-    let observador: IntersectionObserver | null = null;
-    if (variante === "transparente") {
-      const hero = document.querySelector("[data-hero]");
-      if (hero) {
-        const alturaHeader = headerRef.current?.offsetHeight ?? 0;
-        observador = new IntersectionObserver(([entrada]) => setHeroSaiu(!entrada.isIntersecting), {
-          rootMargin: `-${alturaHeader}px 0px 0px 0px`,
-        });
-        observador.observe(hero);
+    function atualizar() {
+      quadro = 0;
+      const posicao = window.scrollY;
+      const header = headerRef.current;
+      setRolado(posicao > LIMITE_DE_ROLAGEM_PX);
+      if (posicao <= LIMITE_DE_ROLAGEM_PX) {
+        setEscondido(false);
+        ultimaPosicao = posicao;
+        return;
       }
+      const diferenca = posicao - ultimaPosicao;
+      if (Math.abs(diferenca) < TOLERANCIA_DE_ROLAGEM_PX) return;
+      // Foco visível (teclado) conta como uso; o foco que fica num link
+      // depois de um clique do mouse não, para o header continuar recolhendo.
+      const emUso = !!header?.querySelector(':focus-visible, [aria-expanded="true"]');
+      setEscondido(diferenca > 0 && !emUso);
+      ultimaPosicao = posicao;
     }
 
-    // Controle do Scroll
-    const controlarScroll = () => {
-      const scrollAtual = window.scrollY;
+    // Um cálculo por quadro, no máximo; o ouvinte é passivo.
+    function aoRolar() {
+      if (!quadro) quadro = requestAnimationFrame(atualizar);
+    }
 
-      // Se o scroll atual for maior que o último scroll E maior que a altura do header, esconde.
-      if (scrollAtual > ultimoScroll.current && scrollAtual > 80) {
-        setEscondido(true);
-      } else {
-        // Se rolou para cima ou está no topo, mostra.
-        setEscondido(false);
-      }
+    // Foco de teclado que entra no header escondido (Tab) traz o header de volta.
+    function aoFocar() {
+      if (headerRef.current?.querySelector(":focus-visible")) setEscondido(false);
+    }
 
-      ultimoScroll.current = scrollAtual;
-    };
-
-    window.addEventListener("scroll", controlarScroll, { passive: true });
-
+    atualizar();
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    const header = headerRef.current;
+    header?.addEventListener("focusin", aoFocar);
     return () => {
-      if (observador) observador.disconnect();
-      window.removeEventListener("scroll", controlarScroll);
+      cancelAnimationFrame(quadro);
+      window.removeEventListener("scroll", aoRolar);
+      header?.removeEventListener("focusin", aoFocar);
     };
-  }, [variante, demonstracao]);
+  }, [demonstracao]);
 
   const fecharMenu = useCallback((devolverFoco = true) => {
     setMenuAberto(false);
@@ -81,8 +95,8 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
   const classes = [
     estilos.header,
     variante === "transparente" ? estilos.transparente : estilos.solida,
-    variante === "transparente" && heroSaiu ? estilos.comFundo : "",
-    escondido ? estilos.escondido : "",
+    rolado && !escondido ? estilos.comFundo : "",
+    escondido && !menuAberto ? estilos.escondido : "",
     demonstracao ? estilos.demonstracao : "",
   ].join(" ");
 

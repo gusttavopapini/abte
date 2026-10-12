@@ -1,11 +1,21 @@
+/* Movimento (PROPOSTA, NÃO VERIFICADO no design system): o header desliza
+   para fora ao rolar para baixo e volta ao rolar para cima. Com movimento
+   reduzido, o globals.css desliga a transição (troca sem deslize). O limite
+   de rolagem fica no Header.tsx (LIMITE_DE_ROLAGEM_PX). */
 .header {
+  /* Duração e curva do deslize e da troca de fundo */
+  --header-duracao: 300ms;
+  --header-curva: ease-in-out;
+  /* Quanto o header sobe ao se esconder: a própria altura */
+  --header-distancia: -100%;
+
   z-index: 50;
   width: 100%;
-  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  transition: transform var(--header-duracao) var(--header-curva), background-color var(--header-duracao) var(--header-curva);
 }
 
 .escondido {
-  transform: translateY(-100%);
+  transform: translateY(var(--header-distancia));
 }
 
 /* Páginas internas: fundo branco, fixo no topo ao rolar (PROPOSTA) */
@@ -24,9 +34,12 @@
   background: transparent;
 }
 
-/* Depois que o hero sai da tela, o header continua transparente */
+/* Depois de rolar a página, o header visível ganha fundo sólido para não
+   ficar transparente sobre o conteúdo (EXCEÇÃO DE DESIGN pendente de
+   confirmação da designer: header visível ao rolar é PROPOSTA). No topo, nada
+   muda: transparente sobre a foto na home e sem fundo nas internas. */
 .comFundo {
-  background: transparent;
+  background: var(--color-bg);
 }
 
 .demonstracao {

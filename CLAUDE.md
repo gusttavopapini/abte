@@ -395,5 +395,14 @@ O design system marca movimento como NÃO VERIFICADO. Os valores abaixo são PRO
 | `src/components/MenuTelaCheia/MenuTelaCheia.module.css` | `--menu-duracao`, `--menu-distancia` | 200ms, `var(--space-8)` | Entrada do menu em tela cheia e das sublistas, giro da seta, cor do link |
 | `src/components/Botao/Botao.module.css` | `--botao-transicao` | 150ms ease-out | Troca de cor no hover |
 | `src/components/Rodape/Rodape.module.css` | `--rodape-transicao` | 150ms ease-out | Cor do link no hover |
+| `src/components/Header/Header.module.css` | `--header-duracao`, `--header-curva`, `--header-distancia` | 300ms, ease-in-out, -100% | Header que se esconde ao rolar para baixo e volta ao rolar para cima (12/10/2026; antes os mesmos valores eram literais) |
+| `src/components/Header/Header.tsx` | `LIMITE_DE_ROLAGEM_PX`, `TOLERANCIA_DE_ROLAGEM_PX` | 80, 8 | Rolagem a partir da qual o header pode se esconder e ganha fundo; movimentos menores que a tolerância são ignorados |
+| `src/components/MenuDesktop/MenuDesktop.tsx` | `ATRASO_PARA_FECHAR_MS` | 300 | Atraso para fechar o submenu quando o mouse sai do item (12/10/2026) |
 
-Já existiam antes (sem propriedade local): elevação de cards no hover (0.4s, com sombra), carrossel (0.5s), header que se esconde ao rolar (0.3s) e modal do painel (0.2s e 0.3s).
+Já existiam antes (sem propriedade local): elevação de cards no hover (0.4s, com sombra), carrossel (0.5s) e modal do painel (0.2s e 0.3s).
+
+### D. Exceções de comportamento e alinhamento (pendentes de confirmação da designer)
+
+| Onde | O que | Por quê |
+|---|---|---|
+| `src/components/Header/Header.module.css` (`.comFundo`) e `Header.tsx` | Depois de rolar a página (mais de 80 px), o header visível ganha fundo `--color-bg`; no topo continua como antes (transparente sobre a foto na home, sem fundo nas internas). Não se esconde com submenu ou menu em tela cheia abertos nem com foco de teclado dentro dele. | Header visível ao rolar é PROPOSTA no design system; sem fundo, o logo e o menu ficavam transparentes sobre o conteúdo. Pedido de 12/10/2026. |
