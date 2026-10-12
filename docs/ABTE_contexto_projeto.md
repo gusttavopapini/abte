@@ -19,7 +19,7 @@ A **ABTE, Associação Brasileira de Tratamento da Escoliose**, é uma associaç
 - **Visão:** ser referência em Tratamento Conservador da Escoliose na América Latina.
 - **Site atual:** abteescoliose.com.br, hoje feito no **Wix**.
 - **Contatos:** e-mail tratandoescoliose@gmail.com, Instagram @abte.escoliose e Facebook /tratando.escoliose.
-- **Diretoria:** a presidente da gestão 2025-2027 é Patrícia Baracat.
+- **Diretoria:** gestão 2025-2027; o nome da presidência fica nos registros internos da ABTE, fora deste repositório.
 
 ### O objetivo do projeto
 Reconstruir o site da ABTE em **código próprio**, saindo 100% do Wix. O site novo terá duas partes.
