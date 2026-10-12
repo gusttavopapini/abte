@@ -131,11 +131,15 @@ src/
 
 Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pendentes".
 
-## Estado atual (verificado em 10/10/2026)
+## Estado atual (verificado em 12/10/2026)
 
-**Git.** A main está em `207c9b1` (igual a `origin/main`). As branches de limpeza estão empilhadas e sem merge: `limpeza/codigo-limpo` (9 commits à frente da main) e `limpeza/sem-pessoas` (2 commits acima dela, 11 à frente da main). O trabalho de loja e ajustes segue em `feature/loja-e-ajustes`, criada a partir de `limpeza/sem-pessoas`.
+**Git.** A main está em `207c9b1` (igual a `origin/main`) e é o que a Vercel publica em produção (`abte-lovat.vercel.app`, confirmado pelos deployments do GitHub em 12/10/2026). As branches formam uma cadeia linear, cada uma contida na seguinte: `limpeza/codigo-limpo` (9 commits à frente da main), `limpeza/sem-pessoas` (11), `feature/loja-e-ajustes` (21, também no GitHub, com preview na Vercel) e `fix/menu-banner-rodape` (26). A branch **`integracao/versao-atual`** (12/10/2026) parte da ponta dessa cadeia e reúne tudo: limpeza, remoção de referências a pessoas, loja (lotes E1 a E4) e correções de menu, banner e rodapé. Os merges das demais branches nela foram vazios (nenhum conflito). Ela é a candidata a ir para a main, depois da revisão do preview.
 
-**Verificações automáticas (fim da sessão de 10/10/2026, branch `feature/loja-e-ajustes`):** typecheck passa; lint com 0 erros e 5 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 60 de 60 (15 coleções); `test:unidade` 73 de 73; `test:sessao` 8 de 8. No início da sessão: lint com 6 avisos, `test:regras` 40, `test:unidade` 22.
+**Comportamento no navegador (12/10/2026, `integracao/versao-atual`, Chrome headless a 1440 px, build de produção e modo dev):** submenu de Profissionais abre com o mouse e fecha ao sair; o menu esconde ao rolar para baixo e volta ao rolar para cima com fundo `--color-bg`; no topo, transparente na home e sem fundo nas internas; o banner troca de slide sozinho e as setas funcionam; a frase de direitos autorais fica centralizada; título da aba de `/blog` é "Blog | ABTE"; nenhum erro de JavaScript nem aviso de hidratação. Com um submenu aberto o menu não se esconde (`Header.tsx`, checagem de `aria-expanded="true"`), então o submenu nunca fica solto na tela. No console aparecem só os 404 de pré-carregamento dos links sem página (ver "Rotas") e, no modo dev, um aviso de pré-carregamento de CSS do próprio Next.js.
+
+**Cache do modo dev:** em 12/10/2026 o `npm run dev` respondia erro 500 em todas as páginas ("Can't resolve '@vercel/turbopack-next/internal/font/google/font'", da fonte Public Sans). Sem a página, o JavaScript não roda, e por isso o submenu, o recolhimento do menu e o banner pareciam quebrados no computador local, enquanto o site publicado funcionava. A causa estava no cache do Turbopack em `.next/dev`, não no código: com o cache refeito, tudo funciona. Se acontecer de novo, pare o `npm run dev`, apague a pasta `.next/dev` e rode `npm run dev` outra vez. Por que o cache ficou nesse estado não foi verificado.
+
+**Verificações automáticas (12/10/2026, branch `integracao/versao-atual`):** typecheck passa; lint com 0 erros e 5 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 60 de 60 (15 coleções); `test:unidade` 73 de 73; `test:sessao` 8 de 8. Iguais aos de 10/10/2026 (`feature/loja-e-ajustes`). Antes da loja: lint com 6 avisos, `test:regras` 40, `test:unidade` 22.
 
 **Etapas do plano no código**
 | Etapa | O que existe |
@@ -253,7 +257,7 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 **Encontrado em 10/10/2026**
 - **Conteúdo invisível sem JavaScript:** resolvido no lote D (o framer-motion entregava 11 blocos da home com `opacity: 0`).
 - **Menu de desktop:** o hover troca o peso da fonte (300 para 600), o que alarga o texto e empurra os itens vizinhos; já era assim antes do lote D.
-- **Nome de pessoa na documentação:** `docs/ABTE_contexto_projeto.md` (seção 1) ainda cita a presidente da diretoria pelo nome. `docs/ABTE_contexto_redesign.md` lista profissionais reais com registro, como referência da migração.
+- **Nome de pessoa na documentação:** o nome da presidente da diretoria saiu de `docs/ABTE_contexto_projeto.md` (seção 1) em 12/10/2026, mas continua no histórico do Git (commit `d4c75fc`, já no GitHub, que é público); tirar do histórico exigiria reescrevê-lo, o que não foi autorizado. `docs/ABTE_contexto_redesign.md` continua listando profissionais reais com registro, como referência da migração (etapa 6), por decisão de 12/10/2026; já estava assim na main.
 - **Permissão do `.env.local`:** o arquivo pode ser lido por outros usuários da máquina (o `.env` não). Fora do Git; ajuste local, sem efeito no código.
 - **"Mais lidos da semana" em `/artigos`:** a seção mostra os artigos mais recentes; não existe contagem de leitura.
 - **Painel no celular:** a barra lateral tem 280 px fixos e o conteúdo fica com `calc(100vw - 280px)`, sem regra para telas estreitas; em 390 px o painel fica espremido e difícil de usar (`LayoutPainel.module.css`).
