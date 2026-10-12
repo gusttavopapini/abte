@@ -87,11 +87,12 @@
 }
 
 /* O logo continua centralizado (.pe); o texto de direitos ocupa a largura
-   toda e fica alinhado à esquerda. */
+   toda e fica centralizado (exceção ao alinhamento à esquerda dos textos das
+   colunas, pedido de 12/10/2026). */
 .copyright {
   align-self: stretch;
   font-size: var(--font-size-small);
-  text-align: left;
+  text-align: center;
 }
 
 .logoFooter img {

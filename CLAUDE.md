@@ -406,3 +406,4 @@ Já existiam antes (sem propriedade local): elevação de cards no hover (0.4s, 
 | Onde | O que | Por quê |
 |---|---|---|
 | `src/components/Header/Header.module.css` (`.comFundo`) e `Header.tsx` | Depois de rolar a página (mais de 80 px), o header visível ganha fundo `--color-bg`; no topo continua como antes (transparente sobre a foto na home, sem fundo nas internas). Não se esconde com submenu ou menu em tela cheia abertos nem com foco de teclado dentro dele. | Header visível ao rolar é PROPOSTA no design system; sem fundo, o logo e o menu ficavam transparentes sobre o conteúdo. Pedido de 12/10/2026. |
+| `src/components/Rodape/Rodape.module.css` (`.copyright`) | A frase "© ano ABTE, Associação Brasileira de Tratamento da Escoliose. Todos os direitos reservados." ocupa a largura do rodapé e fica centralizada. | Exceção ao lote A (10/10/2026), que alinhou à esquerda todos os textos do rodapé; os demais textos continuam à esquerda. Pedido de 12/10/2026. |
