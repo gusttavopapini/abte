@@ -8,8 +8,17 @@ type PropsHero = {
   sobHeaderFixo?: boolean;
 };
 
+// Intervalo entre os slides na passagem automática, em milissegundos.
+const INTERVALO_DO_CARROSSEL_MS = 6000;
+
 export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
   const [slideAtual, setSlideAtual] = useState(0);
+  // Motivos para não avançar sozinho: mouse sobre o banner, foco dentro dele,
+  // aba oculta e movimento reduzido.
+  const [mouseEmCima, setMouseEmCima] = useState(false);
+  const [focoDentro, setFocoDentro] = useState(false);
+  const [abaOculta, setAbaOculta] = useState(false);
+  const [movimentoReduzido, setMovimentoReduzido] = useState(false);
 
   const proximo = () => {
     setSlideAtual((atual) => (atual + 1) % imagens.length);
@@ -19,28 +28,46 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
     setSlideAtual((atual) => (atual === 0 ? imagens.length - 1 : atual - 1));
   };
 
-  // Passagem automática a cada 5 segundos. Com movimento reduzido, não
-  // avança sozinho (as setas e os pontos continuam funcionando); a preferência
-  // é seguida também se mudar com a página aberta.
+  // Acompanha o movimento reduzido e a visibilidade da aba, também se
+  // mudarem com a página aberta.
   useEffect(() => {
     const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let intervalo: ReturnType<typeof setInterval> | undefined;
-    const atualizar = () => {
-      clearInterval(intervalo);
-      intervalo = reduzido.matches
-        ? undefined
-        : setInterval(() => setSlideAtual((atual) => (atual + 1) % imagens.length), 5000);
-    };
-    atualizar();
-    reduzido.addEventListener("change", atualizar);
+    const lerReduzido = () => setMovimentoReduzido(reduzido.matches);
+    const lerAba = () => setAbaOculta(document.visibilityState === "hidden");
+    lerReduzido();
+    lerAba();
+    reduzido.addEventListener("change", lerReduzido);
+    document.addEventListener("visibilitychange", lerAba);
     return () => {
-      clearInterval(intervalo);
-      reduzido.removeEventListener("change", atualizar);
+      reduzido.removeEventListener("change", lerReduzido);
+      document.removeEventListener("visibilitychange", lerAba);
     };
-  }, [imagens.length]);
+  }, []);
+
+  // Passagem automática, em loop. A contagem recomeça a cada troca de slide
+  // (também quando a troca vem das setas ou dos pontos) e para enquanto
+  // houver motivo de pausa. As setas e os pontos funcionam sempre.
+  const pausado = mouseEmCima || focoDentro || abaOculta || movimentoReduzido;
+  useEffect(() => {
+    if (pausado || imagens.length < 2) return;
+    const temporizador = setTimeout(() => setSlideAtual((atual) => (atual + 1) % imagens.length), INTERVALO_DO_CARROSSEL_MS);
+    return () => clearTimeout(temporizador);
+  }, [pausado, slideAtual, imagens.length]);
 
   return (
-    <section data-hero="" className={`${estilos.hero} ${sobHeaderFixo ? estilos.sobHeaderFixo : ""}`}>
+    <section
+      data-hero=""
+      className={`${estilos.hero} ${sobHeaderFixo ? estilos.sobHeaderFixo : ""}`}
+      // Só o mouse pausa por passagem: no toque, o "ponteiro em cima" não termina.
+      onPointerEnter={(evento) => evento.pointerType === "mouse" && setMouseEmCima(true)}
+      onPointerLeave={(evento) => evento.pointerType === "mouse" && setMouseEmCima(false)}
+      // Pausa com foco de teclado; o foco que fica na seta depois de um
+      // clique do mouse não pausa, senão o banner pararia de vez.
+      onFocus={(evento) => setFocoDentro(evento.target.matches(":focus-visible"))}
+      onBlur={(evento) => {
+        if (!evento.currentTarget.contains(evento.relatedTarget as Node | null)) setFocoDentro(false);
+      }}
+    >
       <div className={estilos.carrossel}>
         {imagens.map((img, index) => (
           <div
@@ -53,10 +80,10 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
         ))}
 
         {/* Setas de navegação */}
-        <button className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Anterior">
+        <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
           &#10094;
         </button>
-        <button className={`${estilos.seta} ${estilos.setaDireita}`} onClick={proximo} aria-label="Próximo">
+        <button type="button" className={`${estilos.seta} ${estilos.setaDireita}`} onClick={proximo} aria-label="Próximo slide">
           &#10095;
         </button>
 
@@ -65,6 +92,7 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
           {imagens.map((_, index) => (
             <button
               key={index}
+              type="button"
               className={`${estilos.dot} ${index === slideAtual ? estilos.dotAtivo : ""}`}
               onClick={() => setSlideAtual(index)}
               aria-label={`Ir para o slide ${index + 1}`}

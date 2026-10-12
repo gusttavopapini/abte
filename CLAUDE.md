@@ -204,7 +204,7 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 
 **Acessibilidade e comportamento adiados (mudam o que se vê ou se faz)**
 - **H1 na home:** a home não tem H1 (o hero virou carrossel sem título).
-- **Carrossel do Hero:** avança sozinho a cada 5 segundos, sem botão de pausa (com movimento reduzido ele para, desde 10/10/2026); texto alternativo genérico ("Slide 1").
+- **Carrossel do Hero:** desde 12/10/2026 avança sozinho a cada 6 segundos (`INTERVALO_DO_CARROSSEL_MS` em `Hero.tsx`), em loop, e para com o mouse sobre o banner, com foco de teclado dentro dele, com a aba oculta e com movimento reduzido; setas "Slide anterior" e "Próximo slide" e pontos funcionam sempre. **Pendente: botão de pausa visível** (chamado de P16 no pedido de 12/10/2026; neste arquivo P16 é o slug que muda ao editar, conferir a numeração), porque muda o visual. Texto alternativo ainda genérico ("Slide 1"). As setas têm 28 px de largura em 390 px, abaixo dos 44 px dos controles (visual não alterado).
 - **aria-pressed:** os botões do filtro de `/profissionais` não anunciam qual está ativo.
 - **Modal:** resolvido em 10/10/2026 (lote C): `role="dialog"`, Esc fecha, foco preso dentro e devolvido ao fechar; a exclusão de profissional usa confirmação dentro do modal.
 - **Profissionais sem foto:** o card mostra o placeholder preto "IMAGEM" até a etapa 4d (Storage e plano Blaze). O filtro de `/profissionais` ainda é só por tipo; os filtros do design (estado, cidade, método, telerreabilitação, busca) ficam para depois.
