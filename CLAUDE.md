@@ -30,7 +30,7 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 
 | Comando | O que faz |
 |---|---|
-| `npm run dev` | Site em http://localhost:3000 |
+| `npm run dev` | Site em http://localhost:3000 (e, na mesma rede Wi-Fi, pelo IP da máquina; ver "Servidor de desenvolvimento pelo IP") |
 | `npm run build` | Build de produção |
 | `npm run lint` | ESLint |
 | `npm run lint:css` | Stylelint: falha com cor em hex/rgb/hsl/nome ou font-size em px fora do tokens.css |
@@ -138,6 +138,8 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 **Comportamento no navegador (12/10/2026, `integracao/versao-atual`, Chrome headless a 1440 px, build de produção e modo dev):** submenu de Profissionais abre com o mouse e fecha ao sair; o menu esconde ao rolar para baixo e volta ao rolar para cima com fundo `--color-bg`; no topo, transparente na home e sem fundo nas internas; o banner troca de slide sozinho e as setas funcionam; a frase de direitos autorais fica centralizada; título da aba de `/blog` é "Blog | ABTE"; nenhum erro de JavaScript nem aviso de hidratação. Com um submenu aberto o menu não se esconde (`Header.tsx`, checagem de `aria-expanded="true"`), então o submenu nunca fica solto na tela. No console aparecem só os 404 de pré-carregamento dos links sem página (ver "Rotas") e, no modo dev, um aviso de pré-carregamento de CSS do próprio Next.js.
 
 **Cache do modo dev:** em 12/10/2026 o `npm run dev` respondia erro 500 em todas as páginas ("Can't resolve '@vercel/turbopack-next/internal/font/google/font'", da fonte Public Sans). Sem a página, o JavaScript não roda, e por isso o submenu, o recolhimento do menu e o banner pareciam quebrados no computador local, enquanto o site publicado funcionava. A causa estava no cache do Turbopack em `.next/dev`, não no código: com o cache refeito, tudo funciona. Se acontecer de novo, pare o `npm run dev`, apague a pasta `.next/dev` e rode `npm run dev` outra vez. Por que o cache ficou nesse estado não foi verificado.
+
+**Servidor de desenvolvimento pelo IP (12/10/2026):** aberto pelo endereço de rede da máquina (ex.: http://192.168.1.19:3000), o `npm run dev` só funciona porque o `next.config.ts` libera esse endereço em `allowedDevOrigins`. Sem isso, o Next.js bloqueia a conexão `/_next/hmr` vinda de origem diferente de localhost (no log: "Blocked cross-origin request to Next.js dev resource /_next/hmr"), e o React não liga: banner parado, setas e submenu sem resposta (medido: 1 de 183 elementos com React pelo IP, contra 178 de 184 pelo localhost). A lista vale só na fase do servidor de desenvolvimento (`PHASE_DEVELOPMENT_SERVER`) e libera `192.168.1.19` e o padrão `192.168.1.*` (o `*` vale para o último número do IP, que o roteador pode trocar). Em outra rede (ex.: 192.168.0.x ou 10.x), acrescente o padrão dela na lista e reinicie o `npm run dev`; nunca liste endereço público. Build e produção não usam essa opção. **Para testar pelo celular:** computador e celular na mesma rede Wi-Fi; rode `npm run dev`; o terminal mostra a linha "Network: http://192.168...:3000"; abra esse endereço no celular. Se o IP mostrado não começar com 192.168.1, inclua o padrão da rede na lista antes.
 
 **Verificações automáticas (12/10/2026, branch `integracao/versao-atual`):** typecheck passa; lint com 0 erros e 5 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 60 de 60 (15 coleções); `test:unidade` 73 de 73; `test:sessao` 8 de 8. Iguais aos de 10/10/2026 (`feature/loja-e-ajustes`). Antes da loja: lint com 6 avisos, `test:regras` 40, `test:unidade` 22.
 
@@ -384,7 +386,7 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 19 | 1.5rem | Tamanhos de fonte só pelos tokens |
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 22, 23 | 0.1em, 200px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 6, 16 | 25px, 8vw 120px | Espaçamento só pelos tokens |
-| `src/components/Rodape/Rodape.module.css` | 99 | 90px | Tamanhos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 98 | 90px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 34 | 600 | Pesos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 9 | 5px | Raio 0 (--radius) |
 
@@ -410,4 +412,4 @@ Já existiam antes (sem propriedade local): elevação de cards no hover (0.4s, 
 | Onde | O que | Por quê |
 |---|---|---|
 | `src/components/Header/Header.module.css` (`.comFundo`) e `Header.tsx` | Depois de rolar a página (mais de 80 px), o header visível ganha fundo `--color-bg`; no topo continua como antes (transparente sobre a foto na home, sem fundo nas internas). Não se esconde com submenu ou menu em tela cheia abertos nem com foco de teclado dentro dele. | Header visível ao rolar é PROPOSTA no design system; sem fundo, o logo e o menu ficavam transparentes sobre o conteúdo. Pedido de 12/10/2026. |
-| `src/components/Rodape/Rodape.module.css` (`.copyright`) | A frase "© ano ABTE, Associação Brasileira de Tratamento da Escoliose. Todos os direitos reservados." ocupa a largura do rodapé e fica centralizada. | Exceção ao lote A (10/10/2026), que alinhou à esquerda todos os textos do rodapé; os demais textos continuam à esquerda. Pedido de 12/10/2026. |
+| `src/components/Rodape/Rodape.module.css` (`.copyright`) | A frase "© ano ABTE, Associação Brasileira de Tratamento da Escoliose. Todos os direitos reservados." ocupa a largura do rodapé e fica centralizada. | Exceção ao lote A (10/10/2026), que alinhou à esquerda todos os textos do rodapé; os demais textos continuam à esquerda. Pedido de 12/10/2026. Os ícones de Instagram e Facebook da coluna Contato, antes centralizados, começam desde 12/10/2026 na mesma borda esquerda do título e do e-mail (o ícone de 24 px fica à esquerda da área de toque de 44 px). |
