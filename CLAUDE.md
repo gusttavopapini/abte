@@ -359,8 +359,8 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/Estatisticas/Estatisticas.module.css` | 22 | -4px | Tamanhos só pelos tokens |
 | `src/components/Estatisticas/Estatisticas.module.css` | 16 | 5px | Raio 0 (--radius) |
 | `src/components/Estatisticas/Estatisticas.module.css` | 23 | 0 16px 40px color-mix(in srgb,  15%, transparent) | Sem sombra (--shadow: none) |
-| `src/components/Header/Header.module.css` | 47 | 30px | Espaçamento só pelos tokens |
-| `src/components/Header/Header.module.css` | 53, 58 | 5px | Raio 0 (--radius) |
+| `src/components/Header/Header.module.css` | 60 | 30px | Espaçamento só pelos tokens |
+| `src/components/Header/Header.module.css` | 66, 71 | 5px | Raio 0 (--radius) |
 | `src/components/Hero/Hero.module.css` | 45, 57, 61, 67, 71, 95 | 10px, 1rem, 20px, 0.5rem | Espaçamento só pelos tokens |
 | `src/components/Hero/Hero.module.css` | 44, 94 | 2rem, 1.5rem | Tamanhos de fonte só pelos tokens |
 | `src/components/Hero/Hero.module.css` | 6, 7, 8, 76, 77, 91 | 12px, 50vh, 90vh, 500px, 1200px | Tamanhos só pelos tokens |
@@ -380,7 +380,7 @@ Raios, sombras, pesos, espaçamentos, medidas, linhas de 1 e 2 px e opacidades, 
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 19 | 1.5rem | Tamanhos de fonte só pelos tokens |
 | `src/components/PlaceholderImagem/PlaceholderImagem.tsx` | 22, 23 | 0.1em, 200px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 6, 16 | 25px, 8vw 120px | Espaçamento só pelos tokens |
-| `src/components/Rodape/Rodape.module.css` | 98 | 90px | Tamanhos só pelos tokens |
+| `src/components/Rodape/Rodape.module.css` | 99 | 90px | Tamanhos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 34 | 600 | Pesos só pelos tokens |
 | `src/components/Rodape/Rodape.module.css` | 9 | 5px | Raio 0 (--radius) |
 
