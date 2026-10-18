@@ -9,6 +9,8 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { gerarSlug } from "@/lib/slug";
 import { COLECAO_DE_TOPICOS } from "@/lib/dados/colecoes";
+import { gravarPost, type DadosDoPost } from "@/lib/gravacao/posts";
+import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
 import { ehIdDeDocumentoValido, lerListaDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
 // Limites de tamanho dos campos curtos. Textos longos (conteúdo e resumo) não
@@ -32,15 +34,17 @@ function lerStatus(dados: FormData): "publicado" | "rascunho" {
   return acao === "publicar" ? "publicado" : "rascunho";
 }
 
-function lerDadosDoPost(dados: FormData) {
+// Sem o campo antigo "imagem" (endereço da capa): ele saiu do formulário e o
+// valor já gravado não é alterado (ver lib/gravacao/posts.ts).
+function lerDadosDoPost(dados: FormData, capaMidiaId: string | null): DadosDoPost {
   const titulo = lerTextoDoFormulario(dados, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
   return {
     titulo,
-    imagem: lerTextoDoFormulario(dados, "imagem", { rotulo: "Imagem de capa", limite: LIMITE_URL }),
     conteudo: lerTextoDoFormulario(dados, "conteudo", { rotulo: "Conteúdo" }),
     status: lerStatus(dados),
     // O slug é refeito a partir do título também ao editar (comportamento atual).
     slug: gerarSlug(titulo),
+    capaMidiaId,
   };
 }
 
@@ -74,23 +78,50 @@ async function lerDadosDoArtigo(dados: FormData) {
   };
 }
 
-export async function salvarPost(formData: FormData) {
-  await exigirPapelDoPainel();
-  const agora = new Date();
-  await firestoreAdmin().collection("posts").add({ ...lerDadosDoPost(formData), criadoEm: agora, atualizadoEm: agora });
+// Resposta do formulário de post (useActionState): só existe quando algo dá
+// errado; com sucesso, a ação leva de volta para a lista.
+export type RespostaDoPost = { ok: false; mensagem: string; erros?: { capaMidiaId?: string } } | null;
 
-  revalidatePath("/admin/blog");
-  redirect("/admin/blog");
-}
+// Cria (sem id) ou atualiza (com id) um post. Erros voltam para a tela em
+// português, sem perder o que foi digitado.
+async function gravarPostDoFormulario(id: string | null, formData: FormData): Promise<RespostaDoPost> {
+  const capa = lerIdDaMidiaEscolhida(formData.get("capaMidiaId"));
+  if (!capa.ok) return { ok: false, mensagem: "Confira os campos marcados.", erros: { capaMidiaId: "Capa inválida. Escolha a capa de novo." } };
 
-export async function atualizarPost(formData: FormData) {
-  await exigirPapelDoPainel();
-  const id = validarId(formData.get("id"));
-  await firestoreAdmin().collection("posts").doc(id).update({ ...lerDadosDoPost(formData), atualizadoEm: new Date() });
+  let dados: DadosDoPost;
+  try {
+    dados = lerDadosDoPost(formData, capa.id);
+  } catch (erro) {
+    // Só as mensagens da validação (em português) chegam aqui.
+    return { ok: false, mensagem: erro instanceof Error ? erro.message : "Confira os campos." };
+  }
+
+  try {
+    const gravado = await gravarPost(firestoreAdmin(), id, dados);
+    if (!gravado.ok) {
+      return gravado.campo ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } } : { ok: false, mensagem: gravado.mensagem };
+    }
+  } catch (erro) {
+    console.error("Falha ao salvar post:", erro);
+    return { ok: false, mensagem: "Não foi possível salvar agora. Tente de novo em instantes." };
+  }
 
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePath("/blog/[slug]", "page");
   redirect("/admin/blog");
+}
+
+export async function salvarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
+  await exigirPapelDoPainel();
+  return gravarPostDoFormulario(null, formData);
+}
+
+export async function atualizarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
+  await exigirPapelDoPainel();
+  const id = formData.get("id");
+  if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Post não encontrado." };
+  return gravarPostDoFormulario(id, formData);
 }
 
 export async function salvarArtigo(formData: FormData) {

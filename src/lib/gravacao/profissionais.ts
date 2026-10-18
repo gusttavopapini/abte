@@ -5,7 +5,7 @@
 // no emulador.
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { camposAlterados, registrarNoLote, type AutorDaAlteracao } from "../log/alteracoes.ts";
-import { midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
+import { escolhaDeMidiaValida } from "../midia/biblioteca.ts";
 import type { DadosDoProfissional } from "../profissionais.ts";
 
 export const COLECAO_PROFISSIONAIS = "profissionais";
@@ -29,7 +29,7 @@ export async function gravarProfissional(
   if (atual && !atual.exists) return { ok: false, mensagem: "Profissional não encontrado." };
 
   const fotoAnterior = atual?.get("fotoMidiaId") ?? null;
-  if (dados.fotoMidiaId && dados.fotoMidiaId !== fotoAnterior && !(await midiaPodeSerEscolhida(db, dados.fotoMidiaId))) {
+  if (!(await escolhaDeMidiaValida(db, dados.fotoMidiaId, fotoAnterior))) {
     return { ok: false, mensagem: MENSAGEM_FOTO_INDISPONIVEL, campo: "fotoMidiaId" };
   }
 

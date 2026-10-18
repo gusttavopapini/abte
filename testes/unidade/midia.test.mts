@@ -14,6 +14,7 @@ import {
   detectarFormato,
   escolherLarguras,
   escolherVariante,
+  lerIdDaMidiaEscolhida,
   mensagemDoFormato,
   urlPublica,
   validarAlt,
@@ -215,5 +216,14 @@ describe("Texto alternativo, aviso de menores e caminhos", () => {
     assert.equal(caminhoDaVariante("publico", "abc", 960), "publico/midias/abc/960.webp");
     assert.equal(caminhoDaVariante("lixeira", "abc", 480), "lixeira/midias/abc/480.webp");
     assert.equal(urlPublica("abte-dev.firebasestorage.app", "publico/midias/abc/960.webp"), "https://firebasestorage.googleapis.com/v0/b/abte-dev.firebasestorage.app/o/publico%2Fmidias%2Fabc%2F960.webp?alt=media");
+  });
+});
+
+describe("Imagem escolhida no formulário", () => {
+  test("vazio vira sem imagem; id válido passa; caminho ou valor reservado é recusado", () => {
+    assert.deepEqual(lerIdDaMidiaEscolhida(""), { ok: true, id: null });
+    assert.deepEqual(lerIdDaMidiaEscolhida(null), { ok: true, id: null });
+    assert.deepEqual(lerIdDaMidiaEscolhida(" AbC123teste "), { ok: true, id: "AbC123teste" });
+    for (const invalido of ["publico/midias/x", "__x__", ".."]) assert.deepEqual(lerIdDaMidiaEscolhida(invalido), { ok: false }, invalido);
   });
 });

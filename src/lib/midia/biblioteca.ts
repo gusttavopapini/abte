@@ -48,6 +48,7 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 // na tela (nome ou título, já públicos no site).
 export const REFERENCIAS_DE_MIDIA: { colecao: string; campo: string; rotulo: string; campoDoNome: string }[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
+  { colecao: "posts", campo: "capaMidiaId", rotulo: "Posts do blog (capa)", campoDoNome: "titulo" },
 ];
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };
@@ -190,6 +191,14 @@ export async function editarAlt(
 export async function midiaPodeSerEscolhida(db: Firestore, id: string): Promise<boolean> {
   const atual = await lerDocumento(db, id);
   return Boolean(atual && !atual.excluidoEm && atual.variantes.length > 0);
+}
+
+// Confere a imagem escolhida num formulário antes de gravar: sem imagem, ou a
+// mesma que já estava gravada (pode ter ido para a lixeira depois e volta se
+// restaurada), passa; uma imagem nova precisa existir e estar fora da lixeira.
+export async function escolhaDeMidiaValida(db: Firestore, escolhida: string | null, anterior: unknown): Promise<boolean> {
+  if (!escolhida || escolhida === anterior) return true;
+  return midiaPodeSerEscolhida(db, escolhida);
 }
 
 // Onde a imagem está em uso: para cada referência cadastrada em

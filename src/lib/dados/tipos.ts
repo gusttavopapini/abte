@@ -6,7 +6,11 @@
 export type Post = {
   id: string;
   titulo: string;
+  // Endereço de capa antigo (texto livre, antes da biblioteca de mídia). Não é
+  // mais editado no painel nem apagado: aparece só enquanto não há capaMidiaId.
   imagem: string;
+  // Capa da biblioteca de mídia (fatia 3b); quando existe, vence a imagem antiga.
+  capaMidiaId: string | null;
   conteudo: string;
   status: string;
   slug: string;

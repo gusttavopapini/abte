@@ -30,6 +30,8 @@ function atualizarPaginas() {
   revalidatePath("/admin/midia");
   revalidatePath("/admin/profissionais");
   revalidatePath("/profissionais");
+  revalidatePath("/blog");
+  revalidatePath("/blog/[slug]", "page");
 }
 
 const NAO_ENCONTRADA: RespostaDaMidia = { ok: false, mensagem: "Imagem não encontrada." };

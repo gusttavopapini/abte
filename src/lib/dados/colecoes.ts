@@ -46,6 +46,7 @@ const conversorPost = conversorDeLeitura<Post>((id, campos) => ({
   id,
   titulo: texto(campos.titulo),
   imagem: texto(campos.imagem),
+  capaMidiaId: texto(campos.capaMidiaId) || null,
   conteudo: texto(campos.conteudo),
   status: texto(campos.status),
   slug: texto(campos.slug),

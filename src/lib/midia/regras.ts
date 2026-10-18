@@ -1,5 +1,6 @@
-// Regras puras da biblioteca de mídia (etapa 4d), sem dependências: usadas
-// no servidor, no navegador (limites e mensagens) e nos testes de unidade.
+// Regras puras da biblioteca de mídia (etapa 4d), sem dependências externas:
+// usadas no servidor, no navegador (limites e mensagens) e nos testes de unidade.
+import { ehIdDeDocumentoValido } from "../validacao.ts";
 
 // Larguras das variantes WebP. Nunca se amplia: só entram as larguras que não
 // passam da largura da imagem; abaixo da menor, uma variante na largura original.
@@ -133,4 +134,12 @@ export function urlPublica(bucket: string, caminho: string, origem = "https://fi
 export function escolherVariante<V extends { largura: number }>(variantes: V[], larguraPedida: number): V | undefined {
   const ordenadas = [...variantes].sort((a, b) => a.largura - b.largura);
   return ordenadas.find((variante) => variante.largura >= larguraPedida) ?? ordenadas.at(-1);
+}
+
+// Id de mídia escolhido num formulário (campo escondido do seletor de mídia):
+// vazio vira null (sem imagem); um valor que não pode ser id é recusado.
+export function lerIdDaMidiaEscolhida(valor: unknown): { ok: true; id: string | null } | { ok: false } {
+  const texto = typeof valor === "string" ? valor.trim() : "";
+  if (texto === "") return { ok: true, id: null };
+  return ehIdDeDocumentoValido(texto) ? { ok: true, id: texto } : { ok: false };
 }
