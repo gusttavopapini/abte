@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { authAdmin } from "@/lib/firebase/admin-auth";
 import { NOME_COOKIE_SESSAO, ROTA_LOGIN } from "./constantes";
-import { decidirAcessoAoPainel, ehPapelDoPainel, type PapelDoPainel } from "./papeis";
+import { decidirAcessoAoPainel, ehPapelDoPainel, type AcaoDoPainel, type PapelDoPainel } from "./papeis";
 import { verificarCookieDeSessao } from "./verificacao";
 
 type UsuarioDaSessao = {
@@ -16,7 +16,7 @@ type UsuarioDaSessao = {
   papel: PapelDoPainel | null;
 };
 
-type UsuarioDoPainel = UsuarioDaSessao & { papel: PapelDoPainel };
+export type UsuarioDoPainel = UsuarioDaSessao & { papel: PapelDoPainel };
 
 // Lê e valida o cookie de sessão. Confere também se a sessão foi revogada
 // (ex.: depois de "Sair" ou de uma troca de senha). Retorna null se não houver
@@ -59,10 +59,14 @@ export async function exigirSessaoDoPainel(): Promise<ResultadoPainel> {
 // dados. Falha fechada: sem sessão, redireciona para o login; sem papel,
 // interrompe com erro antes de qualquer leitura ou gravação. Nas páginas, esse
 // erro não aparece na tela: o layout já mostra "Acesso não autorizado".
-export async function exigirPapelDoPainel(): Promise<UsuarioDoPainel> {
+// Com uma ação, confere também a permissão do papel (tabela em papeis.ts); a
+// tela não oferece a quem não pode, então a recusa só aparece num pedido forjado.
+export async function exigirPapelDoPainel(acao?: AcaoDoPainel): Promise<UsuarioDoPainel> {
   const usuario = await lerSessao();
   if (!usuario) redirect(ROTA_LOGIN);
-  const decisao = decidirAcessoAoPainel(usuario);
-  if (!decisao.permitido) throw new Error("Acesso não autorizado ao painel.");
+  const decisao = decidirAcessoAoPainel(usuario, acao);
+  if (!decisao.permitido) {
+    throw new Error(decisao.motivo === "sem-permissao" ? "Seu papel não permite esta ação." : "Acesso não autorizado ao painel.");
+  }
   return { ...usuario, papel: decisao.papel };
 }
