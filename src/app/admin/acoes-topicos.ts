@@ -11,6 +11,8 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { COLECAO_DE_TOPICOS } from "@/lib/dados/colecoes";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
 import { escolherSlugUnico, gerarSlug } from "@/lib/slug";
+import { MENSAGEM_IMAGEM_DA_CATEGORIA_INDISPONIVEL, imagemDaCategoriaValida } from "@/lib/gravacao/topicos";
+import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
 import { ehIdDeDocumentoValido, lerInteiroDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
 export type RespostaDoTopico = { ok: boolean; mensagem: string };
@@ -72,6 +74,18 @@ function lerOrdem(dados: FormData): number {
   }
 }
 
+// Só as categorias (de artigos e de produtos) têm imagem; tags não.
+function temImagem(tipo: TipoDeTopico): boolean {
+  return tipo === "categoria" || tipo === "categoriaDeProduto";
+}
+
+// Imagem da categoria (campo escondido do seletor de mídia): vazio vira null.
+function lerImagem(dados: FormData): string | null {
+  const imagem = lerIdDaMidiaEscolhida(dados.get("imagemMidiaId"));
+  if (!imagem.ok) throw new ErroDeValidacao("Imagem inválida. Escolha a imagem de novo.");
+  return imagem.id;
+}
+
 // Converte qualquer falha em resposta para a tela, sem expor detalhe técnico.
 function respostaDeErro(erro: unknown): RespostaDoTopico {
   if (erro instanceof ErroDeValidacao) return { ok: false, mensagem: erro.message };
@@ -87,6 +101,7 @@ function atualizarPaginas() {
   revalidatePath("/artigos/[slug]", "page");
   revalidatePath("/admin/loja/categorias");
   revalidatePath("/loja");
+  revalidatePath("/admin/midia");
 }
 
 // Dois tópicos ativos com o mesmo nome (ignorando acento e maiúsculas) confundem
@@ -134,7 +149,8 @@ export async function criarTopico(_anterior: RespostaDoTopico | null, dados: For
   }
 }
 
-// Renomeia e muda a ordem. O slug não muda, para os endereços continuarem valendo.
+// Renomeia, muda a ordem e, nas categorias, a imagem. O slug não muda, para os
+// endereços continuarem valendo.
 export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
   await exigirPapelDoPainel();
   try {
@@ -144,6 +160,16 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
     const ordem = lerOrdem(dados);
     const db = firestoreAdmin();
     const colecao = db.collection(COLECAO_DE_TOPICOS[tipo]);
+    // Tags não têm imagem: o campo nem é gravado. Nas categorias, só quando o
+    // formulário traz o campo (sem ele, a imagem gravada fica como está).
+    let imagem: { imagemMidiaId?: string | null } = {};
+    if (temImagem(tipo) && dados.has("imagemMidiaId")) {
+      const imagemMidiaId = lerImagem(dados);
+      if (!(await imagemDaCategoriaValida(db, COLECAO_DE_TOPICOS[tipo], id, imagemMidiaId))) {
+        throw new ErroDeValidacao(MENSAGEM_IMAGEM_DA_CATEGORIA_INDISPONIVEL);
+      }
+      imagem = { imagemMidiaId };
+    }
 
     await db.runTransaction(async (transacao) => {
       const existentes = await transacao.get(colecao);
@@ -151,7 +177,7 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
       if (nomeRepetido(nome, existentes.docs, id)) {
         throw new ErroDeValidacao(TEXTOS[tipo].repetido);
       }
-      transacao.update(colecao.doc(id), { nome, ordem, atualizadoEm: new Date() });
+      transacao.update(colecao.doc(id), { nome, ordem, ...imagem, atualizadoEm: new Date() });
     });
 
     atualizarPaginas();

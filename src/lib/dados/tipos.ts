@@ -28,6 +28,8 @@ export type Artigo = {
   autores: string;
   link: string;
   resumo: string;
+  // Imagem da biblioteca de mídia (fatia 3c); aparece só na página do artigo.
+  imagemMidiaId: string | null;
   status: string;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
@@ -72,6 +74,10 @@ export type Topico = {
   slug: string;
   // Ordem de exibição (só usada nas categorias; menor aparece primeiro).
   ordem: number;
+  // Imagem da biblioteca de mídia (só categorias de artigo e de produto;
+  // fatias 3c e 3d). O modelo de dados não define este campo: segue o padrão
+  // imagemMidiaId dos artigos (registrado no CLAUDE.md).
+  imagemMidiaId: string | null;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
   excluidoEm: Date | null;

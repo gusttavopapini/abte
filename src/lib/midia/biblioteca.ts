@@ -49,6 +49,8 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 export const REFERENCIAS_DE_MIDIA: { colecao: string; campo: string; rotulo: string; campoDoNome: string }[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
   { colecao: "posts", campo: "capaMidiaId", rotulo: "Posts do blog (capa)", campoDoNome: "titulo" },
+  { colecao: "artigos", campo: "imagemMidiaId", rotulo: "Artigos (imagem)", campoDoNome: "titulo" },
+  { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", rotulo: "Categorias de artigos (imagem)", campoDoNome: "nome" },
 ];
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };

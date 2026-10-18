@@ -109,7 +109,7 @@ export async function excluirMidia(_anterior: RespostaDaMidia | null, dados: For
     const servicos = servicosDeMidia();
     const usos = await listarUsos(servicos.db, id);
     if (usos.length > 0 && dados.get("confirmarUso") !== "sim") {
-      return { ok: false, mensagem: "Esta imagem está em uso nos registros abaixo. Se continuar, eles passam a mostrar o espaço de imagem até a imagem ser restaurada.", usos };
+      return { ok: false, mensagem: "Esta imagem está em uso nos registros abaixo. Se continuar, eles ficam sem a imagem no site até ela ser restaurada.", usos };
     }
     const resultado = await moverParaLixeiraOuRestaurar(servicos, id, true, autorDe(usuario));
     if (!resultado.ok) return falha(resultado.mensagem);
