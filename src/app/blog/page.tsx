@@ -3,6 +3,7 @@ import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
 import { lerPosts } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
+import { capaParaExibir } from "@/lib/capaDoPost";
 import { revelar } from "@/components/Revelar/revelar";
 
 export const metadata = { title: "Blog" };
@@ -17,15 +18,18 @@ export default async function PaginaBlog() {
   // Capas fora da lixeira da biblioteca; com capaMidiaId sem imagem, placeholder.
   const capas = await imagensAtivasPorId(publicados.map((post) => post.capaMidiaId));
 
-  const posts = publicados.map((post) => ({
-    id: post.id,
-    titulo: post.titulo || "Sem título",
-    slug: post.slug || post.id,
-    resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
-    capa: post.capaMidiaId ? capas.get(post.capaMidiaId) ?? null : null,
-    // A capa antiga só vale enquanto o post não tem capa da biblioteca.
-    imagemUrl: post.capaMidiaId ? undefined : post.imagem || undefined,
-  }));
+  const posts = publicados.map((post) => {
+    // Regra em lib/capaDoPost.ts; sem imagem, o card mostra o placeholder interno.
+    const capa = capaParaExibir(post, post.capaMidiaId ? capas.get(post.capaMidiaId) : undefined, "lista");
+    return {
+      id: post.id,
+      titulo: post.titulo || "Sem título",
+      slug: post.slug || post.id,
+      resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
+      capa: capa.tipo === "biblioteca" ? capa.imagem : null,
+      imagemUrl: capa.tipo === "antiga" ? capa.endereco : undefined,
+    };
+  });
 
   return (
     <LayoutPublico header="solida">

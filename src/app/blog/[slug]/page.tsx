@@ -7,8 +7,8 @@ import estilos from "./page.module.css";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { lerPosts } from "@/lib/dados/colecoes";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
-import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
+import { capaParaExibir } from "@/lib/capaDoPost";
 
 // Post publicado pelo id do documento ou, se não achar, pelo campo slug.
 // Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
@@ -35,10 +35,9 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
   if (!post) notFound();
 
   const dataFormatada = post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "";
-  // Capa da biblioteca (vence); sem ela, a capa antiga digitada; sem nenhuma,
-  // ou com a imagem da biblioteca na lixeira, o placeholder interno.
-  const capa = post.capaMidiaId ? (await imagensAtivasPorId([post.capaMidiaId])).get(post.capaMidiaId) ?? null : null;
-  const capaAntiga = post.capaMidiaId ? "" : post.imagem;
+  // Regra em lib/capaDoPost.ts; sem imagem, a página não tem bloco de capa.
+  const imagem = post.capaMidiaId ? (await imagensAtivasPorId([post.capaMidiaId])).get(post.capaMidiaId) : undefined;
+  const capa = capaParaExibir(post, imagem, "pagina");
 
   return (
     <LayoutPublico header="solida">
@@ -59,23 +58,23 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
               </div>
             </header>
 
-            <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
-              {capa ? (
-                <ImagemDaMidia
-                  variantes={capa.variantes}
-                  alt={capa.alt}
-                  largura={capa.largura}
-                  altura={capa.altura}
-                  sizes="(max-width: 800px) 100vw, 800px"
-                  prioridade
-                  className={estilos.imagemDeCapa}
-                />
-              ) : capaAntiga ? (
-                <img src={capaAntiga} alt={post.titulo} className={estilos.imagemDeCapa} />
-              ) : (
-                <PlaceholderImagem />
-              )}
-            </div>
+            {capa.tipo !== "nenhuma" && capa.tipo !== "placeholder" && (
+              <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
+                {capa.tipo === "biblioteca" ? (
+                  <ImagemDaMidia
+                    variantes={capa.imagem.variantes}
+                    alt={capa.imagem.alt}
+                    largura={capa.imagem.largura}
+                    altura={capa.imagem.altura}
+                    sizes="(max-width: 800px) 100vw, 800px"
+                    prioridade
+                    className={estilos.imagemDeCapa}
+                  />
+                ) : (
+                  <img src={capa.endereco} alt={post.titulo} className={estilos.imagemDeCapa} />
+                )}
+              </div>
+            )}
 
             <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
               {post.conteudo}
