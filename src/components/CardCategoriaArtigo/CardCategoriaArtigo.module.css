@@ -12,15 +12,20 @@
   box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-.imagem, .imagemPlaceholder {
+/* Área da imagem 16:9; a imagem é cortada para caber (seletor com duas
+   classes para valer sobre o height: auto do ImagemDaMidia) */
+.moldura {
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
-  display: block;
+  overflow: hidden;
+  background-color: var(--color-surface-soft);
 }
 
-.imagemPlaceholder {
-  background-color: var(--color-surface-soft);
+.moldura .imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .rodape {

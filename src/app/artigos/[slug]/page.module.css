@@ -76,3 +76,8 @@
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
 }
+
+/* Imagem do artigo (biblioteca de mídia), entre o cabeçalho e o resumo */
+.imagem {
+  margin-bottom: var(--space-32);
+}

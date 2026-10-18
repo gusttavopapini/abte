@@ -4,15 +4,17 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { revelar } from "@/components/Revelar/revelar";
 
 export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaArtigos() {
-  // Categorias cadastradas no painel ("Tópicos dos artigos"), fora da lixeira.
-  // Sem imagem até a biblioteca de mídia (etapa 4d): o card usa o placeholder.
+  // Categorias cadastradas no painel ("Tópicos dos artigos"), fora da lixeira,
+  // com a imagem da biblioteca; sem imagem, o card usa o placeholder.
   const [snapshot, categorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria")]);
+  const imagens = await imagensAtivasPorId(categorias.map((categoria) => categoria.imagemMidiaId));
 
   const artigos = snapshot.docs
     .map((documento) => {
@@ -61,7 +63,12 @@ export default async function PaginaArtigos() {
                 <p className={`tipo-texto ${estilos.vazio}`}>Nenhum tópico cadastrado ainda.</p>
               ) : (
                 categorias.map((categoria) => (
-                  <CardCategoriaArtigo key={categoria.id} nome={categoria.nome} slug={categoria.slug} />
+                  <CardCategoriaArtigo
+                    key={categoria.id}
+                    nome={categoria.nome}
+                    slug={categoria.slug}
+                    imagem={categoria.imagemMidiaId ? imagens.get(categoria.imagemMidiaId) ?? null : null}
+                  />
                 ))
               )}
             </div>

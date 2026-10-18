@@ -7,6 +7,8 @@ import estilos from "./page.module.css";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import type { Topico } from "@/lib/dados/tipos";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 
 // Artigo publicado pelo id do documento ou, se não achar, pelo campo slug.
 // Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
@@ -33,6 +35,9 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   if (!artigo) notFound();
 
   const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
+  // Imagem da biblioteca, só nesta página (o card da lista é só texto, como no
+  // design). Sem imagem, ou com ela na lixeira, nenhum bloco de imagem.
+  const imagem = artigo.imagemMidiaId ? (await imagensAtivasPorId([artigo.imagemMidiaId])).get(artigo.imagemMidiaId) : undefined;
 
   // Tags do artigo, na ordem do nome; as que estão na lixeira não aparecem.
   const colecaoDeTags = lerTopicos("tag");
@@ -69,6 +74,19 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
                 </ul>
               )}
             </header>
+
+            {imagem && (
+              <div className={estilos.imagem}>
+                <ImagemDaMidia
+                  variantes={imagem.variantes}
+                  alt={imagem.alt}
+                  largura={imagem.largura}
+                  altura={imagem.altura}
+                  sizes="(max-width: 800px) 100vw, 800px"
+                  prioridade
+                />
+              </div>
+            )}
 
             <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
               {artigo.resumo}

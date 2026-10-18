@@ -1,23 +1,30 @@
 import estilos from "./CardCategoriaArtigo.module.css";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { Botao } from "@/components/Botao/Botao";
+import type { ImagemNaTela } from "@/lib/midia/tela";
 
 type Props = {
   nome: string;
-  imagemUrl?: string;
+  // Imagem da biblioteca de mídia; null sem imagem ou com ela na lixeira.
+  imagem: ImagemNaTela | null;
   slug: string;
 };
 
-export function CardCategoriaArtigo({ nome, imagemUrl, slug }: Props) {
+// Largura do card na grade de /artigos (1, 2 e 3 colunas), para o navegador
+// escolher a variante.
+const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+
+export function CardCategoriaArtigo({ nome, imagem, slug }: Props) {
   return (
     <div className={estilos.card}>
-      {imagemUrl ? (
-        <img src={imagemUrl} alt={nome} className={estilos.imagem} />
-      ) : (
-        <div className={estilos.imagemPlaceholder}>
+      <div className={estilos.moldura}>
+        {imagem ? (
+          <ImagemDaMidia variantes={imagem.variantes} alt={imagem.alt} largura={imagem.largura} altura={imagem.altura} sizes={LARGURA_DA_IMAGEM} className={estilos.imagem} />
+        ) : (
           <PlaceholderImagem />
-        </div>
-      )}
+        )}
+      </div>
       <div className={estilos.rodape}>
         <span className={estilos.nome}>{nome}</span>
         <Botao href={`/artigos/categoria/${slug}`} variante="primario" className={estilos.botao}>
