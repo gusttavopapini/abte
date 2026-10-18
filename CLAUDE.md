@@ -17,6 +17,7 @@ A gestão do projeto não é feita por desenvolvedores: a revisão é visual, em
 | firebase (SDK web, só nos logins do painel e da loja) | 12.19.0 |
 | firebase-admin (só no servidor) | 14.5.0 |
 | server-only | 0.0.1 |
+| sharp (processamento de imagens no servidor, etapa 4d; versão exata, aprovada em 18/10/2026; já vinha instalado pelo Next.js) | 0.35.5 |
 | firebase-tools (CLI e emuladores, dev) | 15.31.0 |
 | @firebase/rules-unit-testing (dev) | 5.0.2 |
 | ESLint (eslint-config-next) | 9.39 |
@@ -35,7 +36,7 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 | `npm run lint` | ESLint |
 | `npm run lint:css` | Stylelint: falha com cor em hex/rgb/hsl/nome ou font-size em px fora do tokens.css |
 | `npm run typecheck` | Checagem de tipos (tsc) |
-| `npm run test:regras` | Testes das regras do Firestore no emulador (exige Java) |
+| `npm run test:regras` | Testes das regras do Firestore e do Cloud Storage nos emuladores (exige Java; 80 testes desde 18/10/2026: 60 do Firestore e 20 do Storage) |
 | `npm run test:sessao` | Testes de sessão e permissão nos emuladores de Authentication e Firestore (cliente nunca entra no painel, sessão revogada, exclusão de conta); exige Java |
 | `npm run test:unidade` | Testes de unidade das funções puras (acesso ao painel, validações, slug), com `node --test`, sem emulador |
 | `npm run admin:conceder -- email@exemplo.com [--nome "Nome"]` | Dá o papel "administrador" a um usuário existente (lê o .env e depois o .env.local; o .env.local prevalece) |
@@ -45,7 +46,8 @@ Atenção ao Next.js 16: o antigo `middleware.ts` agora se chama **`proxy.ts`** 
 ```
 docs/                     arquivos de referência (design system, tokens, contexto, ABTE_contexto_projeto.md)
 firestore.rules           regras do Firestore (nega tudo)
-firebase.json, .firebaserc  Firebase CLI (Firestore + emulador; projeto padrão abte-dev)
+storage.rules             regras do Cloud Storage (nega tudo; só abrir arquivo em publico/)
+firebase.json, .firebaserc  Firebase CLI (Firestore, Storage e emuladores; projeto padrão abte-dev)
 .env.example              modelo das variáveis de ambiente (sem valores)
 scripts/                  scripts de linha de comando (Admin SDK)
 testes/regras/            testes das regras (node:test + emulador)
@@ -111,6 +113,7 @@ src/
 - **Desenvolvimento:** projeto `abte-dev`, numa conta Google de desenvolvimento, separada da conta da ABTE (plano gratuito, Firestore em southamerica-east1, Authentication por e-mail e senha).
 - **Produção:** projeto próprio, em conta da ABTE, criado na etapa 9. Nada no código depende do `abte-dev`: tudo que identifica o projeto vem de variáveis de ambiente (`.env.example` lista todas). O `.firebaserc` só define o alias padrão da CLI.
 - **Acesso aos dados sempre pelo servidor**, com o Admin SDK. O navegador não lê nem grava no Firestore.
+- **Regras do Cloud Storage (`storage.rules`, desde 18/10/2026):** tudo negado ao navegador, inclusive para quem tem papel no painel. Única exceção: abrir (`get`) um arquivo pelo caminho exato em `publico/**`, onde ficam as imagens já processadas. Listar pastas continua negado; `lixeira/` e qualquer outro caminho ficam fechados; gravar, alterar metadados e apagar são sempre negados (os envios passam pelo servidor, com o Admin SDK). Testes em `testes/regras/storage.test.mts` (emulador na porta 9199). As regras ainda não foram publicadas no projeto real: no console, o bucket está no modo de produção (bloqueado), que nega tudo.
 - **Regras do Firestore negam todo acesso direto do navegador.** Toda coleção nova continua negada e ganha teste em `testes/regras/`. Qualquer exceção precisa de regra específica e teste.
 - **Papéis por custom claim** `papel` no Authentication: `administrador` ou `editor`. Sem papel, nada do painel.
 - **Sessão por cookie** de sessão do Firebase (`__session`, httpOnly, secure em produção, sameSite strict, 5 dias, caminho `/admin`), validado no servidor em toda página do painel com checagem de revogação (`src/lib/auth/sessao.ts`). O layout do painel usa `exigirSessaoDoPainel()` para mostrar "Acesso não autorizado" a quem não tem papel; **toda ação de servidor e toda página do painel que lê dados começam por `exigirPapelDoPainel()`**, que falha fechada (sem sessão vai para o login; sem papel interrompe antes de ler ou gravar). A decisão fica na função pura `decidirAcessoAoPainel()` (`src/lib/auth/papeis.ts`), testada em `test:unidade`. Administrador e editor ainda têm o mesmo acesso. "Sair" revoga a sessão e apaga o cookie.
@@ -172,7 +175,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 **Firestore:** coleções usadas pelo código: `posts`, `artigos`, `categoriasDeArtigos`, `tagsDeArtigos`, `profissionais`, `produtos`, `categoriasDeProdutos`, `clientes` e `carrinhos`; todas negadas ao navegador e cobertas por `testes/regras`. No projeto de desenvolvimento (contagem sem ler valores, no início da sessão), só a coleção `posts` existia, com 2 documentos publicados; os testes desta sessão rodaram nos emuladores e não gravaram nada no projeto. `artigos` e `profissionais` estão vazias, portanto não há dado a migrar quando os modelos mudarem. No Authentication há 1 usuário, com papel administrador. As regras negam tudo; `testes/regras/firestore.test.mts` cobre 10 coleções (as do modelo planejado e uma qualquer) para visitante, logado sem papel, administrador e editor. `firestore.indexes.json` não tem índices.
 
-**Storage:** o bucket padrão do projeto de desenvolvimento não existe (consulta pelo Admin SDK), ou seja, o Cloud Storage não está ativo. Não há `storage.rules` nem emulador de Storage no `firebase.json`. Fotos de profissionais, imagens de tópicos e galeria de produtos dependem da etapa 4d e do plano Blaze.
+**Storage (18/10/2026):** o bucket `abte-dev.firebasestorage.app` existe, em `SOUTHAMERICA-EAST1` (consulta pelo Admin SDK, só nome e região), vazio e sem CORS. A etapa 4d (biblioteca de mídia) está em andamento na branch `feature/midia-upload`, em fatias: 0 (sharp e correções de 18/10) e 1 (regras e emulador) feitas; 2 (biblioteca e `/admin/midia`) e 3a a 3d (campos de imagem) a seguir.
 
 **Segurança:** todas as ações de `acoes-conteudo.ts` e todas as páginas do painel que leem dados começam por `exigirPapelDoPainel()`; as páginas sem leitura de dados (`/admin`, `novo`) ficam protegidas pelo layout. Cookie `__session` httpOnly, sameSite strict, secure em produção, caminho `/admin`, 5 dias. Painel e `/componentes` com noindex (metadata e cabeçalho `X-Robots-Tag`). Nenhum código, dependência ou variável de pagamento.
 
@@ -190,6 +193,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 Numeração D: este arquivo não tinha série D antes de 10/10/2026; D1 é o primeiro número usado aqui. Se os registros do Projeto já usam outra numeração, ajustar.
 
+- **D2 (18/10/2026), biblioteca de mídia (etapa 4d):** envio pelo painel com a imagem reduzida no navegador (lado maior até 2560 px, respeitando a orientação) e mandada por ação de servidor (`serverActions.bodySizeLimit` "4mb"; acima disso, mensagem em português); sem CORS no bucket. O processamento fica num módulo server-only independente de sessão, reaproveitável pela migração (etapa 6): confere o tipo real (JPEG, PNG ou WebP; SVG e HEIC recusados), aplica a rotação do EXIF, remove metadados, gera WebP qualidade 78 nas larguras 480, 960 e 1600 px (sem ampliar; abaixo de 480 px, uma variante na largura original) e não guarda o original. Sem AVIF e sem PDF nesta etapa. Leitura pública só em `publico/**` (get, sem list), cache de um ano, componente próprio de imagem que escolhe entre as larguras, sem a otimização de imagens da Vercel. Exclusão em duas etapas: "Excluir" move para `lixeira/`, "Restaurar" devolve, "Excluir de vez" só para administrador, com confirmação; imagem em uso pede confirmação. Registro mínimo em `logAlteracoes` só para mídia (campos a aprovar: o documento de modelo citado no pedido, `docs/05_MODELO_DE_DADOS_E_PERMISSOES`, não existe no projeto). Caixa de menores com confirmação de autorização, texto PROVISÓRIO. Home e banner fora (dependem de `configuracoes`, etapa 3).
 - **D1 (10/10/2026), carrinho e conta de cliente na loja:** pedido explícito de carrinho e conta de cliente, restritos à área da loja (`/loja` e rotas filhas, num subcabeçalho próprio; o cabeçalho do site não ganha login nem carrinho). Substitui a regra "loja só vitrine" e os itens 1 a 3 do registro de alterações de `docs/design-system.md` no que diz respeito ao carrinho. Continuam proibidos: pagamento, gateway, SDK de pagamento, webhook, variáveis de pagamento e finalização de compra (até decisão própria). Conta de cliente pelo Firebase Authentication, criada pelo servidor, sem custom claim `papel`, com sessão em cookie separado do painel; clientes nunca acessam o painel. Implementado em 10/10/2026 (lotes E1 a E4), com estas decisões aprovadas: finalização como botão "Finalizar compra: em breve" desativado, com o carrinho guardado na conta (opções de envio por e-mail ou WhatsApp e Stripe ficam para depois); carrinho só com conta de cliente; relacionados da mesma categoria, publicados, sem o próprio produto, até 3, pela ordem do painel; exclusão para a lixeira (`excluidoEm`); subcabeçalho com o texto "Carrinho (n)", sem o ícone de sacola, até a designer decidir; cookie `abte_cliente` com caminho `/loja`. O carrinho guarda só id e quantidade (`carrinhos/{uid}`); preço e disponibilidade são lidos do produto no servidor a cada vez.
 
 ## Decisões em aberto: NUNCA assumir
@@ -245,7 +249,10 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - Links que davam 404: resolvido em 18/10/2026 com páginas provisórias e preliminares (ver "Rotas").
 - **Rodapé no celular:** em 390 px as colunas empilhadas começam em alturas e bordas esquerdas diferentes (cada coluna centralizada como bloco, com o texto à esquerda, conforme a opção aprovada no lote A). Pendente de decisão de design.
 - **Carrinho (n) no subcabeçalho:** conta todas as unidades guardadas, inclusive de produtos que esgotaram ou saíram da loja; o total do carrinho conta só os disponíveis.
-- **Storage e plano Blaze:** ação pendente de quem administra a conta: ativar o plano Blaze no projeto de desenvolvimento, com alerta de orçamento, para a galeria de produtos e as fotos (etapa 4d).
+- **Storage e plano Blaze:** bucket criado em 18/10/2026 em São Paulo. Fora das 3 regiões dos EUA com nível gratuito: armazenamento e download são cobrados desde o primeiro byte (valores por GB NÃO VERIFICADOS). Conferir o alerta de orçamento no Google Cloud.
+- **Download das imagens sem CDN (etapa 9):** as imagens públicas saem direto do bucket pelo endereço do Firebase Storage, sem CDN, com `Cache-Control: public, max-age=31536000, immutable` e nomes nunca reaproveitados. Reavaliar CDN no lançamento.
+- **Posts com capa externa:** os 2 posts publicados do banco de desenvolvimento (`9kvFVacPmfqrSDSd66mk` e `PoMkgyRruccfAzwCxwK2`) têm a capa em `static.portugues.com.br`. Ficam como estão: a etapa 4d não apaga nem altera dados existentes.
+- **Aviso de fotos de menores (etapa 4d, fatia 2):** a caixa "A imagem mostra criança ou adolescente" e a confirmação "A ABTE tem autorização por escrito dos responsáveis" terão texto PROVISÓRIO; a redação final é da ABTE e da assessoria jurídica.
 - **Loja:** produtos sem imagem (placeholder) até a etapa 4d; os endereços antigos do Wix (`/product-page/...`, `/category/...`) precisam de redirecionamento na etapa 9. Dados estruturados de produto sem `offers` (não aparecem preço nem disponibilidade no Google).
 - Imagens provisórias externas (picsum.photos e placehold.co).
 - Números das estatísticas e o título da home com "Tratando Escoliose" dependem das decisões em aberto.
@@ -272,6 +279,8 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 
 **Dependências e hospedagem**
 - **P17, framer-motion fora do plano:** resolvida em 10/10/2026: trocado por CSS e removido do `package.json`.
+- **Região das funções da Vercel (ligada à decisão de hospedagem, P3):** por padrão as funções rodam em `iad1` (EUA), enquanto o Firestore e o bucket estão em São Paulo; cada leitura e cada envio de imagem atravessam o continente. Avaliar `gru1` quando a hospedagem for decidida.
+- **Plano Hobby da Vercel (ligado à P3):** pela política de uso justo da Vercel, o Hobby é só para uso pessoal não comercial; a loja e a doação pesam na escolha do plano ou da hospedagem.
 - **Ajustes de Vercel com hospedagem ainda não decidida:** `transpilePackages: ["jwks-rsa", "jose"]` no `next.config.ts` e o override de `jose` 4.15.9 no `package.json`. Não remover sem testar o deploy.
 - `turbopack.root` no `next.config.ts` só evita o aviso de um `package-lock.json` solto na pasta do usuário, fora do projeto.
 - O Git local tem `refs/original/refs/heads/main`, backup de uma reescrita de autoria anterior; não está em nenhuma branch.
