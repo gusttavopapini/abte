@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
+import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import type { Topico } from "@/lib/dados/tipos";
 
@@ -9,7 +10,9 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   const { slug } = await params;
 
   // Procura primeiro pelo id do documento e, se não achar, pelo campo slug.
-  let artigo = (await lerArtigos().doc(slug).get()).data();
+  // Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
+  // Firestore recusaria a leitura e a página daria erro 500 em vez de 404.
+  let artigo = ehIdDeDocumentoValido(slug) ? (await lerArtigos().doc(slug).get()).data() : undefined;
   if (!artigo) {
     const consulta = await lerArtigos().where("slug", "==", slug).limit(1).get();
     artigo = consulta.docs[0]?.data();
