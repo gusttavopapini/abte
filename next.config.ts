@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
   transpilePackages: ["jwks-rsa", "jose"],
   // Não anuncia o framework no cabeçalho das respostas.
   poweredByHeader: false,
+  // Envio de imagens da biblioteca de mídia por ação de servidor: a imagem
+  // chega reduzida pelo navegador e o limite fica abaixo dos 4,5 MB por
+  // requisição da Vercel (ver LIMITE_DO_ARQUIVO_EM_BYTES em src/lib/midia/regras.ts).
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   async headers() {
     return [
       // Painel e página de revisão visual fora dos buscadores.

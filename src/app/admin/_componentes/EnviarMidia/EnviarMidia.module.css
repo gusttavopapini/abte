@@ -1,0 +1,65 @@
+/* Mesmo padrão do formulário de profissional: fundo claro dentro do modal */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  background: var(--color-bg-alt);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.grupoSemMoldura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.arquivo {
+  min-height: var(--control-min-height-mobile);
+  max-width: 100%;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.ajuda {
+  font-size: var(--font-size-small);
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.erro {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: flex-end;
+}

@@ -1,0 +1,155 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.busca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+/* Campo de busca com o fundo claro do painel: sobre o fundo branco da página,
+   o campo branco do componente Campo não apareceria */
+.campoBusca {
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 var(--space-8);
+  border: 0;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+}
+
+/* Grade de cartões: quantas colunas couberem, com no mínimo 192 px cada */
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-96) * 2), 1fr));
+  gap: var(--space-24);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  background: var(--color-bg-alt);
+  min-width: 0;
+}
+
+.imagem {
+  background: var(--color-bg);
+}
+
+.semPrevia {
+  display: grid;
+  place-items: center;
+  min-height: var(--space-96);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.alt {
+  font-size: var(--font-size-text);
+  overflow-wrap: anywhere;
+}
+
+.detalhes {
+  font-size: var(--font-size-small);
+}
+
+/* Aviso de menores: texto em caixa branca, como as mensagens do site */
+.selo {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+}
+
+/* Ações do cartão como links de texto, iguais às da tabela de profissionais */
+.acao {
+  min-height: var(--control-min-height-mobile);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.acao:hover {
+  color: var(--color-primary-hover);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: flex-end;
+}
+
+.usos {
+  margin-top: var(--space-8);
+  padding-left: var(--space-24);
+}
+
+.lixeira {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-32);
+}
+
+.listaLixeira {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.linhaLixeira {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+  padding: var(--space-16);
+  background: var(--color-bg-alt);
+}
+
+/* Miniatura da lixeira: 96 px de largura */
+.miniatura {
+  flex: 0 0 var(--space-96);
+}
+
+.altLixeira {
+  flex: 1 1 calc(var(--space-96) * 2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
