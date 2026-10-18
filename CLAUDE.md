@@ -61,6 +61,9 @@ src/
     not-found.tsx         404 provisória
     blog/, artigos/, profissionais/, contato/, loja/   páginas públicas
     componentes/          página de revisão visual (noindex)
+    robots.ts             robots.txt PROVISÓRIO que bloqueia tudo (remover no lançamento)
+    doe/, seja-associado/ páginas provisórias (decisões P1 e P8 em aberto)
+    politica-de-privacidade/, termos-de-uso/, acessibilidade/   versões preliminares, em revisão pela ABTE
     admin/                painel
       acoes.ts            ações de servidor do login (criar e encerrar sessão)
       acoes-conteudo.ts   ações de servidor de posts, artigos e profissionais
@@ -72,7 +75,7 @@ src/
       entrar/             login e recuperação de senha
       (painel)/           telas protegidas (layout com checagem de sessão e papel)
       _componentes/       componentes só do painel (um por pasta, com CSS Module)
-  components/<Nome>/      componentes do site, um por pasta, com seu CSS Module (Revelar: entrada ao rolar)
+  components/<Nome>/      componentes do site, um por pasta, com seu CSS Module (Revelar: entrada ao rolar; PaginaDeTexto: páginas institucionais só de texto)
   config/navegacao.ts     menu, rodapé, e-mail, redes e funções de item ativo do menu
   config/profissionais.ts tipos de profissional (também as tags do filtro), métodos, países e UFs
   lib/firebase/cliente.ts SDK web (navegador, só login)
@@ -92,7 +95,9 @@ src/
 
 - **Públicas:** `/`, `/profissionais` (filtro `?tag=`), `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/artigos/categoria/[slug]` (categorias e tags lidas do Firestore), `/contato`, `/loja` (lista com filtro `?categoria=`, subcabeçalho próprio da loja), `/loja/produto/[slug]` (produto com relacionados e aviso "Em breve"), `/loja/entrar`, `/loja/entrar/recuperar-senha`, `/loja/cadastro`, `/loja/conta` (conta de cliente, noindex), `/loja/carrinho` (exige conta, noindex), `/componentes` (revisão visual, noindex).
 - **Painel:** `/admin/entrar`, `/admin/entrar/recuperar-senha`, `/admin` (visão geral), `/admin/blog`, `/admin/blog/novo`, `/admin/blog/editar/[id]`, `/admin/artigos`, `/admin/artigos/novo`, `/admin/artigos/editar/[id]`, `/admin/artigos/topicos` (categorias e tags), `/admin/profissionais`, `/admin/loja`, `/admin/loja/novo`, `/admin/loja/editar/[id]`, `/admin/loja/categorias` (criar, editar e excluir num modal).
-- **Links do menu e do rodapé que ainda dão 404:** `/doe`, `/seja-associado`, `/acessibilidade`, `/politica-de-privacidade`, `/termos-de-uso`.
+- **Provisórias (18/10/2026):** `/doe` ("Em breve", sem Pix nem dado de pagamento, decisão P1 em aberto) e `/seja-associado` (texto do card da home e botão para `/contato`, decisão P8 em aberto).
+- **Preliminares, com a faixa "Versão preliminar, em revisão pela ABTE" (18/10/2026):** `/politica-de-privacidade`, `/termos-de-uso`, `/acessibilidade`. Descrevem só o que o código faz hoje, sem afirmação jurídica nem declaração de conformidade.
+- Nenhum link interno do menu ou do rodapé dá 404 desde 18/10/2026.
 
 ## Arquivos de referência (ordem de prioridade em caso de conflito)
 
@@ -131,7 +136,19 @@ src/
 
 Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pendentes".
 
-## Estado atual (verificado em 12/10/2026)
+## Estado atual (verificado em 18/10/2026)
+
+**Git (18/10/2026).** A main continua em `207c9b1` (igual a `origin/main`) e é o que a Vercel publica em produção (deployments do GitHub: produção só da main; não há `vercel.json`, e `.vercel/` só liga a pasta ao projeto `abte`). Todas as outras branches estão contidas, em cadeia linear, na ponta `c470d4f` (`fix/dev-ip-e-rodape` e `feature/midia-upload`, iguais, nunca enviadas; `feature/midia-upload` não tem nenhum trabalho de mídia). A branch **`integracao/continuidade`** parte de `c470d4f` (merges das demais vazios) e traz as correções de 18/10/2026: 404 em vez de 500 em endereço inválido, título da aba em posts e artigos, H1 para leitores de tela na home e em `/contato`, `allowedDevOrigins` só com `192.168.1.*`, noindex em todo o site, `/doe`, `/seja-associado` e as três páginas legais preliminares. É a candidata a ir para a main, depois da revisão do preview. No remoto existem `main`, `feature/loja-e-ajustes`, `integracao/versao-atual` e, depois do push, `integracao/continuidade`; `refs/original` existe só no Git local.
+
+**Navegador (18/10/2026, `integracao/continuidade`, build de produção, Chrome headless com perfil temporário, script Node sem dependência, em 390, 768, 1280 e 1710 px):** 18 rotas públicas (inclusive as 5 novas) com status 200, um H1 cada, sem rolagem horizontal, sem imagem quebrada, sem erro de console nem aviso de hidratação, todas com `noindex, nofollow`; nenhum link interno dá 404; endereço inválido e rota inexistente dão 404 com título "Página não encontrada". Submenu de Profissionais abre e fecha com mouse e teclado (Esc devolve o foco à seta); o menu esconde ao rolar para baixo e volta com fundo branco ao subir, transparente no topo; o banner passa sozinho (0, 1, 2, 0 a cada 6 s), para com o mouse em cima e as setas funcionam; abaixo de 1024 px o hambúrguer abre o menu, prende o foco, trava a rolagem, fecha com Esc e com o botão e devolve o foco. Painel sem sessão redireciona para `/admin/entrar` (307), e painel e `/componentes` têm `X-Robots-Tag` e metadata noindex. Terceiros pedidos pelo navegador: `picsum.photos` (home e `/componentes`) e `static.portugues.com.br` (imagem gravada num post do blog).
+
+**Verificações automáticas (18/10/2026, `integracao/continuidade`):** iguais às de 12/10/2026: typecheck passa; lint 0 erros e 5 avisos; lint:css só os 7 erros da tabela A; build passa; `test:regras` 60 de 60; `test:unidade` 73 de 73; `test:sessao` 8 de 8. Os 6 avisos de lint de antes vinham do `<img>` da foto em `CardProfissional`, removido no lote C (o card passou a usar o placeholder).
+
+**Pedido de 10/10/2026, situação em 18/10/2026:** A (rodapé à esquerda) feito, com a exceção da frase de direitos centralizada; B (tópicos dos artigos) feito; C (profissionais com lixeira) feito, sem foto (Storage) e sem "grupo" (decidido em 10/10/2026: só tipo); D (animações) feito; E (loja: produtos, páginas, relacionados, conta de cliente, carrinho) feito, sem galeria (Storage) e sem finalização de compra (decisão D1). Degradê do menu: não iniciado (tarefa separada; nenhuma branch ou código). Mídia: não iniciada; o projeto de desenvolvimento continua com 0 buckets no Cloud Storage (consulta pelo Admin SDK em 18/10/2026).
+
+**Conteúdo de terceiros e placeholders (etapa de mídia, não mexer antes):** `picsum.photos` em `src/app/page.tsx` (banner) e `src/app/componentes/page.tsx`; `placehold.co` em `src/app/blog/page.tsx` (post sem imagem); `static.portugues.com.br` vem do campo `imagem` de um post gravado no Firestore; blocos "IMAGEM" (`PlaceholderImagem`) em `src/app/page.tsx`, `src/app/artigos/page.tsx`, `src/app/loja/produto/[slug]/page.tsx`, `CardCategoriaArtigo`, `CardProduto` e `CardProfissional`.
+
+### Registro de 12/10/2026
 
 **Git.** A main está em `207c9b1` (igual a `origin/main`) e é o que a Vercel publica em produção (`abte-lovat.vercel.app`, confirmado pelos deployments do GitHub em 12/10/2026). As branches formam uma cadeia linear, cada uma contida na seguinte: `limpeza/codigo-limpo` (9 commits à frente da main), `limpeza/sem-pessoas` (11), `feature/loja-e-ajustes` (21, também no GitHub, com preview na Vercel) e `fix/menu-banner-rodape` (26). A branch **`integracao/versao-atual`** (12/10/2026) parte da ponta dessa cadeia e reúne tudo: limpeza, remoção de referências a pessoas, loja (lotes E1 a E4) e correções de menu, banner e rodapé. Os merges das demais branches nela foram vazios (nenhum conflito). Ela é a candidata a ir para a main, depois da revisão do preview.
 
@@ -139,7 +156,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 **Cache do modo dev:** em 12/10/2026 o `npm run dev` respondia erro 500 em todas as páginas ("Can't resolve '@vercel/turbopack-next/internal/font/google/font'", da fonte Public Sans). Sem a página, o JavaScript não roda, e por isso o submenu, o recolhimento do menu e o banner pareciam quebrados no computador local, enquanto o site publicado funcionava. A causa estava no cache do Turbopack em `.next/dev`, não no código: com o cache refeito, tudo funciona. Se acontecer de novo, pare o `npm run dev`, apague a pasta `.next/dev` e rode `npm run dev` outra vez. Por que o cache ficou nesse estado não foi verificado.
 
-**Servidor de desenvolvimento pelo IP (12/10/2026):** aberto pelo endereço de rede da máquina (ex.: http://192.168.1.19:3000), o `npm run dev` só funciona porque o `next.config.ts` libera esse endereço em `allowedDevOrigins`. Sem isso, o Next.js bloqueia a conexão `/_next/hmr` vinda de origem diferente de localhost (no log: "Blocked cross-origin request to Next.js dev resource /_next/hmr"), e o React não liga: banner parado, setas e submenu sem resposta (medido: 1 de 183 elementos com React pelo IP, contra 178 de 184 pelo localhost). A lista vale só na fase do servidor de desenvolvimento (`PHASE_DEVELOPMENT_SERVER`) e libera `192.168.1.19` e o padrão `192.168.1.*` (o `*` vale para o último número do IP, que o roteador pode trocar). Em outra rede (ex.: 192.168.0.x ou 10.x), acrescente o padrão dela na lista e reinicie o `npm run dev`; nunca liste endereço público. Build e produção não usam essa opção. **Para testar pelo celular:** computador e celular na mesma rede Wi-Fi; rode `npm run dev`; o terminal mostra a linha "Network: http://192.168...:3000"; abra esse endereço no celular. Se o IP mostrado não começar com 192.168.1, inclua o padrão da rede na lista antes.
+**Servidor de desenvolvimento pelo IP (12/10/2026):** aberto pelo endereço de rede da máquina (ex.: http://192.168.1.19:3000), o `npm run dev` só funciona porque o `next.config.ts` libera essa rede em `allowedDevOrigins`. Sem isso, o Next.js bloqueia a conexão `/_next/hmr` vinda de origem diferente de localhost (no log: "Blocked cross-origin request to Next.js dev resource /_next/hmr"), e o React não liga: banner parado, setas e submenu sem resposta (medido: 1 de 183 elementos com React pelo IP, contra 178 de 184 pelo localhost). A lista vale só na fase do servidor de desenvolvimento (`PHASE_DEVELOPMENT_SERVER`) e libera só o padrão `192.168.1.*` (o `*` vale para o último número do IP, que o roteador pode trocar; o IP específico saiu em 18/10/2026 por já estar coberto). Em outra rede (ex.: 192.168.0.x ou 10.x), acrescente o padrão dela na lista e reinicie o `npm run dev`; nunca liste endereço público. Build e produção não usam essa opção. **Para testar pelo celular:** computador e celular na mesma rede Wi-Fi; rode `npm run dev`; o terminal mostra a linha "Network: http://192.168...:3000"; abra esse endereço no celular. Se o IP mostrado não começar com 192.168.1, inclua o padrão da rede na lista antes.
 
 **Verificações automáticas (12/10/2026, branch `integracao/versao-atual`):** typecheck passa; lint com 0 erros e 5 avisos (`<img>` sem `next/image`); lint:css com exatamente os 7 erros da tabela A de "Exceções de design"; build passa; `test:regras` 60 de 60 (15 coleções); `test:unidade` 73 de 73; `test:sessao` 8 de 8. Iguais aos de 10/10/2026 (`feature/loja-e-ajustes`). Antes da loja: lint com 6 avisos, `test:regras` 40, `test:unidade` 22.
 
@@ -147,7 +164,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 | Etapa | O que existe |
 |---|---|
 | 1 Base | Concluída. |
-| 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`. Sem `/doe`, sem páginas legais. |
+| 2 Páginas estáticas | Home (carrossel, cards de público, estatísticas, missão, visão e valores), `/contato` (envio falso), `/loja` (só título), `/componentes`; desde 18/10/2026, `/doe` e `/seja-associado` provisórias e as três páginas legais preliminares. |
 | 3 Modelo de dados | Não feita. Sem `usuarios`, `configuracoes`, `logAlteracoes`, lixeira (`excluidoEm`) ou cadastro de usuários pelo painel. Os papéis existem só como custom claim. |
 | 4 Painel | 4a: profissionais com o modelo completo (lote C, 10/10/2026: tipo, tratamento, nome, registro, métodos, país, UF, cidades, telerreabilitação, WhatsApp, Instagram, Facebook, e-mail, apresentação, ativo, ordem), contatos validados, exclusão para a lixeira com restauração; sem foto (etapa 4d) e sem diretoria. 4b: blog e artigos com listar, criar e editar (sem excluir), e tópicos dos artigos (categorias e tags) com criar, renomear, excluir para a lixeira e restaurar. 4c: produtos (lote E1, 10/10/2026) com nome, slug único e estável, descrição, preço e preço promocional em centavos, categoria editável, tipo físico ou digital, disponível ou esgotado, selo, ordem e publicado; lixeira com restauração; sem galeria (etapa 4d). 4d: nada. |
 | 5 Páginas dinâmicas | `/blog`, `/blog/[slug]`, `/artigos`, `/artigos/[slug]`, `/profissionais` e a loja (lista, produto, conta de cliente e carrinho, sem pagamento) leem o Firestore. `/artigos/categoria/[slug]` lê categorias e artigos do Firestore desde o lote B (10/10/2026). |
@@ -177,7 +194,7 @@ Numeração D: este arquivo não tinha série D antes de 10/10/2026; D1 é o pri
 
 ## Decisões em aberto: NUNCA assumir
 
-Confirmação da doação por Pix e dados do Pix da ABTE (chave, titular, cidade, exibição do CNPJ); hospedagem (Firebase App Hosting é candidata, não decidida); região do projeto de produção; registro do domínio; serviço de e-mail do formulário de contato; papéis no painel; associação (Google Forms ou formulário próprio); newsletter; área de membros; comentários no blog; marca "Tratando Escoliose"; logo em vetor; fotos; números oficiais; depoimentos; logos de parceiros; e, quando o pagamento for ativado, frete, recorrência, recibo e nota fiscal.
+Forma de doação (P1; `/doe` mostra só "Em breve") e, se for Pix, confirmação e dados do Pix da ABTE (chave, titular, cidade, exibição do CNPJ); hospedagem (Firebase App Hosting é candidata, não decidida); região do projeto de produção; registro do domínio; serviço de e-mail do formulário de contato; papéis no painel; associação (P8: Google Forms ou formulário próprio; `/seja-associado` é provisória); newsletter; área de membros; comentários no blog; marca "Tratando Escoliose" (título e descrição da home não mudam até a decisão); logo em vetor; fotos; números oficiais; depoimentos; logos de parceiros; e, quando o pagamento for ativado, frete, recorrência, recibo e nota fiscal.
 
 ## Regras permanentes
 
@@ -209,7 +226,7 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Preto sem token próprio** (`#000` e `rgba(0,0,0,…)`): o único token com esse valor é `--color-icon-social`, dos ícones do rodapé; não foi usado em fundos e sombras para não amarrar uma coisa à outra.
 
 **Acessibilidade e comportamento adiados (mudam o que se vê ou se faz)**
-- **H1 na home:** a home não tem H1 (o hero virou carrossel sem título).
+- **H1 na home:** desde 18/10/2026 a home e `/contato` têm H1 só para leitores de tela (classe `somente-leitor`), sem mudança visual. O H1 visível da home depende da designer e da marca.
 - **Carrossel do Hero:** desde 12/10/2026 avança sozinho a cada 6 segundos (`INTERVALO_DO_CARROSSEL_MS` em `Hero.tsx`), em loop, e para com o mouse sobre o banner, com foco de teclado dentro dele, com a aba oculta e com movimento reduzido; setas "Slide anterior" e "Próximo slide" e pontos funcionam sempre. **Pendente: botão de pausa visível** (chamado de P16 no pedido de 12/10/2026; neste arquivo P16 é o slug que muda ao editar, conferir a numeração), porque muda o visual. Texto alternativo ainda genérico ("Slide 1"). As setas têm 28 px de largura em 390 px, abaixo dos 44 px dos controles (visual não alterado).
 - **aria-pressed:** os botões do filtro de `/profissionais` não anunciam qual está ativo.
 - **Modal:** resolvido em 10/10/2026 (lote C): `role="dialog"`, Esc fecha, foco preso dentro e devolvido ao fechar; a exclusão de profissional usa confirmação dentro do modal.
@@ -218,14 +235,15 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **Submenu de Profissionais:** os itens nunca ficam marcados como ativos (o caminho não inclui `?tag=`).
 - **P16, slug que muda ao editar:** o slug do post é refeito a partir do título a cada edição (links antigos quebram), e dois títulos iguais geram o mesmo slug.
 - **Erros no painel:** erro nas ações de post e de artigo cai na página de erro padrão do Next.js, em inglês. Ainda não existe registro de alterações (etapa 3).
-- **Endereço inválido:** `/blog/[slug]` e `/artigos/[slug]` com um valor que não é id válido do Firestore (ex.: `__x__`) dão erro 500 em vez de 404.
+- **Endereço inválido:** resolvido em 18/10/2026: `/blog/[slug]` e `/artigos/[slug]` com valor reservado (ex.: `__x__`) dão 404; as duas páginas também passaram a ter o título do post ou do artigo na aba.
 - **P19, classificações de artigo:** resolvida em 10/10/2026. Categorias e tags são cadastradas em `/admin/artigos/topicos` e lidas do Firestore pelo painel e pelas páginas públicas. Os cards de categoria ficam sem imagem (placeholder) até a etapa 4d.
 - **P22, exclusão de profissional:** resolvida em 10/10/2026. Vai para os excluídos (`excluidoEm`), sai do site e pode ser restaurada; falhas aparecem em português.
 - **Numeração P:** P18, P20, P21 e P23 são citadas nos registros do Projeto, mas não aparecem neste arquivo; as 7 perguntas do diagnóstico original também não. Conferir e trazer para cá.
 
 **Conteúdo e etapas futuras**
 - O formulário de contato mostra "enviado" sem enviar nada (serviço de e-mail em aberto).
-- Links que dão 404 (ver "Rotas").
+- Links que davam 404: resolvido em 18/10/2026 com páginas provisórias e preliminares (ver "Rotas").
+- **Rodapé no celular:** em 390 px as colunas empilhadas começam em alturas e bordas esquerdas diferentes (cada coluna centralizada como bloco, com o texto à esquerda, conforme a opção aprovada no lote A). Pendente de decisão de design.
 - **Carrinho (n) no subcabeçalho:** conta todas as unidades guardadas, inclusive de produtos que esgotaram ou saíram da loja; o total do carrinho conta só os disponíveis.
 - **Storage e plano Blaze:** ação pendente de quem administra a conta: ativar o plano Blaze no projeto de desenvolvimento, com alerta de orçamento, para a galeria de produtos e as fotos (etapa 4d).
 - **Loja:** produtos sem imagem (placeholder) até a etapa 4d; os endereços antigos do Wix (`/product-page/...`, `/category/...`) precisam de redirecionamento na etapa 9. Dados estruturados de produto sem `offers` (não aparecem preço nem disponibilidade no Google).
@@ -241,6 +259,8 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **E-mail repetido:** o cadastro avisa que já existe conta com o e-mail (inevitável num cadastro), o que revela que o e-mail está em uso.
 
 **Política de privacidade (pendência para a ABTE, com assessoria jurídica; nenhum texto conclusivo foi escrito)**
+- Desde 18/10/2026 existe uma versão preliminar em `/politica-de-privacidade` que descreve só o que o código faz hoje (campos do contato, que não envia nada; dados da conta da loja; cookies `abte_cliente` e `__session`; Vercel, Firebase Authentication e Firestore). O consentimento da loja continua na versão `provisorio-2026-10-10`.
+- A confirmar pela ABTE ou assessoria, nas três páginas legais: finalidade e base legal; prazos de guarda; encarregado (DPO) e canal dos direitos do titular; menores de idade; local de armazenamento e transferência internacional; responsabilidade pelo conteúdo e pela lista de profissionais; direitos autorais do conteúdo; regras da loja (frete, troca, devolução); como os termos mudam; e se a declaração de acessibilidade deve seguir algum modelo (ex.: eMAG).
 - Quais dados a loja guarda: nome, e-mail, conteúdo do carrinho, data e versão do consentimento; cookie de sessão `abte_cliente` (e `__session` do painel).
 - Finalidade e base legal de cada um (consentimento, execução de contrato ou outra, a definir pela assessoria).
 - Prazo de guarda e o que acontece com contas inativas.
@@ -264,6 +284,14 @@ Registro de 02/10/2026, depois da limpeza da branch `limpeza/codigo-limpo`. Nada
 - **"Mais lidos da semana" em `/artigos`:** a seção mostra os artigos mais recentes; não existe contagem de leitura.
 - **Painel no celular:** a barra lateral tem 280 px fixos e o conteúdo fica com `calc(100vw - 280px)`, sem regra para telas estreitas; em 390 px o painel fica espremido e difícil de usar (`LayoutPainel.module.css`).
 - **Artigos antigos sem categoria válida:** o campo `categoria` agora guarda o id do documento de `categoriasDeArtigos`. Não havia artigos no banco de desenvolvimento; na migração (etapa 6), cada artigo precisa receber o id de uma categoria cadastrada.
+
+## Checklist de lançamento (etapa 9)
+
+- [ ] **Remover o noindex provisório** (desde 18/10/2026): o `robots` da metadata em `src/app/layout.tsx` e o `src/app/robots.ts`, que bloqueiam o site inteiro enquanto há conteúdo de exemplo. Manter noindex só no painel, em `/componentes` e nas páginas de conta da loja; trocar o robots.txt por regras que liberem o site público e bloqueiem `/admin`.
+- [ ] Trocar as páginas legais preliminares pelo texto revisado e tirar a faixa "Versão preliminar"; atualizar `VERSAO_DO_CONSENTIMENTO`.
+- [ ] Substituir `/doe` e `/seja-associado` provisórias conforme as decisões P1 e P8.
+- [ ] Redirecionar os endereços antigos do Wix e retirar imagens de terceiros e placeholders.
+- [ ] Projeto Firebase de produção na conta da ABTE, hospedagem, domínio e alerta de orçamento.
 
 ## Exceções de design
 
