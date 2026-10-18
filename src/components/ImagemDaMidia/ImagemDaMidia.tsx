@@ -32,7 +32,10 @@ export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, priorida
       width={largura}
       height={altura}
       sizes={sizes}
-      priority={prioridade}
+      // "priority" foi descontinuado no Next.js 16; para a imagem principal da
+      // página, a documentação indica carregar já e com prioridade alta.
+      loading={prioridade ? "eager" : undefined}
+      fetchPriority={prioridade ? "high" : undefined}
       className={`${estilos.imagem} ${className ?? ""}`}
     />
   );

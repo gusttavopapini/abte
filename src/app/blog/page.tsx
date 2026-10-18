@@ -2,6 +2,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
 import { lerPosts } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { revelar } from "@/components/Revelar/revelar";
 
 export const metadata = { title: "Blog" };
@@ -12,19 +13,19 @@ export const dynamic = "force-dynamic";
 export default async function PaginaBlog() {
   const snapshot = await lerPosts().orderBy("criadoEm", "desc").get();
 
-  const posts = snapshot.docs
-    .map((documento) => {
-      const post = documento.data();
-      return {
-        id: post.id,
-        titulo: post.titulo || "Sem título",
-        slug: post.slug || post.id,
-        resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
-        imagemUrl: post.imagem || "https://placehold.co/600x400/e2e8f0/1e3a8a",
-        status: post.status,
-      };
-    })
-    .filter((post) => post.status === "publicado");
+  const publicados = snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado");
+  // Capas fora da lixeira da biblioteca; com capaMidiaId sem imagem, placeholder.
+  const capas = await imagensAtivasPorId(publicados.map((post) => post.capaMidiaId));
+
+  const posts = publicados.map((post) => ({
+    id: post.id,
+    titulo: post.titulo || "Sem título",
+    slug: post.slug || post.id,
+    resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
+    capa: post.capaMidiaId ? capas.get(post.capaMidiaId) ?? null : null,
+    // A capa antiga só vale enquanto o post não tem capa da biblioteca.
+    imagemUrl: post.capaMidiaId ? undefined : post.imagem || undefined,
+  }));
 
   return (
     <LayoutPublico header="solida">
@@ -46,6 +47,7 @@ export default async function PaginaBlog() {
                   key={post.id}
                   titulo={post.titulo}
                   resumo={post.resumo}
+                  capa={post.capa}
                   imagemUrl={post.imagemUrl}
                   slug={post.slug}
                 />

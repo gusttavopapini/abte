@@ -6,6 +6,9 @@ import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { lerPosts } from "@/lib/dados/colecoes";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
+import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 
 // Post publicado pelo id do documento ou, se não achar, pelo campo slug.
 // Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
@@ -32,6 +35,10 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
   if (!post) notFound();
 
   const dataFormatada = post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "";
+  // Capa da biblioteca (vence); sem ela, a capa antiga digitada; sem nenhuma,
+  // ou com a imagem da biblioteca na lixeira, o placeholder interno.
+  const capa = post.capaMidiaId ? (await imagensAtivasPorId([post.capaMidiaId])).get(post.capaMidiaId) ?? null : null;
+  const capaAntiga = post.capaMidiaId ? "" : post.imagem;
 
   return (
     <LayoutPublico header="solida">
@@ -52,11 +59,23 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
               </div>
             </header>
 
-            {post.imagem && (
-              <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
-                <img src={post.imagem} alt={post.titulo} className={estilos.imagemDeCapa} />
-              </div>
-            )}
+            <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
+              {capa ? (
+                <ImagemDaMidia
+                  variantes={capa.variantes}
+                  alt={capa.alt}
+                  largura={capa.largura}
+                  altura={capa.altura}
+                  sizes="(max-width: 800px) 100vw, 800px"
+                  prioridade
+                  className={estilos.imagemDeCapa}
+                />
+              ) : capaAntiga ? (
+                <img src={capaAntiga} alt={post.titulo} className={estilos.imagemDeCapa} />
+              ) : (
+                <PlaceholderImagem />
+              )}
+            </div>
 
             <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
               {post.conteudo}

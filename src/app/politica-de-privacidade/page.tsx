@@ -31,8 +31,8 @@ export default function PaginaPoliticaDePrivacidade() {
           publicidade.
         </p>
         <p>
-          Algumas imagens de exemplo, provisórias, são carregadas de serviços externos (picsum.photos e placehold.co), e imagens
-          de posts do blog podem vir de outros sites. Para mostrar essas imagens, o seu navegador se conecta a esses serviços.
+          Algumas imagens de exemplo, provisórias, são carregadas de um serviço externo (picsum.photos), e capas antigas de
+          posts do blog podem vir de outros sites. Para mostrar essas imagens, o seu navegador se conecta a esses serviços.
         </p>
       </section>
 
@@ -86,6 +86,7 @@ export default function PaginaPoliticaDePrivacidade() {
           <li>Vercel: hospedagem do site, que recebe cada acesso para entregar as páginas.</li>
           <li>Firebase Authentication, do Google: login das contas da loja e da equipe do site.</li>
           <li>Cloud Firestore, do Google: banco de dados com o conteúdo do site, o cadastro da loja e os carrinhos.</li>
+          <li>Cloud Storage para Firebase, do Google: guarda as imagens do site, que o seu navegador baixa direto de lá.</li>
         </ul>
       </section>
 
