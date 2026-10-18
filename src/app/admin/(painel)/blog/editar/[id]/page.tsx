@@ -3,6 +3,7 @@ import { FormularioPost } from "@/app/admin/_componentes/FormularioPost/Formular
 import { atualizarPost } from "@/app/admin/acoes-conteudo";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerPosts } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
@@ -16,12 +17,13 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
   if (!ehIdDeDocumentoValido(id)) redirect("/admin/blog");
   const post = (await lerPosts().doc(id).get()).data();
   if (!post) redirect("/admin/blog");
+  const capa = post.capaMidiaId ? { id: post.capaMidiaId, imagem: (await imagensAtivasPorId([post.capaMidiaId])).get(post.capaMidiaId) ?? null } : null;
 
   return (
     <div>
       <CabecalhoDoPainel titulo="Editar Post" descricao="Atualize os dados da publicação." />
       
-      <FormularioPost acao={atualizarPost} post={post} rotuloPublicar="Atualizar e Publicar" rotuloRascunho="Reverter para Rascunho" />
+      <FormularioPost acao={atualizarPost} post={{ id: post.id, titulo: post.titulo, imagem: post.imagem, conteudo: post.conteudo }} capa={capa} rotuloPublicar="Atualizar e Publicar" rotuloRascunho="Reverter para Rascunho" />
     </div>
   );
 }

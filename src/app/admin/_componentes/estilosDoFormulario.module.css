@@ -35,3 +35,8 @@
   align-items: center;
   min-height: var(--control-min-height-mobile);
 }
+
+/* Endereço longo (capa antiga do post) quebra em qualquer ponto */
+.enderecoAntigo {
+  overflow-wrap: anywhere;
+}

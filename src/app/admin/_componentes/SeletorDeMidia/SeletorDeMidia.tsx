@@ -19,6 +19,8 @@ type Props = {
   rotulo: string;
   inicial: EscolhaDeMidia;
   erro?: string;
+  // Avisa quem usa o seletor quando a escolha muda (id, ou null sem imagem).
+  aoMudar?: (id: string | null) => void;
 };
 
 type Painel = "biblioteca" | "enviar" | null;
@@ -33,9 +35,13 @@ function normalizar(texto: string): string {
 // formulário. O texto alternativo vem da biblioteca e só é mostrado aqui (a
 // edição fica em /admin/midia). O formulário recebe só o id, num campo
 // escondido; a gravação confere no servidor se a imagem existe.
-export function SeletorDeMidia({ nome, rotulo, inicial, erro }: Props) {
+export function SeletorDeMidia({ nome, rotulo, inicial, erro, aoMudar }: Props) {
   const id = useId();
-  const [escolha, setEscolha] = useState<EscolhaDeMidia>(inicial);
+  const [escolha, setEscolhaInterna] = useState<EscolhaDeMidia>(inicial);
+  function setEscolha(nova: EscolhaDeMidia) {
+    setEscolhaInterna(nova);
+    aoMudar?.(nova?.id ?? null);
+  }
   const [painel, setPainel] = useState<Painel>(null);
   const [midias, setMidias] = useState<MidiaNaTela[] | null>(null);
   const [carregando, setCarregando] = useState(false);

@@ -10,7 +10,7 @@ export default function PaginaNovoPost() {
     <div>
       <CabecalhoDoPainel titulo="Adicionar Novo Post" descricao="Preencha os campos abaixo para criar uma publicação no blog." />
       
-      <FormularioPost acao={salvarPost} rotuloPublicar="Publicar Post" rotuloRascunho="Salvar como Rascunho" />
+      <FormularioPost acao={salvarPost} capa={null} rotuloPublicar="Publicar Post" rotuloRascunho="Salvar como Rascunho" />
     </div>
   );
 }
