@@ -27,6 +27,13 @@ import {
 
 export const COLECAO_MIDIAS = "midias";
 
+// Falha ao desfazer ou limpar arquivos: vai para o log do servidor com o id
+// da mídia e a mensagem técnica (só caminhos do bucket, sem dados pessoais),
+// para alguém conferir depois (ver scripts/midia-orfas.mts).
+function registrarFalhaDeArquivo(id: string, etapa: string, erro: unknown): void {
+  console.error(`Mídia ${id}: falha ao ${etapa}.`, erro instanceof Error ? erro.message : String(erro));
+}
+
 type Bucket = ReturnType<Storage["bucket"]>;
 export type ServicosDeMidia = { db: Firestore; bucket: Bucket };
 
@@ -141,7 +148,14 @@ export async function enviarImagem(
     await lote.commit();
     return { ok: true, id: referencia.id };
   } catch (erro) {
-    await Promise.all(gravadas.map((variante) => bucket.file(variante.caminho).delete({ ignoreNotFound: true }).catch(() => undefined)));
+    await Promise.all(
+      gravadas.map((variante) =>
+        bucket
+          .file(variante.caminho)
+          .delete({ ignoreNotFound: true })
+          .catch((falha: unknown) => registrarFalhaDeArquivo(referencia.id, "apagar arquivo de um envio que falhou", falha)),
+      ),
+    );
     throw erro;
   }
 }
@@ -197,18 +211,40 @@ export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[
   return usos.filter((uso) => uso.registros.length > 0);
 }
 
+// Move um arquivo, sem travar quando já foi movido: se a origem não existe e
+// o destino existe, conta como movido (ex.: uma tentativa anterior parou no
+// meio). Devolve false nesse caso, para não ser desfeito.
+async function moverUm(bucket: Bucket, de: string, para: string): Promise<boolean> {
+  const [origemExiste] = await bucket.file(de).exists();
+  if (origemExiste) {
+    await bucket.file(de).move(para);
+    return true;
+  }
+  const [destinoExiste] = await bucket.file(para).exists();
+  if (destinoExiste) return false;
+  throw new Error(`Arquivo da mídia não encontrado: ${de}`);
+}
+
 // Move os arquivos de uma pasta para a outra e devolve os novos caminhos.
-// Se um movimento falhar, desfaz os que já foram feitos.
+// Repetir conserta uma divisão (parte em publico/, parte em lixeira/). Se um
+// movimento falhar, desfaz os que foram feitos nesta chamada; falha ao
+// desfazer vai para o log do servidor.
 async function moverArquivos(bucket: Bucket, id: string, variantes: VarianteGravada[], destino: PastaDaMidia): Promise<VarianteGravada[]> {
+  const origem: PastaDaMidia = destino === "lixeira" ? "publico" : "lixeira";
   const movidas: { de: string; para: string }[] = [];
   try {
     for (const variante of variantes) {
+      const de = caminhoDaVariante(origem, id, variante.largura);
       const para = caminhoDaVariante(destino, id, variante.largura);
-      await bucket.file(variante.caminho).move(para);
-      movidas.push({ de: variante.caminho, para });
+      if (await moverUm(bucket, de, para)) movidas.push({ de, para });
     }
   } catch (erro) {
-    for (const movida of movidas.reverse()) await bucket.file(movida.para).move(movida.de).catch(() => undefined);
+    for (const movida of movidas.reverse()) {
+      await bucket
+        .file(movida.para)
+        .move(movida.de)
+        .catch((falha: unknown) => registrarFalhaDeArquivo(id, `devolver ${movida.para} para ${movida.de}`, falha));
+    }
     throw erro;
   }
   return variantes.map((variante) => ({ ...variante, caminho: caminhoDaVariante(destino, id, variante.largura) }));
@@ -246,7 +282,9 @@ export async function moverParaLixeiraOuRestaurar(
     });
     await lote.commit();
   } catch (erro) {
-    await moverArquivos(bucket, id, variantes, excluir ? "publico" : "lixeira").catch(() => undefined);
+    await moverArquivos(bucket, id, variantes, excluir ? "publico" : "lixeira").catch((falha: unknown) =>
+      registrarFalhaDeArquivo(id, "devolver os arquivos depois de uma gravação que falhou", falha),
+    );
     throw erro;
   }
   return { ok: true };

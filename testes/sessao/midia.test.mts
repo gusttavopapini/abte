@@ -3,7 +3,7 @@
 // servidor chamam: a decisão de acesso com a ação (papeis.ts) e o módulo da
 // biblioteca (biblioteca.ts). Nada aqui toca o projeto real.
 import assert from "node:assert/strict";
-import { after, before, describe, test } from "node:test";
+import { after, before, describe, mock, test } from "node:test";
 import { deleteApp, initializeApp, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
 import { Timestamp, getFirestore, type Firestore } from "firebase-admin/firestore";
@@ -221,5 +221,78 @@ describe("Biblioteca de mídia no Storage e no Firestore", () => {
     assert.deepEqual(acoes, ["criar", "editar", "excluir", "excluir", "excluir_definitivo", "restaurar"].sort());
     const definitivo = (await registrosDe(id)).find((registro) => registro.acao === "excluir_definitivo");
     assert.equal(definitivo?.papel, "administrador");
+  });
+
+  test("divisão entre publico/ e lixeira/: repetir Excluir ou Restaurar conserta", async () => {
+    const envio = await enviarImagem(servicos, { bytes: await imagemDeTeste(), alt: "Teste divisão", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
+    assert.ok(envio.ok);
+    const id = envio.id;
+    const larguras = ((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("variantes") as { largura: number }[]).map((v) => v.largura);
+    assert.ok(larguras.length >= 2);
+
+    // Simula uma tentativa que parou no meio: só a primeira variante foi para a lixeira.
+    await servicos.bucket.file(`publico/midias/${id}/${larguras[0]}.webp`).move(`lixeira/midias/${id}/${larguras[0]}.webp`);
+    assert.deepEqual(await moverParaLixeiraOuRestaurar(servicos, id, true, EDITOR), { ok: true });
+    for (const largura of larguras) {
+      assert.equal(await existe(`lixeira/midias/${id}/${largura}.webp`), true);
+      assert.equal(await existe(`publico/midias/${id}/${largura}.webp`), false);
+    }
+
+    // O mesmo na volta: uma variante já voltou para publico/.
+    await servicos.bucket.file(`lixeira/midias/${id}/${larguras[1]}.webp`).move(`publico/midias/${id}/${larguras[1]}.webp`);
+    assert.deepEqual(await moverParaLixeiraOuRestaurar(servicos, id, false, EDITOR), { ok: true });
+    for (const largura of larguras) assert.equal(await existe(`publico/midias/${id}/${largura}.webp`), true);
+    assert.equal((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("excluidoEm"), null);
+  });
+
+  test("falha ao desfazer vai para o log do servidor com o id; depois, repetir conserta", async () => {
+    const envio = await enviarImagem(servicos, { bytes: await imagemDeTeste(), alt: "Teste falha", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
+    assert.ok(envio.ok);
+    const id = envio.id;
+    const [primeira, segunda] = ((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("variantes") as { largura: number }[]).map((v) => v.largura);
+
+    // Bucket que falha ao mover a segunda variante e também ao devolver a primeira.
+    const falhar = new Set([`publico/midias/${id}/${segunda}.webp`, `lixeira/midias/${id}/${primeira}.webp`]);
+    const bucketComFalha = {
+      file(caminho: string) {
+        const arquivo = servicos.bucket.file(caminho);
+        return {
+          exists: () => arquivo.exists(),
+          move: async (destino: string) => {
+            if (falhar.has(caminho)) throw new Error(`falha simulada ao mover ${caminho}`);
+            return arquivo.move(destino);
+          },
+        };
+      },
+    } as unknown as ServicosDeMidia["bucket"];
+
+    const erros = mock.method(console, "error", () => undefined);
+    try {
+      await assert.rejects(moverParaLixeiraOuRestaurar({ db, bucket: bucketComFalha }, id, true, EDITOR), /falha simulada/);
+      const mensagens = erros.mock.calls.map((chamada) => chamada.arguments.join(" "));
+      assert.ok(mensagens.some((texto) => texto.includes(`Mídia ${id}: falha ao devolver`)), mensagens.join(" | "));
+      assert.ok(mensagens.every((texto) => !texto.includes("@")), "sem e-mail no log");
+    } finally {
+      erros.mock.restore();
+    }
+
+    // Ficou dividido e o documento não mudou; repetir sem a falha conserta.
+    assert.equal(await existe(`lixeira/midias/${id}/${primeira}.webp`), true);
+    assert.equal(await existe(`publico/midias/${id}/${segunda}.webp`), true);
+    assert.equal((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("excluidoEm"), null);
+    assert.deepEqual(await moverParaLixeiraOuRestaurar(servicos, id, true, EDITOR), { ok: true });
+    assert.equal(await existe(`lixeira/midias/${id}/${segunda}.webp`), true);
+    assert.equal(await existe(`publico/midias/${id}/${primeira}.webp`), false);
+  });
+
+  test("arquivo sumido dos dois lugares: recusa e desfaz o que moveu", async () => {
+    const envio = await enviarImagem(servicos, { bytes: await imagemDeTeste(), alt: "Teste sumido", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
+    assert.ok(envio.ok);
+    const id = envio.id;
+    const [primeira, segunda] = ((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("variantes") as { largura: number }[]).map((v) => v.largura);
+    await servicos.bucket.file(`publico/midias/${id}/${segunda}.webp`).delete();
+    await assert.rejects(moverParaLixeiraOuRestaurar(servicos, id, true, EDITOR), /não encontrado/);
+    assert.equal(await existe(`publico/midias/${id}/${primeira}.webp`), true, "a primeira voltou");
+    assert.equal((await db.collection(COLECAO_MIDIAS).doc(id).get()).get("excluidoEm"), null);
   });
 });
