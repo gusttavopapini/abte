@@ -110,8 +110,19 @@ describe("Larguras das variantes", () => {
   test("nunca amplia e, abaixo de 480 px, gera uma na largura original", () => {
     assert.deepEqual(escolherLarguras(300), [300]);
     assert.deepEqual(escolherLarguras(480), [480]);
-    assert.deepEqual(escolherLarguras(1000), [480, 960]);
-    assert.deepEqual(escolherLarguras(2560), [480, 960, 1600]);
+  });
+
+  test("variante extra na largura original quando ela é 15% maior que a maior variante que coube", () => {
+    assert.deepEqual(escolherLarguras(900), [480, 900]);
+    assert.deepEqual(escolherLarguras(1000), [480, 960], "1000 é só 4% maior que 960");
+    assert.deepEqual(escolherLarguras(1300), [480, 960, 1300]);
+    assert.deepEqual(escolherLarguras(1600), [480, 960, 1600]);
+    assert.deepEqual(escolherLarguras(2000), [480, 960, 1600, 2000]);
+    // Limites exatos: 15% acima entra; abaixo, não.
+    assert.deepEqual(escolherLarguras(552), [480, 552]);
+    assert.deepEqual(escolherLarguras(551), [480]);
+    assert.deepEqual(escolherLarguras(1840), [480, 960, 1600, 1840]);
+    assert.deepEqual(escolherLarguras(1839), [480, 960, 1600]);
   });
 
   test("escolhe a variante mais leve que cobre a largura pedida", () => {
@@ -120,6 +131,13 @@ describe("Larguras das variantes", () => {
     assert.equal(escolherVariante(variantes, 481)?.largura, 960);
     assert.equal(escolherVariante(variantes, 3000)?.largura, 1600);
   });
+
+  test("a variante na largura original entra na escolha", () => {
+    const variantes = [{ largura: 480 }, { largura: 900 }];
+    assert.equal(escolherVariante(variantes, 640)?.largura, 900);
+    assert.equal(escolherVariante(variantes, 1200)?.largura, 900);
+    assert.equal(escolherVariante(variantes, 400)?.largura, 480);
+  });
 });
 
 describe("Processamento com o sharp", () => {
@@ -127,12 +145,16 @@ describe("Processamento com o sharp", () => {
     const grande = await prepararVariantes(await duasCores(2000, 1000));
     assert.equal(grande.ok, true);
     if (!grande.ok) return;
-    assert.deepEqual(grande.variantes.map((v) => [v.largura, v.altura]), [[480, 240], [960, 480], [1600, 800]]);
+    assert.deepEqual(grande.variantes.map((v) => [v.largura, v.altura]), [[480, 240], [960, 480], [1600, 800], [2000, 1000]]);
     for (const variante of grande.variantes) assert.equal(detectarFormato(variante.dados), "webp");
 
     const pequena = await prepararVariantes(await duasCores(300, 200));
     assert.equal(pequena.ok, true);
     if (pequena.ok) assert.deepEqual(pequena.variantes.map((v) => [v.largura, v.altura]), [[300, 200]]);
+
+    const media = await prepararVariantes(await duasCores(900, 600));
+    assert.equal(media.ok, true);
+    if (media.ok) assert.deepEqual(media.variantes.map((v) => [v.largura, v.altura]), [[480, 320], [900, 600]]);
   });
 
   test("imagem rotacionada por EXIF sai em pé, com a rotação aplicada", async () => {

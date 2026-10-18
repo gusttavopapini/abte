@@ -129,7 +129,7 @@ describe("Biblioteca de mídia no Storage e no Firestore", () => {
     assert.equal(documento.tipo, "imagem");
     assert.equal(documento.enviadoPor, EDITOR.uid);
     assert.deepEqual([documento.largura, documento.altura], [1200, 800]);
-    assert.deepEqual(documento.variantes.map((v: { largura: number }) => v.largura), [480, 960]);
+    assert.deepEqual(documento.variantes.map((v: { largura: number }) => v.largura), [480, 960, 1200], "1200 px: 25% maior que 960, ganha a variante original");
     assert.equal(documento.excluidoEm, null);
     assert.ok(documento.criadoEm instanceof Timestamp);
     assert.equal(JSON.stringify(documento).includes("@"), false, "nenhum e-mail no documento");
@@ -198,7 +198,7 @@ describe("Biblioteca de mídia no Storage e no Firestore", () => {
     let documento = (await referencia.get()).data();
     assert.ok(documento?.excluidoEm instanceof Timestamp);
     assert.equal(documento?.caminhoStorage, `lixeira/midias/${id}`);
-    for (const largura of [480, 960]) {
+    for (const largura of [480, 960, 1200]) {
       assert.equal(await existe(`publico/midias/${id}/${largura}.webp`), false, "saiu do ar");
       assert.equal(await existe(`lixeira/midias/${id}/${largura}.webp`), true, "não foi apagado");
     }
