@@ -87,10 +87,6 @@
   font-size: var(--font-size-small);
 }
 
-.nota {
-  font-size: var(--font-size-small);
-}
-
 .botoes {
   display: flex;
   flex-wrap: wrap;

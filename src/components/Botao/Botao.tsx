@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithRef, ComponentPropsWithoutRef } from "react";
 import estilos from "./Botao.module.css";
 
 export type VarianteBotao = "primario" | "secundario" | "link" | "envio";
@@ -14,7 +14,7 @@ type PropsComuns = {
 };
 
 type PropsLink = PropsComuns & { href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, "href" | "className">;
-type PropsBotao = PropsComuns & { href?: undefined } & Omit<ComponentPropsWithoutRef<"button">, "className">;
+type PropsBotao = PropsComuns & { href?: undefined } & Omit<ComponentPropsWithRef<"button">, "className">;
 
 // Botão do design system (seção 8.2). Com href vira link; sem href, <button>.
 export function Botao(props: PropsLink | PropsBotao) {

@@ -4,13 +4,16 @@ import { startTransition, useActionState, useEffect, useId, useRef, type FormEve
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { SeletorDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS } from "@/config/profissionais";
 import type { Profissional } from "@/lib/dados/tipos";
+import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./FormularioProfissional.module.css";
 
-// Profissional como a tela do painel recebe (sem datas).
-export type ProfissionalNaTela = Omit<Profissional, "criadoEm" | "atualizadoEm" | "excluidoEm">;
+// Profissional como a tela do painel recebe (sem datas). foto: a imagem de
+// fotoMidiaId, ou null se não há foto ou ela está na lixeira da biblioteca.
+export type ProfissionalNaTela = Omit<Profissional, "criadoEm" | "atualizadoEm" | "excluidoEm"> & { foto: ImagemNaTela | null };
 
 type Props = {
   // Sem profissional: cadastro novo. Com profissional: edição.
@@ -133,7 +136,12 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
         </label>
       </div>
 
-      <p className={estilos.nota}>Foto: disponível quando a biblioteca de mídia (Cloud Storage) for ativada.</p>
+      <SeletorDeMidia
+        nome="fotoMidiaId"
+        rotulo="Foto (aparece no card do site)"
+        inicial={p?.fotoMidiaId ? { id: p.fotoMidiaId, imagem: p.foto } : null}
+        erro={erros.fotoMidiaId}
+      />
 
       <div className={estilos.botoes}>
         <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
