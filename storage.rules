@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Regras do Cloud Storage da ABTE.
+// O navegador NUNCA grava no Storage: os envios passam pelo servidor (Admin
+// SDK), que ignora estas regras e faz a própria checagem de sessão e papel.
+// Tudo é negado por padrão. A única exceção é abrir (get) um arquivo em
+// publico/, onde ficam as imagens já processadas que o site mostra; listar
+// o conteúdo da pasta continua negado. A lixeira (lixeira/) e qualquer outro
+// caminho ficam fechados. Toda exceção nova precisa de regra específica e de
+// teste em testes/regras/storage.test.mts.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{caminho=**} {
+      allow read, write: if false;
+    }
+
+    // Imagens públicas: abrir um arquivo pelo endereço exato, sem listar.
+    match /publico/{caminho=**} {
+      allow get: if true;
+    }
+  }
+}

@@ -9,7 +9,7 @@
     "lint": "eslint",
     "lint:css": "stylelint \"src/**/*.css\"",
     "typecheck": "tsc --noEmit",
-    "test:regras": "firebase emulators:exec --only firestore --project demo-abte-regras 'node --test testes/regras/*.test.mts'",
+    "test:regras": "firebase emulators:exec --only firestore,storage --project demo-abte-regras 'node --test testes/regras/*.test.mts'",
     "test:unidade": "node --test testes/unidade/*.test.mts",
     "test:sessao": "firebase emulators:exec --only auth,firestore --project demo-abte-sessao 'node --test testes/sessao/*.test.mts'",
     "admin:conceder": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/conceder-administrador.mts"
