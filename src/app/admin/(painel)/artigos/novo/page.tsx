@@ -16,6 +16,7 @@ export default async function PaginaNovoArtigo() {
       <CabecalhoDoPainel titulo="Adicionar Novo Artigo" descricao="Preencha os campos abaixo para catalogar um artigo científico." />
       
       <FormularioArtigo
+        imagem={null}
         acao={salvarArtigo}
         categorias={categorias.map(({ id, nome }) => ({ id, nome }))}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}

@@ -4,6 +4,7 @@ import { useActionState, useId } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { SeletorDeMidia, type EscolhaDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
 import {
   atualizarTopico,
   criarTopico,
@@ -14,12 +15,17 @@ import {
 import type { TipoDeTopico } from "@/lib/dados/tipos";
 import estilos from "./GerenciadorDeTopicos.module.css";
 
-export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number };
+// imagem: só nas categorias (null sem imagem; imagem null dentro: foi para a lixeira).
+export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeMidia };
 
 type Props = {
   tipo: TipoDeTopico;
   // Com ordem de exibição (categorias) ou sem (tags).
   comOrdem?: boolean;
+  // Com imagem da biblioteca de mídia (categorias) ou sem (tags).
+  comImagem?: boolean;
+  // Onde a imagem aparece no site, para a ajuda do campo.
+  ondeAparece?: string;
   // Início do endereço público do tópico, mostrado no painel (ex.: "/artigos/categoria/").
   prefixoDoEndereco?: string;
   titulo: string;
@@ -34,7 +40,7 @@ function Resposta({ resposta }: { resposta: RespostaDoTopico | null }) {
   return <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>;
 }
 
-function NovoTopico({ tipo, comOrdem }: { tipo: TipoDeTopico; comOrdem: boolean }) {
+function NovoTopico({ tipo, comOrdem, comImagem }: { tipo: TipoDeTopico; comOrdem: boolean; comImagem: boolean }) {
   const [resposta, acao, pendente] = useActionState(criarTopico, null);
   const id = useId();
   return (
@@ -44,6 +50,7 @@ function NovoTopico({ tipo, comOrdem }: { tipo: TipoDeTopico; comOrdem: boolean 
         <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "tag" ? "Nova tag" : "Nova categoria"} obrigatorio maxLength={60} />
         {comOrdem && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} />}
       </div>
+      {comImagem && <p className={estilos.endereco}>A imagem pode ser escolhida depois de criar a categoria, na lista abaixo.</p>}
       <div className={estilos.botoes}>
         <Botao type="submit" disabled={pendente}>{pendente ? "Adicionando..." : "Adicionar"}</Botao>
       </div>
@@ -56,9 +63,17 @@ function NovoTopico({ tipo, comOrdem }: { tipo: TipoDeTopico; comOrdem: boolean 
 // ação, e a resposta precisa continuar visível.
 type AcaoDaSecao = { acao: (dados: FormData) => void; pendente: boolean };
 
-type PropsDoItem = { tipo: TipoDeTopico; topico: TopicoNaTela; excluir: AcaoDaSecao; comOrdem: boolean; prefixoDoEndereco?: string };
+type PropsDoItem = {
+  tipo: TipoDeTopico;
+  topico: TopicoNaTela;
+  excluir: AcaoDaSecao;
+  comOrdem: boolean;
+  comImagem: boolean;
+  ondeAparece?: string;
+  prefixoDoEndereco?: string;
+};
 
-function ItemAtivo({ tipo, topico, excluir, comOrdem, prefixoDoEndereco }: PropsDoItem) {
+function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, ondeAparece, prefixoDoEndereco }: PropsDoItem) {
   const [respostaSalvar, salvar, salvando] = useActionState(atualizarTopico, null);
   const id = useId();
   return (
@@ -73,6 +88,11 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, prefixoDoEndereco }: Props
           )}
         </div>
         {prefixoDoEndereco && <p className={estilos.endereco}>Endereço: {prefixoDoEndereco}{topico.slug}</p>}
+        {comImagem && (
+          <div className={estilos.imagem}>
+            <SeletorDeMidia nome="imagemMidiaId" rotulo={`Imagem${ondeAparece ? ` (${ondeAparece})` : ""}`} inicial={topico.imagem} />
+          </div>
+        )}
       </form>
       {/* Salvar pertence ao formulário acima (atributo form); Excluir tem o próprio formulário. */}
       <div className={estilos.botoes}>
@@ -107,7 +127,7 @@ function ItemExcluido({ tipo, topico, restaurar }: { tipo: TipoDeTopico; topico:
 
 // Cadastro de um tipo de tópico dos artigos: criar, renomear, excluir (vai
 // para os excluídos) e restaurar.
-export function GerenciadorDeTopicos({ tipo, comOrdem = false, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
+export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
   const idTitulo = useId();
   const [respostaExcluir, acaoExcluir, excluindo] = useActionState(excluirTopico, null);
   const [respostaRestaurar, acaoRestaurar, restaurando] = useActionState(restaurarTopico, null);
@@ -118,14 +138,23 @@ export function GerenciadorDeTopicos({ tipo, comOrdem = false, prefixoDoEndereco
       <h2 id={idTitulo} className="tipo-h3">{titulo}</h2>
       <p className="tipo-texto">{descricao}</p>
 
-      <NovoTopico tipo={tipo} comOrdem={comOrdem} />
+      <NovoTopico tipo={tipo} comOrdem={comOrdem} comImagem={comImagem} />
 
       {ativos.length === 0 ? (
         <p className="tipo-texto">Nenhum item cadastrado ainda.</p>
       ) : (
         <ul role="list" className={estilos.lista}>
           {ativos.map((topico) => (
-            <ItemAtivo key={topico.id} tipo={tipo} topico={topico} excluir={excluir} comOrdem={comOrdem} prefixoDoEndereco={prefixoDoEndereco} />
+            <ItemAtivo
+              key={topico.id}
+              tipo={tipo}
+              topico={topico}
+              excluir={excluir}
+              comOrdem={comOrdem}
+              comImagem={comImagem}
+              ondeAparece={ondeAparece}
+              prefixoDoEndereco={prefixoDoEndereco}
+            />
           ))}
         </ul>
       )}

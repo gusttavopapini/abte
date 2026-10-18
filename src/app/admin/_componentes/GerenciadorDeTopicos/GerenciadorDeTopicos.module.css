@@ -43,3 +43,8 @@
   align-items: center;
   justify-content: space-between;
 }
+
+/* Seletor de imagem das categorias, abaixo do nome e da ordem */
+.imagem {
+  margin-top: var(--space-16);
+}

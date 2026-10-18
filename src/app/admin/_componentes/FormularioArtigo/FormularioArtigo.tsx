@@ -1,5 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { startTransition, useActionState, useEffect, useRef, type FormEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
+import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { SeletorDeMidia, type EscolhaDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
+import type { RespostaDoArtigo } from "@/app/admin/acoes-conteudo";
 import type { Artigo } from "@/lib/dados/tipos";
 import {
   estiloAreaDeTexto,
@@ -14,21 +20,47 @@ import classes from "../estilosDoFormulario.module.css";
 type OpcaoDeTopico = { id: string; nome: string };
 
 type PropsFormularioArtigo = {
-  acao: (dados: FormData) => Promise<void>;
+  acao: (anterior: RespostaDoArtigo, dados: FormData) => Promise<RespostaDoArtigo>;
   // Sem artigo: formulário de criação. Com artigo: edição, com os valores atuais.
   artigo?: Pick<Artigo, "id" | "titulo" | "categoria" | "tags" | "autores" | "link" | "resumo">;
   // Tópicos fora da lixeira, lidos do Firestore pela página.
   categorias: OpcaoDeTopico[];
   tags: OpcaoDeTopico[];
+  // Imagem atual da biblioteca de mídia (imagem null: foi para a lixeira).
+  imagem: EscolhaDeMidia;
   rotuloPublicar: string;
   rotuloRascunho: string;
 };
 
 // Formulário de artigo científico, usado em "Adicionar Novo Artigo" e em "Editar Artigo".
-export function FormularioArtigo({ acao, artigo, categorias, tags, rotuloPublicar, rotuloRascunho }: PropsFormularioArtigo) {
+// Erros voltam da ação em português, sem perder o que foi digitado.
+export function FormularioArtigo({ acao, artigo, categorias, tags, imagem, rotuloPublicar, rotuloRascunho }: PropsFormularioArtigo) {
+  const [resposta, enviar, salvando] = useActionState(acao, null);
+  const resumoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (resposta) resumoRef.current?.focus();
+  }, [resposta]);
+
+  // Envio sem o formulário se limpar: com erro, o que foi digitado continua.
+  // O botão clicado (publicar ou rascunho) vai junto, como no envio comum.
+  function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    const botao = (evento.nativeEvent as SubmitEvent).submitter;
+    const dados = new FormData(evento.currentTarget, botao instanceof HTMLButtonElement ? botao : null);
+    startTransition(() => enviar(dados));
+  }
+
   return (
-    <form action={acao} style={estiloFormulario}>
+    <form onSubmit={aoEnviar} style={estiloFormulario}>
       {artigo && <input type="hidden" name="id" value={artigo.id} />}
+
+      {resposta && (
+        <Mensagem tipo="erro" ref={resumoRef}>
+          {resposta.mensagem}
+          {resposta.erros?.categoria && <> {resposta.erros.categoria}</>}
+        </Mensagem>
+      )}
 
       <div className={classes.grupo}>
         <label htmlFor="titulo" style={estiloRotulo}>Título do Artigo</label>
@@ -100,6 +132,10 @@ export function FormularioArtigo({ acao, artigo, categorias, tags, rotuloPublica
       </div>
 
       <div className={classes.grupo}>
+        <SeletorDeMidia nome="imagemMidiaId" rotulo="Imagem do artigo (opcional, aparece na página do artigo)" inicial={imagem} erro={resposta?.erros?.imagemMidiaId} />
+      </div>
+
+      <div className={classes.grupo}>
         <label htmlFor="resumo" style={estiloRotulo}>Resumo ou Pontos Principais</label>
         <textarea
           id="resumo"
@@ -113,8 +149,8 @@ export function FormularioArtigo({ acao, artigo, categorias, tags, rotuloPublica
       </div>
 
       <div className={classes.botoes}>
-        <Botao type="submit" name="acao" value="publicar" variante="primario">{rotuloPublicar}</Botao>
-        <Botao type="submit" name="acao" value="rascunho" variante="secundario">{rotuloRascunho}</Botao>
+        <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando}>{rotuloPublicar}</Botao>
+        <Botao type="submit" name="acao" value="rascunho" variante="secundario" disabled={salvando}>{rotuloRascunho}</Botao>
       </div>
     </form>
   );

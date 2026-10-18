@@ -3,6 +3,7 @@ import { FormularioArtigo } from "@/app/admin/_componentes/FormularioArtigo/Form
 import { atualizarArtigo } from "@/app/admin/acoes-conteudo";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
@@ -17,6 +18,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
   const artigo = (await lerArtigos().doc(id).get()).data();
   if (!artigo) redirect("/admin/artigos");
   const [categorias, tags] = await Promise.all([listarTopicosAtivos("categoria"), listarTopicosAtivos("tag")]);
+  const imagem = artigo.imagemMidiaId ? { id: artigo.imagemMidiaId, imagem: (await imagensAtivasPorId([artigo.imagemMidiaId])).get(artigo.imagemMidiaId) ?? null } : null;
 
   return (
     <div>
@@ -24,7 +26,8 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
       
       <FormularioArtigo
         acao={atualizarArtigo}
-        artigo={artigo}
+        artigo={{ id: artigo.id, titulo: artigo.titulo, categoria: artigo.categoria, tags: artigo.tags, autores: artigo.autores, link: artigo.link, resumo: artigo.resumo }}
+        imagem={imagem}
         categorias={categorias.map(({ id, nome }) => ({ id, nome }))}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
         rotuloPublicar="Atualizar e Publicar"
