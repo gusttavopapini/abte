@@ -1,0 +1,114 @@
+/* Galeria de imagens dos formulários do painel (fundo claro do formulário).
+   Foco: o anel global de :focus-visible (globals.css). */
+.galeria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.texto {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada imagem: miniatura à esquerda, posição, alt e ações à direita */
+.item {
+  display: flex;
+  gap: var(--space-16);
+  align-items: flex-start;
+  padding: var(--space-8);
+  background: var(--color-bg);
+}
+
+.miniatura {
+  flex: 0 0 auto;
+  width: var(--space-96);
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-bg-alt);
+}
+
+/* Seletor com duas classes para valer sobre o height: auto do ImagemDaMidia */
+.miniatura .imagem {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+}
+
+.indisponivel {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.posicao {
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+}
+
+/* Ações como links do painel, com área de toque de 44 px */
+.acao {
+  min-height: var(--control-min-height-mobile);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: var(--font-size-small);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.acao:hover {
+  color: var(--color-primary-hover);
+}
+
+.acao:disabled {
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: not-allowed;
+}
+
+.erro {
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}

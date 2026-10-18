@@ -4,6 +4,7 @@ import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/Ca
 import { FormularioProduto } from "@/app/admin/_componentes/FormularioProduto/FormularioProduto";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerProdutos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 
 export const metadata: Metadata = { title: "Editar produto" };
@@ -16,6 +17,7 @@ export default async function PaginaEditarProduto({ params }: { params: Promise<
   const produto = (await lerProdutos().doc(id).get()).data();
   if (!produto) redirect("/admin/loja");
   const categorias = await listarTopicosAtivos("categoriaDeProduto");
+  const imagens = await imagensAtivasPorId(produto.imagens.map((imagem) => imagem.midiaId));
   // Só os campos do formulário; as datas não vão para o navegador.
   const paraTela = {
     id: produto.id,
@@ -30,6 +32,7 @@ export default async function PaginaEditarProduto({ params }: { params: Promise<
     selo: produto.selo,
     ordem: produto.ordem,
     publicado: produto.publicado,
+    galeria: produto.imagens.map(({ midiaId }) => ({ id: midiaId, imagem: imagens.get(midiaId) ?? null })),
   };
 
   return (

@@ -7,12 +7,14 @@ import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { salvarProduto, type RespostaDoProduto } from "@/app/admin/acoes-produtos";
+import { GaleriaDeMidia, type ItemDaGaleria } from "@/app/admin/_componentes/GaleriaDeMidia/GaleriaDeMidia";
 import type { Produto } from "@/lib/dados/tipos";
-import { precoParaCampo } from "@/lib/produtos";
+import { LIMITE_DE_IMAGENS_DO_PRODUTO, precoParaCampo } from "@/lib/produtos";
 import estilos from "./FormularioProduto.module.css";
 
-// Produto como a tela do painel recebe (sem datas).
-export type ProdutoNaTela = Omit<Produto, "criadoEm" | "atualizadoEm" | "excluidoEm">;
+// Produto como a tela do painel recebe (sem datas), com a galeria já montada
+// no servidor (imagens na ordem; imagem null: foi para a lixeira).
+export type ProdutoNaTela = Omit<Produto, "criadoEm" | "atualizadoEm" | "excluidoEm" | "imagens"> & { galeria: ItemDaGaleria[] };
 
 type Props = {
   produto: ProdutoNaTela | null;
@@ -25,7 +27,7 @@ function ErroDoCampo({ id, erro }: { id: string; erro?: string }) {
   return <p id={id} className={estilos.erro}>{erro}</p>;
 }
 
-// Cadastro e edição de produto. Sem galeria até a biblioteca de mídia (etapa 4d).
+// Cadastro e edição de produto, com a galeria de imagens da biblioteca de mídia.
 export function FormularioProduto({ produto, categorias }: Props) {
   const router = useRouter();
   const [resposta, acao, salvando] = useActionState<RespostaDoProduto | null, FormData>(salvarProduto, null);
@@ -102,7 +104,7 @@ export function FormularioProduto({ produto, categorias }: Props) {
         Publicado (aparece na loja)
       </label>
 
-      <p className={estilos.nota}>Galeria de imagens: disponível quando a biblioteca de mídia (Cloud Storage) for ativada.</p>
+      <GaleriaDeMidia nome="imagens" rotulo="Imagens do produto" inicial={p?.galeria ?? []} limite={LIMITE_DE_IMAGENS_DO_PRODUTO} erro={erros.imagens} />
 
       <div className={estilos.botoes}>
         <Botao href="/admin/loja" variante="secundario">Cancelar</Botao>
