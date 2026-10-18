@@ -3,6 +3,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PAISES, TAGS_DE_PROFISSIONAIS, TAG_SEM_CLASSIFICACAO } from "@/config/profissionais";
 import { lerProfissionais, ordenarProfissionais } from "@/lib/dados/colecoes";
 import type { Profissional } from "@/lib/dados/tipos";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ProfissionaisClient, type ProfissionalPublico } from "./ProfissionaisClient";
 import estilos from "./page.module.css";
 
@@ -19,6 +20,8 @@ export default async function PaginaProfissionais() {
   // Só quem está marcado para aparecer no site e fora dos excluídos.
   const snapshot = await lerProfissionais().where("ativo", "==", true).get();
   const visiveis = ordenarProfissionais(snapshot.docs.map((documento) => documento.data()).filter((profissional) => !profissional.excluidoEm));
+  // Fotos fora da lixeira da biblioteca; as outras ficam com o placeholder.
+  const fotos = await imagensAtivasPorId(visiveis.map((profissional) => profissional.fotoMidiaId));
 
   const profissionais: ProfissionalPublico[] = visiveis.map((profissional) => ({
     id: profissional.id,
@@ -34,6 +37,7 @@ export default async function PaginaProfissionais() {
     facebook: profissional.facebook,
     email: profissional.email,
     bio: profissional.bio,
+    foto: profissional.fotoMidiaId ? fotos.get(profissional.fotoMidiaId) ?? null : null,
   }));
 
   return (

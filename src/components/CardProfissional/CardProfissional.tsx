@@ -1,4 +1,6 @@
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./CardProfissional.module.css";
 
 // Dados que o card mostra (já validados e padronizados no painel).
@@ -15,12 +17,18 @@ export type ProfissionalDoCard = {
   facebook: string;
   email: string;
   bio: string;
+  // Foto da biblioteca de mídia; null sem foto ou com a imagem na lixeira.
+  foto: ImagemNaTela | null;
 };
 
-// Card do diretório de profissionais. Sem foto até a biblioteca de mídia
-// (etapa 4d): mostra o placeholder no lugar.
+// Largura do card na grade de /profissionais (1, 2 e 3 colunas), para o
+// navegador escolher a variante da foto.
+const LARGURA_DA_FOTO = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+
+// Card do diretório de profissionais. Com foto, mostra a imagem da biblioteca
+// (texto alternativo cadastrado nela); sem foto, o placeholder.
 export function CardProfissional({ profissional }: { profissional: ProfissionalDoCard }) {
-  const { tratamento, nome, registro, metodos, local, telerreabilitacao, whatsapp, instagram, facebook, email, bio } = profissional;
+  const { tratamento, nome, registro, metodos, local, telerreabilitacao, whatsapp, instagram, facebook, email, bio, foto } = profissional;
   const nomeCompleto = [tratamento, nome].filter(Boolean).join(" ");
   const novaAba = { target: "_blank", rel: "noopener noreferrer" } as const;
 
@@ -31,7 +39,11 @@ export function CardProfissional({ profissional }: { profissional: ProfissionalD
         {registro && <p className={estilos.especialidade}>{registro}</p>}
       </div>
       <div className={estilos.imagemContainer}>
-        <PlaceholderImagem />
+        {foto ? (
+          <ImagemDaMidia variantes={foto.variantes} alt={foto.alt} largura={foto.largura} altura={foto.altura} sizes={LARGURA_DA_FOTO} className={estilos.imagem} />
+        ) : (
+          <PlaceholderImagem />
+        )}
       </div>
       {metodos.length > 0 && (
         <ul role="list" aria-label="Métodos" className={estilos.metodos}>
