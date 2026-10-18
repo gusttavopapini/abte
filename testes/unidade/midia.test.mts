@@ -113,17 +113,18 @@ describe("Larguras das variantes", () => {
     assert.deepEqual(escolherLarguras(480), [480]);
   });
 
-  test("variante extra na largura original quando ela é 15% maior que a maior variante que coube", () => {
+  test("variante extra na largura original, abaixo de 1600 px, quando ela é 15% maior que a maior variante que coube", () => {
     assert.deepEqual(escolherLarguras(900), [480, 900]);
     assert.deepEqual(escolherLarguras(1000), [480, 960], "1000 é só 4% maior que 960");
     assert.deepEqual(escolherLarguras(1300), [480, 960, 1300]);
-    assert.deepEqual(escolherLarguras(1600), [480, 960, 1600]);
-    assert.deepEqual(escolherLarguras(2000), [480, 960, 1600, 2000]);
+    assert.deepEqual(escolherLarguras(1599), [480, 960, 1599]);
     // Limites exatos: 15% acima entra; abaixo, não.
     assert.deepEqual(escolherLarguras(552), [480, 552]);
     assert.deepEqual(escolherLarguras(551), [480]);
-    assert.deepEqual(escolherLarguras(1840), [480, 960, 1600, 1840]);
-    assert.deepEqual(escolherLarguras(1839), [480, 960, 1600]);
+  });
+
+  test("com 1600 px ou mais, só 480, 960 e 1600 (nada maior)", () => {
+    for (const largura of [1600, 1840, 2000, 2560]) assert.deepEqual(escolherLarguras(largura), [480, 960, 1600], String(largura));
   });
 
   test("escolhe a variante mais leve que cobre a largura pedida", () => {
@@ -146,7 +147,7 @@ describe("Processamento com o sharp", () => {
     const grande = await prepararVariantes(await duasCores(2000, 1000));
     assert.equal(grande.ok, true);
     if (!grande.ok) return;
-    assert.deepEqual(grande.variantes.map((v) => [v.largura, v.altura]), [[480, 240], [960, 480], [1600, 800], [2000, 1000]]);
+    assert.deepEqual(grande.variantes.map((v) => [v.largura, v.altura]), [[480, 240], [960, 480], [1600, 800]]);
     for (const variante of grande.variantes) assert.equal(detectarFormato(variante.dados), "webp");
 
     const pequena = await prepararVariantes(await duasCores(300, 200));

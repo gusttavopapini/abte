@@ -4,9 +4,10 @@ import { ehIdDeDocumentoValido } from "../validacao.ts";
 
 // Larguras das variantes WebP. Nunca se amplia: só entram as larguras que não
 // passam da largura da imagem; abaixo da menor, uma variante na largura original.
-// Quando a imagem é pelo menos 15% mais larga que a maior variante da lista
-// que coube, entra também uma variante na largura original (ex.: 900 px gera
-// 480 e 900, em vez de só 480; 1000 px gera 480 e 960). Decidido em 18/10/2026.
+// Quando a imagem tem menos de 1600 px e é pelo menos 15% mais larga que a
+// maior variante da lista que coube, entra também uma variante na largura
+// original (ex.: 900 px gera 480 e 900, em vez de só 480; 1000 px gera 480 e
+// 960). Com 1600 px ou mais, só 480, 960 e 1600. Decidido em 18/10/2026.
 export const LARGURAS_DAS_VARIANTES = [480, 960, 1600] as const;
 export const FOLGA_PARA_VARIANTE_ORIGINAL = 1.15;
 export const QUALIDADE_WEBP = 78;
@@ -93,7 +94,8 @@ export function escolherLarguras(larguraDaImagem: number): number[] {
   const larguras: number[] = LARGURAS_DAS_VARIANTES.filter((largura) => largura <= larguraDaImagem);
   if (larguras.length === 0) return [original];
   const maior = larguras[larguras.length - 1];
-  if (original >= maior * FOLGA_PARA_VARIANTE_ORIGINAL) larguras.push(original);
+  const maiorDaLista = LARGURAS_DAS_VARIANTES[LARGURAS_DAS_VARIANTES.length - 1];
+  if (original < maiorDaLista && original >= maior * FOLGA_PARA_VARIANTE_ORIGINAL) larguras.push(original);
   return larguras;
 }
 
