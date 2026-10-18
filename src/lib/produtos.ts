@@ -14,7 +14,15 @@ export type DadosDoProduto = {
   selo: string;
   ordem: number;
   publicado: boolean;
+  // Imagens da biblioteca de mídia, na ordem da galeria (modelo de dados:
+  // imagens [{ midiaId, ordem }]). A primeira por ordem é a principal.
+  imagens: ImagemDoProduto[];
 };
+
+export type ImagemDoProduto = { midiaId: string; ordem: number };
+
+// Limite de imagens por produto (proposto em 18/10/2026).
+export const LIMITE_DE_IMAGENS_DO_PRODUTO = 8;
 
 export type CampoDoProduto = keyof DadosDoProduto;
 
@@ -53,6 +61,32 @@ export function formatarPreco(centavos: number): string {
 export function precoParaCampo(centavos: number | null): string {
   if (centavos === null) return "";
   return (centavos / 100).toFixed(2).replace(".", ",");
+}
+
+// Imagens da galeria, como vêm do formulário: um campo "imagens" por imagem,
+// na ordem da tela. Ids inválidos, repetidos ou acima do limite são recusados.
+// A ordem gravada é a posição (0 é a principal).
+export function lerImagensDoProduto(valores: FormDataEntryValue[]): { ok: true; imagens: ImagemDoProduto[] } | { ok: false; erro: string } {
+  const ids = valores.map((valor) => (typeof valor === "string" ? valor.trim() : "")).filter(Boolean);
+  if (!ids.every(ehIdDeDocumentoValido)) return { ok: false, erro: "Imagem inválida. Escolha as imagens de novo." };
+  if (new Set(ids).size !== ids.length) return { ok: false, erro: "A mesma imagem aparece duas vezes na galeria. Remova a repetida." };
+  if (ids.length > LIMITE_DE_IMAGENS_DO_PRODUTO) return { ok: false, erro: `Use no máximo ${LIMITE_DE_IMAGENS_DO_PRODUTO} imagens por produto.` };
+  return { ok: true, imagens: ids.map((midiaId, ordem) => ({ midiaId, ordem })) };
+}
+
+// Ids das imagens na ordem da galeria (a primeira é a principal).
+export function idsEmOrdem(imagens: ImagemDoProduto[]): string[] {
+  return [...imagens].sort((a, b) => a.ordem - b.ordem).map((imagem) => imagem.midiaId);
+}
+
+// Imagem principal para exibir: a primeira da galeria que está disponível
+// (fora da lixeira da biblioteca); nenhuma, null (o site mostra o placeholder).
+export function imagemPrincipal<Imagem>(imagens: ImagemDoProduto[], disponiveis: Map<string, Imagem>): Imagem | null {
+  for (const midiaId of idsEmOrdem(imagens)) {
+    const imagem = disponiveis.get(midiaId);
+    if (imagem) return imagem;
+  }
+  return null;
 }
 
 function texto(dados: FormData, campo: string): string {
@@ -97,7 +131,10 @@ export function validarProduto(dados: FormData): ResultadoDoProduto {
   const ordem = ordemTexto === "" ? 0 : Number(ordemTexto);
   if (!/^\d*$/.test(ordemTexto) || ordem > ORDEM_MAXIMA) erros.ordem = `Use um número inteiro de 0 a ${ORDEM_MAXIMA}.`;
 
-  if (Object.keys(erros).length > 0) return { ok: false, erros };
+  const imagens = lerImagensDoProduto(dados.getAll("imagens"));
+  if (!imagens.ok) erros.imagens = imagens.erro;
+
+  if (Object.keys(erros).length > 0 || !imagens.ok) return { ok: false, erros };
 
   return {
     ok: true,
@@ -112,6 +149,7 @@ export function validarProduto(dados: FormData): ResultadoDoProduto {
       selo,
       ordem,
       publicado: dados.get("publicado") === "sim",
+      imagens: imagens.imagens,
     },
   };
 }

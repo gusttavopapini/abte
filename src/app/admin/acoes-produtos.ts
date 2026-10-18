@@ -8,6 +8,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { COLECAO_DE_TOPICOS } from "@/lib/dados/colecoes";
+import { MENSAGEM_IMAGEM_DO_PRODUTO_INDISPONIVEL, imagensDoProdutoValidas } from "@/lib/gravacao/produtos";
 import { validarProduto, type CampoDoProduto } from "@/lib/produtos";
 import { escolherSlugUnico, gerarSlug } from "@/lib/slug";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
@@ -23,6 +24,7 @@ class ErroDeValidacao extends Error {}
 function atualizarPaginas() {
   revalidatePath("/admin/loja");
   revalidatePath("/loja", "layout");
+  revalidatePath("/admin/midia");
 }
 
 // Cria (sem id) ou atualiza (com id). O slug é criado com o nome, único entre
@@ -44,6 +46,10 @@ export async function salvarProduto(_anterior: RespostaDoProduto | null, dados: 
     }
 
     const colecao = db.collection("produtos");
+    // Imagens novas precisam existir e estar fora da lixeira (lib/gravacao/produtos.ts).
+    if (!(await imagensDoProdutoValidas(db, typeof id === "string" && id ? id : null, produto.imagens))) {
+      return { ok: false, mensagem: "Confira os campos marcados.", erros: { imagens: MENSAGEM_IMAGEM_DO_PRODUTO_INDISPONIVEL } };
+    }
     const agora = new Date();
     await db.runTransaction(async (transacao) => {
       if (typeof id === "string" && id) {

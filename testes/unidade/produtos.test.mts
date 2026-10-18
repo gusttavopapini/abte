@@ -2,7 +2,7 @@
 // Preços e nomes abaixo são de exemplo, marcados como TESTE.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { escolherRelacionados, formatarPreco, lerPrecoEmCentavos, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
+import { LIMITE_DE_IMAGENS_DO_PRODUTO, escolherRelacionados, formatarPreco, idsEmOrdem, imagemPrincipal, lerImagensDoProduto, lerPrecoEmCentavos, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
 
 describe("Preço digitado", () => {
   test("formatos brasileiros viram centavos", () => {
@@ -77,5 +77,43 @@ describe("Produtos relacionados", () => {
     assert.deepEqual(escolherRelacionados(lista[0], lista).map((p) => p.id), ["c", "d", "e"]);
     assert.deepEqual(escolherRelacionados(lista[1], lista), []);
     assert.deepEqual(escolherRelacionados(lista[2], lista, 2).map((p) => p.id), ["a", "d"]);
+  });
+});
+
+describe("Galeria do produto", () => {
+  test("ids na ordem da tela viram imagens com ordem; vazio é galeria vazia", () => {
+    assert.deepEqual(lerImagensDoProduto(["b", "a", "c"]), { ok: true, imagens: [{ midiaId: "b", ordem: 0 }, { midiaId: "a", ordem: 1 }, { midiaId: "c", ordem: 2 }] });
+    assert.deepEqual(lerImagensDoProduto([]), { ok: true, imagens: [] });
+    assert.deepEqual(lerImagensDoProduto(["", " "]), { ok: true, imagens: [] });
+  });
+
+  test("recusa repetida, inválida e acima do limite de 8", () => {
+    assert.equal(LIMITE_DE_IMAGENS_DO_PRODUTO, 8);
+    assert.match((lerImagensDoProduto(["a", "b", "a"]) as { erro: string }).erro, /duas vezes/);
+    assert.match((lerImagensDoProduto(["a", "publico/midias/x"]) as { erro: string }).erro, /inválida/);
+    const nove = Array.from({ length: 9 }, (_, i) => `img${i}`);
+    assert.match((lerImagensDoProduto(nove) as { erro: string }).erro, /no máximo 8/);
+    assert.equal(lerImagensDoProduto(nove.slice(0, 8)).ok, true);
+  });
+
+  test("o formulário do produto leva a galeria e mostra o erro no campo", () => {
+    const dados = formulario({ ...BASE });
+    dados.append("imagens", "x1");
+    dados.append("imagens", "x2");
+    const resultado = validarProduto(dados);
+    assert.equal(resultado.ok, true);
+    if (resultado.ok) assert.deepEqual(resultado.dados.imagens, [{ midiaId: "x1", ordem: 0 }, { midiaId: "x2", ordem: 1 }]);
+    dados.append("imagens", "x1");
+    const repetida = validarProduto(dados);
+    assert.equal(repetida.ok, false);
+    if (!repetida.ok) assert.match(repetida.erros.imagens ?? "", /duas vezes/);
+  });
+
+  test("a principal é a primeira disponível pela ordem", () => {
+    const imagens = [{ midiaId: "c", ordem: 2 }, { midiaId: "a", ordem: 0 }, { midiaId: "b", ordem: 1 }];
+    assert.deepEqual(idsEmOrdem(imagens), ["a", "b", "c"]);
+    assert.equal(imagemPrincipal(imagens, new Map([["a", "A"], ["b", "B"]])), "A");
+    assert.equal(imagemPrincipal(imagens, new Map([["b", "B"], ["c", "C"]])), "B", "a primeira foi para a lixeira");
+    assert.equal(imagemPrincipal(imagens, new Map()), null);
   });
 });

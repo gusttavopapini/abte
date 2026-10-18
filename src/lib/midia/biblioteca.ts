@@ -45,12 +45,18 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 // Campos de referência a uma mídia em outras coleções. Cada campo de imagem
 // do painel (fatias 3a a 3d) acrescenta a sua linha aqui, e a exclusão avisa
 // em quais registros a imagem está em uso. campoDoNome identifica o registro
-// na tela (nome ou título, já públicos no site).
-export const REFERENCIAS_DE_MIDIA: { colecao: string; campo: string; rotulo: string; campoDoNome: string }[] = [
+// na tela (nome ou título, já públicos no site). emLista: o campo é uma lista
+// de objetos e o id fica na chave indicada (ex.: produtos.imagens[].midiaId);
+// essas coleções são lidas inteiras (pequenas) e filtradas aqui.
+export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string };
+
+export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
   { colecao: "posts", campo: "capaMidiaId", rotulo: "Posts do blog (capa)", campoDoNome: "titulo" },
   { colecao: "artigos", campo: "imagemMidiaId", rotulo: "Artigos (imagem)", campoDoNome: "titulo" },
   { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", rotulo: "Categorias de artigos (imagem)", campoDoNome: "nome" },
+  { colecao: "produtos", campo: "imagens", emLista: "midiaId", rotulo: "Produtos (galeria)", campoDoNome: "nome" },
+  { colecao: "categoriasDeProdutos", campo: "imagemMidiaId", rotulo: "Categorias de produtos (imagem)", campoDoNome: "nome" },
 ];
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };
@@ -203,14 +209,28 @@ export async function escolhaDeMidiaValida(db: Firestore, escolhida: string | nu
   return midiaPodeSerEscolhida(db, escolhida);
 }
 
+// Várias imagens escolhidas de uma vez (galeria do produto): cada uma precisa
+// passar em escolhaDeMidiaValida, comparada com as que já estavam gravadas.
+export async function escolhasDeMidiaValidas(db: Firestore, escolhidas: string[], anteriores: string[]): Promise<boolean> {
+  const novas = escolhidas.filter((id) => !anteriores.includes(id));
+  const resultados = await Promise.all(novas.map((id) => midiaPodeSerEscolhida(db, id)));
+  return resultados.every(Boolean);
+}
+
 // Onde a imagem está em uso: para cada referência cadastrada em
 // REFERENCIAS_DE_MIDIA, os registros que apontam para ela (os que estão na
 // lixeira daquela coleção aparecem marcados, porque voltam se restaurados).
 export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[]> {
   const usos = await Promise.all(
-    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome }) => {
-      const encontrados = await db.collection(colecao).where(campo, "==", id).select(campoDoNome, "excluidoEm").get();
+    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome, emLista }) => {
+      const consulta = emLista ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
+      const encontrados = await consulta.select(campoDoNome, "excluidoEm", campo).get();
       const registros = encontrados.docs
+        .filter((documento) => {
+          if (!emLista) return true;
+          const lista = documento.get(campo);
+          return Array.isArray(lista) && lista.some((item) => item?.[emLista] === id);
+        })
         .map((documento) => {
           const nome = String(documento.get(campoDoNome) ?? "").trim() || "Sem nome";
           return documento.get("excluidoEm") ? `${nome} (na lixeira)` : nome;

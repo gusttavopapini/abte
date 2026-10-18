@@ -104,6 +104,9 @@ export type Produto = {
   selo: string;
   ordem: number;
   publicado: boolean;
+  // Imagens da biblioteca de mídia (fatia 3d), já ordenadas pela ordem; a
+  // primeira é a principal.
+  imagens: { midiaId: string; ordem: number }[];
   criadoEm: Date | null;
   atualizadoEm: Date | null;
   excluidoEm: Date | null;

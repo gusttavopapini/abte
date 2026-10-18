@@ -115,6 +115,16 @@ function centavos(valor: unknown): number | null {
   return typeof valor === "number" && Number.isInteger(valor) && valor >= 0 ? valor : null;
 }
 
+// Imagens válidas de um produto, ordenadas pela ordem (a primeira é a principal).
+function imagensDoProduto(valor: unknown): Produto["imagens"] {
+  if (!Array.isArray(valor)) return [];
+  return valor
+    .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+    .map((item) => ({ midiaId: texto(item.midiaId), ordem: numero(item.ordem) }))
+    .filter((item) => item.midiaId !== "")
+    .sort((a, b) => a.ordem - b.ordem);
+}
+
 const conversorProduto = conversorDeLeitura<Produto>((id, campos) => ({
   id,
   nome: texto(campos.nome),
@@ -128,6 +138,7 @@ const conversorProduto = conversorDeLeitura<Produto>((id, campos) => ({
   selo: texto(campos.selo),
   ordem: numero(campos.ordem),
   publicado: campos.publicado === true,
+  imagens: imagensDoProduto(campos.imagens),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
   excluidoEm: data(campos.excluidoEm),

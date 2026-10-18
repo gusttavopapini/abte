@@ -32,6 +32,9 @@ function atualizarPaginas() {
   revalidatePath("/profissionais");
   revalidatePath("/blog");
   revalidatePath("/blog/[slug]", "page");
+  revalidatePath("/artigos");
+  revalidatePath("/artigos/[slug]", "page");
+  revalidatePath("/loja", "layout");
 }
 
 const NAO_ENCONTRADA: RespostaDaMidia = { ok: false, mensagem: "Imagem não encontrada." };
