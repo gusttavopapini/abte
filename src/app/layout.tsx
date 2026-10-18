@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     "Informação confiável, profissionais certificados e apoio para pacientes e famílias no tratamento conservador da escoliose.",
   // Sem ícone até a ABTE enviar o logo em vetor (evita o erro 404 do favicon).
   icons: { icon: "data:," },
+  // PROVISÓRIO: o site inteiro fora dos buscadores enquanto houver conteúdo
+  // de exemplo (junto com o src/app/robots.ts). REMOVER NO LANÇAMENTO
+  // (etapa 9, ver checklist de lançamento no CLAUDE.md).
+  robots: { index: false, follow: false },
 };
 
 // Liga o movimento de entrada (componente Revelar) antes da primeira pintura,
