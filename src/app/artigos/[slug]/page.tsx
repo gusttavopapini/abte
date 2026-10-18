@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
@@ -6,20 +8,29 @@ import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import type { Topico } from "@/lib/dados/tipos";
 
-export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-
-  // Procura primeiro pelo id do documento e, se não achar, pelo campo slug.
-  // Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
-  // Firestore recusaria a leitura e a página daria erro 500 em vez de 404.
+// Artigo publicado pelo id do documento ou, se não achar, pelo campo slug.
+// Um endereço que não pode ser id (ex.: __x__) vai direto para o slug: o
+// Firestore recusaria a leitura e a página daria erro 500 em vez de 404.
+// O cache evita ler duas vezes (metadata e página).
+const lerArtigoPublicado = cache(async (slug: string) => {
   let artigo = ehIdDeDocumentoValido(slug) ? (await lerArtigos().doc(slug).get()).data() : undefined;
   if (!artigo) {
     const consulta = await lerArtigos().where("slug", "==", slug).limit(1).get();
     artigo = consulta.docs[0]?.data();
   }
+  // Rascunho conta como inexistente.
+  return artigo?.status === "publicado" ? artigo : null;
+});
 
-  // Inexistente ou rascunho: página não encontrada.
-  if (!artigo || artigo.status !== "publicado") notFound();
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const artigo = await lerArtigoPublicado((await params).slug);
+  if (!artigo) return { title: "Página não encontrada" };
+  return { title: artigo.titulo };
+}
+
+export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
+  const artigo = await lerArtigoPublicado((await params).slug);
+  if (!artigo) notFound();
 
   const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
 
