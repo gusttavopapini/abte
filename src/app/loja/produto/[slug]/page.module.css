@@ -20,13 +20,6 @@
   }
 }
 
-/* Proporção 3:4 do produto (design-system.md) */
-.galeria {
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-
 .detalhes {
   display: flex;
   flex-direction: column;

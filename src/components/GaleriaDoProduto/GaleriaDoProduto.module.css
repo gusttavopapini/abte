@@ -1,0 +1,48 @@
+.galeria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+/* Proporção 3:4 do produto (design-system.md), com a imagem cortada para caber */
+.destaque {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
+}
+
+/* Seletores com duas classes para valer sobre o height: auto do ImagemDaMidia */
+.destaque .imagem,
+.miniatura .imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Miniaturas: quantas couberem por linha, quadradas */
+.miniaturas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--space-64), 1fr));
+  gap: var(--space-8);
+}
+
+.miniatura {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-bg-alt);
+  cursor: pointer;
+}
+
+/* Imagem em destaque: moldura na cor primária, por dentro da miniatura */
+.miniatura[aria-pressed="true"] {
+  outline: calc(var(--space-8) / 2) solid var(--color-primary);
+  outline-offset: calc(var(--space-8) / -2);
+}

@@ -4,14 +4,16 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { CardProduto } from "@/components/CardProduto/CardProduto";
-import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { GaleriaDoProduto } from "@/components/GaleriaDoProduto/GaleriaDoProduto";
 import { PrecoProduto } from "@/components/PrecoProduto/PrecoProduto";
 import { revelar } from "@/components/Revelar/revelar";
 import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { quantidadeMaxima } from "@/lib/loja/carrinho";
 import { AdicionarAoCarrinho } from "../../_componentes/AdicionarAoCarrinho/AdicionarAoCarrinho";
-import { escolherRelacionados } from "@/lib/produtos";
+import { escolherRelacionados, imagemPrincipal } from "@/lib/produtos";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
+import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +41,9 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
     lerSessaoCliente(),
   ]);
   const relacionados = escolherRelacionados(produto, visiveis);
+  // Imagens da galeria (só as fora da lixeira, na ordem) e a principal (primeira disponível) de cada relacionado.
+  const imagens = await imagensAtivasPorId([produto, ...relacionados].flatMap((item) => item.imagens.map((imagem) => imagem.midiaId)));
+  const galeria = produto.imagens.map((imagem) => imagens.get(imagem.midiaId)).filter((imagem): imagem is ImagemNaTela => imagem !== undefined);
   const esgotado = produto.status === "esgotado";
 
   // Dados estruturados de produto SEM oferta de compra (sem "offers"): não há
@@ -57,10 +62,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
       <Botao href="/loja" variante="link">&larr; Voltar para a loja</Botao>
 
       <article className={estilos.produto}>
-        <div className={estilos.galeria}>
-          {/* Galeria: disponível com a biblioteca de mídia (etapa 4d). */}
-          <PlaceholderImagem />
-        </div>
+        <GaleriaDoProduto imagens={galeria} />
 
         <div className={estilos.detalhes}>
           {produto.selo && <p className={estilos.selo}>{produto.selo}</p>}
@@ -94,7 +96,15 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
               <li key={outro.id}>
                 <CardProduto
                   nivelDoTitulo={3}
-                  produto={{ nome: outro.nome, slug: outro.slug, preco: outro.preco, precoPromocional: outro.precoPromocional, selo: outro.selo, esgotado: outro.status === "esgotado" }}
+                  produto={{
+                    nome: outro.nome,
+                    slug: outro.slug,
+                    preco: outro.preco,
+                    precoPromocional: outro.precoPromocional,
+                    selo: outro.selo,
+                    esgotado: outro.status === "esgotado",
+                    imagem: imagemPrincipal(outro.imagens, imagens),
+                  }}
                 />
               </li>
             ))}

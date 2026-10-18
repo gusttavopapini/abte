@@ -25,6 +25,7 @@
 /* Filtro de categoria: link com o estado atual marcado (aria-current) */
 .filtro {
   display: inline-flex;
+  gap: var(--space-8);
   align-items: center;
   min-height: var(--control-min-height-mobile);
   padding: 0 var(--space-16);
@@ -32,6 +33,24 @@
   color: var(--color-text);
   font-size: var(--font-size-small);
   text-decoration: none;
+}
+
+/* Miniatura da categoria no filtro (decisão de 18/10/2026, exceção de design
+   pendente da designer); sem imagem, quadrado vazio na cor suave */
+.miniatura {
+  flex: 0 0 auto;
+  width: var(--space-32);
+  height: var(--space-32);
+  overflow: hidden;
+  background: var(--color-surface-soft);
+}
+
+/* Seletor com duas classes para valer sobre o height: auto do ImagemDaMidia */
+.miniatura .imagemDoFiltro {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .filtro:hover {
