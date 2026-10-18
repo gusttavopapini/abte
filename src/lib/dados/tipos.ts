@@ -96,3 +96,28 @@ export type Produto = {
   atualizadoEm: Date | null;
   excluidoEm: Date | null;
 };
+
+// Imagem da biblioteca de mídia (etapa 4d). O documento guarda só caminhos
+// no Storage; o endereço público é montado com o bucket (urlPublica, em
+// src/lib/midia/regras.ts). Largura e altura são as da imagem enviada, já na
+// orientação certa. Com excluidoEm preenchido, está na lixeira (arquivos em
+// lixeira/, fora do ar).
+export type VarianteDeMidia = { largura: number; caminho: string; tamanho: number };
+
+export type Midia = {
+  id: string;
+  caminhoStorage: string;
+  tipo: "imagem";
+  alt: string;
+  largura: number;
+  altura: number;
+  tamanho: number;
+  variantes: VarianteDeMidia[];
+  enviadoPor: string;
+  // Aviso de menores (texto PROVISÓRIO): quem confirmou a autorização e quando.
+  indicaMenor: boolean;
+  autorizacaoConfirmadaPor: string | null;
+  autorizacaoConfirmadaEm: Date | null;
+  criadoEm: Date | null;
+  excluidoEm: Date | null;
+};

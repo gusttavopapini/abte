@@ -3,7 +3,7 @@ import "server-only";
 
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import type { Artigo, Post, Produto, Profissional, TipoDeTopico, Topico } from "./tipos";
+import type { Artigo, Midia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
 function texto(valor: unknown): string {
@@ -128,6 +128,36 @@ const conversorProduto = conversorDeLeitura<Produto>((id, campos) => ({
   atualizadoEm: data(campos.atualizadoEm),
   excluidoEm: data(campos.excluidoEm),
 }));
+
+// Variantes válidas de uma mídia; qualquer item malformado é descartado.
+function variantes(valor: unknown): VarianteDeMidia[] {
+  if (!Array.isArray(valor)) return [];
+  return valor
+    .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+    .map((item) => ({ largura: numero(item.largura), caminho: texto(item.caminho), tamanho: numero(item.tamanho) }))
+    .filter((item) => item.largura > 0 && item.caminho !== "");
+}
+
+const conversorMidia = conversorDeLeitura<Midia>((id, campos) => ({
+  id,
+  caminhoStorage: texto(campos.caminhoStorage),
+  tipo: "imagem",
+  alt: texto(campos.alt),
+  largura: numero(campos.largura),
+  altura: numero(campos.altura),
+  tamanho: numero(campos.tamanho),
+  variantes: variantes(campos.variantes),
+  enviadoPor: texto(campos.enviadoPor),
+  indicaMenor: campos.indicaMenor === true,
+  autorizacaoConfirmadaPor: typeof campos.autorizacaoConfirmadaPor === "string" ? campos.autorizacaoConfirmadaPor : null,
+  autorizacaoConfirmadaEm: data(campos.autorizacaoConfirmadaEm),
+  criadoEm: data(campos.criadoEm),
+  excluidoEm: data(campos.excluidoEm),
+}));
+
+export function lerMidias() {
+  return firestoreAdmin().collection("midias").withConverter(conversorMidia);
+}
 
 export function lerPosts() {
   return firestoreAdmin().collection("posts").withConverter(conversorPost);
