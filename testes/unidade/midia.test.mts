@@ -8,7 +8,9 @@ import { prepararVariantes } from "../../src/lib/midia/biblioteca.ts";
 import {
   LIMITE_DO_ARQUIVO_EM_BYTES,
   MENSAGENS,
+  SAIDA_DO_NAVEGADOR,
   caminhoDaVariante,
+  conferirCopiaReduzida,
   detectarFormato,
   escolherLarguras,
   escolherVariante,
@@ -55,6 +57,22 @@ describe("Tipo real do arquivo", () => {
     assert.deepEqual(resultado, { ok: false, mensagem: MENSAGENS.outroFormato, campo: "arquivo" });
   });
 
+  // O nome e o tipo informados pelo navegador não contam: só os bytes.
+  test("arquivo de texto renomeado para .jpg é recusado pelo tipo real", async () => {
+    const falso = new File(["Ata da reunião, só texto.\n"], "foto.jpg", { type: "image/jpeg" });
+    const bytes = new Uint8Array(await falso.arrayBuffer());
+    assert.equal(detectarFormato(bytes), "outro");
+    assert.deepEqual(await prepararVariantes(bytes), { ok: false, mensagem: MENSAGENS.outroFormato, campo: "arquivo" });
+  });
+
+  test("PDF renomeado para .png é recusado pelo tipo real", async () => {
+    const pdf = "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n";
+    const falso = new File([pdf], "imagem.png", { type: "image/png" });
+    const bytes = new Uint8Array(await falso.arrayBuffer());
+    assert.equal(detectarFormato(bytes), "outro");
+    assert.deepEqual(await prepararVariantes(bytes), { ok: false, mensagem: MENSAGENS.outroFormato, campo: "arquivo" });
+  });
+
   test("JPEG corrompido: mensagem em português, sem texto técnico", async () => {
     const corrompido = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...Array.from({ length: 200 }, (_, i) => (i * 37) % 256)]);
     const resultado = await prepararVariantes(corrompido);
@@ -66,6 +84,25 @@ describe("Tipo real do arquivo", () => {
     const resultado = await prepararVariantes(new Uint8Array(LIMITE_DO_ARQUIVO_EM_BYTES + 1));
     assert.deepEqual(resultado, { ok: false, mensagem: MENSAGENS.grande, campo: "arquivo" });
     assert.match(MENSAGENS.grande, /4 MB/);
+  });
+});
+
+describe("Cópia reduzida no navegador", () => {
+  test("sai em JPEG de qualidade alta, não em WebP", () => {
+    assert.equal(SAIDA_DO_NAVEGADOR.tipo, "image/jpeg");
+    assert.equal(SAIDA_DO_NAVEGADOR.extensao, "jpg");
+    assert.ok(SAIDA_DO_NAVEGADOR.qualidade >= 0.9 && SAIDA_DO_NAVEGADOR.qualidade <= 1);
+  });
+
+  test("navegador que devolve PNG ou WebP no lugar do JPEG: recusa sem enviar", () => {
+    assert.equal(conferirCopiaReduzida("image/jpeg", 1000), null);
+    assert.equal(conferirCopiaReduzida("image/png", 1000), MENSAGENS.ilegivel);
+    assert.equal(conferirCopiaReduzida("image/webp", 1000), MENSAGENS.ilegivel);
+  });
+
+  test("cópia acima do limite: mensagem dos 4 MB", () => {
+    assert.equal(conferirCopiaReduzida("image/jpeg", LIMITE_DO_ARQUIVO_EM_BYTES), null);
+    assert.equal(conferirCopiaReduzida("image/jpeg", LIMITE_DO_ARQUIVO_EM_BYTES + 1), MENSAGENS.grande);
   });
 });
 

@@ -9,6 +9,11 @@ export const QUALIDADE_WEBP = 78;
 // Lado maior da imagem depois da redução no navegador, antes do envio.
 export const LADO_MAXIMO_NO_NAVEGADOR = 2560;
 
+// Formato da cópia reduzida no navegador: JPEG de qualidade alta, que todos os
+// navegadores geram no canvas. WebP não: o Safari não gera WebP e devolveria
+// PNG, bem maior. O servidor recodifica tudo em WebP de qualquer forma.
+export const SAIDA_DO_NAVEGADOR = { tipo: "image/jpeg", extensao: "jpg", qualidade: 0.92 } as const;
+
 // O envio vai por ação de servidor com limite de 4 MB (serverActions.bodySizeLimit
 // no next.config.ts). O arquivo fica 64 KB abaixo disso, para caber o resto do
 // formulário (texto alternativo e caixas de seleção).
@@ -59,6 +64,14 @@ export function detectarFormato(bytes: Uint8Array): FormatoDetectado {
   const inicio = new TextDecoder("utf-8", { fatal: false }).decode(bytes.subarray(0, 1024)).trimStart().toLowerCase();
   if (inicio.startsWith("<svg") || ((inicio.startsWith("<?xml") || inicio.startsWith("<!doctype svg")) && inicio.includes("<svg"))) return "svg";
   return "outro";
+}
+
+// Confere a cópia reduzida no navegador antes do envio: precisa ser JPEG (um
+// navegador que não gera o tipo pedido devolve PNG) e caber no limite.
+export function conferirCopiaReduzida(tipo: string, tamanho: number): string | null {
+  if (tipo !== SAIDA_DO_NAVEGADOR.tipo) return MENSAGENS.ilegivel;
+  if (tamanho > LIMITE_DO_ARQUIVO_EM_BYTES) return MENSAGENS.grande;
+  return null;
 }
 
 // Recusa com a mensagem certa, ou null quando o formato é aceito.
