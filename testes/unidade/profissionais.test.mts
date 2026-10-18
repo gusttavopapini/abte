@@ -2,6 +2,7 @@
 // Os dados abaixo são de exemplo, marcados como TESTE, e não existem.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { camposAlterados } from "../../src/lib/log/alteracoes.ts";
 import { validarProfissional } from "../../src/lib/profissionais.ts";
 
 function formulario(campos: Record<string, string | string[]>) {
@@ -79,5 +80,40 @@ describe("Cadastro de profissional", () => {
     assert.equal(resultado.ok, false);
     if (resultado.ok) return;
     assert.ok(resultado.erros.tratamento && resultado.erros.cidades && resultado.erros.ordem);
+  });
+});
+
+describe("Foto do profissional (biblioteca de mídia)", () => {
+  test("sem foto: fotoMidiaId fica null", () => {
+    const resultado = validarProfissional(formulario({ ...BASE, fotoMidiaId: "" }));
+    assert.equal(resultado.ok, true);
+    if (resultado.ok) assert.equal(resultado.dados.fotoMidiaId, null);
+  });
+
+  test("com foto: guarda só o id da imagem", () => {
+    const resultado = validarProfissional(formulario({ ...BASE, fotoMidiaId: "AbC123teste" }));
+    assert.equal(resultado.ok, true);
+    if (resultado.ok) assert.equal(resultado.dados.fotoMidiaId, "AbC123teste");
+  });
+
+  test("id inválido (caminho ou reservado) é recusado com mensagem em português", () => {
+    for (const invalido of ["publico/midias/x", "__x__", ".."]) {
+      const resultado = validarProfissional(formulario({ ...BASE, fotoMidiaId: invalido }));
+      assert.equal(resultado.ok, false, invalido);
+      if (!resultado.ok) assert.match(resultado.erros.fotoMidiaId ?? "", /Foto inválida/);
+    }
+  });
+});
+
+describe("Campos alterados (registro de alterações)", () => {
+  test("lista só os nomes dos campos que mudaram, sem valores", () => {
+    const antes = { nome: "TESTE", metodos: ["SEAS"], fotoMidiaId: null, criadoEm: "x" };
+    const depois = { nome: "TESTE", metodos: ["SEAS", "Schroth ISST"], fotoMidiaId: "abc" };
+    assert.deepEqual(camposAlterados(antes, depois), ["metodos", "fotoMidiaId"]);
+  });
+
+  test("campo ausente antes e vazio depois não conta como mudança", () => {
+    assert.deepEqual(camposAlterados({}, { fotoMidiaId: null }), []);
+    assert.deepEqual(camposAlterados({ ordem: 1 }, { ordem: 1 }), []);
   });
 });

@@ -3,8 +3,10 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { lerMidias } from "@/lib/dados/colecoes";
 import type { Midia } from "@/lib/dados/tipos";
-import { servicosDeMidia, urlPublicaDoArquivo } from "@/lib/midia/servicos";
-import { MidiaAdminClient, type MidiaNaTela } from "./MidiaAdminClient";
+import { midiaNaTela } from "@/lib/midia/exibicao";
+import { servicosDeMidia } from "@/lib/midia/servicos";
+import type { MidiaNaTela } from "@/lib/midia/tela";
+import { MidiaAdminClient } from "./MidiaAdminClient";
 
 export const metadata: Metadata = { title: "Mídia" };
 
@@ -12,29 +14,17 @@ export const metadata: Metadata = { title: "Mídia" };
 // endereço assinado de leitura, válido por uma hora, só da menor variante.
 const VALIDADE_DA_PREVIA_MS = 60 * 60 * 1000;
 
-function paraTela(midia: Midia, variantes: MidiaNaTela["variantes"]): MidiaNaTela {
-  return {
-    id: midia.id,
-    alt: midia.alt,
-    largura: midia.largura,
-    altura: midia.altura,
-    variantes,
-    indicaMenor: midia.indicaMenor,
-    enviadaEm: midia.criadoEm ? midia.criadoEm.toLocaleDateString("pt-BR") : "",
-  };
-}
-
 async function previaDaLixeira(midia: Midia): Promise<MidiaNaTela> {
   const menor = [...midia.variantes].sort((a, b) => a.largura - b.largura)[0];
-  if (!menor) return paraTela(midia, []);
+  if (!menor) return midiaNaTela(midia, []);
   try {
     const [url] = await servicosDeMidia()
       .bucket.file(menor.caminho)
       .getSignedUrl({ version: "v4", action: "read", expires: Date.now() + VALIDADE_DA_PREVIA_MS });
-    return paraTela(midia, [{ largura: menor.largura, url }]);
+    return midiaNaTela(midia, [{ largura: menor.largura, url }]);
   } catch (erro) {
     console.error("Falha ao gerar a prévia da lixeira:", erro);
-    return paraTela(midia, []);
+    return midiaNaTela(midia, []);
   }
 }
 
@@ -46,7 +36,7 @@ export default async function PaginaAdminMidia() {
 
   const ativas = todas
     .filter((midia) => !midia.excluidoEm)
-    .map((midia) => paraTela(midia, midia.variantes.map((variante) => ({ largura: variante.largura, url: urlPublicaDoArquivo(variante.caminho) }))));
+    .map((midia) => midiaNaTela(midia));
 
   const excluidas = await Promise.all(todas.filter((midia) => midia.excluidoEm).map(previaDaLixeira));
 

@@ -35,10 +35,15 @@ export type VarianteGravada = { largura: number; caminho: string; tamanho: numbe
 
 type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autorizacao" };
 
-// Campos de referência a uma mídia em outras coleções. Vazia na fatia 2: cada
-// campo de imagem do painel (fatias 3a a 3d) acrescenta a sua linha aqui, e a
-// exclusão passa a avisar quando a imagem está em uso.
-export const REFERENCIAS_DE_MIDIA: { colecao: string; campo: string; rotulo: string }[] = [];
+// Campos de referência a uma mídia em outras coleções. Cada campo de imagem
+// do painel (fatias 3a a 3d) acrescenta a sua linha aqui, e a exclusão avisa
+// em quais registros a imagem está em uso. campoDoNome identifica o registro
+// na tela (nome ou título, já públicos no site).
+export const REFERENCIAS_DE_MIDIA: { colecao: string; campo: string; rotulo: string; campoDoNome: string }[] = [
+  { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
+];
+
+export type UsoDaMidia = { rotulo: string; registros: string[] };
 
 // Abre a imagem, confere o tipo real e gera as variantes WebP. A rotação do
 // EXIF é aplicada ANTES de tudo (autoOrient) e o sharp não copia metadados
@@ -166,16 +171,30 @@ export async function editarAlt(
   return { ok: true };
 }
 
-// Onde a imagem está em uso (nome do lugar e quantidade), pelas referências
-// cadastradas em REFERENCIAS_DE_MIDIA.
-export async function contarUsos(db: Firestore, id: string): Promise<{ rotulo: string; quantidade: number }[]> {
+// Uma imagem só pode ser escolhida num formulário se existe e está fora da
+// lixeira (campos fotoMidiaId e parecidos).
+export async function midiaPodeSerEscolhida(db: Firestore, id: string): Promise<boolean> {
+  const atual = await lerDocumento(db, id);
+  return Boolean(atual && !atual.excluidoEm && atual.variantes.length > 0);
+}
+
+// Onde a imagem está em uso: para cada referência cadastrada em
+// REFERENCIAS_DE_MIDIA, os registros que apontam para ela (os que estão na
+// lixeira daquela coleção aparecem marcados, porque voltam se restaurados).
+export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[]> {
   const usos = await Promise.all(
-    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo }) => ({
-      rotulo,
-      quantidade: (await db.collection(colecao).where(campo, "==", id).count().get()).data().count,
-    })),
+    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome }) => {
+      const encontrados = await db.collection(colecao).where(campo, "==", id).select(campoDoNome, "excluidoEm").get();
+      const registros = encontrados.docs
+        .map((documento) => {
+          const nome = String(documento.get(campoDoNome) ?? "").trim() || "Sem nome";
+          return documento.get("excluidoEm") ? `${nome} (na lixeira)` : nome;
+        })
+        .sort((a, b) => a.localeCompare(b, "pt-BR"));
+      return { rotulo, registros };
+    }),
   );
-  return usos.filter((uso) => uso.quantidade > 0);
+  return usos.filter((uso) => uso.registros.length > 0);
 }
 
 // Move os arquivos de uma pasta para a outra e devolve os novos caminhos.

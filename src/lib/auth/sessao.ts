@@ -8,6 +8,7 @@ import { authAdmin } from "@/lib/firebase/admin-auth";
 import { NOME_COOKIE_SESSAO, ROTA_LOGIN } from "./constantes";
 import { decidirAcessoAoPainel, ehPapelDoPainel, type AcaoDoPainel, type PapelDoPainel } from "./papeis";
 import { verificarCookieDeSessao } from "./verificacao";
+import type { AutorDaAlteracao } from "@/lib/log/alteracoes";
 
 type UsuarioDaSessao = {
   uid: string;
@@ -69,4 +70,10 @@ export async function exigirPapelDoPainel(acao?: AcaoDoPainel): Promise<UsuarioD
     throw new Error(decisao.motivo === "sem-permissao" ? "Seu papel não permite esta ação." : "Acesso não autorizado ao painel.");
   }
   return { ...usuario, papel: decisao.papel };
+}
+
+// Autor de uma alteração para o registro (logAlteracoes): só uid, nome do
+// cadastro e papel, nunca o e-mail.
+export function autorDaAlteracao(usuario: UsuarioDoPainel): AutorDaAlteracao {
+  return { uid: usuario.uid, nome: usuario.nome, papel: usuario.papel };
 }

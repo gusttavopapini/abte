@@ -6,23 +6,12 @@ import { EnviarMidia } from "@/app/admin/_componentes/EnviarMidia/EnviarMidia";
 import { editarAltDaMidia, excluirMidia, excluirMidiaDeVez, restaurarMidia } from "@/app/admin/acoes-midia";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
-import { ImagemDaMidia, type VarianteNaTela } from "@/components/ImagemDaMidia/ImagemDaMidia";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
 import { LIMITE_DO_ALT } from "@/lib/midia/regras";
+import type { MidiaNaTela } from "@/lib/midia/tela";
 import estilos from "./MidiaAdminClient.module.css";
-
-// Imagem como a tela do painel recebe: endereços já montados no servidor.
-export type MidiaNaTela = {
-  id: string;
-  alt: string;
-  largura: number;
-  altura: number;
-  // Vazia quando não há prévia (ex.: falha ao gerar o endereço da lixeira).
-  variantes: VarianteNaTela[];
-  indicaMenor: boolean;
-  enviadaEm: string;
-};
 
 type Props = { ativas: MidiaNaTela[]; excluidas: MidiaNaTela[]; podeExcluirDeVez: boolean };
 
@@ -89,7 +78,9 @@ function ConfirmarExclusao({ midia, aoTerminar, aoCancelar }: { midia: MidiaNaTe
           {emUso && (
             <ul className={estilos.usos}>
               {emUso.map((uso) => (
-                <li key={uso.rotulo}>{uso.rotulo}: {uso.quantidade}</li>
+                <li key={uso.rotulo}>
+                  {uso.rotulo}: {uso.registros.join(", ")}
+                </li>
               ))}
             </ul>
           )}
@@ -221,7 +212,7 @@ export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props)
       </section>
 
       <Modal aberto={janela?.tipo === "enviar"} aoFechar={fechar} titulo="Enviar imagem">
-        {janela?.tipo === "enviar" && <EnviarMidia aoEnviar={concluir} aoCancelar={fechar} />}
+        {janela?.tipo === "enviar" && <EnviarMidia aoEnviar={(mensagem) => concluir(mensagem)} aoCancelar={fechar} />}
       </Modal>
       <Modal aberto={janela?.tipo === "editar"} aoFechar={fechar} titulo="Editar texto alternativo">
         {janela?.tipo === "editar" && <EditarAlt midia={janela.midia} aoTerminar={concluir} aoCancelar={fechar} />}

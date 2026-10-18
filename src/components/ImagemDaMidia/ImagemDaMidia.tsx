@@ -2,10 +2,8 @@
 
 import Image, { type ImageLoaderProps } from "next/image";
 import { escolherVariante } from "@/lib/midia/regras";
+import type { VarianteNaTela } from "@/lib/midia/tela";
 import estilos from "./ImagemDaMidia.module.css";
-
-// Variante pronta para a tela: largura e endereço já montado no servidor.
-export type VarianteNaTela = { largura: number; url: string };
 
 type Props = {
   variantes: VarianteNaTela[];

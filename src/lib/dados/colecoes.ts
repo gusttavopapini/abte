@@ -84,6 +84,7 @@ const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => (
   bio: texto(campos.bio),
   ativo: campos.ativo === true,
   ordem: numero(campos.ordem),
+  fotoMidiaId: texto(campos.fotoMidiaId) || null,
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
   excluidoEm: data(campos.excluidoEm),

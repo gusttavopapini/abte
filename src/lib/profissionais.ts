@@ -3,6 +3,7 @@
 // Usada pela ação de servidor e pelos testes de unidade.
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, type CodigoDePais, type TipoDeProfissional } from "../config/profissionais.ts";
 import { validarEmailDeContato, validarFacebook, validarInstagram, validarWhatsapp, type ResultadoDoContato } from "./contatos.ts";
+import { ehIdDeDocumentoValido } from "./validacao.ts";
 
 export type DadosDoProfissional = {
   tipo: TipoDeProfissional;
@@ -21,6 +22,9 @@ export type DadosDoProfissional = {
   bio: string;
   ativo: boolean;
   ordem: number;
+  // Id de uma imagem da biblioteca de mídia, ou null sem foto. Se a imagem
+  // existe e está fora da lixeira é conferido na gravação (Firestore).
+  fotoMidiaId: string | null;
 };
 
 export type CampoDoProfissional = keyof DadosDoProfissional | "contatos" | "local";
@@ -104,6 +108,9 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
   const ordem = ordemTexto === "" ? 0 : Number(ordemTexto);
   if (!/^\d*$/.test(ordemTexto) || ordem > ORDEM_MAXIMA) erros.ordem = `Use um número inteiro de 0 a ${ORDEM_MAXIMA}.`;
 
+  const fotoMidiaId = texto(dados, "fotoMidiaId") || null;
+  if (fotoMidiaId !== null && !ehIdDeDocumentoValido(fotoMidiaId)) erros.fotoMidiaId = "Foto inválida. Escolha a foto de novo.";
+
   if (Object.keys(erros).length > 0) return { ok: false, erros };
 
   return {
@@ -125,6 +132,7 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
       bio,
       ativo: marcado(dados, "ativo"),
       ordem,
+      fotoMidiaId,
     },
   };
 }

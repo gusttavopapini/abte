@@ -31,8 +31,9 @@ export type Artigo = {
 
 // Profissional do diretório (modelo de 10/10/2026). Contatos já padronizados
 // pela validação (src/lib/contatos.ts): WhatsApp só com dígitos e código do
-// país, Instagram só o usuário, Facebook o link completo. Sem foto até a
-// biblioteca de mídia (etapa 4d). Com excluidoEm preenchido, está na lixeira.
+// país, Instagram só o usuário, Facebook o link completo. A foto é uma imagem
+// da biblioteca de mídia (fotoMidiaId, etapa 4d); sem ela, o card mostra o
+// espaço de imagem. Com excluidoEm preenchido, está na lixeira.
 export type Profissional = {
   id: string;
   tipo: string;
@@ -51,6 +52,7 @@ export type Profissional = {
   bio: string;
   ativo: boolean;
   ordem: number;
+  fotoMidiaId: string | null;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
   excluidoEm: Date | null;
