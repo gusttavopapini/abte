@@ -17,6 +17,10 @@ export const metadata = {
 export default function PaginaInicial() {
   return (
     <LayoutPublico header="transparente">
+      {/* Único H1 da página, só para leitores de tela, enquanto o banner não
+          tiver título visível (pendência de design no CLAUDE.md). */}
+      <h1 className="somente-leitor">ABTE, Associação Brasileira de Tratamento da Escoliose</h1>
+
       {/* 1. Hero */}
       <Hero
         sobHeaderFixo
