@@ -45,7 +45,7 @@ Reconstruir o site da ABTE em **código próprio**, saindo 100% do Wix. O site n
 ### Papéis e revisão
 - **Administrador do painel:** acesso total. A gestão do projeto não é feita por desenvolvedores: a revisão é visual, nas larguras de 390, 768, 1280 e 1710 px. Toda ação no console do Firebase, no GitHub ou na Vercel precisa ser explicada **passo a passo, em linguagem simples**.
 - **Editores:** usarão o painel para cadastrar e editar conteúdo.
-- **Repositório:** GitHub (privado), branch `main`.
+- **Repositório:** GitHub (privado; verificar: gh api indicou público em 21/10/2026), branch `main`.
 
 ### Volume de conteúdo a migrar do Wix
 - 66 posts do blog;
