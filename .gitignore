@@ -40,6 +40,13 @@ service-account*.json
 serviceAccount*.json
 *credentials*.json
 
+# dados de origem da migração (etapa 6): nunca entram no Git, exceto o README
+docs/dados-privados/*
+!docs/dados-privados/README.md
+
+# saída dos scripts de migração (relatórios e arquivos temporários)
+tmp-migracao/
+
 # Firebase CLI e emuladores
 .firebase/
 firebase-debug.log*
