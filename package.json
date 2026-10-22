@@ -16,7 +16,9 @@
     "midia:orfas": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/midia-orfas.mts",
     "migracao:imagens": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-imagens.mts",
     "migracao:conferencia-menor": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/marcar-conferencia-menor.mts",
-    "migracao:profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-profissionais.mts"
+    "migracao:profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-profissionais.mts",
+    "migracao:coletar-produtos": "node scripts/coletar-produtos.mts",
+    "migracao:loja": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-loja.mts"
   },
   "dependencies": {
     "firebase": "^12.19.0",

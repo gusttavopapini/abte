@@ -81,7 +81,7 @@ export type RelatorioDeImagens = Awaited<ReturnType<typeof migrarImagens>>;
 // Imagens já importadas, pelo id do Wix. As que alguém pôs na lixeira também
 // contam como existentes (restaurar é decisão de uma pessoa; escolha aceita
 // em 21/10/2026), e o relatório avisa quando isso acontece.
-async function jaImportadas(db: Firestore): Promise<Map<string, { id: string; naLixeira: boolean }>> {
+export async function imagensImportadas(db: Firestore): Promise<Map<string, { id: string; naLixeira: boolean }>> {
   const documentos = await db.collection(COLECAO_MIDIAS).where("origem.sistema", "==", SISTEMA_DE_ORIGEM).select("origem", "excluidoEm").get();
   const mapa = new Map<string, { id: string; naLixeira: boolean }>();
   for (const documento of documentos.docs) {
@@ -107,7 +107,7 @@ export async function migrarImagens(opcoes: {
   const porProduto = contarImagensPorProduto(imagens);
   const plano: ItemDoPlano[] = imagens.map((imagem) => ({ imagem, ...montarAltProvisorio(imagem, mapa, porProduto) }));
 
-  const existentes = await jaImportadas(servicos.db);
+  const existentes = await imagensImportadas(servicos.db);
   const filtradas = tipo ? plano.filter((item) => item.imagem.usos.some((uso) => uso.tipo === tipo)) : plano;
   const jaExistentes = filtradas.filter((item) => existentes.has(item.imagem.midiaIdWix));
   const existentesNaLixeira = jaExistentes
