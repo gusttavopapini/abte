@@ -54,7 +54,7 @@ export const METODOS_DO_ARQUIVO: Record<string, (typeof METODOS)[number]> = {
 // frente, ex.: "Crefito 12345"; número solto, sem conselho, não é gravado).
 export const CONSELHOS_DO_ARQUIVO: Record<string, string> = { CREFITO: "Crefito", CRM: "CRM", CRP: "CRP" };
 
-export type RegistroGravadoComo = "semRegistro" | "comoVeio" | "prefixado" | "semConselho" | "longo";
+export type RegistroGravadoComo = "semRegistro" | "comoVeio" | "prefixado" | "semConselho" | "conselhoAssumido" | "longo";
 
 // Mesmos limites do formulário do painel (lib/profissionais.ts).
 const LIMITES = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 1000, contato: 300, ordem: 999 } as const;
@@ -145,13 +145,19 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
   }
   // Registro: vazio fica vazio; com o nome do conselho no texto, vai como
   // veio; sem ele, ganha o conselho do arquivo na frente; sem conselho no
-  // arquivo, fica vazio e marcado (nunca um número solto).
+  // arquivo, ou com o conselho deduzido pelo tipo de profissional (nota do
+  // próprio arquivo: não estava no site antigo), fica vazio e marcado (nunca
+  // um número solto; decisão de 22/10/2026).
   const registroDoArquivo = textoDe(r.registro);
   const siglaDoConselho = textoDe(r.conselho).toUpperCase();
   const conselho = CONSELHOS_DO_ARQUIVO[siglaDoConselho] ?? null;
+  const conselhoDeduzido = (r.revisar as unknown[]).some((ponto) => typeof ponto === "string" && /conselho assumido/i.test(ponto));
   let registroProfissional = "";
   let registroComo: RegistroGravadoComo = "semRegistro";
-  if (registroDoArquivo && !conselho) {
+  if (registroDoArquivo && conselhoDeduzido) {
+    problemas.add("conselhoAssumido");
+    registroComo = "conselhoAssumido";
+  } else if (registroDoArquivo && !conselho) {
     problemas.add("registroSemConselho");
     registroComo = "semConselho";
   } else if (registroDoArquivo && conselho) {
@@ -164,9 +170,6 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
       registroComo = "longo";
     }
   }
-  // O arquivo avisa quando o conselho foi deduzido pelo tipo de profissional
-  // (não estava no site antigo): o registro vai para revisão.
-  if (registroDoArquivo && (r.revisar as unknown[]).some((ponto) => typeof ponto === "string" && /conselho assumido/i.test(ponto))) problemas.add("conselhoAssumido");
 
   const metodosDoArquivo = (r.metodos as unknown[]).map(textoDe).filter(Boolean);
   const metodos = [...new Set(metodosDoArquivo.map((metodo) => METODOS_DO_ARQUIVO[metodo]).filter(Boolean))];
@@ -356,9 +359,9 @@ export async function migrarProfissionais(opcoes: { db: Firestore; registros: Re
         comoVeio: convertidos.filter((item) => item.registroComo === "comoVeio").length,
         prefixado: convertidos.filter((item) => item.registroComo === "prefixado").length,
         semConselho: convertidos.filter((item) => item.registroComo === "semConselho").length,
+        conselhoDeduzido: convertidos.filter((item) => item.registroComo === "conselhoAssumido").length,
         longo: convertidos.filter((item) => item.registroComo === "longo").length,
         prefixadosPorConselho: contar(convertidos.filter((item) => item.conselho).map((item) => item.conselho as string)),
-        conselhoAssumido: convertidos.filter((item) => item.problemas.includes("conselhoAssumido")).length,
       },
       fotos: {
         comFotoNoArquivo: registros.filter((registro) => registro.fotos.length > 0).length,
@@ -507,7 +510,7 @@ export function relatorioDeProfissionaisEmMarkdown(relatorio: Extract<RelatorioD
     "",
     "## Registro profissional",
     "",
-    "O campo do painel é texto livre (até 60 caracteres): o registro vai com o conselho na frente; sem conselho no arquivo, fica vazio e marcado.",
+    "O campo do painel é texto livre (até 60 caracteres): o registro vai com o conselho na frente; sem conselho no arquivo, ou com o conselho deduzido pelo tipo, fica vazio e marcado.",
     "",
     "| Como seria gravado | Quantidade |",
     "|---|---|",
@@ -516,7 +519,7 @@ export function relatorioDeProfissionaisEmMarkdown(relatorio: Extract<RelatorioD
     `| Com o conselho na frente | ${c.registro.prefixado} (${Object.entries(c.registro.prefixadosPorConselho).map(([conselho, n]) => `${conselho} ${n}`).join(", ") || "nenhum"}) |`,
     `| Sem conselho no arquivo (vazio e marcado) | ${c.registro.semConselho} |`,
     `| Acima de 60 caracteres (vazio e marcado) | ${c.registro.longo} |`,
-    `| Conselho deduzido pelo tipo no arquivo (marcado) | ${c.registro.conselhoAssumido} |`,
+    `| Conselho deduzido pelo tipo no arquivo (vazio e marcado) | ${c.registro.conselhoDeduzido} |`,
     "",
     "## Fotos",
     "",

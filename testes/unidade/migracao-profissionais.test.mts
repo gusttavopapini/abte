@@ -170,8 +170,10 @@ describe("Conversão para o modelo atual", () => {
     assert.deepEqual(semRegistro.problemas, []);
   });
 
-  test("conselho deduzido pelo tipo (nota do arquivo): marca revisão", () => {
-    const { problemas } = converterProfissional(registro({ registro: "12345", revisar: ["registro sem a palavra Crefito; conselho assumido pelo tipo de profissional"] }));
+  test("conselho deduzido pelo tipo (nota do arquivo): registro vazio e marcado", () => {
+    const { dados, problemas, registroComo } = converterProfissional(registro({ registro: "12345", revisar: ["registro sem a palavra Crefito; conselho assumido pelo tipo de profissional"] }));
+    assert.equal(dados.registro, "");
+    assert.equal(registroComo, "conselhoAssumido");
     assert.ok(problemas.includes("conselhoAssumido"));
   });
 
