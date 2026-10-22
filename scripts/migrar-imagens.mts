@@ -142,6 +142,7 @@ async function principal() {
     console.log(`\nImagens no arquivo: ${c.encontradas} (usos: ${c.usos})`);
     console.log(`Previstas aceitas: ${c.previstasAceitas}; previstas recusadas: ${c.previstasRecusadas}`);
     console.log(`Já existentes: ${c.jaExistentes}; candidatas: ${c.candidatas}; nesta execução: ${c.nestaExecucao}`);
+    if (c.jaExistentesNaLixeira > 0) console.log(`AVISO: ${c.jaExistentesNaLixeira} já importada(s) estão na lixeira e não serão importadas de novo (lista no relatório).`);
     if (args.modo === "executar") {
       console.log(`Baixadas: ${c.baixadas}; migradas: ${c.migradas}; reduzidas: ${c.reduzidas}; recusadas pelo tipo: ${c.recusadasPeloTipo}; falhas: ${c.falhas}`);
       console.log(`Pedidos ao servidor: ${rede.pedidos}`);

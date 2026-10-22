@@ -78,14 +78,15 @@ function contar<T>(itens: T[], chave: (item: T) => string | string[]): Record<st
 
 export type RelatorioDeImagens = Awaited<ReturnType<typeof migrarImagens>>;
 
-// Imagens já importadas (inclusive as que alguém pôs na lixeira: restaurar é
-// decisão de uma pessoa), pelo id do Wix.
-async function jaImportadas(db: Firestore): Promise<Map<string, string>> {
-  const documentos = await db.collection(COLECAO_MIDIAS).where("origem.sistema", "==", SISTEMA_DE_ORIGEM).select("origem").get();
-  const mapa = new Map<string, string>();
+// Imagens já importadas, pelo id do Wix. As que alguém pôs na lixeira também
+// contam como existentes (restaurar é decisão de uma pessoa; escolha aceita
+// em 21/10/2026), e o relatório avisa quando isso acontece.
+async function jaImportadas(db: Firestore): Promise<Map<string, { id: string; naLixeira: boolean }>> {
+  const documentos = await db.collection(COLECAO_MIDIAS).where("origem.sistema", "==", SISTEMA_DE_ORIGEM).select("origem", "excluidoEm").get();
+  const mapa = new Map<string, { id: string; naLixeira: boolean }>();
   for (const documento of documentos.docs) {
     const midiaId = documento.get("origem.midiaId");
-    if (typeof midiaId === "string") mapa.set(midiaId, documento.id);
+    if (typeof midiaId === "string") mapa.set(midiaId, { id: documento.id, naLixeira: Boolean(documento.get("excluidoEm")) });
   }
   return mapa;
 }
@@ -109,6 +110,10 @@ export async function migrarImagens(opcoes: {
   const existentes = await jaImportadas(servicos.db);
   const filtradas = tipo ? plano.filter((item) => item.imagem.usos.some((uso) => uso.tipo === tipo)) : plano;
   const jaExistentes = filtradas.filter((item) => existentes.has(item.imagem.midiaIdWix));
+  const existentesNaLixeira = jaExistentes
+    .map((item) => ({ midiaIdWix: item.imagem.midiaIdWix, ...(existentes.get(item.imagem.midiaIdWix) as { id: string; naLixeira: boolean }) }))
+    .filter((item) => item.naLixeira)
+    .map((item) => ({ midiaIdWix: item.midiaIdWix, midiaId: item.id }));
   const candidatas = filtradas.filter((item) => !existentes.has(item.imagem.midiaIdWix));
   const nestaExecucao = limite === null ? candidatas : candidatas.slice(0, limite);
 
@@ -180,6 +185,7 @@ export async function migrarImagens(opcoes: {
       previstasRecusadas: previstasRecusadas.length,
       filtradasPeloTipo: filtradas.length,
       jaExistentes: jaExistentes.length,
+      jaExistentesNaLixeira: existentesNaLixeira.length,
       candidatas: candidatas.length,
       nestaExecucao: nestaExecucao.length,
       baixadas,
@@ -198,6 +204,9 @@ export async function migrarImagens(opcoes: {
       imagens.filter((imagem) => new Set(imagem.usos.map((uso) => uso.tipo)).size > 1),
       (imagem) => [...new Set(imagem.usos.map((uso) => uso.tipo))].sort().join(" + "),
     ),
+    // Aviso: já importadas, mas na lixeira. Não são importadas de novo; para
+    // voltarem ao site, alguém restaura no painel (/admin/midia).
+    existentesNaLixeira,
     recusadas,
     falhas,
     migradas,
@@ -337,6 +346,7 @@ export function relatorioEmMarkdown(relatorio: RelatorioDeImagens, projeto: stri
     `| Previstas aceitas (pela extensão) | ${c.previstasAceitas} |`,
     `| Previstas recusadas (pela extensão) | ${c.previstasRecusadas} |`,
     `| Já existentes (mesma origem) | ${c.jaExistentes} |`,
+    `| Já existentes, mas na lixeira | ${c.jaExistentesNaLixeira} |`,
     `| Candidatas | ${c.candidatas} |`,
     `| Nesta execução (depois do limite) | ${c.nestaExecucao} |`,
     `| Baixadas | ${c.baixadas} |`,
@@ -359,6 +369,18 @@ export function relatorioEmMarkdown(relatorio: RelatorioDeImagens, projeto: stri
     tabela("Imagens com usos de tipos diferentes (importadas uma vez só)", relatorio.imagensComUsosDeTiposDiferentes),
     "",
     `Alts sem título ou nome no mapa (usaram a chave): ${relatorio.altsProvisorios.semDadoNoMapa.length}. Alts genéricos: ${relatorio.altsProvisorios.genericos.length}.`,
+    "",
+    "## Já importadas, mas na lixeira",
+    "",
+    relatorio.existentesNaLixeira.length
+      ? [
+          "**Aviso:** estas imagens já foram importadas e alguém as pôs na lixeira. Não são importadas de novo; para voltarem ao site, restaure em /admin/midia.",
+          "",
+          "| Id no Wix | Id em midias |",
+          "|---|---|",
+          ...relatorio.existentesNaLixeira.map((item) => `| ${item.midiaIdWix} | ${item.midiaId} |`),
+        ].join("\n")
+      : "Nenhuma.",
     "",
     "## Recusadas pelo tipo",
     "",

@@ -15,8 +15,8 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import sharp from "sharp";
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
-import { COLECAO_MIDIAS, editarAlt, enviarImagem, type ServicosDeMidia } from "../../src/lib/midia/biblioteca.ts";
-import { desfazerExecucao, migrarImagens, relatorioSemEnderecoDoWix, type Baixar } from "../../src/lib/migracao/imagens.ts";
+import { COLECAO_MIDIAS, editarAlt, enviarImagem, moverParaLixeiraOuRestaurar, type ServicosDeMidia } from "../../src/lib/midia/biblioteca.ts";
+import { desfazerExecucao, migrarImagens, relatorioEmMarkdown, relatorioSemEnderecoDoWix, type Baixar } from "../../src/lib/migracao/imagens.ts";
 import { lerMapaParaAlt, validarImagensOrigem, type ImagemDeOrigem, type MapaParaAlt } from "../../src/lib/migracao/imagensOrigem.ts";
 import { ErroDeRede } from "../../src/lib/migracao/rede.ts";
 
@@ -66,6 +66,8 @@ let imagens: ImagemDeOrigem[];
 let mapa: MapaParaAlt;
 const arquivos = new Map<string, Uint8Array>();
 let pedidos: string[] = [];
+// Imagens do teste de --tipo e --limite (a primeira é importada na execução 0005).
+let imagensDaExecucaoComLimite: ImagemDeOrigem[] = [];
 
 const baixarFalso: Baixar = async (caminho) => {
   pedidos.push(caminho);
@@ -203,11 +205,24 @@ describe("Migração das imagens (emulador)", () => {
       { midiaIdWix: `7dce06_${hex(22)}~mv2.jpg`, usos: [{ tipo: "pagina", chaveDeOrigem: "home", rotulo: "home", posicao: 1, papel: null }], altNoSiteAntigo: null, observacao: null, prioridade: null },
     ];
     for (const item of lista) arquivos.set(item.midiaIdWix, await sharp({ create: { width: 500, height: 500, channels: 3, background: { r: 1, g: 2, b: 3 } } }).jpeg().toBuffer());
+    imagensDaExecucaoComLimite = lista;
     const relatorio = await migrar({ modo: "executar", execucao: "20261021-000000-0005", tipo: "produto", limite: 1, lista });
     assert.equal(relatorio.contagens.filtradasPeloTipo, 2);
     assert.equal(relatorio.contagens.nestaExecucao, 1);
     assert.equal(relatorio.contagens.migradas, 1);
     assert.deepEqual(pedidos, [`/media/${lista[0].midiaIdWix}`]);
+  });
+
+  test("imagem já importada que está na lixeira conta como existente, com aviso no relatório", async () => {
+    const [documento] = await documentosDa("20261021-000000-0005");
+    const lista = imagensDaExecucaoComLimite;
+    assert.deepEqual(await moverParaLixeiraOuRestaurar(servicos, documento.id, true, PESSOA), { ok: true });
+    const relatorio = await migrar({ modo: "simulacao", execucao: "20261021-000000-0011", lista });
+    assert.equal(relatorio.contagens.jaExistentes, 1);
+    assert.equal(relatorio.contagens.jaExistentesNaLixeira, 1);
+    assert.deepEqual(relatorio.existentesNaLixeira, [{ midiaIdWix: lista[0].midiaIdWix, midiaId: documento.id }]);
+    assert.match(relatorioEmMarkdown(relatorio, PROJETO), /\*\*Aviso:\*\* estas imagens já foram importadas/);
+    assert.deepEqual(await moverParaLixeiraOuRestaurar(servicos, documento.id, false, PESSOA), { ok: true });
   });
 
   test("bloqueio (403 ou 429) interrompe a execução inteira", async () => {
