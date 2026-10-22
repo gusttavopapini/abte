@@ -119,6 +119,15 @@ export type Produto = {
 // lixeira/, fora do ar).
 export type VarianteDeMidia = { largura: number; caminho: string; tamanho: number };
 
+// Conferência de fotos de menores nas imagens importadas do site antigo
+// (etapa 6): toda imagem migrada entra "pendente"; só uma pessoa marca
+// "conferido" ou "naoSeAplica". Imagens enviadas pelo painel não têm o campo.
+export type ConferenciaDeMenor = "pendente" | "conferido" | "naoSeAplica";
+
+// De onde veio uma imagem importada: o sistema antigo, o id da mídia lá (nunca
+// o endereço) e a execução do script que a criou.
+export type OrigemDaMidia = { sistema: string; midiaId: string; execucao: string };
+
 export type Midia = {
   id: string;
   caminhoStorage: string;
@@ -130,9 +139,17 @@ export type Midia = {
   variantes: VarianteDeMidia[];
   enviadoPor: string;
   // Aviso de menores (texto PROVISÓRIO): quem confirmou a autorização e quando.
+  // As imagens importadas do site antigo não gravam esses campos (chegam como
+  // false e null); usam conferenciaDeMenor.
   indicaMenor: boolean;
   autorizacaoConfirmadaPor: string | null;
   autorizacaoConfirmadaEm: Date | null;
+  // Só nas importadas: alt montado pelo script, a revisar (editar o alt no
+  // painel limpa a marca), conferência de menores e origem. Nas enviadas pelo
+  // painel: false, null e null.
+  altProvisorio: boolean;
+  conferenciaDeMenor: ConferenciaDeMenor | null;
+  origem: OrigemDaMidia | null;
   criadoEm: Date | null;
   excluidoEm: Date | null;
 };

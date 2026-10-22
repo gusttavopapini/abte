@@ -3,7 +3,7 @@ import "server-only";
 
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import type { Artigo, Midia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
+import type { Artigo, ConferenciaDeMenor, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
 function texto(valor: unknown): string {
@@ -153,6 +153,17 @@ function variantes(valor: unknown): VarianteDeMidia[] {
     .filter((item) => item.largura > 0 && item.caminho !== "");
 }
 
+function conferenciaDeMenor(valor: unknown): ConferenciaDeMenor | null {
+  return valor === "pendente" || valor === "conferido" || valor === "naoSeAplica" ? valor : null;
+}
+
+function origemDaMidia(valor: unknown): OrigemDaMidia | null {
+  if (typeof valor !== "object" || valor === null) return null;
+  const campos = valor as Record<string, unknown>;
+  const midiaId = texto(campos.midiaId);
+  return midiaId ? { sistema: texto(campos.sistema), midiaId, execucao: texto(campos.execucao) } : null;
+}
+
 const conversorMidia = conversorDeLeitura<Midia>((id, campos) => ({
   id,
   caminhoStorage: texto(campos.caminhoStorage),
@@ -166,6 +177,9 @@ const conversorMidia = conversorDeLeitura<Midia>((id, campos) => ({
   indicaMenor: campos.indicaMenor === true,
   autorizacaoConfirmadaPor: typeof campos.autorizacaoConfirmadaPor === "string" ? campos.autorizacaoConfirmadaPor : null,
   autorizacaoConfirmadaEm: data(campos.autorizacaoConfirmadaEm),
+  altProvisorio: campos.altProvisorio === true,
+  conferenciaDeMenor: conferenciaDeMenor(campos.conferenciaDeMenor),
+  origem: origemDaMidia(campos.origem),
   criadoEm: data(campos.criadoEm),
   excluidoEm: data(campos.excluidoEm),
 }));

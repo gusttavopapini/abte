@@ -1,20 +1,23 @@
 // Biblioteca de mídia (etapa 4d): processamento das imagens e gravação no
 // Storage e no Firestore. Roda SÓ no servidor (usa o sharp e o Admin SDK).
 // Não depende de sessão nem de ação de servidor, e não importa "server-only",
-// para ser usado também pelo script de migração (etapa 6, fotos de
-// profissionais) e pelos testes no emulador, como src/lib/loja/contas.ts.
+// para ser usado também pelo script de migração (etapa 6,
+// scripts/migrar-imagens.mts) e pelos testes no emulador, como src/lib/loja/contas.ts.
 // Quem chama confere sessão e papel antes (acoes-midia.ts). As instâncias do
 // Firebase chegam por parâmetro (ver servicos.ts).
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Storage } from "firebase-admin/storage";
 import sharp from "sharp";
-import { registrarNoLote, type AutorDaAlteracao } from "../log/alteracoes.ts";
+import type { OrigemDaMidia } from "../dados/tipos.ts";
+import { registrarNoLote, type Alteracao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import {
   CACHE_DAS_IMAGENS,
+  LADO_MAXIMO_NO_NAVEGADOR,
   LIMITE_DO_ARQUIVO_EM_BYTES,
   MENSAGENS,
   PIXELS_MAXIMOS_NA_ENTRADA,
   QUALIDADE_WEBP,
+  SAIDA_DO_NAVEGADOR,
   caminhoDaVariante,
   detectarFormato,
   escolherLarguras,
@@ -22,6 +25,7 @@ import {
   pastaDaMidia,
   validarAlt,
   validarAvisoDeMenor,
+  type FormatoAceito,
   type PastaDaMidia,
 } from "./regras.ts";
 
@@ -103,26 +107,21 @@ export type DadosDoEnvio = {
   autorizacaoConfirmada: boolean;
 };
 
-// Envio completo: valida, processa, grava as variantes em publico/ e cria o
-// documento em midias junto com o registro de alteração. Se algo falhar
-// depois de gravar arquivos, eles são apagados.
-export async function enviarImagem(
+// Grava as variantes em publico/ e cria o documento em midias junto com o
+// registro de alteração (os dois entram ou nenhum entra). Se algo falhar
+// depois de gravar arquivos, eles são apagados. Comum ao envio pelo painel e
+// à importação do site antigo.
+async function gravarNaBiblioteca(
   { db, bucket }: ServicosDeMidia,
-  dados: DadosDoEnvio,
+  variantes: VarianteGerada[],
+  documento: (gravadas: VarianteGravada[], id: string) => Record<string, unknown>,
   autor: AutorDaAlteracao,
-): Promise<{ ok: true; id: string } | Falha> {
-  const alt = validarAlt(dados.alt);
-  if (!alt.ok) return { ok: false, mensagem: alt.mensagem, campo: "alt" };
-  const aviso = validarAvisoDeMenor(dados.indicaMenor, dados.autorizacaoConfirmada);
-  if (aviso) return { ok: false, mensagem: aviso, campo: "autorizacao" };
-
-  const preparo = await prepararVariantes(dados.bytes);
-  if (!preparo.ok) return preparo;
-
+  alteracao: Omit<Alteracao, "colecao" | "documentoId" | "acao">,
+): Promise<string> {
   const referencia = db.collection(COLECAO_MIDIAS).doc();
   const gravadas: VarianteGravada[] = [];
   try {
-    for (const variante of preparo.variantes) {
+    for (const variante of variantes) {
       const caminho = caminhoDaVariante("publico", referencia.id, variante.largura);
       await bucket.file(caminho).save(variante.dados, {
         resumable: false,
@@ -135,27 +134,14 @@ export async function enviarImagem(
     lote.create(referencia, {
       caminhoStorage: pastaDaMidia("publico", referencia.id),
       tipo: "imagem",
-      alt: alt.alt,
-      largura: preparo.largura,
-      altura: preparo.altura,
-      tamanho: dados.bytes.length,
       variantes: gravadas,
-      enviadoPor: autor.uid,
-      indicaMenor: dados.indicaMenor,
-      autorizacaoConfirmadaPor: dados.indicaMenor ? autor.uid : null,
-      autorizacaoConfirmadaEm: dados.indicaMenor ? FieldValue.serverTimestamp() : null,
+      ...documento(gravadas, referencia.id),
       criadoEm: FieldValue.serverTimestamp(),
       excluidoEm: null,
     });
-    registrarNoLote(db, lote, autor, {
-      colecao: COLECAO_MIDIAS,
-      documentoId: referencia.id,
-      acao: "criar",
-      campos: ["alt", "variantes", "indicaMenor"],
-      resumo: "Imagem enviada para a biblioteca.",
-    });
+    registrarNoLote(db, lote, autor, { colecao: COLECAO_MIDIAS, documentoId: referencia.id, acao: "criar", ...alteracao });
     await lote.commit();
-    return { ok: true, id: referencia.id };
+    return referencia.id;
   } catch (erro) {
     await Promise.all(
       gravadas.map((variante) =>
@@ -169,13 +155,131 @@ export async function enviarImagem(
   }
 }
 
-type DocumentoDeMidia = { variantes: VarianteGravada[]; excluidoEm: unknown };
+// Envio completo pelo painel: valida, processa e grava.
+export async function enviarImagem(
+  servicos: ServicosDeMidia,
+  dados: DadosDoEnvio,
+  autor: AutorDaAlteracao,
+): Promise<{ ok: true; id: string } | Falha> {
+  const alt = validarAlt(dados.alt);
+  if (!alt.ok) return { ok: false, mensagem: alt.mensagem, campo: "alt" };
+  const aviso = validarAvisoDeMenor(dados.indicaMenor, dados.autorizacaoConfirmada);
+  if (aviso) return { ok: false, mensagem: aviso, campo: "autorizacao" };
+
+  const preparo = await prepararVariantes(dados.bytes);
+  if (!preparo.ok) return preparo;
+
+  const id = await gravarNaBiblioteca(
+    servicos,
+    preparo.variantes,
+    () => ({
+      alt: alt.alt,
+      largura: preparo.largura,
+      altura: preparo.altura,
+      tamanho: dados.bytes.length,
+      enviadoPor: autor.uid,
+      indicaMenor: dados.indicaMenor,
+      autorizacaoConfirmadaPor: dados.indicaMenor ? autor.uid : null,
+      autorizacaoConfirmadaEm: dados.indicaMenor ? FieldValue.serverTimestamp() : null,
+    }),
+    autor,
+    { campos: ["alt", "variantes", "indicaMenor"], resumo: "Imagem enviada para a biblioteca." },
+  );
+  return { ok: true, id };
+}
+
+// Imagem baixada do site antigo (etapa 6), com o mesmo teto do envio pelo
+// painel. Só reduz quando passa do lado máximo (2560 px) ou do limite de
+// tamanho, e aí faz o mesmo que o navegador: aplica a rotação do EXIF, reduz
+// sem ampliar, pinta as áreas transparentes de branco e gera JPEG de
+// qualidade 92. Dentro dos limites, vai como veio (sem regravar em JPEG); em
+// todos os casos prepararVariantes confere o tipo e recodifica em WebP, sem
+// metadados.
+export async function ajustarComoNoNavegador(
+  bytes: Uint8Array,
+): Promise<{ ok: true; bytes: Uint8Array; formato: FormatoAceito; reduzida: boolean } | (Falha & { formato: string })> {
+  const formato = detectarFormato(bytes);
+  const recusa = mensagemDoFormato(formato);
+  if (formato !== "jpeg" && formato !== "png" && formato !== "webp") {
+    return { ok: false, mensagem: recusa ?? MENSAGENS.outroFormato, campo: "arquivo", formato };
+  }
+  const abrir = () => sharp(bytes, { failOn: "error", limitInputPixels: PIXELS_MAXIMOS_NA_ENTRADA, animated: false });
+  try {
+    const { width: largura, height: altura } = (await abrir().metadata()).autoOrient;
+    if (Math.max(largura, altura) <= LADO_MAXIMO_NO_NAVEGADOR && bytes.length <= LIMITE_DO_ARQUIVO_EM_BYTES) {
+      return { ok: true, bytes, formato, reduzida: false };
+    }
+    const reduzida = await abrir()
+      .autoOrient()
+      .resize({ width: LADO_MAXIMO_NO_NAVEGADOR, height: LADO_MAXIMO_NO_NAVEGADOR, fit: "inside", withoutEnlargement: true })
+      .flatten({ background: "#ffffff" })
+      .jpeg({ quality: Math.round(SAIDA_DO_NAVEGADOR.qualidade * 100) })
+      .toBuffer();
+    if (reduzida.length > LIMITE_DO_ARQUIVO_EM_BYTES) return { ok: false, mensagem: MENSAGENS.grande, campo: "arquivo", formato };
+    return { ok: true, bytes: reduzida, formato, reduzida: true };
+  } catch (erro) {
+    const texto = erro instanceof Error ? erro.message : "";
+    return { ok: false, mensagem: /pixel limit/i.test(texto) ? MENSAGENS.medidas : MENSAGENS.ilegivel, campo: "arquivo", formato };
+  }
+}
+
+export type DadosDaImportacao = {
+  // Já ajustados por ajustarComoNoNavegador.
+  bytes: Uint8Array;
+  alt: unknown;
+  origem: OrigemDaMidia;
+};
+
+// Importação de uma imagem do site antigo (etapa 6). Diferenças do envio pelo
+// painel: guarda a origem (só o id da mídia no sistema antigo, nunca o
+// endereço), marca o alt como provisório e a conferência de menores como
+// pendente, e não grava indicaMenor nem a autorização (ninguém confirmou nada).
+// O registro de alteração leva origem "migracao" e a execução.
+export async function importarImagem(
+  servicos: ServicosDeMidia,
+  dados: DadosDaImportacao,
+  autor: AutorDaAlteracao,
+): Promise<{ ok: true; id: string } | Falha> {
+  const alt = validarAlt(dados.alt);
+  if (!alt.ok) return { ok: false, mensagem: alt.mensagem, campo: "alt" };
+  const preparo = await prepararVariantes(dados.bytes);
+  if (!preparo.ok) return preparo;
+
+  const id = await gravarNaBiblioteca(
+    servicos,
+    preparo.variantes,
+    () => ({
+      alt: alt.alt,
+      altProvisorio: true,
+      largura: preparo.largura,
+      altura: preparo.altura,
+      tamanho: dados.bytes.length,
+      enviadoPor: autor.uid,
+      conferenciaDeMenor: "pendente",
+      origem: { sistema: dados.origem.sistema, midiaId: dados.origem.midiaId, execucao: dados.origem.execucao },
+    }),
+    autor,
+    {
+      campos: ["alt", "variantes", "origem"],
+      resumo: "Imagem importada do site antigo.",
+      origem: "migracao",
+      execucao: dados.origem.execucao,
+    },
+  );
+  return { ok: true, id };
+}
+
+type DocumentoDeMidia = { variantes: VarianteGravada[]; excluidoEm: unknown; altProvisorio: boolean };
 
 async function lerDocumento(db: Firestore, id: string): Promise<DocumentoDeMidia | null> {
   const documento = await db.collection(COLECAO_MIDIAS).doc(id).get();
   if (!documento.exists) return null;
   const variantes = documento.get("variantes");
-  return { variantes: Array.isArray(variantes) ? variantes : [], excluidoEm: documento.get("excluidoEm") ?? null };
+  return {
+    variantes: Array.isArray(variantes) ? variantes : [],
+    excluidoEm: documento.get("excluidoEm") ?? null,
+    altProvisorio: documento.get("altProvisorio") === true,
+  };
 }
 
 export async function editarAlt(
@@ -186,10 +290,13 @@ export async function editarAlt(
 ): Promise<{ ok: true } | Falha> {
   const alt = validarAlt(valor);
   if (!alt.ok) return { ok: false, mensagem: alt.mensagem, campo: "alt" };
-  if (!(await lerDocumento(db, id))) return { ok: false, mensagem: "Imagem não encontrada." };
+  const atual = await lerDocumento(db, id);
+  if (!atual) return { ok: false, mensagem: "Imagem não encontrada." };
+  // Alt editado por uma pessoa deixa de ser o provisório da migração.
+  const campos = atual.altProvisorio ? { alt: alt.alt, altProvisorio: false } : { alt: alt.alt };
   const lote = db.batch();
-  lote.update(db.collection(COLECAO_MIDIAS).doc(id), { alt: alt.alt });
-  registrarNoLote(db, lote, autor, { colecao: COLECAO_MIDIAS, documentoId: id, acao: "editar", campos: ["alt"], resumo: "Texto alternativo alterado." });
+  lote.update(db.collection(COLECAO_MIDIAS).doc(id), campos);
+  registrarNoLote(db, lote, autor, { colecao: COLECAO_MIDIAS, documentoId: id, acao: "editar", campos: Object.keys(campos), resumo: "Texto alternativo alterado." });
   await lote.commit();
   return { ok: true };
 }
