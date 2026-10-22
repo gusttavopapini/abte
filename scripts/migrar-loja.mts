@@ -131,7 +131,7 @@ async function principal() {
     const c = relatorio.contagens;
     console.log(`\nCategorias: ${c.categorias.previstas} previstas; ${c.categorias.jaExistentes} já existentes; ${c.categorias.criadas} criadas`);
     console.log(`Produtos: ${c.produtos.previstos} previstos; ${c.produtos.jaExistentes} já existentes; ${c.produtos.nestaExecucao} nesta execução; ${c.produtos.criados} criados`);
-    console.log(`Com preço riscado: ${c.comPrecoRiscado}; descrição lida na página: ${c.descricaoLidaNaPagina}`);
+    console.log(`Com preço promocional: ${c.comPrecoPromocional}; com selo: ${c.comSelo}; descrição lida na página: ${c.descricaoLidaNaPagina}`);
     if (relatorio.conflitos.length) console.log(`CONFLITOS: ${relatorio.conflitos.join(" ")}`);
     console.log(`Relatório: ${caminhos.md}`);
     console.log(`Redirecionamentos (NÃO ativados): ${REDIRECTS}`);

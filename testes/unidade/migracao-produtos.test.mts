@@ -11,6 +11,7 @@ import {
   lerProdutosDoMapa,
   redirecionamentosDaLoja,
   slugNovo,
+  type ProdutoColetado,
   type ProdutoDoMapa,
 } from "../../src/lib/migracao/produtos.ts";
 import { lerPaginaDeProduto } from "../../src/lib/migracao/produtosColeta.ts";
@@ -110,11 +111,24 @@ describe("Mapa, preços e conversão", () => {
     assert.deepEqual([centavosDoTexto("R$ 600,00"), centavosDoTexto("R$ 1.250,90"), centavosDoTexto("R$ 49,99"), centavosDoTexto("seiscentos")], [60000, 125090, 4999, null]);
   });
 
-  test("preço riscado vira preco e o atual vira precoPromocional; sem riscado, só preco", () => {
+  test("preço, tipo, situação e selo da página ao vivo: cheio em preco, desconto só quando menor", () => {
+    const pagina = (cheio: number, desconto: number, extra: Partial<ProdutoColetado> = {}): ProdutoColetado => ({ slug: "kit-pré-teste", descricao: "x", precoNaPagina: cheio, precoComDescontoNaPagina: desconto, ...extra });
+    const semDesconto = converterProduto(produto(), 1, pagina(350, 350), CATEGORIAS, []);
+    assert.deepEqual([semDesconto.dados.preco, semDesconto.dados.precoPromocional, semDesconto.temPromocional], [35000, null, false]);
+    assert.deepEqual(semDesconto.problemas, []);
+    const comDesconto = converterProduto(produto(), 1, pagina(49.99, 39.99, { tipoNaPagina: "digital", emEstoqueNaPagina: true, seloNaPagina: "MONTE SEU KIT" }), CATEGORIAS, []);
+    assert.deepEqual([comDesconto.dados.preco, comDesconto.dados.precoPromocional, comDesconto.dados.tipo, comDesconto.dados.status, comDesconto.dados.selo], [4999, 3999, "digital", "disponivel", "MONTE SEU KIT"]);
+    const seloLongo = converterProduto(produto(), 1, pagina(10, 10, { seloNaPagina: "S".repeat(31) }), CATEGORIAS, []);
+    assert.equal(seloLongo.dados.selo, "");
+    assert.ok(seloLongo.problemas.includes("seloLongo"));
+  });
+
+  test("sem dados da página: regra antiga sobre o mapa, marcada", () => {
     const comRiscado = converterProduto(produto(), 1, undefined, CATEGORIAS, []);
-    assert.deepEqual([comRiscado.dados.preco, comRiscado.dados.precoPromocional, comRiscado.temPrecoRiscado], [30000, 20000, true]);
+    assert.deepEqual([comRiscado.dados.preco, comRiscado.dados.precoPromocional, comRiscado.temPromocional], [30000, 20000, true]);
+    assert.ok(comRiscado.problemas.includes("semDadosDaPagina"));
     const semRiscado = converterProduto(produto({ precoRiscado: null, preco: 9.9 }), 1, undefined, CATEGORIAS, []);
-    assert.deepEqual([semRiscado.dados.preco, semRiscado.dados.precoPromocional, semRiscado.temPrecoRiscado], [990, null, false]);
+    assert.deepEqual([semRiscado.dados.preco, semRiscado.dados.precoPromocional, semRiscado.temPromocional], [990, null, false]);
     const riscadoMenor = converterProduto(produto({ precoRiscado: "R$ 100,00" }), 1, undefined, CATEGORIAS, []);
     assert.deepEqual([riscadoMenor.dados.preco, riscadoMenor.dados.precoPromocional], [20000, null]);
     assert.ok(riscadoMenor.problemas.includes("precoRiscadoInvalido"));
@@ -149,7 +163,7 @@ describe("Mapa, preços e conversão", () => {
     assert.ok(doMapa.problemas.includes("descricaoDoMapa"));
   });
 
-  test("diferenças com a página só no relatório: preço, tipo, estoque, opções e selo", () => {
+  test("diferenças da página em relação ao mapa vão para o relatório; vale a página", () => {
     const { diferencas, dados } = converterProduto(produto(), 1, {
       slug: "kit-pré-teste",
       descricao: "x",
@@ -162,7 +176,7 @@ describe("Mapa, preços e conversão", () => {
       seloNaPagina: "Novo",
     }, CATEGORIAS, []);
     assert.deepEqual(diferencas.sort(), ["estoqueDiferente", "precoDiferente", "temOpcoes", "temSelo", "tipoDiferente"]);
-    assert.equal(dados.preco, 30000, "o mapa vale");
+    assert.deepEqual([dados.preco, dados.precoPromocional, dados.tipo, dados.status, dados.selo], [35000, null, "digital", "esgotado", "Novo"], "a página vale");
     const igual = converterProduto(produto(), 1, { slug: "kit-pré-teste", descricao: "x", precoNaPagina: 300, precoComDescontoNaPagina: 200, emEstoqueNaPagina: true, tipoNaPagina: "physical", opcoes: [], camposDeTexto: [], seloNaPagina: null }, CATEGORIAS, []);
     assert.deepEqual(igual.diferencas, []);
   });

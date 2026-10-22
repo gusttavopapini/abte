@@ -5,6 +5,9 @@
 // é a listagem geral); produtos com publicado = false; preço riscado vira
 // preco e o atual vira precoPromocional, todos marcados para revisão; slug sem
 // acento pelo gerarSlug, com redirecionamento do antigo (nada ativado).
+// Decisão de 22/10/2026 (substitui a decisão 11): preço, tipo, estoque e selo
+// vêm da página ao vivo (produtos-coletados.json); o mapa fica para nome,
+// categoria, galeria e ordem.
 // Testado em testes/unidade/migracao-produtos.test.mts.
 import { gerarSlug } from "../slug.ts";
 
@@ -107,6 +110,8 @@ export const PROBLEMAS_DO_PRODUTO = [
   "descricaoLonga",
   "precoInvalido",
   "precoRiscadoInvalido",
+  "semDadosDaPagina",
+  "seloLongo",
   "semCategoria",
   "duasCategorias",
   "imagemPendente",
@@ -115,8 +120,8 @@ export const PROBLEMAS_DO_PRODUTO = [
 ] as const;
 export type ProblemaDoProduto = (typeof PROBLEMAS_DO_PRODUTO)[number];
 
-// Diferenças entre o mapa (que vale, decisão 11) e os dados atuais da página
-// antiga. Só vão para o relatório, para a ABTE conferir.
+// Diferenças entre a página ao vivo (que vale) e o mapa. Só vão para o
+// relatório, para a ABTE conferir.
 export type DiferencaDaPagina = "precoDiferente" | "tipoDiferente" | "estoqueDiferente" | "temOpcoes" | "temCamposDeTexto" | "temSelo";
 
 export type ProdutoColetado = {
@@ -164,7 +169,7 @@ export function converterProduto(
   coletado: ProdutoColetado | undefined,
   idsDasCategorias: Map<string, string>,
   galeria: { midiaIdWix: string; midiaId: string | null }[],
-): { dados: DadosDoProdutoMigrado; problemas: ProblemaDoProduto[]; diferencas: DiferencaDaPagina[]; temPrecoRiscado: boolean } {
+): { dados: DadosDoProdutoMigrado; problemas: ProblemaDoProduto[]; diferencas: DiferencaDaPagina[]; temPromocional: boolean } {
   const problemas = new Set<ProblemaDoProduto>();
   const diferencas = new Set<DiferencaDaPagina>();
 
@@ -185,17 +190,28 @@ export function converterProduto(
     descricao = "";
   }
 
-  // Preço (decisão 11): o riscado vira preco e o atual vira precoPromocional.
-  const atual = centavosDeReais(produto.preco);
-  const riscado = produto.precoRiscado === null ? null : centavosDoTexto(produto.precoRiscado);
-  let preco = atual;
+  // Preço da página ao vivo: o cheio em preco; o com desconto, só quando
+  // menor, em precoPromocional. Sem dados da página, a regra antiga sobre o
+  // mapa (riscado vira preco, atual vira promocional), marcada.
+  const daPagina = coletado && !coletado.falha && typeof coletado.precoNaPagina === "number" ? coletado : null;
+  let preco: number;
   let precoPromocional: number | null = null;
-  if (produto.precoRiscado !== null && riscado === null) problemas.add("precoRiscadoInvalido");
-  if (riscado !== null) {
-    if (riscado > atual) {
-      preco = riscado;
-      precoPromocional = atual;
-    } else problemas.add("precoRiscadoInvalido");
+  if (daPagina) {
+    preco = centavosDeReais(daPagina.precoNaPagina as number);
+    const comDesconto = typeof daPagina.precoComDescontoNaPagina === "number" ? centavosDeReais(daPagina.precoComDescontoNaPagina) : null;
+    if (comDesconto !== null && comDesconto > 0 && comDesconto < preco) precoPromocional = comDesconto;
+  } else {
+    problemas.add("semDadosDaPagina");
+    const atual = centavosDeReais(produto.preco);
+    const riscado = produto.precoRiscado === null ? null : centavosDoTexto(produto.precoRiscado);
+    preco = atual;
+    if (produto.precoRiscado !== null && riscado === null) problemas.add("precoRiscadoInvalido");
+    if (riscado !== null) {
+      if (riscado > atual) {
+        preco = riscado;
+        precoPromocional = atual;
+      } else problemas.add("precoRiscadoInvalido");
+    }
   }
   if (!(preco > 0) || preco > LIMITES.precoMaximo) problemas.add("precoInvalido");
 
@@ -205,38 +221,49 @@ export function converterProduto(
   if (daMigracao.length > 1) problemas.add("duasCategorias");
   const categoria = daMigracao.length > 0 ? (idsDasCategorias.get(daMigracao[0]) ?? "") : "";
 
-  let status: "disponivel" | "esgotado" = "disponivel";
-  if (produto.estoque === "esgotado") status = "esgotado";
-  else if (produto.estoque !== "disponivel") problemas.add("estoqueDesconhecido");
+  // Situação, tipo e selo: da página; sem ela, do mapa (selo vazio).
+  const statusDoMapa: "disponivel" | "esgotado" = produto.estoque === "esgotado" ? "esgotado" : "disponivel";
+  if (!daPagina && produto.estoque !== "esgotado" && produto.estoque !== "disponivel") problemas.add("estoqueDesconhecido");
+  const status: "disponivel" | "esgotado" =
+    daPagina && typeof daPagina.emEstoqueNaPagina === "boolean" ? (daPagina.emEstoqueNaPagina ? "disponivel" : "esgotado") : statusDoMapa;
+  const tipoDoMapa = produto.digital ? "digital" : "fisico";
+  const tipoDaPagina = daPagina?.tipoNaPagina === "digital" ? "digital" : daPagina?.tipoNaPagina === "physical" ? "fisico" : null;
+  const tipo = tipoDaPagina ?? tipoDoMapa;
+  let selo = daPagina?.seloNaPagina?.trim() ?? "";
+  if (selo.length > LIMITE_DO_SELO) {
+    problemas.add("seloLongo");
+    selo = "";
+  }
 
   const ligadas = galeria.filter((item) => item.midiaId !== null);
   if (ligadas.length < galeria.length) problemas.add("imagemPendente");
   if (ligadas.length > LIMITE_DE_IMAGENS) problemas.add("imagensDemais");
   const imagens = ligadas.slice(0, LIMITE_DE_IMAGENS).map((item, posicao) => ({ midiaId: item.midiaId as string, ordem: posicao }));
 
-  const tipo = produto.digital ? "digital" : "fisico";
-  if (coletado && !coletado.falha) {
-    const comDesconto = coletado.precoComDescontoNaPagina ?? coletado.precoNaPagina;
-    const cheioNaPagina = coletado.precoNaPagina;
-    const precosDaPagina = [typeof cheioNaPagina === "number" ? centavosDeReais(cheioNaPagina) : null, typeof comDesconto === "number" ? centavosDeReais(comDesconto) : null];
-    if (precosDaPagina[0] !== preco || precosDaPagina[1] !== (precoPromocional ?? preco)) diferencas.add("precoDiferente");
-    const tipoDaPagina = coletado.tipoNaPagina === "digital" ? "digital" : coletado.tipoNaPagina === "physical" ? "fisico" : null;
-    if (tipoDaPagina && tipoDaPagina !== tipo) diferencas.add("tipoDiferente");
-    if (typeof coletado.emEstoqueNaPagina === "boolean" && coletado.emEstoqueNaPagina !== (status === "disponivel")) diferencas.add("estoqueDiferente");
-    if ((coletado.opcoes?.length ?? 0) > 0) diferencas.add("temOpcoes");
-    if ((coletado.camposDeTexto?.length ?? 0) > 0) diferencas.add("temCamposDeTexto");
-    if (coletado.seloNaPagina) diferencas.add("temSelo");
+  if (daPagina) {
+    // Comparação com o mapa, só para o relatório.
+    const atual = centavosDeReais(produto.preco);
+    const riscado = produto.precoRiscado === null ? null : centavosDoTexto(produto.precoRiscado);
+    const doMapa = riscado !== null && riscado > atual ? [riscado, atual] : [atual, null];
+    if (doMapa[0] !== preco || doMapa[1] !== precoPromocional) diferencas.add("precoDiferente");
+    if (tipoDaPagina && tipoDaPagina !== tipoDoMapa) diferencas.add("tipoDiferente");
+    if (status !== statusDoMapa) diferencas.add("estoqueDiferente");
+    if ((daPagina.opcoes?.length ?? 0) > 0) diferencas.add("temOpcoes");
+    if ((daPagina.camposDeTexto?.length ?? 0) > 0) diferencas.add("temCamposDeTexto");
+    if (selo) diferencas.add("temSelo");
   }
 
   return {
-    dados: { nome, descricao, preco, precoPromocional, categoria, tipo, status, selo: "", ordem, publicado: false, imagens },
+    dados: { nome, descricao, preco, precoPromocional, categoria, tipo, status, selo, ordem, publicado: false, imagens },
     problemas: PROBLEMAS_DO_PRODUTO.filter((problema) => problemas.has(problema)),
     diferencas: [...diferencas],
-    temPrecoRiscado: riscado !== null && riscado > atual,
+    temPromocional: precoPromocional !== null,
   };
 }
 
 const LIMITE_DE_IMAGENS = 8;
+// Mesmo limite do selo no painel (lib/produtos.ts).
+const LIMITE_DO_SELO = 30;
 
 // Redirecionamentos do site antigo para o novo, para a etapa 9 (NADA é
 // ativado aqui). O slug antigo com acento entra decodificado e codificado.

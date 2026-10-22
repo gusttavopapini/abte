@@ -75,7 +75,7 @@ describe("Migração da loja (emulador)", () => {
     assert.equal(await contar("categoriasDeProdutos"), 0);
     assert.equal(await contar(COLECAO_LOG), 0);
     assert.deepEqual(relatorio.contagens.porCategoria, { "(sem categoria)": 1, abte: 1, "produtos-parceiros": 1 });
-    assert.equal(relatorio.contagens.comPrecoRiscado, 1);
+    assert.equal(relatorio.contagens.comPrecoPromocional, 1, "sem dados da página no teste: regra do mapa");
     assert.deepEqual(relatorio.produtos.map((produto) => [produto.slugNovo, produto.slugMuda]), [["kit-pre-teste", true], ["jogo-parceiro", false], ["digital-solto", false]]);
   });
 
