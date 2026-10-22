@@ -12,7 +12,9 @@ export const COLECAO_LOG = "logAlteracoes";
 export type AcaoDoLog = "criar" | "editar" | "excluir" | "restaurar" | "excluir_definitivo";
 
 // Quem fez a alteração. Nunca o e-mail: só o uid, o nome do cadastro e o papel.
-export type AutorDaAlteracao = { uid: string; nome: string; papel: PapelDoPainel };
+// "sistema" é o papel dos scripts de migração (etapa 6): só aparece no
+// registro e não dá acesso a nada no painel (não está em PAPEIS_DO_PAINEL).
+export type AutorDaAlteracao = { uid: string; nome: string; papel: PapelDoPainel | "sistema" };
 
 export type Alteracao = {
   colecao: string;
@@ -22,6 +24,10 @@ export type Alteracao = {
   campos: string[];
   // Frase curta em português, sem dado pessoal.
   resumo: string;
+  // Só nos scripts de migração: distingue a gravação do script da ação de
+  // uma pessoa (que nunca tem esses campos) e diz de qual execução veio.
+  origem?: "migracao";
+  execucao?: string;
 };
 
 function dadosDoRegistro(autor: AutorDaAlteracao, alteracao: Alteracao) {
@@ -34,6 +40,7 @@ function dadosDoRegistro(autor: AutorDaAlteracao, alteracao: Alteracao) {
     acao: alteracao.acao,
     campos: alteracao.campos,
     resumo: alteracao.resumo,
+    ...(alteracao.origem ? { origem: alteracao.origem, execucao: alteracao.execucao ?? null } : {}),
     criadoEm: FieldValue.serverTimestamp(),
   };
 }
