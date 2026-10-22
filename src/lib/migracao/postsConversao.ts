@@ -1,15 +1,24 @@
 // Conversão do corpo dos posts do site antigo para o Markdown restrito do site
 // novo (etapa 6, degrau 4a; formato aprovado em 21/10/2026, decisão 1).
 // Subconjunto: parágrafos, títulos ## e ###, listas (- e 1.), citações (>),
-// links [texto](endereço) só com https:, mailto: e caminhos internos, e
-// imagens ![alt](midia:wix:<id da mídia no Wix>), que a importação troca pelo
-// id do documento em midias (origem.midiaId). Nada de HTML: o que não cabe no
-// subconjunto vira texto simples ou é descartado, e tudo é contado no
-// relatório. Erros de digitação NÃO são corrigidos (precisa da ABTE).
+// **negrito** e *itálico* (desde 22/10/2026; sublinhado vira texto simples),
+// links [texto](endereço) só com https:, mailto: e caminhos internos com
+// destino conhecido, e imagens ![alt](midia:wix:<id da mídia no Wix>), que a
+// importação troca pelo id do documento em midias (origem.midiaId). Nada de
+// HTML: o que não cabe no subconjunto vira texto simples ou é descartado, e
+// tudo é contado no relatório. Erros de digitação NÃO são corrigidos (precisa
+// da ABTE).
 //
-// Escapes (o renderizador da etapa 4b desfaz os mesmos): \ [ ] * _ ` viram
-// \\ \[ \] \* \_ \`; um parágrafo que começaria por #, >, -, + ou "1." ganha
-// uma barra invertida na frente, para não virar título, citação ou lista.
+// Respostas de 22/10/2026: links em http e caminhos internos sem destino no
+// site novo saem (o texto fica) e são listados com o texto, para conferência
+// e para religar depois; a primeira imagem do corpo, quando é a própria capa,
+// sai (a página do post já mostra a capa), e uma repetição dela mais adiante
+// fica.
+//
+// Escapes (o renderizador, src/lib/markdownRestrito.ts, desfaz os mesmos):
+// \ [ ] * _ ` viram \\ \[ \] \* \_ \`; um parágrafo que começaria por #, >,
+// -, + ou "1." ganha uma barra invertida na frente, para não virar título,
+// citação ou lista.
 //
 // Pura, com o parse5 (só nos scripts de coleta). Testada com HTML sintético
 // em testes/unidade/migracao-posts.test.mts.
@@ -58,16 +67,30 @@ export function idiomaDoPost(post: Pick<PostDoMapa, "idiomaEstimado">): "pt-BR" 
 }
 
 // O que o conversor encontrou e como tratou cada tipo de elemento.
+export type LinkRemovido = { endereco: string; texto: string };
+
 export type RelatorioDaConversao = {
   blocos: { paragrafos: number; titulos: number; itensDeLista: number; citacoes: number; imagens: number };
-  // Viraram texto simples (o subconjunto não tem): negrito, itálico, sublinhado...
+  // Ênfase mantida (negrito e itálico) e simplificada (ver o conversor).
+  enfase: { negrito: number; italico: number; aninhadaSimplificada: number; emTitulo: number; emLinkSimplificada: number; coladaSimplificada: number };
+  // Viraram texto simples (o subconjunto não tem): sublinhado, tachado...
   formatacaoDescartada: Record<string, number>;
   // Convertidos para o subconjunto de outro jeito.
   adaptados: Record<string, number>;
   // Descartados (iframes, vídeos, scripts, divisores...).
   descartados: Record<string, number>;
-  links: { mantidos: number; siteAntigoReescritos: number; internosSemDestinoConhecido: string[]; wixRemovidos: number; httpRemovidos: string[]; outrosRemovidos: string[] };
-  imagens: { noCorpo: number; casadas: number; capaNoCorpo: number; semIdDaMidia: number; semUsoNoArquivo: string[]; esperadasNaoAchadas: string[] };
+  links: {
+    mantidos: number;
+    siteAntigoReescritos: number;
+    // Caminho do site antigo sem destino no site novo: o link sai e o texto fica.
+    internosSemDestinoConhecido: LinkRemovido[];
+    wixRemovidos: number;
+    httpRemovidos: LinkRemovido[];
+    outrosRemovidos: string[];
+  };
+  imagens: { noCorpo: number; casadas: number; capaNoCorpo: number; capaRemovidaDoCorpo: number; semIdDaMidia: number; semUsoNoArquivo: string[]; esperadasNaoAchadas: string[] };
+  // Pontos para a revisão da ABTE (notas em sup, títulos h4 a h6).
+  paraRevisar: string[];
   avisos: string[];
   temSecaoDeReferencias: boolean;
 };
@@ -79,11 +102,21 @@ export type ContextoDoPost = {
 };
 
 const DESCARTADOS = new Set(["iframe", "video", "audio", "object", "embed", "script", "style", "svg", "button", "form", "input", "noscript", "canvas", "select", "textarea", "template"]);
-const FORMATACAO = new Set(["strong", "b", "em", "i", "u", "s", "del", "mark", "small"]);
+const NEGRITO = new Set(["strong", "b"]);
+const ITALICO = new Set(["em", "i"]);
+const FORMATACAO = new Set(["u", "s", "del", "mark", "small"]);
 const BLOCOS_DE_CONTEUDO = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "figure", "table", "pre", "hr", "img", "wow-image", "iframe", "video", "audio", "object", "embed"]);
 const ID_DA_MIDIA = /([0-9a-f]{6}_[0-9a-f]{32}(?:~mv2(?:_d_\d+_\d+_s_\d+(?:_\d+)?)?)?\.(?:jpe?g|png|gif|webp|avif))|((?<![0-9a-f])[0-9a-f]{32}\.(?:jpe?g|png))/i;
 const HOSTS_DO_SITE_ANTIGO = /(^|\.)(abteescoliose\.com\.br|tratandoescoliose\.com\.br)$/i;
 const SECAO_DE_REFERENCIAS = /^(refer[eê]ncias|referencias|bibliografia|references)\b/i;
+
+// Marcas internas da ênfase durante a conversão (viram ** e * no fim). Como
+// todo * do texto sai escapado, as marcas nunca se confundem com o texto.
+const MARCA_DO_NEGRITO = "\u0001";
+const MARCA_DO_ITALICO = "\u0002";
+const MARCAS = /[\u0001\u0002]/g;
+const TEM_MARCA = /[\u0001\u0002]/;
+const MARCA_EM_VOLTA = /^([\u0001\u0002])([^\u0001\u0002]*)\1$/;
 
 function somar(contagem: Record<string, number>, chave: string, quanto = 1) {
   contagem[chave] = (contagem[chave] ?? 0) + quanto;
@@ -93,12 +126,48 @@ export function escaparTexto(valor: string): string {
   return valor.replace(/[\\[\]*_`]/g, (caractere) => `\\${caractere}`);
 }
 
+// Texto como o leitor vê (sem marcas nem escapes), para as listas de links.
+function textoVisivel(valor: string): string {
+  return valor.replace(MARCAS, "").replace(/\\(.)/g, "$1").replace(/\s+/g, " ").trim();
+}
+
 function escaparInicio(linha: string): string {
   return /^(#|>|-|\+|\d+\.)/.test(linha) ? `\\${linha}` : linha;
 }
 
 function enderecoSeguro(endereco: string): string {
   return endereco.replace(/[\s()<>]/g, (caractere) => encodeURIComponent(caractere));
+}
+
+// Põe a marca em volta do texto, deixando os espaços das pontas do lado de
+// fora; cada pedaço entre quebras (<br>) é marcado à parte, porque vira um
+// parágrafo próprio.
+function envolver(marca: string, conteudo: string): string {
+  return conteudo
+    .split("\n")
+    .map((parte) => {
+      const [, antes, meio, depois] = parte.match(/^(\s*)([\s\S]*?)(\s*)$/) as RegExpMatchArray;
+      return meio.replace(MARCAS, "").trim() ? `${antes}${marca}${meio}${marca}${depois}` : parte;
+    })
+    .join("\n");
+}
+
+// Ênfase pronta de uma linha: junta marcas seguidas do mesmo tipo (fim de um
+// negrito colado ao começo de outro, ou negrito vazio), desfaz a colagem de
+// negrito com itálico (**a***b*, que o leitor não separa) e troca as marcas
+// por ** e *.
+function finalizarEnfase(linha: string, relatorio: RelatorioDaConversao): string {
+  let atual = linha;
+  let anterior = "";
+  while (atual !== anterior) {
+    anterior = atual;
+    atual = atual.split(MARCA_DO_NEGRITO + MARCA_DO_NEGRITO).join("").split(MARCA_DO_ITALICO + MARCA_DO_ITALICO).join("");
+  }
+  if (atual.includes(MARCA_DO_NEGRITO + MARCA_DO_ITALICO) || atual.includes(MARCA_DO_ITALICO + MARCA_DO_NEGRITO)) {
+    relatorio.enfase.coladaSimplificada++;
+    atual = atual.split(MARCA_DO_ITALICO).join("");
+  }
+  return atual.split(MARCA_DO_NEGRITO).join("**").split(MARCA_DO_ITALICO).join("*");
 }
 
 function idDaMidia(no: No): string | null {
@@ -134,6 +203,11 @@ export function caminhoNovoDoSiteAntigo(caminho: string): string | null {
 
 type Linha = { tipo: "paragrafo" | "titulo2" | "titulo3" | "item" | "itemNumerado" | "citacao" | "imagem"; texto: string; numero?: number };
 
+// Ênfase em que o texto está (negrito e itálico só um nível cada; dentro de
+// título e de link, nenhuma marca nova).
+type Contexto = { negrito: boolean; italico: boolean; titulo: boolean };
+const FORA_DE_ENFASE: Contexto = { negrito: false, italico: false, titulo: false };
+
 export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPost): { ok: true; markdown: string; relatorio: RelatorioDaConversao } | { ok: false; erro: string } {
   const documento = parse(artigoHtml) as unknown as No;
   const corpo = [...percorrer(documento)].find((no) => atributo(no, "data-hook") === "post-description");
@@ -141,11 +215,13 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
 
   const relatorio: RelatorioDaConversao = {
     blocos: { paragrafos: 0, titulos: 0, itensDeLista: 0, citacoes: 0, imagens: 0 },
+    enfase: { negrito: 0, italico: 0, aninhadaSimplificada: 0, emTitulo: 0, emLinkSimplificada: 0, coladaSimplificada: 0 },
     formatacaoDescartada: {},
     adaptados: {},
     descartados: {},
     links: { mantidos: 0, siteAntigoReescritos: 0, internosSemDestinoConhecido: [], wixRemovidos: 0, httpRemovidos: [], outrosRemovidos: [] },
-    imagens: { noCorpo: 0, casadas: 0, capaNoCorpo: 0, semIdDaMidia: 0, semUsoNoArquivo: [], esperadasNaoAchadas: [] },
+    imagens: { noCorpo: 0, casadas: 0, capaNoCorpo: 0, capaRemovidaDoCorpo: 0, semIdDaMidia: 0, semUsoNoArquivo: [], esperadasNaoAchadas: [] },
+    paraRevisar: [],
     avisos: [],
     temSecaoDeReferencias: false,
   };
@@ -158,8 +234,8 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
 
   // Texto de um elemento em linha; "\n" marca uma quebra (<br>), que vira
   // parágrafo novo (o subconjunto não tem quebra dentro do parágrafo).
-  function emLinha(no: No): string {
-    if (no.nodeName === "#text") return escaparTexto((no.value ?? "").replace(/[\s ]+/g, " "));
+  function emLinha(no: No, ctx: Contexto = FORA_DE_ENFASE): string {
+    if (no.nodeName === "#text") return escaparTexto((no.value ?? "").replace(/[\s ]+/g, " "));
     const tag = no.tagName ?? "";
     if (!tag) return "";
     if (DESCARTADOS.has(tag)) {
@@ -172,25 +248,54 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       pendentes.push(no);
       return "";
     }
+    const filhos = (dentro: Contexto) => (no.childNodes ?? []).map((filho) => emLinha(filho, dentro)).join("");
+    if (NEGRITO.has(tag) || ITALICO.has(tag)) {
+      const negrito = NEGRITO.has(tag);
+      const conteudo = filhos(negrito ? { ...ctx, negrito: true } : { ...ctx, italico: true });
+      if (!conteudo.replace(MARCAS, "").trim()) return conteudo;
+      // Em título, a marca sai (o título já é destacado); dentro de outra
+      // ênfase, fica só a de fora.
+      if (ctx.titulo) {
+        relatorio.enfase.emTitulo++;
+        return conteudo;
+      }
+      if (ctx.negrito || ctx.italico) {
+        relatorio.enfase.aninhadaSimplificada++;
+        return conteudo;
+      }
+      relatorio.enfase[negrito ? "negrito" : "italico"]++;
+      return envolver(negrito ? MARCA_DO_NEGRITO : MARCA_DO_ITALICO, conteudo);
+    }
     if (FORMATACAO.has(tag)) somar(relatorio.formatacaoDescartada, tag);
     if (tag === "sup" || tag === "sub") somar(relatorio.adaptados, `${tag} (nota ou índice, virou texto)`);
     if (tag === "code") somar(relatorio.adaptados, "code (virou texto)");
-    const conteudo = (no.childNodes ?? []).map(emLinha).join("");
+    const conteudo = filhos(ctx);
     if (tag === "a") return link(no, conteudo);
     return conteudo;
   }
 
-  function link(no: No, conteudo: string): string {
+  // Texto do link: a ênfase que cobre o texto inteiro vai para fora do link;
+  // outra ênfase dentro dele sai.
+  function textoDoLink(conteudo: string): { antes: string; texto: string; depois: string } {
     const visivel = conteudo.replace(/\n/g, " ").trim();
+    const inteira = visivel.match(MARCA_EM_VOLTA);
+    if (inteira) return { antes: inteira[1], texto: inteira[2].trim(), depois: inteira[1] };
+    if (TEM_MARCA.test(visivel)) relatorio.enfase.emLinkSimplificada++;
+    return { antes: "", texto: visivel.replace(MARCAS, "").trim(), depois: "" };
+  }
+
+  function link(no: No, conteudo: string): string {
     const endereco = (atributo(no, "href") ?? "").trim();
-    if (!visivel) {
+    const { antes, texto, depois } = textoDoLink(conteudo);
+    const comLink = (destino: string) => `${antes}[${texto}](${enderecoSeguro(destino)})${depois}`;
+    if (!texto) {
       if (endereco) somar(relatorio.adaptados, "link sem texto (descartado)");
       return conteudo;
     }
     if (!endereco || endereco.startsWith("#")) return conteudo;
     if (/^mailto:/i.test(endereco)) {
       relatorio.links.mantidos++;
-      return `[${visivel}](${enderecoSeguro(endereco)})`;
+      return comLink(endereco);
     }
     if (/^tel:/i.test(endereco)) {
       relatorio.links.outrosRemovidos.push("tel:");
@@ -211,13 +316,15 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       const novo = caminhoNovoDoSiteAntigo(url.pathname);
       if (novo) {
         relatorio.links.siteAntigoReescritos++;
-        return `[${visivel}](${enderecoSeguro(novo)})`;
+        return comLink(novo);
       }
-      relatorio.links.internosSemDestinoConhecido.push(url.pathname);
-      return `[${visivel}](${enderecoSeguro(url.pathname)})`;
+      // Sem destino no site novo: o texto fica e o caminho é listado (resposta 2).
+      relatorio.links.internosSemDestinoConhecido.push({ endereco: url.pathname, texto: textoVisivel(texto) });
+      return conteudo;
     }
     if (url.protocol === "http:") {
-      relatorio.links.httpRemovidos.push(url.hostname);
+      // O texto fica; o endereço vai para a lista de conferência (resposta 3).
+      relatorio.links.httpRemovidos.push({ endereco: url.href, texto: textoVisivel(texto) });
       return conteudo;
     }
     if (url.protocol !== "https:") {
@@ -225,7 +332,7 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       return conteudo;
     }
     relatorio.links.mantidos++;
-    return `[${visivel}](${enderecoSeguro(url.href)})`;
+    return comLink(url.href);
   }
 
   function descarregarImagens() {
@@ -235,22 +342,29 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
   }
 
   function adicionarTexto(tipo: Linha["tipo"], bruto: string, numero?: number) {
-    const partes = bruto.split("\n").map((parte) => parte.replace(/ {2,}/g, " ").trim()).filter(Boolean);
+    const partes = bruto.split("\n").map((parte) => parte.replace(/ {2,}/g, " ").trim()).filter((parte) => parte.replace(MARCAS, "").trim());
     if (partes.length > 1) somar(relatorio.adaptados, "quebra de linha (virou parágrafo novo)", partes.length - 1);
     partes.forEach((parte, i) => {
-      if (SECAO_DE_REFERENCIAS.test(parte.replace(/\\/g, ""))) relatorio.temSecaoDeReferencias = true;
-      linhas.push({ tipo: i === 0 ? tipo : tipo === "titulo2" || tipo === "titulo3" ? tipo : tipo === "item" || tipo === "itemNumerado" ? "paragrafo" : tipo, texto: parte, numero });
+      if (SECAO_DE_REFERENCIAS.test(textoVisivel(parte))) relatorio.temSecaoDeReferencias = true;
+      linhas.push({ tipo: i === 0 ? tipo : tipo === "titulo2" || tipo === "titulo3" ? tipo : tipo === "item" || tipo === "itemNumerado" ? "paragrafo" : tipo, texto: finalizarEnfase(parte, relatorio), numero });
     });
     descarregarImagens();
   }
 
-  function imagem(no: No) {
+  // false quando a imagem não entra no Markdown (a legenda também não).
+  function imagem(no: No): boolean {
     relatorio.imagens.noCorpo++;
+    const primeira = relatorio.imagens.noCorpo === 1;
     const id = idDaMidia(no);
     if (!id) {
       relatorio.imagens.semIdDaMidia++;
       relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo sem id de mídia do Wix: descartada.`);
-      return;
+      return false;
+    }
+    // A primeira imagem do corpo igual à capa sai (resposta 4).
+    if (primeira && id === contexto.capa && !contexto.imagensEsperadas.includes(id)) {
+      relatorio.imagens.capaRemovidaDoCorpo++;
+      return false;
     }
     const esperada = contexto.imagensEsperadas[proximaEsperada];
     if (id === esperada) proximaEsperada++;
@@ -261,7 +375,7 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     } else {
       relatorio.imagens.semUsoNoArquivo.push(id);
       relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo não está no imagens-origem.json (não importada): descartada.`);
-      return;
+      return false;
     }
     if (id !== contexto.capa || contexto.imagensEsperadas.includes(id)) {
       relatorio.imagens.casadas++;
@@ -270,17 +384,22 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     const alt = [...percorrer(no)].map((atual) => (atual.tagName === "img" ? atributo(atual, "alt") ?? "" : "")).find((valor) => valor.trim()) ?? "";
     const altUtil = alt && !/\.(jpe?g|png|gif|webp|avif)$/i.test(alt.trim()) ? alt.replace(/\s+/g, " ").trim() : "";
     linhas.push({ tipo: "imagem", texto: `![${escaparTexto(altUtil)}](midia:wix:${id})` });
+    return true;
   }
 
   function imagemComLegenda(no: No) {
-    imagem(no);
+    const entrou = imagem(no);
     const legenda = [...percorrer(no)].find((atual) => atual.tagName === "figcaption");
     if (legenda) {
-      const conteudo = (legenda.childNodes ?? []).map(emLinha).join("");
-      if (conteudo.trim()) {
-        adicionarTexto("paragrafo", conteudo);
-        somar(relatorio.adaptados, "legenda de imagem (virou parágrafo)");
+      const conteudo = (legenda.childNodes ?? []).map((filho) => emLinha(filho)).join("");
+      if (!conteudo.replace(MARCAS, "").trim()) return;
+      if (!entrou) {
+        // A legenda de uma imagem que saiu não faz sentido sozinha.
+        somar(relatorio.descartados, "legenda de imagem que saiu");
+        return;
       }
+      adicionarTexto("paragrafo", conteudo);
+      somar(relatorio.adaptados, "legenda de imagem (virou parágrafo)");
     }
   }
 
@@ -292,7 +411,7 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       const subListas = (filho.childNodes ?? []).filter((neto) => neto.tagName === "ul" || neto.tagName === "ol");
       const semSubListas: No = { ...filho, childNodes: (filho.childNodes ?? []).filter((neto) => neto.tagName !== "ul" && neto.tagName !== "ol") };
       const conteudo = blocosEmLinha(semSubListas);
-      if (conteudo.trim()) adicionarTexto(numerada ? "itemNumerado" : "item", conteudo, numero);
+      if (conteudo.replace(MARCAS, "").trim()) adicionarTexto(numerada ? "itemNumerado" : "item", conteudo, numero);
       else descarregarImagens();
       if (nivel > 0) somar(relatorio.adaptados, "item de lista aninhada (achatado)");
       for (const sub of subListas) lista(sub, sub.tagName === "ol", nivel + 1);
@@ -300,9 +419,9 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
   }
 
   // Texto em linha de um bloco que pode ter <p> dentro (ex.: <li><p>...</p></li>).
-  function blocosEmLinha(no: No): string {
+  function blocosEmLinha(no: No, ctx: Contexto = FORA_DE_ENFASE): string {
     return (no.childNodes ?? [])
-      .map((filho) => (filho.tagName === "p" || filho.tagName === "div" ? `${blocosEmLinha(filho)}\n` : emLinha(filho)))
+      .map((filho) => (filho.tagName === "p" || filho.tagName === "div" ? `${blocosEmLinha(filho, ctx)}\n` : emLinha(filho, ctx)))
       .join("");
   }
 
@@ -334,8 +453,11 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     if (/^h[1-6]$/.test(tag)) {
       const nivel = Number(tag[1]);
       if (nivel === 1) somar(relatorio.adaptados, "h1 no corpo (virou ##)");
-      if (nivel >= 4) somar(relatorio.adaptados, `${tag} (virou ###)`);
-      adicionarTexto(nivel <= 2 ? "titulo2" : "titulo3", blocosEmLinha(no));
+      if (nivel >= 4) {
+        somar(relatorio.adaptados, `${tag} (virou ###)`);
+        relatorio.paraRevisar.push(`título ${tag} virou ### (conferir o nível)`);
+      }
+      adicionarTexto(nivel <= 2 ? "titulo2" : "titulo3", blocosEmLinha(no, { ...FORA_DE_ENFASE, titulo: true }));
       return;
     }
     if (tag === "ul" || tag === "ol") {
@@ -344,8 +466,8 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     }
     if (tag === "blockquote") {
       const conteudo = blocosEmLinha(no);
-      if (conteudo.trim()) {
-        for (const parte of conteudo.split("\n").map((linha) => linha.trim()).filter(Boolean)) linhas.push({ tipo: "citacao", texto: parte });
+      if (conteudo.replace(MARCAS, "").trim()) {
+        for (const parte of conteudo.split("\n").map((linha) => linha.trim()).filter((linha) => linha.replace(MARCAS, "").trim())) linhas.push({ tipo: "citacao", texto: finalizarEnfase(parte, relatorio) });
         relatorio.blocos.citacoes++;
       }
       return;
@@ -379,6 +501,8 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       relatorio.avisos.push(`Imagem esperada (posição ${contexto.imagensEsperadas.indexOf(id) + 1} do uso postCorpo) não foi achada no corpo.`);
     }
   }
+  const notas = relatorio.adaptados["sup (nota ou índice, virou texto)"] ?? 0;
+  if (notas) relatorio.paraRevisar.push(`${notas} nota(s) em sup viraram texto colado (conferir as referências)`);
 
   relatorio.blocos.paragrafos = linhas.filter((linha) => linha.tipo === "paragrafo").length;
   relatorio.blocos.titulos = linhas.filter((linha) => linha.tipo === "titulo2" || linha.tipo === "titulo3").length;

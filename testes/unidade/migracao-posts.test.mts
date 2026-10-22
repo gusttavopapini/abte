@@ -3,7 +3,7 @@
 // texto, nome ou id real de post.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { lerPaginaDePost } from "../../src/lib/migracao/postsColeta.ts";
+import { fotoDoAutor, lerPaginaDePost } from "../../src/lib/migracao/postsColeta.ts";
 import { caminhoNovoDoSiteAntigo, converterCorpoDoPost, escaparTexto, idiomaDoPost, lerPostsDoMapa } from "../../src/lib/migracao/postsConversao.ts";
 
 const hex = (n: number) => n.toString(16).padStart(32, "0");
@@ -20,10 +20,11 @@ function converter(corpo: string, imagensEsperadas: string[] = [], capa: string 
 }
 
 describe("Leitura da página do post", () => {
-  test("guarda só o artigo, o título e a data do ld+json", () => {
-    const html = `<html><head><script type="application/ld+json">${JSON.stringify({ "@type": "BlogPosting", datePublished: "2026-01-02T03:04:05.000Z", dateModified: "2026-02-01T00:00:00.000Z" })}</script></head><body><nav>menu</nav>${artigo("<p>Corpo.</p>")}<section>posts recentes</section></body></html>`;
+  test("guarda só o artigo, o título, a meta description e a data do ld+json", () => {
+    const html = `<html><head><meta name="description" content="Descrição  fictícia."><meta property="og:description" content="Outra."><script type="application/ld+json">${JSON.stringify({ "@type": "BlogPosting", datePublished: "2026-01-02T03:04:05.000Z", dateModified: "2026-02-01T00:00:00.000Z" })}</script></head><body><nav>menu</nav>${artigo("<p>Corpo.</p>")}<section>posts recentes</section></body></html>`;
     const lido = lerPaginaDePost(html);
     assert.equal(lido.titulo, "Título Fictício");
+    assert.equal(lido.descricao, "Descrição fictícia.");
     assert.equal(lido.publicadoEm, "2026-01-02T03:04:05.000Z");
     assert.equal(lido.atualizadoEm, "2026-02-01T00:00:00.000Z");
     assert.equal(lido.fonteDaData, "ldJson");
@@ -32,8 +33,16 @@ describe("Leitura da página do post", () => {
   });
 
   test("sem ld+json, a data vem da meta; sem artigo, null", () => {
-    const lido = lerPaginaDePost(`<html><head><meta property="article:published_time" content="2025-05-05T00:00:00Z"></head><body><p>sem artigo</p></body></html>`);
-    assert.deepEqual([lido.publicadoEm, lido.fonteDaData, lido.artigoHtml], ["2025-05-05T00:00:00Z", "meta", null]);
+    const lido = lerPaginaDePost(`<html><head><meta property="article:published_time" content="2025-05-05T00:00:00Z"><meta property="og:description" content="Só a og."></head><body><p>sem artigo</p></body></html>`);
+    assert.deepEqual([lido.publicadoEm, lido.fonteDaData, lido.artigoHtml, lido.descricao], ["2025-05-05T00:00:00Z", "meta", null, "Só a og."]);
+  });
+
+  test("foto do autor: id da mídia no data-image-info do avatar; sem avatar ou com JSON quebrado, null", () => {
+    const avatar = (info: string) => `<article data-hook="post"><wow-image class="x avatar-image" data-image-info='${info}'><img alt=""></wow-image></article>`;
+    assert.equal(fotoDoAutor(avatar(JSON.stringify({ imageData: { uri: ID(3) } }))), ID(3));
+    assert.equal(fotoDoAutor(avatar(JSON.stringify({ imageData: { uri: "https://exemplo.invalid/x.jpg" } }))), null);
+    assert.equal(fotoDoAutor(avatar("{quebrado")), null);
+    assert.equal(fotoDoAutor(artigo("<p>sem avatar</p>")), null);
   });
 });
 
@@ -64,16 +73,35 @@ describe("Conversor para Markdown restrito", () => {
     assert.deepEqual(relatorio.blocos, { paragrafos: 1, titulos: 2, itensDeLista: 4, citacoes: 1, imagens: 0 });
   });
 
-  test("h1 vira ##, h4 a h6 viram ###, e a mudança é contada", () => {
+  test("h1 vira ##, h4 a h6 viram ### e vão para revisão, e a mudança é contada", () => {
     const { markdown, relatorio } = converter("<h1>Grande</h1><h5>Pequeno</h5>");
     assert.equal(markdown, "## Grande\n\n### Pequeno\n");
     assert.deepEqual(relatorio.adaptados, { "h1 no corpo (virou ##)": 1, "h5 (virou ###)": 1 });
+    assert.deepEqual(relatorio.paraRevisar, ["título h5 virou ### (conferir o nível)"]);
   });
 
-  test("negrito, itálico e sublinhado viram texto simples, contados", () => {
-    const { markdown, relatorio } = converter("<p>Texto <strong>forte</strong>, <em>leve</em> e <u>sublinhado</u>.</p>");
-    assert.equal(markdown, "Texto forte, leve e sublinhado.\n");
-    assert.deepEqual(relatorio.formatacaoDescartada, { strong: 1, em: 1, u: 1 });
+  test("negrito e itálico viram ** e *; sublinhado vira texto simples", () => {
+    const { markdown, relatorio } = converter("<p>Texto <strong>forte</strong>, <em>leve</em>, <b>b</b>, <i>i</i> e <u>sublinhado</u>.</p>");
+    assert.equal(markdown, "Texto **forte**, *leve*, **b**, *i* e sublinhado.\n");
+    assert.deepEqual([relatorio.enfase.negrito, relatorio.enfase.italico], [2, 2]);
+    assert.deepEqual(relatorio.formatacaoDescartada, { u: 1 });
+  });
+
+  test("ênfase: espaços ficam do lado de fora, vazia some, colada se junta, aninhada e em título simplificadas", () => {
+    const { markdown, relatorio } = converter(
+      "<p>a<strong> forte </strong>b <strong> </strong>c <strong>um</strong><strong>dois</strong> <strong>fora <em>dentro</em></strong></p>" +
+        "<p><strong>linha um<br>linha dois</strong></p><h2><strong>Título forte</strong></h2><p><strong>x</strong><em>y</em></p>",
+    );
+    assert.equal(markdown, "a **forte** b c **umdois** **fora dentro**\n\n**linha um**\n\n**linha dois**\n\n## Título forte\n\n**x**y\n");
+    assert.equal(relatorio.enfase.aninhadaSimplificada, 1);
+    assert.equal(relatorio.enfase.emTitulo, 1);
+    assert.equal(relatorio.enfase.coladaSimplificada, 1);
+  });
+
+  test("ênfase no link: a que cobre o texto inteiro vai para fora; o resto sai", () => {
+    const { markdown, relatorio } = converter('<p><strong><a href="https://exemplo.invalid/a">tudo</a></strong> <a href="https://exemplo.invalid/b"><strong>tudo</strong></a> <a href="https://exemplo.invalid/c">meio <em>leve</em></a></p>');
+    assert.equal(markdown, "**[tudo](https://exemplo.invalid/a)** **[tudo](https://exemplo.invalid/b)** [meio leve](https://exemplo.invalid/c)\n");
+    assert.equal(relatorio.enfase.emLinkSimplificada, 1);
   });
 
   test("quebra de linha dentro do parágrafo vira parágrafo novo", () => {
@@ -85,7 +113,7 @@ describe("Conversor para Markdown restrito", () => {
     assert.equal(converter("<p># não é título</p><p>- não é item</p><p>1. não é lista</p><p>> não é citação</p>").markdown, "\\# não é título\n\n\\- não é item\n\n\\1. não é lista\n\n\\> não é citação\n");
   });
 
-  test("links: https e mailto ficam; http e Wix saem (texto fica); site antigo é reescrito", () => {
+  test("links: https e mailto ficam; http, Wix e caminho sem destino saem (texto fica e é listado); site antigo é reescrito", () => {
     const { markdown, relatorio } = converter(
       `<p><a href="https://exemplo.invalid/artigo">artigo</a> <a href="mailto:contato@exemplo.invalid">e-mail</a> ` +
         `<a href="http://exemplo.invalid/velho">velho</a> <a href="https://static.wixstatic.com/media/x.pdf">arquivo</a> ` +
@@ -94,13 +122,13 @@ describe("Conversor para Markdown restrito", () => {
     );
     assert.equal(
       markdown,
-      "[artigo](https://exemplo.invalid/artigo) [e-mail](mailto:contato@exemplo.invalid) velho arquivo [outro post](/blog/post-com-acentuacao) [página](/pagina-que-nao-existe) âncora\n",
+      "[artigo](https://exemplo.invalid/artigo) [e-mail](mailto:contato@exemplo.invalid) velho arquivo [outro post](/blog/post-com-acentuacao) página âncora\n",
     );
     assert.equal(relatorio.links.mantidos, 2);
     assert.equal(relatorio.links.wixRemovidos, 1);
-    assert.deepEqual(relatorio.links.httpRemovidos, ["exemplo.invalid"]);
+    assert.deepEqual(relatorio.links.httpRemovidos, [{ endereco: "http://exemplo.invalid/velho", texto: "velho" }]);
     assert.equal(relatorio.links.siteAntigoReescritos, 1);
-    assert.deepEqual(relatorio.links.internosSemDestinoConhecido, ["/pagina-que-nao-existe"]);
+    assert.deepEqual(relatorio.links.internosSemDestinoConhecido, [{ endereco: "/pagina-que-nao-existe", texto: "página" }]);
     assert.equal(relatorio.adaptados["link sem texto (descartado)"], 1);
   });
 
@@ -111,10 +139,11 @@ describe("Conversor para Markdown restrito", () => {
     );
   });
 
-  test("imagens pela posição do uso postCorpo; capa repetida no corpo fica e é contada; legenda vira parágrafo", () => {
-    const { markdown, relatorio } = converter(`${figura(9)}<p>Texto.</p>${figura(1, "Legenda fictícia")}${figura(2)}`, [ID(1), ID(2)]);
-    assert.equal(markdown, `![](midia:wix:${ID(9)})\n\nTexto.\n\n![](midia:wix:${ID(1)})\n\nLegenda fictícia\n\n![](midia:wix:${ID(2)})\n`);
-    assert.deepEqual(relatorio.imagens, { noCorpo: 3, casadas: 2, capaNoCorpo: 1, semIdDaMidia: 0, semUsoNoArquivo: [], esperadasNaoAchadas: [] });
+  test("imagens pela posição do uso postCorpo; capa como primeira imagem sai (com a legenda), repetida adiante fica; legenda vira parágrafo", () => {
+    const { markdown, relatorio } = converter(`${figura(9, "Legenda da capa")}<p>Texto.</p>${figura(1, "Legenda fictícia")}${figura(2)}${figura(9)}`, [ID(1), ID(2)]);
+    assert.equal(markdown, `Texto.\n\n![](midia:wix:${ID(1)})\n\nLegenda fictícia\n\n![](midia:wix:${ID(2)})\n\n![](midia:wix:${ID(9)})\n`);
+    assert.deepEqual(relatorio.imagens, { noCorpo: 4, casadas: 2, capaNoCorpo: 1, capaRemovidaDoCorpo: 1, semIdDaMidia: 0, semUsoNoArquivo: [], esperadasNaoAchadas: [] });
+    assert.equal(relatorio.descartados["legenda de imagem que saiu"], 1);
     assert.deepEqual(relatorio.avisos, []);
     assert.doesNotMatch(markdown, /wixstatic/);
   });
@@ -143,6 +172,7 @@ describe("Conversor para Markdown restrito", () => {
   test("tabela vira um parágrafo por linha; sup vira texto; lista aninhada é achatada", () => {
     const { markdown, relatorio } = converter(`<table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table><p>Nota<sup>1</sup></p><ul><li><p>Pai</p><ul><li><p>Filho</p></li></ul></li></ul>`);
     assert.equal(markdown, "A; B\n\n1; 2\n\nNota1\n\n- Pai\n- Filho\n");
+    assert.deepEqual(relatorio.paraRevisar, ["1 nota(s) em sup viraram texto colado (conferir as referências)"]);
     assert.ok(Object.keys(relatorio.adaptados).some((chave) => chave.startsWith("tabela")));
     assert.equal(relatorio.adaptados["sup (nota ou índice, virou texto)"], 1);
     assert.equal(relatorio.adaptados["item de lista aninhada (achatado)"], 1);

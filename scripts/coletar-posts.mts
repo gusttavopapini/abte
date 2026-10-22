@@ -1,6 +1,6 @@
 // Coleta das páginas dos posts do blog do site antigo (etapa 6, degrau 4a):
-// guarda só o artigo (article data-hook="post") de cada post e a data de
-// publicação. Não toca o Firebase.
+// guarda só o artigo (article data-hook="post") de cada post, a data de
+// publicação e a meta description (resumo, degrau 4b). Não toca o Firebase.
 //
 // Uso:
 //   npm run migracao:coletar-posts                        só lista as páginas que leria (padrão, sem rede)
@@ -10,8 +10,8 @@
 // (host fixo), uma página por vez, pausa mínima de 1 s, 30 s de limite, 25 MB,
 // 2 novas tentativas só em erro 5xx, User-Agent da ABTE. 403 ou 429 param a
 // coleta inteira. Saída em docs/dados-privados/posts-coletados/ (fora do Git):
-// um arquivo {slug}.html por post (só o artigo) e indice.json (datas e o que
-// foi achado).
+// um arquivo {slug}.html por post (só o artigo) e indice.json (datas, meta
+// description e o que foi achado).
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { lerArgumentos } from "../src/lib/migracao/execucao.ts";
@@ -71,6 +71,7 @@ async function principal() {
         publicadoEmNaPagina: lido.publicadoEm,
         atualizadoEmNaPagina: lido.atualizadoEm,
         fonteDaData: lido.fonteDaData,
+        descricaoMeta: lido.descricao,
         publicadoEmNoMapa: post.publicadoEm,
         dataIgualAoMapa: lido.publicadoEm === post.publicadoEm,
       });
@@ -90,6 +91,7 @@ async function principal() {
   console.log(`\nPedidos ao site: ${rede.pedidos}`);
   console.log(`Artigos achados: ${achados} de ${posts.length}; falhas: ${indice.filter((item) => item.falha).length}`);
   console.log(`Datas iguais às do mapa: ${indice.filter((item) => item.dataIgualAoMapa).length}; títulos iguais aos do mapa: ${indice.filter((item) => item.tituloIgualAoDoMapa).length}`);
+  console.log(`Com meta description: ${indice.filter((item) => item.descricaoMeta).length}`);
   console.log(`Gravado em: ${PASTA}/`);
   if (interrompido) parar(`INTERROMPIDA: ${interrompido}`);
 }

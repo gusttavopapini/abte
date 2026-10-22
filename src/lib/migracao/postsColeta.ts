@@ -25,6 +25,8 @@ export function textoCru(no: No): string {
 export type PostLido = {
   artigoHtml: string | null;
   titulo: string | null;
+  // Meta description da página (name="description"; sem ela, og:description).
+  descricao: string | null;
   // Do ld+json (BlogPosting) ou, sem ele, da meta article:published_time.
   publicadoEm: string | null;
   atualizadoEm: string | null;
@@ -38,7 +40,11 @@ export function lerPaginaDePost(html: string): PostLido {
   let atualizadoEm: string | null = null;
   let fonteDaData: PostLido["fonteDaData"] = null;
   let meta: string | null = null;
+  let descricao: string | null = null;
+  let descricaoOg: string | null = null;
   for (const no of percorrer(documento)) {
+    if (no.tagName === "meta" && atributo(no, "name") === "description") descricao = atributo(no, "content");
+    if (no.tagName === "meta" && atributo(no, "property") === "og:description") descricaoOg = atributo(no, "content");
     if (!artigo && no.tagName === "article" && atributo(no, "data-hook") === "post") artigo = no;
     if (no.tagName === "meta" && atributo(no, "property") === "article:published_time") meta = atributo(no, "content");
     if (no.tagName === "script" && (atributo(no, "type") ?? "").includes("ld+json")) {
@@ -64,8 +70,26 @@ export function lerPaginaDePost(html: string): PostLido {
   return {
     artigoHtml: artigo ? serializeOuter(artigo as never) : null,
     titulo: tituloNo ? textoCru(tituloNo).replace(/\s+/g, " ").trim() || null : null,
+    descricao: (descricao ?? descricaoOg)?.replace(/\s+/g, " ").trim() || null,
     publicadoEm,
     atualizadoEm,
     fonteDaData,
   };
+}
+
+// Id da foto do autor no Wix (avatar no cabeçalho do artigo), só para a
+// sugestão de autor (decisão 3): nunca vira autoria no site. A foto está no
+// JSON do atributo data-image-info do avatar (imageData.uri).
+const ID_DA_FOTO = /^(?:[0-9a-f]{6}_[0-9a-f]{32}(?:~mv2)?\.(?:jpe?g|png|webp|gif|avif)|[0-9a-f]{32}\.(?:jpe?g|png))$/i;
+
+export function fotoDoAutor(artigoHtml: string): string | null {
+  const avatar = [...percorrer(parse(artigoHtml) as unknown as No)].find((no) => (atributo(no, "class") ?? "").split(/\s+/).some((classe) => classe.includes("avatar-image")));
+  const info = avatar ? atributo(avatar, "data-image-info") : null;
+  if (!info) return null;
+  try {
+    const uri = JSON.parse(info)?.imageData?.uri;
+    return typeof uri === "string" && ID_DA_FOTO.test(uri) ? uri : null;
+  } catch {
+    return null;
+  }
 }
