@@ -48,8 +48,12 @@ const conversorPost = conversorDeLeitura<Post>((id, campos) => ({
   imagem: texto(campos.imagem),
   capaMidiaId: texto(campos.capaMidiaId) || null,
   conteudo: texto(campos.conteudo),
+  formatoConteudo: campos.formatoConteudo === "markdown" ? "markdown" : "texto",
+  resumo: texto(campos.resumo),
+  idioma: campos.idioma === "es" ? "es" : "pt-BR",
   status: texto(campos.status),
   slug: texto(campos.slug),
+  publicadoEm: data(campos.publicadoEm),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
 }));
@@ -214,6 +218,17 @@ export function ordenarTopicos(topicos: Topico[]): Topico[] {
 export async function listarTopicosAtivos(tipo: TipoDeTopico): Promise<Topico[]> {
   const snapshot = await lerTopicos(tipo).get();
   return ordenarTopicos(snapshot.docs.map((documento) => documento.data()).filter((topico) => !topico.excluidoEm));
+}
+
+// Data que vale para o leitor: a publicação original (posts importados) ou,
+// sem ela, a criação no painel.
+export function dataDoPost(post: Pick<Post, "publicadoEm" | "criadoEm">): Date | null {
+  return post.publicadoEm ?? post.criadoEm;
+}
+
+// Ordem do blog: mais recentes primeiro, pela data que vale para o leitor.
+export function ordenarPosts(posts: Post[]): Post[] {
+  return [...posts].sort((a, b) => (dataDoPost(b)?.getTime() ?? 0) - (dataDoPost(a)?.getTime() ?? 0));
 }
 
 // Ordem do diretório: pela ordem definida no painel e, no empate, pelo nome.

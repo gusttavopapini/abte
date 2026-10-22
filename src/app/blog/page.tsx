@@ -1,7 +1,9 @@
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
-import { lerPosts } from "@/lib/dados/colecoes";
+import { lerPosts, ordenarPosts } from "@/lib/dados/colecoes";
+import type { Post } from "@/lib/dados/tipos";
+import { lerMarkdownRestrito, textoDoMarkdown } from "@/lib/markdownRestrito";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { capaParaExibir } from "@/lib/capaDoPost";
 import { revelar } from "@/components/Revelar/revelar";
@@ -11,10 +13,20 @@ export const metadata = { title: "Blog" };
 // Sempre lê o Firestore na hora: um post publicado aparece sem novo deploy.
 export const dynamic = "force-dynamic";
 
-export default async function PaginaBlog() {
-  const snapshot = await lerPosts().orderBy("criadoEm", "desc").get();
+// Resumo do card: o gravado no post; sem ele, o começo do texto (no Markdown
+// restrito, o texto sem a marcação).
+function resumoDoPost(post: Post): string {
+  if (post.resumo) return post.resumo;
+  const texto = post.formatoConteudo === "markdown" ? textoDoMarkdown(lerMarkdownRestrito(post.conteudo)).join(" ") : post.conteudo;
+  return texto ? texto.substring(0, 120) + "..." : "";
+}
 
-  const publicados = snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado");
+export default async function PaginaBlog() {
+  // Coleção pequena: ordenada na memória pela data de publicação original
+  // (posts importados) ou, sem ela, pela criação.
+  const snapshot = await lerPosts().get();
+
+  const publicados = ordenarPosts(snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado"));
   // Capas fora da lixeira da biblioteca; com capaMidiaId sem imagem, placeholder.
   const capas = await imagensAtivasPorId(publicados.map((post) => post.capaMidiaId));
 
@@ -25,7 +37,7 @@ export default async function PaginaBlog() {
       id: post.id,
       titulo: post.titulo || "Sem título",
       slug: post.slug || post.id,
-      resumo: post.conteudo ? post.conteudo.substring(0, 120) + "..." : "",
+      resumo: resumoDoPost(post),
       capa: capa.tipo === "biblioteca" ? capa.imagem : null,
       imagemUrl: capa.tipo === "antiga" ? capa.endereco : undefined,
     };

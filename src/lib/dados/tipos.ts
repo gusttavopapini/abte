@@ -12,8 +12,17 @@ export type Post = {
   // Capa da biblioteca de mídia (fatia 3b); quando existe, vence a imagem antiga.
   capaMidiaId: string | null;
   conteudo: string;
+  // "markdown": conteudo em Markdown restrito (posts importados do site
+  // antigo, etapa 6). Ausente: texto puro, como os posts do painel.
+  formatoConteudo: "markdown" | "texto";
+  // Resumo para a lista do blog (vazio nos posts do painel).
+  resumo: string;
+  // Idioma do conteúdo, para o atributo lang da página (ausente: pt-BR).
+  idioma: "pt-BR" | "es";
   status: string;
   slug: string;
+  // Data original de publicação (posts importados); ausente: vale criadoEm.
+  publicadoEm: Date | null;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
 };
