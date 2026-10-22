@@ -17,7 +17,7 @@ const SRC = join(RAIZ, "src");
 
 const PACOTES_PROIBIDOS = [/^firebase-admin(\/|$)/, /^sharp$/];
 const MODULOS_PROIBIDOS = ["src/lib/midia/biblioteca", "src/lib/loja/contas", "src/lib/log/alteracoes"];
-const PASTAS_PROIBIDAS = ["src/lib/gravacao/"];
+const PASTAS_PROIBIDAS = ["src/lib/gravacao/", "src/lib/migracao/"];
 
 // O arquivo começa pela diretiva "use client" (depois de comentários).
 export function ehDeCliente(texto: string): boolean {
