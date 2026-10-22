@@ -49,6 +49,13 @@ export const METODOS_DO_ARQUIVO: Record<string, (typeof METODOS)[number]> = {
   Lyon: "Lyon",
 };
 
+// Conselho do arquivo para o prefixo do registro (decisão de 22/10/2026: o
+// campo do painel é texto livre, então o registro vai com o conselho na
+// frente, ex.: "Crefito 12345"; número solto, sem conselho, não é gravado).
+export const CONSELHOS_DO_ARQUIVO: Record<string, string> = { CREFITO: "Crefito", CRM: "CRM", CRP: "CRP" };
+
+export type RegistroGravadoComo = "semRegistro" | "comoVeio" | "prefixado" | "semConselho" | "longo";
+
 // Mesmos limites do formulário do painel (lib/profissionais.ts).
 const LIMITES = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 1000, contato: 300, ordem: 999 } as const;
 
@@ -67,6 +74,8 @@ export const PROBLEMAS = [
   "cidadesInvalidas",
   "tratamentoLongo",
   "registroLongo",
+  "registroSemConselho",
+  "conselhoAssumido",
   "bioLonga",
   "ordemInvalida",
   "fotoDupla",
@@ -122,7 +131,7 @@ const textoDe = (valor: unknown) => (typeof valor === "string" ? valor.trim() : 
 
 // Converte um registro para os campos do modelo, com a lista de problemas.
 // Cada campo que não passa fica vazio (ou na forma neutra), sem correção.
-export function converterProfissional(registro: RegistroDeOrigem): { dados: DadosDoProfissional; problemas: Problema[] } {
+export function converterProfissional(registro: RegistroDeOrigem): { dados: DadosDoProfissional; problemas: Problema[]; registroComo: RegistroGravadoComo; conselho: string | null } {
   const r = registro.bruto;
   const problemas = new Set<Problema>();
 
@@ -134,11 +143,30 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
     problemas.add("tratamentoLongo");
     tratamento = "";
   }
-  let registroProfissional = textoDe(r.registro);
-  if (registroProfissional.length > LIMITES.registro) {
-    problemas.add("registroLongo");
-    registroProfissional = "";
+  // Registro: vazio fica vazio; com o nome do conselho no texto, vai como
+  // veio; sem ele, ganha o conselho do arquivo na frente; sem conselho no
+  // arquivo, fica vazio e marcado (nunca um número solto).
+  const registroDoArquivo = textoDe(r.registro);
+  const siglaDoConselho = textoDe(r.conselho).toUpperCase();
+  const conselho = CONSELHOS_DO_ARQUIVO[siglaDoConselho] ?? null;
+  let registroProfissional = "";
+  let registroComo: RegistroGravadoComo = "semRegistro";
+  if (registroDoArquivo && !conselho) {
+    problemas.add("registroSemConselho");
+    registroComo = "semConselho";
+  } else if (registroDoArquivo && conselho) {
+    const jaTemConselho = registroDoArquivo.toLowerCase().includes(siglaDoConselho.toLowerCase());
+    registroProfissional = jaTemConselho ? registroDoArquivo : `${conselho} ${registroDoArquivo}`;
+    registroComo = jaTemConselho ? "comoVeio" : "prefixado";
+    if (registroProfissional.length > LIMITES.registro) {
+      problemas.add("registroLongo");
+      registroProfissional = "";
+      registroComo = "longo";
+    }
   }
+  // O arquivo avisa quando o conselho foi deduzido pelo tipo de profissional
+  // (não estava no site antigo): o registro vai para revisão.
+  if (registroDoArquivo && (r.revisar as unknown[]).some((ponto) => typeof ponto === "string" && /conselho assumido/i.test(ponto))) problemas.add("conselhoAssumido");
 
   const metodosDoArquivo = (r.metodos as unknown[]).map(textoDe).filter(Boolean);
   const metodos = [...new Set(metodosDoArquivo.map((metodo) => METODOS_DO_ARQUIVO[metodo]).filter(Boolean))];
@@ -212,6 +240,8 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
       fotoMidiaId: null,
     },
     problemas: PROBLEMAS.filter((problema) => problemas.has(problema)),
+    registroComo,
+    conselho: registroComo === "prefixado" ? conselho : null,
   };
 }
 
@@ -256,11 +286,11 @@ export async function migrarProfissionais(opcoes: { db: Firestore; registros: Re
 
   const existentes = await jaImportados(db);
   const convertidos = registros.map((registro) => {
-    const { dados, problemas } = converterProfissional(registro);
+    const { dados, problemas, registroComo, conselho } = converterProfissional(registro);
     const primeira = registro.fotos[0] ?? null;
     const imagem = primeira ? imagens.get(primeira) : undefined;
     const foto: "ligada" | "pendente" | "naLixeira" | "semFoto" = !primeira ? "semFoto" : !imagem ? "pendente" : imagem.naLixeira ? "naLixeira" : "ligada";
-    return { registro, dados: { ...dados, fotoMidiaId: foto === "ligada" ? (imagem?.id ?? null) : null }, problemas, foto, fotoWix: primeira };
+    return { registro, dados: { ...dados, fotoMidiaId: foto === "ligada" ? (imagem?.id ?? null) : null }, problemas, foto, fotoWix: primeira, registroComo, conselho };
   });
   const jaExistentes = convertidos.filter((item) => existentes.has(item.registro.chave));
   const candidatos = convertidos.filter((item) => !existentes.has(item.registro.chave));
@@ -320,6 +350,16 @@ export async function migrarProfissionais(opcoes: { db: Firestore; registros: Re
       // Profissionais com cada problema (um profissional conta uma vez em cada).
       porProblema: Object.fromEntries(PROBLEMAS.map((problema) => [problema, convertidos.filter((item) => item.problemas.includes(problema)).length])),
       semProblemaNaConversao: convertidos.filter((item) => item.problemas.length === 0).length,
+      // Como o registro profissional seria gravado (decisão de 22/10/2026).
+      registro: {
+        semRegistro: convertidos.filter((item) => item.registroComo === "semRegistro").length,
+        comoVeio: convertidos.filter((item) => item.registroComo === "comoVeio").length,
+        prefixado: convertidos.filter((item) => item.registroComo === "prefixado").length,
+        semConselho: convertidos.filter((item) => item.registroComo === "semConselho").length,
+        longo: convertidos.filter((item) => item.registroComo === "longo").length,
+        prefixadosPorConselho: contar(convertidos.filter((item) => item.conselho).map((item) => item.conselho as string)),
+        conselhoAssumido: convertidos.filter((item) => item.problemas.includes("conselhoAssumido")).length,
+      },
       fotos: {
         comFotoNoArquivo: registros.filter((registro) => registro.fotos.length > 0).length,
         semFotoNoArquivo: fotos("semFoto").length,
@@ -442,6 +482,19 @@ export function relatorioDeProfissionaisEmMarkdown(relatorio: Extract<RelatorioD
     tabela("País (código do modelo)", c.porPais),
     "",
     tabela("Problema na conversão (profissionais com o problema)", c.porProblema),
+    "",
+    "## Registro profissional",
+    "",
+    "O campo do painel é texto livre (até 60 caracteres): o registro vai com o conselho na frente; sem conselho no arquivo, fica vazio e marcado.",
+    "",
+    "| Como seria gravado | Quantidade |",
+    "|---|---|",
+    `| Sem registro no arquivo (vazio) | ${c.registro.semRegistro} |`,
+    `| Como veio (já traz o nome do conselho) | ${c.registro.comoVeio} |`,
+    `| Com o conselho na frente | ${c.registro.prefixado} (${Object.entries(c.registro.prefixadosPorConselho).map(([conselho, n]) => `${conselho} ${n}`).join(", ") || "nenhum"}) |`,
+    `| Sem conselho no arquivo (vazio e marcado) | ${c.registro.semConselho} |`,
+    `| Acima de 60 caracteres (vazio e marcado) | ${c.registro.longo} |`,
+    `| Conselho deduzido pelo tipo no arquivo (marcado) | ${c.registro.conselhoAssumido} |`,
     "",
     "## Fotos",
     "",

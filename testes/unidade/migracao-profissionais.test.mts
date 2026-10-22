@@ -84,7 +84,7 @@ describe("Conversão para o modelo atual", () => {
       tipo: "Fisioterapeutas",
       tratamento: "Dra.",
       nome: "Pessoa Fictícia",
-      registro: "Registro de exemplo",
+      registro: "Crefito Registro de exemplo",
       metodos: ["Schroth ISST", "BSPTS Conceito Rigo"],
       pais: "BR",
       uf: "SP",
@@ -143,9 +143,36 @@ describe("Conversão para o modelo atual", () => {
   });
 
   test("acima dos limites do painel: campo vazio e marcado (nada é cortado)", () => {
-    const { dados, problemas } = converterProfissional(registro({ bio: "x".repeat(1001), registro: "r".repeat(61), ordem: 1000 }));
+    const { dados, problemas } = converterProfissional(registro({ bio: "x".repeat(1001), registro: "Crefito ".concat("r".repeat(60)), ordem: 1000 }));
     assert.deepEqual([dados.bio, dados.registro, dados.ordem], ["", "", 0]);
     for (const problema of ["bioLonga", "registroLongo", "ordemInvalida"]) assert.ok(problemas.includes(problema as never), problema);
+  });
+
+  test("registro com o conselho do arquivo na frente; já com o conselho, como veio", () => {
+    assert.deepEqual(
+      [converterProfissional(registro({ registro: "12345" })).dados.registro, converterProfissional(registro({ conselho: "CRM", registro: "54321-SP" })).dados.registro, converterProfissional(registro({ conselho: "CRP", registro: "06/1" })).dados.registro],
+      ["Crefito 12345", "CRM 54321-SP", "CRP 06/1"],
+    );
+    const comoVeio = converterProfissional(registro({ registro: "Crefito-3/0000-F" }));
+    assert.equal(comoVeio.dados.registro, "Crefito-3/0000-F");
+    assert.equal(comoVeio.registroComo, "comoVeio");
+    assert.equal(converterProfissional(registro({ registro: "12345" })).registroComo, "prefixado");
+  });
+
+  test("registro sem conselho no arquivo: vazio e marcado, nunca número solto; sem registro, vazio", () => {
+    const semConselho = converterProfissional(registro({ conselho: null, registro: "12345" }));
+    assert.equal(semConselho.dados.registro, "");
+    assert.equal(semConselho.registroComo, "semConselho");
+    assert.ok(semConselho.problemas.includes("registroSemConselho"));
+    const semRegistro = converterProfissional(registro({ registro: null }));
+    assert.equal(semRegistro.dados.registro, "");
+    assert.equal(semRegistro.registroComo, "semRegistro");
+    assert.deepEqual(semRegistro.problemas, []);
+  });
+
+  test("conselho deduzido pelo tipo (nota do arquivo): marca revisão", () => {
+    const { problemas } = converterProfissional(registro({ registro: "12345", revisar: ["registro sem a palavra Crefito; conselho assumido pelo tipo de profissional"] }));
+    assert.ok(problemas.includes("conselhoAssumido"));
   });
 
   test("duas fotos: marca fotoDupla", () => {
