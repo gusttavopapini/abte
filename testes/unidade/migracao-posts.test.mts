@@ -38,8 +38,8 @@ describe("Leitura da página do post", () => {
   });
 
   test("foto do autor: id da mídia no data-image-info do avatar; sem avatar ou com JSON quebrado, null", () => {
-    const avatar = (info: string) => `<article data-hook="post"><wow-image class="x avatar-image" data-image-info='${info}'><img alt=""></wow-image></article>`;
-    assert.equal(fotoDoAutor(avatar(JSON.stringify({ imageData: { uri: ID(3) } }))), ID(3));
+    const avatar = (info: string) => `<article data-hook="post"><div class="avatar-image-borda"><wow-image class="x avatar-image" data-image-info='${info}'><img alt=""></wow-image></div></article>`;
+    assert.equal(fotoDoAutor(avatar(JSON.stringify({ imageData: { uri: ID(3).replace("~", "%7E") } }))), ID(3));
     assert.equal(fotoDoAutor(avatar(JSON.stringify({ imageData: { uri: "https://exemplo.invalid/x.jpg" } }))), null);
     assert.equal(fotoDoAutor(avatar("{quebrado")), null);
     assert.equal(fotoDoAutor(artigo("<p>sem avatar</p>")), null);

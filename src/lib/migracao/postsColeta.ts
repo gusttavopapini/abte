@@ -79,16 +79,19 @@ export function lerPaginaDePost(html: string): PostLido {
 
 // Id da foto do autor no Wix (avatar no cabeçalho do artigo), só para a
 // sugestão de autor (decisão 3): nunca vira autoria no site. A foto está no
-// JSON do atributo data-image-info do avatar (imageData.uri).
+// JSON do atributo data-image-info do avatar (imageData.uri, com o ~
+// codificado).
 const ID_DA_FOTO = /^(?:[0-9a-f]{6}_[0-9a-f]{32}(?:~mv2)?\.(?:jpe?g|png|webp|gif|avif)|[0-9a-f]{32}\.(?:jpe?g|png))$/i;
 
 export function fotoDoAutor(artigoHtml: string): string | null {
-  const avatar = [...percorrer(parse(artigoHtml) as unknown as No)].find((no) => (atributo(no, "class") ?? "").split(/\s+/).some((classe) => classe.includes("avatar-image")));
+  const avatar = [...percorrer(parse(artigoHtml) as unknown as No)].find((no) => (atributo(no, "class") ?? "").includes("avatar-image") && atributo(no, "data-image-info"));
   const info = avatar ? atributo(avatar, "data-image-info") : null;
   if (!info) return null;
   try {
-    const uri = JSON.parse(info)?.imageData?.uri;
-    return typeof uri === "string" && ID_DA_FOTO.test(uri) ? uri : null;
+    // O Wix guarda o ~ do id codificado (%7E).
+    const bruto = JSON.parse(info)?.imageData?.uri;
+    const uri = typeof bruto === "string" ? decodeURIComponent(bruto) : null;
+    return uri && ID_DA_FOTO.test(uri) ? uri : null;
   } catch {
     return null;
   }

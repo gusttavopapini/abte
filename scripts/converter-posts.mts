@@ -85,6 +85,7 @@ function principal() {
       caracteres: resultado.markdown.length,
       descricaoMeta: coletado?.descricaoMeta ?? null,
       fotoDoAutorWix: fotoDoAutor(artigoHtml),
+      capaRemovidaDoCorpo: resultado.relatorio.imagens.capaRemovidaDoCorpo > 0,
       paraRevisar: resultado.relatorio.paraRevisar,
     });
     porPost.push({ slug: post.slug, idioma, publicadoEm: post.publicadoEm, dataConferida: Boolean(coletado?.dataIgualAoMapa), ...resultado.relatorio });
