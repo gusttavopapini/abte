@@ -1,12 +1,14 @@
 // Testes das regras puras da migração do site antigo (npm run test:unidade):
 // argumentos, projeto permitido, id da execução, validação do
 // imagens-origem.json, leitura do mapa, alt provisório e o ajuste das imagens
-// baixadas (o mesmo teto do navegador). Os dados aqui são fictícios.
+// baixadas (o mesmo teto do navegador) e a lista da conferência de menores.
+// Os dados aqui são fictícios.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import sharp from "sharp";
 import { ajustarComoNoNavegador } from "../../src/lib/midia/biblioteca.ts";
 import { LADO_MAXIMO_NO_NAVEGADOR } from "../../src/lib/midia/regras.ts";
+import { validarListaDeConferencia } from "../../src/lib/migracao/conferenciaDeMenor.ts";
 import { PROJETOS_PERMITIDOS, conferirProjeto, ehIdDeExecucao, lerArgumentos, novoIdDeExecucao } from "../../src/lib/migracao/execucao.ts";
 import { formatoPelaAssinatura, relatorioSemEnderecoDoWix } from "../../src/lib/migracao/imagens.ts";
 import {
@@ -259,5 +261,23 @@ describe("Assinatura e ajuste das imagens baixadas", () => {
     assert.equal(relatorioSemEnderecoDoWix({ a: "https://static.wixstatic.com/media/x.jpg" }), false);
     assert.equal(relatorioSemEnderecoDoWix({ a: "algo.wix.com" }), false);
     assert.ok(relatorioSemEnderecoDoWix({ midiaIdWix: ID, sistema: "wix" }));
+  });
+});
+
+describe("Lista da conferência de menores", () => {
+  test("aceita conferido e naoSeAplica, com ids de documento", () => {
+    const resultado = validarListaDeConferencia({ conferido: ["abc", "def"], naoSeAplica: ["ghi"] });
+    assert.ok(resultado.ok);
+    assert.deepEqual(resultado.itens, [
+      { midiaId: "abc", valor: "conferido" },
+      { midiaId: "def", valor: "conferido" },
+      { midiaId: "ghi", valor: "naoSeAplica" },
+    ]);
+  });
+
+  test("recusa chave desconhecida (inclusive pendente), id inválido, id repetido e lista vazia", () => {
+    for (const dados of [{ pendente: ["abc"] }, { conferido: ["a/b"] }, { conferido: ["abc"], naoSeAplica: ["abc"] }, { conferido: [] }, {}, [], { conferido: "abc" }, null]) {
+      assert.equal(validarListaDeConferencia(dados).ok, false, JSON.stringify(dados));
+    }
   });
 });

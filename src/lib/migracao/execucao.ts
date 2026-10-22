@@ -29,9 +29,11 @@ export type Argumentos = {
   entrada: string | null;
   mapa: string | null;
   incluirEditadas: boolean;
+  // Uid de quem conferiu (só no marcar-conferencia-menor).
+  uid: string | null;
 };
 
-const CONHECIDOS = ["--executar", "--desfazer", "--confirmo-projeto", "--limite", "--execucao", "--tipo", "--entrada", "--mapa", "--incluir-editadas"];
+const CONHECIDOS = ["--executar", "--desfazer", "--confirmo-projeto", "--limite", "--execucao", "--tipo", "--entrada", "--mapa", "--incluir-editadas", "--uid"];
 
 // Id de uma execução: data e hora (UTC) e 4 letras aleatórias, ex.:
 // 20261021-223015-a1b2. Vai nos documentos, no registro e no relatório.
@@ -86,6 +88,7 @@ export function lerArgumentos(argv: readonly string[]): { ok: true; argumentos: 
       entrada: texto("--entrada"),
       mapa: texto("--mapa"),
       incluirEditadas: valores.has("--incluir-editadas"),
+      uid: texto("--uid"),
     },
   };
 }
