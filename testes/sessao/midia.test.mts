@@ -170,15 +170,21 @@ describe("Biblioteca de mídia no Storage e no Firestore", () => {
     assert.ok(documento?.autorizacaoConfirmadaEm instanceof Timestamp);
   });
 
+  // Conta só o que é deste arquivo: outros arquivos de teste rodam ao mesmo
+  // tempo no mesmo projeto e também enviam imagens. Os documentos e registros
+  // são contados pelo autor (EDITOR só existe aqui) e os arquivos, num bucket
+  // usado só por este teste.
   test("envio recusado não grava arquivo, documento nem registro", async () => {
-    const antes = (await db.collection(COLECAO_MIDIAS).count().get()).data().count;
-    const [arquivosAntes] = await servicos.bucket.getFiles({ prefix: "publico/" });
-    const sem = await enviarImagem(servicos, { bytes: new TextEncoder().encode("não sou imagem"), alt: "Teste", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
+    const isolado: ServicosDeMidia = { db, bucket: getStorage(app).bucket("demo-abte-sessao-midia-recusada.appspot.com") };
+    const documentosDoEditor = async () => (await db.collection(COLECAO_MIDIAS).where("enviadoPor", "==", EDITOR.uid).count().get()).data().count;
+    const registrosDoEditor = async () => (await db.collection(COLECAO_LOG).where("usuarioId", "==", EDITOR.uid).count().get()).data().count;
+    const antes = { documentos: await documentosDoEditor(), registros: await registrosDoEditor() };
+    const sem = await enviarImagem(isolado, { bytes: new TextEncoder().encode("não sou imagem"), alt: "Teste", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
     assert.deepEqual(sem, { ok: false, mensagem: MENSAGENS.outroFormato, campo: "arquivo" });
-    const semAlt = await enviarImagem(servicos, { bytes: await imagemDeTeste(), alt: "  ", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
+    const semAlt = await enviarImagem(isolado, { bytes: await imagemDeTeste(), alt: "  ", indicaMenor: false, autorizacaoConfirmada: false }, EDITOR);
     assert.equal(semAlt.ok, false);
-    assert.equal((await db.collection(COLECAO_MIDIAS).count().get()).data().count, antes);
-    assert.equal((await servicos.bucket.getFiles({ prefix: "publico/" }))[0].length, arquivosAntes.length);
+    assert.deepEqual({ documentos: await documentosDoEditor(), registros: await registrosDoEditor() }, antes);
+    assert.equal((await isolado.bucket.getFiles())[0].length, 0);
   });
 
   test("editar alt, excluir para a lixeira, restaurar e excluir de vez, com registros", async () => {
