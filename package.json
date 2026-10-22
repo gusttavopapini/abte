@@ -13,7 +13,8 @@
     "test:unidade": "node --test testes/unidade/*.test.mts",
     "test:sessao": "firebase emulators:exec --only auth,firestore,storage --project demo-abte-sessao 'node --test testes/sessao/*.test.mts'",
     "admin:conceder": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/conceder-administrador.mts",
-    "midia:orfas": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/midia-orfas.mts"
+    "midia:orfas": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/midia-orfas.mts",
+    "migracao:imagens": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-imagens.mts"
   },
   "dependencies": {
     "firebase": "^12.19.0",
