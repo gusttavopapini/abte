@@ -18,7 +18,7 @@ let servicos: ServicosDeMidia;
 const EDITOR: AutorDaAlteracao = { uid: "teste-posts-editor", nome: "TESTE Editor", papel: "editor" };
 
 function post(titulo: string, capaMidiaId: string | null): DadosDoPost {
-  return { titulo, conteudo: "Conteúdo de teste.", status: "publicado", slug: titulo.toLowerCase().replaceAll(" ", "-"), capaMidiaId };
+  return { titulo, conteudo: "Conteúdo de teste.", status: "publicado", capaMidiaId };
 }
 
 // Imagem fictícia de uma cor só, sem pessoas.
@@ -38,6 +38,45 @@ before(() => {
 
 after(async () => {
   await deleteApp(app);
+});
+
+describe("Slug do post (P16)", () => {
+  async function slugDe(id: string) {
+    return (await db.collection(COLECAO_POSTS).doc(id).get()).get("slug");
+  }
+
+  test("gerado do título na criação, sem acento e único", async () => {
+    const um = await gravarPost(db, null, post("TESTE Slug Ação Única", null));
+    const dois = await gravarPost(db, null, post("TESTE Slug Ação Única", null));
+    assert.ok(um.ok && dois.ok);
+    assert.equal(await slugDe(um.id), "teste-slug-acao-unica");
+    assert.equal(await slugDe(dois.id), "teste-slug-acao-unica-2");
+  });
+
+  test("editar o título não muda o slug", async () => {
+    const criado = await gravarPost(db, null, post("TESTE Slug Estável", null));
+    assert.ok(criado.ok);
+    const editado = await gravarPost(db, criado.id, post("TESTE Slug Estável Com Outro Título", null));
+    assert.deepEqual(editado, { ok: true, id: criado.id, slug: "teste-slug-estavel" });
+    assert.equal(await slugDe(criado.id), "teste-slug-estavel");
+  });
+
+  test("só muda quando pedido explicitamente, e continua único", async () => {
+    const criado = await gravarPost(db, null, post("TESTE Slug Pedido", null));
+    assert.ok(criado.ok);
+    const outro = await gravarPost(db, null, post("TESTE Slug Novo Pedido", null));
+    assert.ok(outro.ok);
+    const refeito = await gravarPost(db, criado.id, post("TESTE Slug Novo Pedido", null), { regerarSlug: true });
+    assert.ok(refeito.ok);
+    assert.equal(await slugDe(criado.id), "teste-slug-novo-pedido-2");
+  });
+
+  test("post antigo sem slug ganha um na primeira gravação", async () => {
+    const referencia = await db.collection(COLECAO_POSTS).add({ titulo: "TESTE Sem Slug", conteudo: "x", status: "rascunho" });
+    const gravado = await gravarPost(db, referencia.id, post("TESTE Sem Slug", null));
+    assert.ok(gravado.ok);
+    assert.equal(await slugDe(referencia.id), "teste-sem-slug");
+  });
 });
 
 describe("Capa do post", () => {

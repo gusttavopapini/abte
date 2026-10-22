@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { gerarSlug } from "@/lib/slug";
 import { gravarArtigo, type DadosDoArtigo } from "@/lib/gravacao/artigos";
 import { gravarPost, type DadosDoPost } from "@/lib/gravacao/posts";
 import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
@@ -36,8 +35,8 @@ function lerDadosDoPost(dados: FormData, capaMidiaId: string | null): DadosDoPos
     titulo,
     conteudo: lerTextoDoFormulario(dados, "conteudo", { rotulo: "Conteúdo" }),
     status: lerStatus(dados),
-    // O slug é refeito a partir do título também ao editar (comportamento atual).
-    slug: gerarSlug(titulo),
+    // O slug é gerado na gravação, só na criação (P16): editar o título não
+    // muda o endereço do post.
     capaMidiaId,
   };
 }
