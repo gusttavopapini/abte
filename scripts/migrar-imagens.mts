@@ -6,7 +6,9 @@
 //   npm run migracao:imagens -- --tipo=produto --limite=5      simulação filtrada
 //   npm run migracao:imagens -- --executar --confirmo-projeto=<id exibido> [--limite=N] [--tipo=T]
 //   npm run migracao:imagens -- --desfazer --execucao=<id>     simulação da reversão
-//   npm run migracao:imagens -- --desfazer --execucao=<id> --executar --confirmo-projeto=<id exibido> [--incluir-editadas]
+//   npm run migracao:imagens -- --desfazer --execucao=<id> --executar --confirmo-projeto=<id exibido>
+//   (com --incluir-editadas, as alteradas por pessoa também saem: rode antes a
+//   simulação e confirme com --confirmo-apagar-editadas=<quantidade mostrada>)
 //
 // Por padrão SÓ SIMULA: valida a entrada e lê a coleção midias (para achar o
 // que já foi importado), sem baixar nem gravar nada. Gravar exige --executar
@@ -98,11 +100,14 @@ async function principal() {
         execucao,
         modo: args.modo,
         incluirEditadas: args.incluirEditadas,
+        confirmacaoDeEditadas: args.confirmoApagarEditadas,
       });
       const markdown = [
         `# Reversão da execução ${relatorio.execucaoDesfeita}: ${relatorio.modo === "simulacao" ? "SIMULAÇÃO" : "EXECUÇÃO"}`,
         "",
         `Projeto: ${projectId}. Encontradas: ${relatorio.contagens.encontradas}; ${relatorio.modo === "simulacao" ? "seriam desfeitas" : "desfeitas"}: ${relatorio.contagens.desfeitas}; puladas: ${relatorio.contagens.puladas}.`,
+        `Alteradas por uma pessoa que sairiam (só com --incluir-editadas): ${relatorio.contagens.editadasPorPessoaQueSairiam}.`,
+        relatorio.bloqueado ? `**${relatorio.bloqueado}**` : "",
         "",
         ...relatorio.puladas.map((item) => `- ${item.midiaId}: ${item.motivo}`),
         "",
@@ -111,7 +116,9 @@ async function principal() {
       console.log(`\nEncontradas: ${relatorio.contagens.encontradas}`);
       console.log(`${args.modo === "simulacao" ? "Seriam desfeitas" : "Desfeitas"}: ${relatorio.contagens.desfeitas}`);
       console.log(`Puladas: ${relatorio.contagens.puladas}`);
+      if (args.incluirEditadas) console.log(`Alteradas por uma pessoa que sairiam: ${relatorio.contagens.editadasPorPessoaQueSairiam}`);
       console.log(`Relatório: ${caminhos.md}`);
+      if (relatorio.bloqueado) parar(relatorio.bloqueado);
       return;
     }
 

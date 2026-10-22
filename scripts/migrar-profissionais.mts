@@ -5,7 +5,9 @@
 //   npm run migracao:profissionais                                   simulação (padrão)
 //   npm run migracao:profissionais -- --executar --confirmo-projeto=<id exibido> [--limite=N]
 //   npm run migracao:profissionais -- --desfazer --execucao=<id>     simulação da reversão
-//   npm run migracao:profissionais -- --desfazer --execucao=<id> --executar --confirmo-projeto=<id exibido> [--incluir-editadas]
+//   npm run migracao:profissionais -- --desfazer --execucao=<id> --executar --confirmo-projeto=<id exibido>
+//   (com --incluir-editadas, os alterados por pessoa também saem: rode antes a
+//   simulação e confirme com --confirmo-apagar-editadas=<quantidade mostrada>)
 //
 // Por padrão SÓ SIMULA: valida o arquivo, converte os registros e lê as
 // coleções midias e profissionais, sem gravar nada. Gravar exige --executar E
@@ -72,11 +74,13 @@ async function principal() {
     const db = getFirestore(iniciar(projectId as string, emulador));
 
     if (args.desfazer) {
-      const relatorio = await desfazerProfissionais({ db, execucaoAlvo: args.execucao as string, execucao, modo: args.modo, incluirEditados: args.incluirEditadas });
+      const relatorio = await desfazerProfissionais({ db, execucaoAlvo: args.execucao as string, execucao, modo: args.modo, incluirEditados: args.incluirEditadas, confirmacaoDeEditados: args.confirmoApagarEditadas });
       const markdown = [
         `# Reversão da execução ${relatorio.execucaoDesfeita} (profissionais): ${relatorio.modo === "simulacao" ? "SIMULAÇÃO" : "EXECUÇÃO"}`,
         "",
         `Projeto: ${projectId}. Encontrados: ${relatorio.contagens.encontrados}; ${relatorio.modo === "simulacao" ? "seriam desfeitos" : "desfeitos"}: ${relatorio.contagens.desfeitos}; pulados: ${relatorio.contagens.pulados}.`,
+        `Alterados por uma pessoa que sairiam (só com --incluir-editadas): ${relatorio.contagens.editadosPorPessoaQueSairiam}.`,
+        relatorio.bloqueado ? `**${relatorio.bloqueado}**` : "",
         "",
         ...relatorio.pulados.map((item) => `- ${item.profissionalId}: ${item.motivo}`),
         "",
@@ -85,7 +89,9 @@ async function principal() {
       console.log(`\nEncontrados: ${relatorio.contagens.encontrados}`);
       console.log(`${args.modo === "simulacao" ? "Seriam desfeitos" : "Desfeitos"}: ${relatorio.contagens.desfeitos}`);
       console.log(`Pulados: ${relatorio.contagens.pulados}`);
+      if (args.incluirEditadas) console.log(`Alterados por uma pessoa que sairiam: ${relatorio.contagens.editadosPorPessoaQueSairiam}`);
       console.log(`Relatório: ${caminhos.md}`);
+      if (relatorio.bloqueado) parar(relatorio.bloqueado);
       return;
     }
 

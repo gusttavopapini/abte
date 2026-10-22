@@ -299,7 +299,17 @@ describe("Migração das imagens (emulador)", () => {
       assert.equal(registro.get("papel"), "sistema");
     }
 
-    const comEditadas = await desfazerExecucao({ servicos, execucaoAlvo: execucao, execucao: "20261021-000000-0010", modo: "executar", incluirEditadas: true });
+    // Com as editadas: a simulação mostra quantas sairiam; sem a segunda confirmação certa, nada sai.
+    const simuladoComEditadas = await desfazerExecucao({ servicos, execucaoAlvo: execucao, execucao: "20261021-000000-0012", modo: "simulacao", incluirEditadas: true });
+    assert.equal(simuladoComEditadas.contagens.editadasPorPessoaQueSairiam, 1);
+    for (const confirmacao of [null, 0, 2]) {
+      const recusado = await desfazerExecucao({ servicos, execucaoAlvo: execucao, execucao: "20261021-000000-0013", modo: "executar", incluirEditadas: true, confirmacaoDeEditadas: confirmacao });
+      assert.match(recusado.bloqueado ?? "", /Nada foi apagado: 1 imagem/);
+      assert.equal(recusado.contagens.desfeitas, 0);
+      assert.equal((await documentosDa(execucao)).length, 2);
+    }
+    const comEditadas = await desfazerExecucao({ servicos, execucaoAlvo: execucao, execucao: "20261021-000000-0010", modo: "executar", incluirEditadas: true, confirmacaoDeEditadas: 1 });
+    assert.equal(comEditadas.bloqueado, null);
     assert.equal(comEditadas.contagens.desfeitas, 1);
     assert.deepEqual((await documentosDa(execucao)).map((documento) => documento.id), [emUso.id]);
   });

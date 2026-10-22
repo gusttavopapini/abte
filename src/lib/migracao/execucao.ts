@@ -29,11 +29,14 @@ export type Argumentos = {
   entrada: string | null;
   mapa: string | null;
   incluirEditadas: boolean;
+  // Segunda confirmação para apagar, ao desfazer, documentos que uma pessoa
+  // alterou: a quantidade mostrada na simulação.
+  confirmoApagarEditadas: number | null;
   // Uid de quem conferiu (só no marcar-conferencia-menor).
   uid: string | null;
 };
 
-const CONHECIDOS = ["--executar", "--desfazer", "--confirmo-projeto", "--limite", "--execucao", "--tipo", "--entrada", "--mapa", "--incluir-editadas", "--uid"];
+const CONHECIDOS = ["--executar", "--desfazer", "--confirmo-projeto", "--limite", "--execucao", "--tipo", "--entrada", "--mapa", "--incluir-editadas", "--confirmo-apagar-editadas", "--uid"];
 
 // Id de uma execução: data e hora (UTC) e 4 letras aleatórias, ex.:
 // 20261021-223015-a1b2. Vai nos documentos, no registro e no relatório.
@@ -75,6 +78,17 @@ export function lerArgumentos(argv: readonly string[]): { ok: true; argumentos: 
   if (desfazer && !ehIdDeExecucao(execucao)) return { ok: false, mensagem: "--desfazer exige --execucao=<id da execução> (ex.: 20261021-223015-a1b2)." };
   if (!desfazer && execucao !== null) return { ok: false, mensagem: "--execucao só vale junto com --desfazer." };
   if (desfazer && (valores.has("--limite") || valores.has("--tipo"))) return { ok: false, mensagem: "--desfazer não aceita --limite nem --tipo." };
+  const incluirEditadas = valores.has("--incluir-editadas");
+  if (incluirEditadas && !desfazer) return { ok: false, mensagem: "--incluir-editadas só vale junto com --desfazer." };
+  let confirmoApagarEditadas: number | null = null;
+  if (valores.has("--confirmo-apagar-editadas")) {
+    confirmoApagarEditadas = Number(valores.get("--confirmo-apagar-editadas"));
+    if (!incluirEditadas) return { ok: false, mensagem: "--confirmo-apagar-editadas só vale junto com --incluir-editadas." };
+    if (!Number.isInteger(confirmoApagarEditadas) || confirmoApagarEditadas < 0) return { ok: false, mensagem: "--confirmo-apagar-editadas precisa ser a quantidade mostrada na simulação (número inteiro)." };
+  }
+  if (incluirEditadas && valores.has("--executar") && confirmoApagarEditadas === null) {
+    return { ok: false, mensagem: "Para apagar documentos alterados por uma pessoa, rode antes a simulação e repita com --confirmo-apagar-editadas=<quantidade mostrada>." };
+  }
 
   return {
     ok: true,
@@ -87,7 +101,8 @@ export function lerArgumentos(argv: readonly string[]): { ok: true; argumentos: 
       tipo: texto("--tipo"),
       entrada: texto("--entrada"),
       mapa: texto("--mapa"),
-      incluirEditadas: valores.has("--incluir-editadas"),
+      incluirEditadas,
+      confirmoApagarEditadas,
       uid: texto("--uid"),
     },
   };

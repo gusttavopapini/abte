@@ -245,7 +245,9 @@ export async function verificarExecucao({ db, bucket }: ServicosDeMidia, execuca
 // Desfaz uma execução: só documentos com origem.execucao igual à indicada
 // (envios pelo painel não têm origem e nunca entram). Pula a imagem em uso
 // por algum registro e a que uma pessoa alterou depois (registro sem origem
-// "migracao"), a menos que incluirEditadas. Apaga os arquivos (publico/ e
+// "migracao"). Com incluirEditadas, as alteradas por pessoa também saem, mas
+// só se confirmacaoDeEditadas for igual à quantidade delas (mostrada antes,
+// na simulação); senão nada é apagado. Apaga os arquivos (publico/ e
 // lixeira/) e o documento; o registro de alterações fica, com a reversão.
 export async function desfazerExecucao(opcoes: {
   servicos: ServicosDeMidia;
@@ -253,14 +255,16 @@ export async function desfazerExecucao(opcoes: {
   execucao: string;
   modo: Modo;
   incluirEditadas: boolean;
+  confirmacaoDeEditadas?: number | null;
 }) {
-  const { servicos, execucaoAlvo, execucao, modo, incluirEditadas } = opcoes;
+  const { servicos, execucaoAlvo, execucao, modo, incluirEditadas, confirmacaoDeEditadas = null } = opcoes;
   const { db, bucket } = servicos;
   const iniciadoEm = new Date().toISOString();
   const documentos = await db.collection(COLECAO_MIDIAS).where("origem.execucao", "==", execucaoAlvo).get();
-  const desfeitas: string[] = [];
   const puladas: { midiaId: string; motivo: string }[] = [];
+  const aDesfazer: { documento: (typeof documentos.docs)[number]; editadaPorPessoa: boolean }[] = [];
 
+  // Primeiro decide tudo; só depois apaga.
   for (const documento of documentos.docs) {
     const usos = await listarUsos(db, documento.id);
     if (usos.length > 0) {
@@ -274,7 +278,16 @@ export async function desfazerExecucao(opcoes: {
       puladas.push({ midiaId: documento.id, motivo: "alterada por uma pessoa depois da importação" });
       continue;
     }
-    if (modo === "executar") {
+    aDesfazer.push({ documento, editadaPorPessoa });
+  }
+  const editadasQueSairiam = aDesfazer.filter((item) => item.editadaPorPessoa).length;
+  const bloqueado =
+    modo === "executar" && incluirEditadas && confirmacaoDeEditadas !== editadasQueSairiam
+      ? `Nada foi apagado: ${editadasQueSairiam} imagem(ns) alterada(s) por uma pessoa sairiam. Para confirmar, repita com --confirmo-apagar-editadas=${editadasQueSairiam}.`
+      : null;
+
+  if (modo === "executar" && !bloqueado) {
+    for (const { documento } of aDesfazer) {
       const lista = documento.get("variantes");
       const larguras = (Array.isArray(lista) ? lista : []).map((variante) => Number(variante.largura));
       for (const largura of larguras) {
@@ -293,8 +306,8 @@ export async function desfazerExecucao(opcoes: {
       });
       await lote.commit();
     }
-    desfeitas.push(documento.id);
   }
+  const desfeitas = bloqueado ? [] : aDesfazer.map((item) => item.documento.id);
 
   return {
     script: "migrar-imagens (desfazer)",
@@ -303,7 +316,8 @@ export async function desfazerExecucao(opcoes: {
     modo,
     iniciadoEm,
     terminadoEm: new Date().toISOString(),
-    contagens: { encontradas: documentos.size, desfeitas: desfeitas.length, puladas: puladas.length },
+    bloqueado,
+    contagens: { encontradas: documentos.size, desfeitas: desfeitas.length, puladas: puladas.length, editadasPorPessoaQueSairiam: editadasQueSairiam },
     desfeitas,
     puladas,
   };

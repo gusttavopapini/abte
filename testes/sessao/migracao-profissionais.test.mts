@@ -193,7 +193,7 @@ describe("Migração dos profissionais (emulador)", () => {
     await db.collection("diretoria").doc("cargo-ficticio").set({ cargo: "presidente", profissionalId: naDiretoria.id });
 
     const simulado = await desfazerProfissionais({ db, execucaoAlvo: execucao, execucao: "20261022-000000-0006", modo: "simulacao", incluirEditados: false });
-    assert.deepEqual(simulado.contagens, { encontrados: 5, desfeitos: 3, pulados: 2 });
+    assert.deepEqual(simulado.contagens, { encontrados: 5, desfeitos: 3, pulados: 2, editadosPorPessoaQueSairiam: 0 });
     assert.equal((await daExecucao(execucao)).length, 5);
 
     const feito = await desfazerProfissionais({ db, execucaoAlvo: execucao, execucao: "20261022-000000-0007", modo: "executar", incluirEditados: false });
@@ -203,6 +203,16 @@ describe("Migração dos profissionais (emulador)", () => {
     const reversoes = await db.collection(COLECAO_LOG).where("execucao", "==", "20261022-000000-0007").get();
     assert.equal(reversoes.size, 3);
     for (const registro of reversoes.docs) assert.equal(registro.get("acao"), "excluir_definitivo");
+
+    // Editado por pessoa: só com --incluir-editadas e a quantidade certa.
+    const simulado2 = await desfazerProfissionais({ db, execucaoAlvo: execucao, execucao: "20261022-000000-0008", modo: "simulacao", incluirEditados: true });
+    assert.equal(simulado2.contagens.editadosPorPessoaQueSairiam, 1);
+    const recusado = await desfazerProfissionais({ db, execucaoAlvo: execucao, execucao: "20261022-000000-0009", modo: "executar", incluirEditados: true, confirmacaoDeEditados: 3 });
+    assert.match(recusado.bloqueado ?? "", /Nada foi apagado: 1 profissional/);
+    assert.equal((await daExecucao(execucao)).length, 2);
+    const confirmado = await desfazerProfissionais({ db, execucaoAlvo: execucao, execucao: "20261022-000000-0010", modo: "executar", incluirEditados: true, confirmacaoDeEditados: 1 });
+    assert.equal(confirmado.contagens.desfeitos, 1);
+    assert.deepEqual((await daExecucao(execucao)).map((documento) => documento.id), [naDiretoria.id]);
   });
 });
 

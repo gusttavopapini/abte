@@ -55,6 +55,18 @@ describe("Argumentos e projeto", () => {
     assert.ok(lerArgumentos(["--desfazer", "--execucao=20261021-223015-a1b2"]).ok);
   });
 
+  test("--incluir-editadas: só ao desfazer e, para gravar, com a segunda confirmação", () => {
+    const desfazer = ["--desfazer", "--execucao=20261021-223015-a1b2"];
+    assert.equal(lerArgumentos(["--incluir-editadas"]).ok, false);
+    assert.ok(lerArgumentos([...desfazer, "--incluir-editadas"]).ok, "simulação mostra a quantidade");
+    assert.equal(lerArgumentos([...desfazer, "--incluir-editadas", "--executar", "--confirmo-projeto=abte-dev"]).ok, false);
+    assert.equal(lerArgumentos([...desfazer, "--confirmo-apagar-editadas=2"]).ok, false);
+    assert.equal(lerArgumentos([...desfazer, "--incluir-editadas", "--executar", "--confirmo-apagar-editadas=x"]).ok, false);
+    const lidos = lerArgumentos([...desfazer, "--incluir-editadas", "--executar", "--confirmo-projeto=abte-dev", "--confirmo-apagar-editadas=2"]);
+    assert.ok(lidos.ok);
+    assert.equal(lidos.argumentos.confirmoApagarEditadas, 2);
+  });
+
   test("id da execução: data e hora UTC e sufixo de 4 letras", () => {
     const id = novoIdDeExecucao(new Date(Date.UTC(2026, 9, 21, 22, 30, 15)), () => 0.5);
     assert.equal(id, "20261021-223015-8000");

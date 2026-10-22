@@ -394,15 +394,26 @@ export async function migrarProfissionais(opcoes: { db: Firestore; registros: Re
 }
 
 // Desfaz uma execução: só profissionais com origem.execucao igual à indicada.
-// Pula o que uma pessoa alterou depois (registro sem origem "migracao") e o que
-// está ligado à diretoria (profissionalId), a menos que incluirEditados.
+// Pula o que está ligado à diretoria (profissionalId) e o que uma pessoa
+// alterou depois (registro sem origem "migracao"). Com incluirEditados, os
+// alterados por pessoa também saem, mas só se confirmacaoDeEditados for igual
+// à quantidade deles (mostrada antes, na simulação); senão nada é apagado.
 // Apaga o documento; o registro de alterações fica, com a reversão.
-export async function desfazerProfissionais(opcoes: { db: Firestore; execucaoAlvo: string; execucao: string; modo: Modo; incluirEditados: boolean }) {
-  const { db, execucaoAlvo, execucao, modo, incluirEditados } = opcoes;
+export async function desfazerProfissionais(opcoes: {
+  db: Firestore;
+  execucaoAlvo: string;
+  execucao: string;
+  modo: Modo;
+  incluirEditados: boolean;
+  confirmacaoDeEditados?: number | null;
+}) {
+  const { db, execucaoAlvo, execucao, modo, incluirEditados, confirmacaoDeEditados = null } = opcoes;
   const iniciadoEm = new Date().toISOString();
   const documentos = await db.collection(COLECAO_PROFISSIONAIS).where("origem.execucao", "==", execucaoAlvo).get();
-  const desfeitos: string[] = [];
   const pulados: { profissionalId: string; motivo: string }[] = [];
+  const aDesfazer: { documento: (typeof documentos.docs)[number]; editadoPorPessoa: boolean }[] = [];
+
+  // Primeiro decide tudo; só depois apaga.
   for (const documento of documentos.docs) {
     const naDiretoria = await db.collection("diretoria").where("profissionalId", "==", documento.id).limit(1).get();
     if (!naDiretoria.empty) {
@@ -410,11 +421,21 @@ export async function desfazerProfissionais(opcoes: { db: Firestore; execucaoAlv
       continue;
     }
     const historico = await db.collection(COLECAO_LOG).where("documentoId", "==", documento.id).get();
-    if (!incluirEditados && historico.docs.some((registro) => registro.get("origem") !== "migracao")) {
+    const editadoPorPessoa = historico.docs.some((registro) => registro.get("origem") !== "migracao");
+    if (editadoPorPessoa && !incluirEditados) {
       pulados.push({ profissionalId: documento.id, motivo: "alterado por uma pessoa depois da importação" });
       continue;
     }
-    if (modo === "executar") {
+    aDesfazer.push({ documento, editadoPorPessoa });
+  }
+  const editadosQueSairiam = aDesfazer.filter((item) => item.editadoPorPessoa).length;
+  const bloqueado =
+    modo === "executar" && incluirEditados && confirmacaoDeEditados !== editadosQueSairiam
+      ? `Nada foi apagado: ${editadosQueSairiam} profissional(is) alterado(s) por uma pessoa sairiam. Para confirmar, repita com --confirmo-apagar-editadas=${editadosQueSairiam}.`
+      : null;
+
+  if (modo === "executar" && !bloqueado) {
+    for (const { documento } of aDesfazer) {
       const lote = db.batch();
       lote.delete(documento.ref);
       registrarNoLote(db, lote, AUTOR_DA_MIGRACAO, {
@@ -428,8 +449,8 @@ export async function desfazerProfissionais(opcoes: { db: Firestore; execucaoAlv
       });
       await lote.commit();
     }
-    desfeitos.push(documento.id);
   }
+  const desfeitos = bloqueado ? [] : aDesfazer.map((item) => item.documento.id);
   return {
     script: "migrar-profissionais (desfazer)",
     execucao,
@@ -437,7 +458,8 @@ export async function desfazerProfissionais(opcoes: { db: Firestore; execucaoAlv
     modo,
     iniciadoEm,
     terminadoEm: new Date().toISOString(),
-    contagens: { encontrados: documentos.size, desfeitos: desfeitos.length, pulados: pulados.length },
+    bloqueado,
+    contagens: { encontrados: documentos.size, desfeitos: desfeitos.length, pulados: pulados.length, editadosPorPessoaQueSairiam: editadosQueSairiam },
     desfeitos,
     pulados,
   };
