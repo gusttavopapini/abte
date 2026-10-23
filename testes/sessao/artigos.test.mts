@@ -69,6 +69,15 @@ describe("Imagem do artigo", () => {
     assert.deepEqual(await gravarArtigo(db, null, artigo("TESTE", null, { tags: ["naoExisteTeste"] })), { ok: false, mensagem: MENSAGEM_TOPICO_INDISPONIVEL, campo: "categoria" });
   });
 
+  test("categoria inativa (ativa = false) é aceita; categoria na lixeira é recusada", async () => {
+    const inativa = (await db.collection("categoriasDeArtigos").add({ nome: "TESTE Categoria Inativa", slug: "teste-categoria-inativa", ordem: 2, ativa: false, excluidoEm: null })).id;
+    const naLixeira = (await db.collection("categoriasDeArtigos").add({ nome: "TESTE Categoria Na Lixeira", slug: "teste-categoria-na-lixeira", ordem: 3, excluidoEm: new Date() })).id;
+    const aceito = await gravarArtigo(db, null, artigo("TESTE Artigo Na Inativa", null, { categoria: inativa }));
+    assert.ok(aceito.ok);
+    assert.equal((await db.collection(COLECAO_ARTIGOS).doc(aceito.id).get()).get("categoria"), inativa);
+    assert.deepEqual(await gravarArtigo(db, null, artigo("TESTE Artigo Na Lixeira", null, { categoria: naLixeira })), { ok: false, mensagem: MENSAGEM_TOPICO_INDISPONIVEL, campo: "categoria" });
+  });
+
   test("edição mantém a imagem que já estava, mesmo na lixeira", async () => {
     const imagem = await novaImagem("Imagem de teste para edição");
     const criado = await gravarArtigo(db, null, artigo("TESTE Edição", imagem));

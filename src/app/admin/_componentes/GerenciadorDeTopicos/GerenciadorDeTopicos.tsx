@@ -16,7 +16,8 @@ import type { TipoDeTopico } from "@/lib/dados/tipos";
 import estilos from "./GerenciadorDeTopicos.module.css";
 
 // imagem: só nas categorias (null sem imagem; imagem null dentro: foi para a lixeira).
-export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeMidia };
+// ativa: só usada nas categorias de artigo (ausente no documento vale true).
+export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeMidia; ativa: boolean };
 
 type Props = {
   tipo: TipoDeTopico;
@@ -24,6 +25,8 @@ type Props = {
   comOrdem?: boolean;
   // Com imagem da biblioteca de mídia (categorias) ou sem (tags).
   comImagem?: boolean;
+  // Com o controle "Ativa" (só categorias de artigo, desde 23/10/2026).
+  comAtiva?: boolean;
   // Onde a imagem aparece no site, para a ajuda do campo.
   ondeAparece?: string;
   // Início do endereço público do tópico, mostrado no painel (ex.: "/artigos/categoria/").
@@ -69,11 +72,12 @@ type PropsDoItem = {
   excluir: AcaoDaSecao;
   comOrdem: boolean;
   comImagem: boolean;
+  comAtiva: boolean;
   ondeAparece?: string;
   prefixoDoEndereco?: string;
 };
 
-function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, ondeAparece, prefixoDoEndereco }: PropsDoItem) {
+function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeAparece, prefixoDoEndereco }: PropsDoItem) {
   const [respostaSalvar, salvar, salvando] = useActionState(atualizarTopico, null);
   const id = useId();
   return (
@@ -88,6 +92,16 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, ondeAparece, pr
           )}
         </div>
         {prefixoDoEndereco && <p className={estilos.endereco}>Endereço: {prefixoDoEndereco}{topico.slug}</p>}
+        {comAtiva && (
+          <>
+            {/* Diz ao servidor que o controle estava na tela: desmarcado, a caixa não manda nada. */}
+            <input type="hidden" name="ativaNoFormulario" value="sim" />
+            <label className={estilos.opcao}>
+              <input type="checkbox" name="ativa" value="sim" defaultChecked={topico.ativa} />
+              Ativa (desmarcada, a categoria some de /artigos, mas continua no painel e nos artigos que a usam)
+            </label>
+          </>
+        )}
         {comImagem && (
           <div className={estilos.imagem}>
             <SeletorDeMidia nome="imagemMidiaId" rotulo={`Imagem${ondeAparece ? ` (${ondeAparece})` : ""}`} inicial={topico.imagem} />
@@ -127,7 +141,7 @@ function ItemExcluido({ tipo, topico, restaurar }: { tipo: TipoDeTopico; topico:
 
 // Cadastro de um tipo de tópico dos artigos: criar, renomear, excluir (vai
 // para os excluídos) e restaurar.
-export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
+export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, comAtiva = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
   const idTitulo = useId();
   const [respostaExcluir, acaoExcluir, excluindo] = useActionState(excluirTopico, null);
   const [respostaRestaurar, acaoRestaurar, restaurando] = useActionState(restaurarTopico, null);
@@ -152,6 +166,7 @@ export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false
               excluir={excluir}
               comOrdem={comOrdem}
               comImagem={comImagem}
+              comAtiva={comAtiva}
               ondeAparece={ondeAparece}
               prefixoDoEndereco={prefixoDoEndereco}
             />

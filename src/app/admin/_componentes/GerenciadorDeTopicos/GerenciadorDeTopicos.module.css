@@ -44,6 +44,17 @@
   justify-content: space-between;
 }
 
+/* Caixa "Ativa" das categorias de artigo (mesmo padrão das caixas de marcar do painel) */
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  margin-top: var(--space-16);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
 /* Seletor de imagem das categorias, abaixo do nome e da ordem */
 .imagem {
   margin-top: var(--space-16);

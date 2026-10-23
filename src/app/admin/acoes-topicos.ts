@@ -13,6 +13,7 @@ import type { TipoDeTopico } from "@/lib/dados/tipos";
 import { escolherSlugUnico, gerarSlug } from "@/lib/slug";
 import { MENSAGEM_IMAGEM_DA_CATEGORIA_INDISPONIVEL, imagemDaCategoriaValida } from "@/lib/gravacao/topicos";
 import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
+import { lerAtivaDoFormulario } from "@/lib/topicos";
 import { ehIdDeDocumentoValido, lerInteiroDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
 export type RespostaDoTopico = { ok: boolean; mensagem: string };
@@ -149,7 +150,8 @@ export async function criarTopico(_anterior: RespostaDoTopico | null, dados: For
   }
 }
 
-// Renomeia, muda a ordem e, nas categorias, a imagem. O slug não muda, para os
+// Renomeia, muda a ordem e, nas categorias, a imagem; nas categorias de
+// artigo, também o campo ativa (desde 23/10/2026). O slug não muda, para os
 // endereços continuarem valendo.
 export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
   await exigirPapelDoPainel();
@@ -170,6 +172,13 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
       }
       imagem = { imagemMidiaId };
     }
+    // Ativa: só nas categorias de artigo, e só quando o formulário traz o controle.
+    let ativa: { ativa?: boolean } = {};
+    if (tipo === "categoria") {
+      const lida = lerAtivaDoFormulario(dados);
+      if (!lida.ok) throw new ErroDeValidacao(lida.mensagem);
+      if (lida.ativa !== null) ativa = { ativa: lida.ativa };
+    }
 
     await db.runTransaction(async (transacao) => {
       const existentes = await transacao.get(colecao);
@@ -177,7 +186,7 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
       if (nomeRepetido(nome, existentes.docs, id)) {
         throw new ErroDeValidacao(TEXTOS[tipo].repetido);
       }
-      transacao.update(colecao.doc(id), { nome, ordem, ...imagem, atualizadoEm: new Date() });
+      transacao.update(colecao.doc(id), { nome, ordem, ...imagem, ...ativa, atualizadoEm: new Date() });
     });
 
     atualizarPaginas();

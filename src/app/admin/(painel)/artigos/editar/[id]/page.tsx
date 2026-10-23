@@ -3,6 +3,7 @@ import { FormularioArtigo } from "@/app/admin/_componentes/FormularioArtigo/Form
 import { atualizarArtigo } from "@/app/admin/acoes-conteudo";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { opcoesDeCategoriaNoPainel } from "@/lib/topicos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
@@ -28,7 +29,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
         acao={atualizarArtigo}
         artigo={{ id: artigo.id, titulo: artigo.titulo, categoria: artigo.categoria, tags: artigo.tags, autores: artigo.autores, link: artigo.link, resumo: artigo.resumo }}
         imagem={imagem}
-        categorias={categorias.map(({ id, nome }) => ({ id, nome }))}
+        categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
         rotuloPublicar="Atualizar e Publicar"
         rotuloRascunho="Reverter para Rascunho"

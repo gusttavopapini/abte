@@ -10,11 +10,12 @@ import type { TopicoNaTela } from "./GerenciadorDeTopicos";
 // para o navegador).
 export async function topicosNaTela(todos: Topico[]): Promise<{ ativos: TopicoNaTela[]; excluidos: TopicoNaTela[] }> {
   const imagens = await imagensAtivasPorId(todos.map((topico) => topico.imagemMidiaId));
-  const paraTela = ({ id, nome, slug, ordem, imagemMidiaId }: Topico): TopicoNaTela => ({
+  const paraTela = ({ id, nome, slug, ordem, imagemMidiaId, ativa }: Topico): TopicoNaTela => ({
     id,
     nome,
     slug,
     ordem,
+    ativa,
     imagem: imagemMidiaId ? { id: imagemMidiaId, imagem: imagens.get(imagemMidiaId) ?? null } : null,
   });
   return {

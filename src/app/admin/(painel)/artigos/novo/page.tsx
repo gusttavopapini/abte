@@ -4,6 +4,7 @@ import { salvarArtigo } from "@/app/admin/acoes-conteudo";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { opcoesDeCategoriaNoPainel } from "@/lib/topicos";
 
 export const metadata: Metadata = { title: "Novo Artigo" };
 
@@ -18,7 +19,7 @@ export default async function PaginaNovoArtigo() {
       <FormularioArtigo
         imagem={null}
         acao={salvarArtigo}
-        categorias={categorias.map(({ id, nome }) => ({ id, nome }))}
+        categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
         rotuloPublicar="Publicar Artigo"
         rotuloRascunho="Salvar como Rascunho"

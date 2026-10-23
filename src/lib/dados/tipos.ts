@@ -87,6 +87,9 @@ export type Topico = {
   // fatias 3c e 3d). O modelo de dados não define este campo: segue o padrão
   // imagemMidiaId dos artigos (registrado no CLAUDE.md).
   imagemMidiaId: string | null;
+  // Só categorias de artigo (23/10/2026): false esconde do /artigos público;
+  // ausente no documento vale true (lib/topicos.ts).
+  ativa: boolean;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
   excluidoEm: Date | null;

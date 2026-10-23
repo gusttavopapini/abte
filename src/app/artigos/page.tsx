@@ -4,6 +4,7 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
+import { categoriaVisivelNoSite } from "@/lib/topicos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { revelar } from "@/components/Revelar/revelar";
 
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function PaginaArtigos() {
   // Categorias cadastradas no painel ("Tópicos dos artigos"), fora da lixeira,
   // com a imagem da biblioteca; sem imagem, o card usa o placeholder.
-  const [snapshot, categorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria")]);
+  const [snapshot, categorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria").then((todas) => todas.filter(categoriaVisivelNoSite))]);
   const imagens = await imagensAtivasPorId(categorias.map((categoria) => categoria.imagemMidiaId));
 
   const artigos = snapshot.docs

@@ -3,6 +3,7 @@ import "server-only";
 
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { lerAtiva } from "@/lib/topicos";
 import type { Artigo, ConferenciaDeMenor, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
@@ -102,6 +103,7 @@ const conversorTopico = conversorDeLeitura<Topico>((id, campos) => ({
   slug: texto(campos.slug),
   ordem: numero(campos.ordem),
   imagemMidiaId: texto(campos.imagemMidiaId) || null,
+  ativa: lerAtiva(campos.ativa),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
   excluidoEm: data(campos.excluidoEm),

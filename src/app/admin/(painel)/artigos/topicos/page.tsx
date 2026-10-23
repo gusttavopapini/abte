@@ -27,6 +27,7 @@ export default async function PaginaTopicosDeArtigos() {
         tipo="categoria"
         comOrdem
         comImagem
+        comAtiva
         ondeAparece="no card da categoria em /artigos"
         prefixoDoEndereco="/artigos/categoria/"
         titulo="Categorias"
