@@ -2,7 +2,8 @@
 // 4 artigos (artigo-1 a artigo-4) que são só uma imagem com links para PDFs;
 // o título real está dentro da imagem e do PDF, então nada é inventado:
 // título "Título a confirmar (artigo n)", categoria "A classificar" (criada
-// aqui, decisão 15), rascunho, autores, link e resumo vazios e revisão
+// aqui, decisão 15, com ativa = false desde 23/10/2026: fora do /artigos
+// público, mas no seletor do painel), rascunho, autores, link e resumo vazios e revisão
 // marcada. Os 13 PDFs (8 dos artigos e 5 das cartilhas) NÃO entram: o modelo
 // de PDF foi adiado (decisão 16); o relatório lista cada um.
 //
@@ -114,7 +115,7 @@ export async function migrarArtigos(opcoes: { db: Firestore; artigos: ArtigoDoMa
   };
 
   // Categoria "A classificar": a já importada (pela origem) ou uma nova.
-  const categorias = (await db.collection(COLECAO_CATEGORIAS_DE_ARTIGOS).select("nome", "slug", "ordem", "origem").get()).docs;
+  const categorias = (await db.collection(COLECAO_CATEGORIAS_DE_ARTIGOS).select("nome", "slug", "ordem", "origem", "ativa").get()).docs;
   const daMigracao = categorias.find((documento) => documento.get("origem.sistema") === SISTEMA_DE_ORIGEM && documento.get("origem.chave") === CATEGORIA_A_CLASSIFICAR.chave);
   const conflitos: string[] = [];
   // O painel não aceita duas categorias com o mesmo nome.
@@ -157,7 +158,8 @@ export async function migrarArtigos(opcoes: { db: Firestore; artigos: ArtigoDoMa
     if (!idDaCategoria) {
       const referencia = db.collection(COLECAO_CATEGORIAS_DE_ARTIGOS).doc();
       const momento = new Date();
-      const dados = { nome: CATEGORIA_A_CLASSIFICAR.nome, slug: slugDaCategoria, ordem: ordemDaCategoria, imagemMidiaId: null };
+      // Criada inativa; se já existe (pela origem), o campo ativa não é tocado.
+      const dados = { nome: CATEGORIA_A_CLASSIFICAR.nome, slug: slugDaCategoria, ordem: ordemDaCategoria, imagemMidiaId: null, ativa: false };
       const lote = db.batch();
       lote.create(referencia, { ...dados, origem: { sistema: SISTEMA_DE_ORIGEM, chave: CATEGORIA_A_CLASSIFICAR.chave, execucao }, revisarMigracao: true, criadoEm: momento, atualizadoEm: momento, excluidoEm: null });
       registrarNoLote(db, lote, AUTOR_DA_MIGRACAO, {
@@ -215,7 +217,14 @@ export async function migrarArtigos(opcoes: { db: Firestore; artigos: ArtigoDoMa
       porMotivo: Object.fromEntries(MOTIVOS_DE_REVISAO_DO_ARTIGO.map((motivo) => [motivo, planos.filter((plano) => plano.motivos.includes(motivo)).length])),
       pdfs: { total: pdfs.length, porGrupo: contar(pdfs.map((pdf) => pdf.grupo)) },
     },
-    categoria: { nome: CATEGORIA_A_CLASSIFICAR.nome, slug: slugDaCategoria, ordem: daMigracao ? Number(daMigracao.get("ordem")) || 0 : ordemDaCategoria, id: idDaCategoria },
+    categoria: {
+      nome: CATEGORIA_A_CLASSIFICAR.nome,
+      slug: slugDaCategoria,
+      ordem: daMigracao ? Number(daMigracao.get("ordem")) || 0 : ordemDaCategoria,
+      // A nova é criada inativa; a que já existe fica como está (ausente vale true).
+      ativa: daMigracao ? daMigracao.get("ativa") !== false : false,
+      id: idDaCategoria,
+    },
     conflitos,
     artigos: planos.map((plano) => ({
       posicao: plano.posicao,
@@ -325,14 +334,14 @@ export function relatorioDosArtigosEmMarkdown(relatorio: RelatorioDosArtigos, pr
     `- Projeto: ${projeto}`,
     `- Início: ${relatorio.iniciadoEm}; fim: ${relatorio.terminadoEm}`,
     `- Limite: ${relatorio.limite ?? "nenhum"}`,
-    `- Todos entram como rascunho, com revisarMigracao = true, na categoria "${relatorio.categoria.nome}", com autores, link, resumo e tags vazios.`,
+    `- Todos entram como rascunho, com revisarMigracao = true, na categoria "${relatorio.categoria.nome}" (criada com ativa = false), com autores, link, resumo e tags vazios.`,
     "",
     "## Contagens",
     "",
     "| Item | Quantidade |",
     "|---|---|",
     `| Artigos previstos | ${c.artigos.previstos} (já existentes ${c.artigos.jaExistentes}, nesta execução ${c.artigos.nestaExecucao}, criados ${c.artigos.criados}) |`,
-    `| Categoria "${relatorio.categoria.nome}" | ${c.categoria.jaExistente ? "já existe" : c.categoria.criada ? "criada" : "seria criada"} (slug ${relatorio.categoria.slug}, ordem ${relatorio.categoria.ordem}) |`,
+    `| Categoria "${relatorio.categoria.nome}" | ${c.categoria.jaExistente ? `já existe, ${relatorio.categoria.ativa ? "ativa" : "inativa"} (não alterada)` : c.categoria.criada ? "criada inativa" : "seria criada inativa"} (slug ${relatorio.categoria.slug}, ordem ${relatorio.categoria.ordem}; inativa: fora do /artigos público, no seletor do painel) |`,
     `| Imagens | ${c.imagens.noArquivo} no arquivo; ${c.imagens.ligaveisAgora} ligáveis agora |`,
     `| PDFs não importados | ${c.pdfs.total} |`,
     "",

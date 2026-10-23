@@ -79,7 +79,11 @@ describe("Migração dos artigos (emulador)", () => {
     assert.deepEqual([relatorio.contagens.artigos.criados, relatorio.contagens.categoria.criada], [3, true]);
 
     const categoria = (await db.collection(COLECAO_CATEGORIAS_DE_ARTIGOS).where("origem.execucao", "==", execucao).get()).docs[0];
-    assert.deepEqual([categoria.get("nome"), categoria.get("slug"), categoria.get("ordem"), categoria.get("excluidoEm"), categoria.get("revisarMigracao")], ["A classificar", "a-classificar", 4, null, true]);
+    assert.deepEqual(
+      [categoria.get("nome"), categoria.get("slug"), categoria.get("ordem"), categoria.get("ativa"), categoria.get("excluidoEm"), categoria.get("revisarMigracao")],
+      ["A classificar", "a-classificar", 4, false, null, true],
+    );
+    assert.equal(relatorio.categoria.ativa, false);
     const porChave = new Map((await db.collection("artigos").where("origem.execucao", "==", execucao).get()).docs.map((documento) => [documento.get("origem.chave"), documento.data()]));
     const um = porChave.get("artigo-1");
     assert.deepEqual(
@@ -94,12 +98,21 @@ describe("Migração dos artigos (emulador)", () => {
     for (const registro of registros) assert.deepEqual([registro.usuarioId, registro.papel, registro.origem, registro.acao], ["migracao", "sistema", "migracao", "criar"]);
   });
 
-  test("idempotente: a segunda execução não cria nada nem outra categoria", async () => {
+  test("idempotente: a segunda execução não cria nada nem outra categoria, e não mexe no campo ativa", async () => {
     const relatorio = await migrar("executar", "20261023-000000-0304");
     assert.ok(relatorio.ok);
     assert.deepEqual([relatorio.contagens.artigos.jaExistentes, relatorio.contagens.artigos.criados, relatorio.contagens.categoria.jaExistente, relatorio.contagens.categoria.criada], [3, 0, true, false]);
     assert.equal(await contar("artigos"), 3);
     assert.equal(await contar(COLECAO_CATEGORIAS_DE_ARTIGOS), 2);
+    // Ativada depois por uma pessoa: outra execução não volta para inativa.
+    const categoria = (await db.collection(COLECAO_CATEGORIAS_DE_ARTIGOS).where("origem.chave", "==", "a-classificar").get()).docs[0];
+    assert.equal(categoria.get("ativa"), false);
+    await categoria.ref.update({ ativa: true });
+    const deNovo = await migrar("executar", "20261023-000000-0310");
+    assert.ok(deNovo.ok);
+    assert.equal(deNovo.categoria.ativa, true);
+    assert.equal((await categoria.ref.get()).get("ativa"), true);
+    await categoria.ref.update({ ativa: false });
   });
 
   test("categoria A classificar criada no painel: recusa gravar", async () => {

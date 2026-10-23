@@ -1,6 +1,6 @@
 // Migração dos artigos do site antigo (etapa 6, degrau 5): os 4 artigos,
 // como rascunho, com "Título a confirmar (artigo n)", na categoria "A
-// classificar" (criada aqui), com autores, link e resumo vazios e
+// classificar" (criada aqui com ativa = false), com autores, link e resumo vazios e
 // revisarMigracao = true. Os 13 PDFs NÃO entram (modelo de PDF adiado): o
 // relatório lista cada um.
 //
@@ -119,7 +119,7 @@ async function principal() {
 
     const c = relatorio.contagens;
     console.log(`\nArtigos: ${c.artigos.previstos} previstos; ${c.artigos.jaExistentes} já existentes; ${c.artigos.nestaExecucao} nesta execução; ${c.artigos.criados} criados`);
-    console.log(`Categoria "${relatorio.categoria.nome}": ${c.categoria.jaExistente ? "já existe" : c.categoria.criada ? "criada" : "seria criada"}`);
+    console.log(`Categoria "${relatorio.categoria.nome}": ${c.categoria.jaExistente ? `já existe, ${relatorio.categoria.ativa ? "ativa" : "inativa"} (não alterada)` : c.categoria.criada ? "criada inativa" : "seria criada inativa"}`);
     console.log(`Imagens: ${c.imagens.noArquivo} no arquivo, ${c.imagens.ligaveisAgora} ligáveis agora; PDFs não importados (modelo de PDF adiado): ${c.pdfs.total}`);
     if (relatorio.conflitos.length) console.log(`CONFLITOS: ${relatorio.conflitos.join(" ")}`);
     console.log(`Relatório: ${caminhos.md}`);
