@@ -10,7 +10,7 @@ import {
   type RulesTestContext,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, setLogLevel, updateDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, setLogLevel, updateDoc, where } from "firebase/firestore";
 
 // Os "PERMISSION_DENIED" são o resultado esperado; não precisam aparecer no terminal.
 setLogLevel("silent");
@@ -85,3 +85,24 @@ testarSemAcesso("Usuário com papel administrador (pelo navegador)", () =>
 testarSemAcesso("Usuário com papel editor (pelo navegador)", () =>
   ambiente.authenticatedContext("usuario-editor", { papel: "editor" }),
 );
+
+// Diretoria com o modelo mínimo da migração (22/10/2026): nem quem tem papel
+// lê pelo navegador, nem por consulta pelo campo, nem cria um membro com os
+// campos do modelo (o painel e a migração gravam só pelo servidor).
+describe("Diretoria (modelo mínimo)", () => {
+  const membro = { cargo: "Presidente", nome: "TESTE Pessoa", fotoMidiaId: null, periodo: "2025-2027", ordem: 1, profissionalId: null, origem: { sistema: "wix", chave: "presidente", execucao: "20261023-000000-0000" }, excluidoEm: null };
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["administrador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem} não lê, não consulta e não grava membros da diretoria`, async () => {
+      const db = obterContexto().firestore();
+      await assertFails(getDocs(query(collection(db, "diretoria"), where("periodo", "==", "2025-2027"))));
+      await assertFails(setDoc(doc(db, "diretoria", "novoMembro"), membro));
+      await assertFails(updateDoc(doc(db, "diretoria", "existente"), { profissionalId: "qualquer" }));
+      await assertFails(getDoc(doc(db, "diretoria", "existente", "sub", "x")));
+    });
+  }
+});

@@ -59,6 +59,7 @@ export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string
 
 export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
+  { colecao: "diretoria", campo: "fotoMidiaId", rotulo: "Diretoria (foto)", campoDoNome: "nome" },
   { colecao: "posts", campo: "capaMidiaId", rotulo: "Posts do blog (capa)", campoDoNome: "titulo" },
   { colecao: "posts", campo: "conteudo", emMarkdown: true, rotulo: "Posts do blog (imagem no texto)", campoDoNome: "titulo" },
   { colecao: "artigos", campo: "imagemMidiaId", rotulo: "Artigos (imagem)", campoDoNome: "titulo" },

@@ -171,6 +171,13 @@ const CARGOS: Record<string, string> = {
   "coordenadora-da-comissao-de-membros": "coordenadora da comissão de membros",
 };
 
+// Cargo como aparece no site (primeira letra maiúscula), pela chave do mapa;
+// chave desconhecida dá null (fica vazio e vai para revisão).
+export function cargoDaDiretoria(chave: string): string | null {
+  const cargo = CARGOS[chave];
+  return cargo ? cargo.charAt(0).toUpperCase() + cargo.slice(1) : null;
+}
+
 // Páginas do site antigo (chave do arquivo de imagens).
 const PAGINAS: Record<string, string> = {
   home: "Imagem da página inicial",
