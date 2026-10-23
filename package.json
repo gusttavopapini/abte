@@ -21,7 +21,8 @@
     "migracao:loja": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-loja.mts",
     "migracao:coletar-posts": "node scripts/coletar-posts.mts",
     "migracao:converter-posts": "node scripts/converter-posts.mts",
-    "migracao:posts": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-posts.mts"
+    "migracao:posts": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-posts.mts",
+    "migracao:artigos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-artigos.mts"
   },
   "dependencies": {
     "firebase": "^12.19.0",
