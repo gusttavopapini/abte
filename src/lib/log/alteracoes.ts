@@ -1,8 +1,9 @@
 // Registro de alterações (logAlteracoes): versão mínima da etapa 4d, usada
-// pela biblioteca de mídia e pelos profissionais (fatia 3a). Gravado só pelo servidor (Admin SDK), nunca editado.
+// pela biblioteca de mídia, pelos profissionais (fatia 3a) e, desde
+// 23/10/2026, pelas categorias de artigo. Gravado só pelo servidor (Admin SDK), nunca editado.
 // Recebe o Firestore por parâmetro, sem depender do Next.js: usado pelas ações
 // de servidor, pelo script de migração e pelos testes no emulador.
-import { FieldValue, type Firestore, type WriteBatch } from "firebase-admin/firestore";
+import { FieldValue, type Firestore, type Transaction, type WriteBatch } from "firebase-admin/firestore";
 import type { PapelDoPainel } from "../auth/papeis.ts";
 
 export const COLECAO_LOG = "logAlteracoes";
@@ -49,6 +50,12 @@ function dadosDoRegistro(autor: AutorDaAlteracao, alteracao: Alteracao) {
 // própria alteração (os dois entram ou nenhum entra).
 export function registrarNoLote(db: Firestore, lote: WriteBatch, autor: AutorDaAlteracao, alteracao: Alteracao): void {
   lote.create(db.collection(COLECAO_LOG).doc(), dadosDoRegistro(autor, alteracao));
+}
+
+// O mesmo, dentro de uma transação (gravações que conferem a coleção antes,
+// como os tópicos): o registro entra junto com a alteração, ou nenhum entra.
+export function registrarNaTransacao(db: Firestore, transacao: Transaction, autor: AutorDaAlteracao, alteracao: Alteracao): void {
+  transacao.create(db.collection(COLECAO_LOG).doc(), dadosDoRegistro(autor, alteracao));
 }
 
 function igual(a: unknown, b: unknown): boolean {

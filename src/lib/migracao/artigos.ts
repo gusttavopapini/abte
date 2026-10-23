@@ -87,8 +87,9 @@ export const MOTIVOS_DE_REVISAO_DO_ARTIGO = ["tituloAConfirmar", "categoriaAClas
 export type MotivoDeRevisaoDoArtigo = (typeof MOTIVOS_DE_REVISAO_DO_ARTIGO)[number];
 
 // Um documento conta como alterado por uma pessoa se tem registro de
-// alteração fora da migração ou se atualizadoEm difere de criadoEm (o painel
-// ainda não registra as edições de artigos e tópicos em logAlteracoes).
+// alteração fora da migração (as categorias de artigo registram desde
+// 23/10/2026) ou se atualizadoEm difere de criadoEm (os artigos ainda não
+// registram as edições em logAlteracoes).
 async function alteradoPorPessoa(db: Firestore, documento: DocumentSnapshot): Promise<boolean> {
   const criado = documento.get("criadoEm")?.toMillis?.();
   const atualizado = documento.get("atualizadoEm")?.toMillis?.();
