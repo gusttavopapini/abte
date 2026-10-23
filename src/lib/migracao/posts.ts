@@ -125,6 +125,19 @@ export function redirecionamentosDoBlog(posts: { slugAntigo: string; slugNovo: s
   return lista;
 }
 
+// Posts cuja foto do autor no site antigo é só a de alguém da diretoria
+// (resposta 3 de 22/10/2026): a sugestão de autor fica vazia (o campo aceita
+// só profissional) e estes pares (slug do post e cargo, que é a chave da
+// diretoria no mapa) vão para docs/dados-privados/, para religar depois.
+export function sugestoesPelaDiretoria(posts: PostConvertido[], imagensDeOrigem: ImagemDeOrigem[]): { slugAntigo: string; slugNovo: string; cargos: string[] }[] {
+  return posts.flatMap((post) => {
+    const usos = imagensDeOrigem.find((imagem) => imagem.midiaIdWix === post.fotoDoAutorWix)?.usos ?? [];
+    if (!post.fotoDoAutorWix || usos.some((uso) => uso.tipo === "profissional")) return [];
+    const cargos = [...new Set(usos.filter((uso) => uso.tipo === "diretoria").map((uso) => uso.chaveDeOrigem))];
+    return cargos.length ? [{ slugAntigo: post.doMapa.slug, slugNovo: slugNovoDoPost(post.doMapa.slug), cargos }] : [];
+  });
+}
+
 export const MOTIVOS_DE_REVISAO = [
   // Sempre: o resumo é conferido por uma pessoa.
   "resumo",

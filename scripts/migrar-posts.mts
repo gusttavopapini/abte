@@ -20,7 +20,8 @@
 // (--mapa), imagens-origem.json e posts-convertidos/ ({slug}.md e
 // indice.json). Saídas em tmp-migracao/ (fora do Git): o relatório, só com
 // slugs e contagens, e a tabela PROPOSTA de redirecionamentos
-// (redirects.json, nada ativado). Lê as credenciais do .env e do .env.local
+// (redirects.json, nada ativado); em docs/dados-privados/ (fora do Git), a
+// lista sugestao-autor-diretoria.md. Lê as credenciais do .env e do .env.local
 // e nunca as exibe. Com FIRESTORE_EMULATOR_HOST definida, usa o emulador.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -28,7 +29,7 @@ import { cert, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { conferirProjeto, lerArgumentos, novoIdDeExecucao } from "../src/lib/migracao/execucao.ts";
 import { validarImagensOrigem } from "../src/lib/migracao/imagensOrigem.ts";
-import { desfazerPosts, migrarPosts, relatorioDosPostsEmMarkdown, type PostConvertido } from "../src/lib/migracao/posts.ts";
+import { desfazerPosts, migrarPosts, relatorioDosPostsEmMarkdown, sugestoesPelaDiretoria, type PostConvertido } from "../src/lib/migracao/posts.ts";
 import { lerPostsDoMapa } from "../src/lib/migracao/postsConversao.ts";
 import { juntarRedirecionamentos } from "../src/lib/migracao/produtos.ts";
 import { PASTA_DA_SAIDA, adquirirTrava, gravarRelatorio } from "../src/lib/migracao/saida.ts";
@@ -37,6 +38,8 @@ const MAPA_PADRAO = "docs/dados-privados/mapa-site-antigo.jsonl";
 const IMAGENS = "docs/dados-privados/imagens-origem.json";
 const CONVERTIDOS = "docs/dados-privados/posts-convertidos";
 const REDIRECTS = join(PASTA_DA_SAIDA, "redirects.json");
+// Fora do Git: posts com a foto do autor só da diretoria (para religar depois).
+const SUGESTOES_DA_DIRETORIA = "docs/dados-privados/sugestao-autor-diretoria.md";
 
 // A trava é liberada antes de sair, inclusive quando o script para no meio.
 let liberarTrava: (() => void) | null = null;
@@ -145,6 +148,21 @@ async function principal() {
     const caminhos = gravarRelatorio(PASTA_DA_SAIDA, `migrar-posts-${execucao}`, relatorio, relatorioDosPostsEmMarkdown(relatorio, String(projectId)));
     const tabela = juntarRedirecionamentos(existsSync(REDIRECTS) ? JSON.parse(readFileSync(REDIRECTS, "utf8")) : null, relatorio.redirecionamentos, new Date().toISOString());
     writeFileSync(REDIRECTS, `${JSON.stringify(tabela, null, 2)}\n`, { mode: 0o600 });
+    const pelaDiretoria = sugestoesPelaDiretoria(posts, imagens.imagens);
+    writeFileSync(
+      SUGESTOES_DA_DIRETORIA,
+      [
+        "# Sugestão de autor pela foto da diretoria (para religar depois)",
+        "",
+        "Arquivo gerado por `npm run migracao:posts` (fora do Git). A foto do autor no site antigo é só a de alguém da diretoria, então a `sugestaoDeAutor` do post fica vazia (resposta 3 de 22/10/2026). O cargo é a chave da diretoria no mapa (`origem.chave` em `diretoria`, depois da importação).",
+        "",
+        "| Slug antigo | Slug novo | Cargo |",
+        "|---|---|---|",
+        ...pelaDiretoria.map((item) => `| ${item.slugAntigo} | ${item.slugNovo} | ${item.cargos.join(", ")} |`),
+        "",
+      ].join("\n"),
+      { mode: 0o600 },
+    );
 
     const c = relatorio.contagens;
     console.log(`\nPosts: ${c.previstos} previstos; ${c.jaExistentes} já existentes; ${c.nestaExecucao} nesta execução; ${c.criados} criados`);
@@ -153,6 +171,7 @@ async function principal() {
     console.log(`Resumo: ${JSON.stringify(c.resumoPorFonte)}; colisões de slug: ${c.colisoesDeSlug}; com endereço do Wix: ${c.comEnderecoDoWix}`);
     if (relatorio.colisoes.length) console.log("COLISÕES DE SLUG: veja o relatório. A execução real será recusada.");
     console.log(`Relatório: ${caminhos.md}`);
+    console.log(`Sugestão de autor pela foto da diretoria: ${pelaDiretoria.length} post(s), em ${SUGESTOES_DA_DIRETORIA}`);
     console.log(`Redirecionamentos (NÃO ativados): ${REDIRECTS} (${tabela.entradas.length} no total)`);
   } finally {
     liberarTrava?.();

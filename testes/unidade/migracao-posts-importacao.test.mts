@@ -3,7 +3,8 @@
 // Só textos e slugs fictícios.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { ehMetaAutomaticaDoWix, redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, tempoDeLeitura, trocarImagens } from "../../src/lib/migracao/posts.ts";
+import { validarImagensOrigem } from "../../src/lib/migracao/imagensOrigem.ts";
+import { ehMetaAutomaticaDoWix, redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, sugestoesPelaDiretoria, tempoDeLeitura, trocarImagens, type PostConvertido } from "../../src/lib/migracao/posts.ts";
 
 const hex = (n: number) => n.toString(16).padStart(32, "0");
 const ID = (n: number) => `7dce06_${hex(n)}~mv2.jpg`;
@@ -39,6 +40,21 @@ describe("Importação dos posts: partes puras", () => {
     }
     assert.equal(ehMetaAutomaticaDoWix("Resumo escrito à mão, diferente do texto.", markdown), false);
     assert.equal(resumoDoPost(markdown, "Resumo escrito à mão.").fonte, "meta");
+  });
+
+  test("foto do autor só da diretoria: a sugestão vai para a lista (slug e cargo), nunca para o post", () => {
+    const uso = (tipo: string, chave: string) => ({ tipo, chaveDeOrigem: chave, rotulo: chave, posicao: 1 });
+    const validacao = validarImagensOrigem({
+      versao: 1,
+      imagens: [
+        { midiaIdWix: ID(1), usos: [uso("diretoria", "presidente")] },
+        { midiaIdWix: ID(2), usos: [uso("diretoria", "vice-presidente"), uso("profissional", "profissional-ficticio")] },
+        { midiaIdWix: ID(3), usos: [uso("pagina", "home")] },
+      ],
+    });
+    assert.ok(validacao.ok);
+    const post = (slug: string, foto: string | null): PostConvertido => ({ doMapa: { slug, titulo: "T", publicadoEm: "2024-01-01T00:00:00.000Z", atualizadoEm: null, idiomaEstimado: "pt", capa: null }, markdown: "x\n", descricaoMeta: null, fotoDoAutorWix: foto, capaRemovidaDoCorpo: false, paraRevisar: [] });
+    assert.deepEqual(sugestoesPelaDiretoria([post("pós-um", ID(1)), post("dois", ID(2)), post("tres", ID(3)), post("quatro", null)], validacao.imagens), [{ slugAntigo: "pós-um", slugNovo: "pos-um", cargos: ["presidente"] }]);
   });
 
   test("tempo de leitura: 200 palavras por minuto, sem contar imagens, no mínimo 1", () => {
