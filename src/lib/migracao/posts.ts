@@ -5,7 +5,8 @@
 //
 // Decisões de 22/10/2026: o slug novo é o antigo sem acento (gerarSlug do slug
 // do Wix, nunca regerado do título), e colisão impede a gravação; o resumo é
-// a meta description da página antiga ou, sem ela, o primeiro parágrafo até
+// a meta description escrita à mão na página antiga ou, sem ela (ou com a
+// automática do Wix, que é só o começo do texto), o primeiro parágrafo até
 // cerca de 160 caracteres; as imagens midia:wix:<id> viram midia:<id do
 // documento em midias> (origem.midiaId); imagem ainda não importada (ou na
 // lixeira) fica como está, sem aparecer no site, e marca o post; a sugestão
@@ -49,19 +50,42 @@ export function slugNovoDoPost(slugAntigo: string): string {
   return gerarSlug(slugAntigo) || "post";
 }
 
-// Resumo: a meta description da página antiga ou, sem ela, o primeiro
-// parágrafo, cortado num espaço perto de 160 caracteres (com "..." quando
-// cortado).
-export function resumoDoPost(markdown: string, descricaoMeta: string | null): { resumo: string; fonte: "meta" | "primeiroParagrafo" | "vazio" } {
-  const meta = descricaoMeta?.replace(/\s+/g, " ").trim();
-  if (meta) return { resumo: meta, fonte: "meta" };
+// Texto sem espaços e em minúsculas, para comparar a meta description com o
+// corpo: o Wix junta os parágrafos sem espaço ao gerar a meta automática.
+function compacto(texto: string): string {
+  return texto.normalize("NFC").toLowerCase().replace(/\s+/g, "");
+}
+
+// Meta description automática do Wix (resposta 1 de 22/10/2026): é só o
+// começo do texto do post (muitas vezes cortado em 500 caracteres, no meio da
+// palavra). Vale como inexistente; a escrita à mão fica.
+export function ehMetaAutomaticaDoWix(descricaoMeta: string, markdown: string): boolean {
+  const meta = compacto(descricaoMeta.replace(/(\.\.\.|…)\s*$/, ""));
+  return meta !== "" && compacto(textoDoMarkdown(lerMarkdownRestrito(markdown)).join("")).startsWith(meta);
+}
+
+// Resumo: a meta description escrita à mão na página antiga ou, sem ela (ou
+// com a automática do Wix), o primeiro parágrafo até cerca de 160
+// caracteres, cortado no fim de uma palavra (com "..." quando cortado; nunca
+// no meio da palavra).
+export function resumoDoPost(
+  markdown: string,
+  descricaoMeta: string | null,
+): { resumo: string; fonte: "meta" | "primeiroParagrafo" | "vazio"; metaAutomaticaIgnorada: boolean } {
+  const meta = descricaoMeta?.replace(/\s+/g, " ").trim() ?? "";
+  const automatica = meta !== "" && ehMetaAutomaticaDoWix(meta, markdown);
+  if (meta && !automatica) return { resumo: meta, fonte: "meta", metaAutomaticaIgnorada: false };
   const primeiro = lerMarkdownRestrito(markdown).find((bloco) => bloco.tipo === "paragrafo");
   const texto = primeiro ? textoDoMarkdown([primeiro])[0].replace(/\s+/g, " ").trim() : "";
-  if (!texto) return { resumo: "", fonte: "vazio" };
-  if (texto.length <= TAMANHO_DO_RESUMO) return { resumo: texto, fonte: "primeiroParagrafo" };
-  const corte = texto.lastIndexOf(" ", TAMANHO_DO_RESUMO);
-  const inicio = texto.slice(0, corte > TAMANHO_DO_RESUMO / 2 ? corte : TAMANHO_DO_RESUMO).replace(/[\s,;:.]+$/, "");
-  return { resumo: `${inicio}...`, fonte: "primeiroParagrafo" };
+  if (!texto) return { resumo: "", fonte: "vazio", metaAutomaticaIgnorada: automatica };
+  if (texto.length <= TAMANHO_DO_RESUMO) return { resumo: texto, fonte: "primeiroParagrafo", metaAutomaticaIgnorada: automatica };
+  // Último espaço até 160; sem nenhum (uma palavra enorme), o primeiro depois.
+  const antes = texto.lastIndexOf(" ", TAMANHO_DO_RESUMO);
+  const depois = texto.indexOf(" ", TAMANHO_DO_RESUMO);
+  const corte = antes > 0 ? antes : depois;
+  if (corte < 0) return { resumo: texto, fonte: "primeiroParagrafo", metaAutomaticaIgnorada: automatica };
+  const inicio = texto.slice(0, corte).replace(/[\s,;:.!?…-]+$/, "");
+  return { resumo: `${inicio}...`, fonte: "primeiroParagrafo", metaAutomaticaIgnorada: automatica };
 }
 
 // Minutos de leitura do texto (sem as imagens), no mínimo 1.
@@ -209,6 +233,7 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
       imagensDoCorpo,
       recusadas,
       fonteDoResumo: resumo.fonte,
+      metaAutomaticaIgnorada: resumo.metaAutomaticaIgnorada,
       autor: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : { ambigua: "foto de mais de um profissional", soDiretoria: "foto só da diretoria", semCorrespondencia: "foto sem profissional (institucional ou outra)", semFoto: "sem foto do autor" }[autor.tipo],
     };
   });
@@ -268,6 +293,7 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
       porStatus: contar(candidatos.map((plano) => plano.dados.status)),
       porMotivo: Object.fromEntries(MOTIVOS_DE_REVISAO.map((motivo) => [motivo, comMotivo(motivo).length])),
       resumoPorFonte: contar(planos.map((plano) => plano.fonteDoResumo)),
+      metaAutomaticaIgnorada: planos.filter((plano) => plano.metaAutomaticaIgnorada).length,
       sugestaoDeAutor: contar(planos.map((plano) => plano.autor)),
       imagensDoCorpo: {
         noMarkdown: planos.reduce((soma, plano) => soma + plano.imagensDoCorpo.ligadas + plano.imagensDoCorpo.pendentes.length, 0),
@@ -415,6 +441,8 @@ export function relatorioDosPostsEmMarkdown(relatorio: RelatorioDosPosts, projet
     tabela("Status dos novos", c.porStatus),
     "",
     tabela("Resumo vindo de", c.resumoPorFonte),
+    "",
+    `Meta descriptions automáticas do Wix (só o começo do texto) tratadas como inexistentes: ${c.metaAutomaticaIgnorada}.`,
     "",
     tabela("Sugestão de autor (pela foto do autor)", c.sugestaoDeAutor),
     "",

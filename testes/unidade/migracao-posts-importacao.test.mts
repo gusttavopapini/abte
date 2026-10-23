@@ -3,7 +3,7 @@
 // Só textos e slugs fictícios.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, tempoDeLeitura, trocarImagens } from "../../src/lib/migracao/posts.ts";
+import { ehMetaAutomaticaDoWix, redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, tempoDeLeitura, trocarImagens } from "../../src/lib/migracao/posts.ts";
 
 const hex = (n: number) => n.toString(16).padStart(32, "0");
 const ID = (n: number) => `7dce06_${hex(n)}~mv2.jpg`;
@@ -16,15 +16,29 @@ describe("Importação dos posts: partes puras", () => {
     assert.equal(slugNovoDoPost("ééé".replace(/é/g, "!")), "post");
   });
 
-  test("resumo: meta description quando existe; senão o primeiro parágrafo, cortado num espaço perto de 160", () => {
-    assert.deepEqual(resumoDoPost("Primeiro.", "  Descrição   fictícia. "), { resumo: "Descrição fictícia.", fonte: "meta" });
-    assert.deepEqual(resumoDoPost("## Título\n\n**Curto** e [link](/a).\n\nSegundo.", null), { resumo: "Curto e link.", fonte: "primeiroParagrafo" });
+  test("resumo: meta escrita à mão quando existe; senão (ou automática do Wix) o primeiro parágrafo, cortado no fim de uma palavra perto de 160", () => {
+    assert.deepEqual(resumoDoPost("Primeiro.", "  Descrição   fictícia. "), { resumo: "Descrição fictícia.", fonte: "meta", metaAutomaticaIgnorada: false });
+    assert.deepEqual(resumoDoPost("## Título\n\n**Curto** e [link](/a).\n\nSegundo.", null), { resumo: "Curto e link.", fonte: "primeiroParagrafo", metaAutomaticaIgnorada: false });
     const longo = `${"palavra ".repeat(40).trim()}.`;
     const { resumo, fonte } = resumoDoPost(longo, "");
     assert.equal(fonte, "primeiroParagrafo");
     assert.ok(resumo.endsWith("...") && resumo.length <= 163, resumo);
     assert.doesNotMatch(resumo, /palavr\.\.\.$|\s\.\.\.$/, "corta entre palavras");
-    assert.deepEqual(resumoDoPost(`![x](midia:wix:${ID(1)})\n\n- só lista`, null), { resumo: "", fonte: "vazio" });
+    // Palavra enorme no ponto do corte: o corte vai para o espaço seguinte, nunca no meio dela.
+    const comPalavraLonga = `${"a".repeat(150)} ${"b".repeat(30)} fim do texto ficticio`;
+    assert.equal(resumoDoPost(comPalavraLonga, null).resumo, `${"a".repeat(150)}...`);
+    assert.equal(resumoDoPost("x".repeat(200), null).resumo, "x".repeat(200), "sem espaço: o parágrafo inteiro");
+    assert.deepEqual(resumoDoPost(`![x](midia:wix:${ID(1)})\n\n- só lista`, null), { resumo: "", fonte: "vazio", metaAutomaticaIgnorada: false });
+  });
+
+  test("meta automática do Wix (só o começo do texto, parágrafos juntos sem espaço, cortada no meio da palavra) vale como inexistente", () => {
+    const markdown = "Primeiro parágrafo **fictício** do post.\n\nSegundo parágrafo com mais texto.\n";
+    for (const meta of ["Primeiro parágrafo fictício do post.Segundo parágrafo com ma", "primeiro parágrafo fictício do post. Segundo...", "Primeiro parágrafo fictício"]) {
+      assert.equal(ehMetaAutomaticaDoWix(meta, markdown), true, meta);
+      assert.deepEqual(resumoDoPost(markdown, meta), { resumo: "Primeiro parágrafo fictício do post.", fonte: "primeiroParagrafo", metaAutomaticaIgnorada: true });
+    }
+    assert.equal(ehMetaAutomaticaDoWix("Resumo escrito à mão, diferente do texto.", markdown), false);
+    assert.equal(resumoDoPost(markdown, "Resumo escrito à mão.").fonte, "meta");
   });
 
   test("tempo de leitura: 200 palavras por minuto, sem contar imagens, no mínimo 1", () => {
