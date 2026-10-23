@@ -25,7 +25,8 @@
     "migracao:converter-paginas": "node scripts/converter-paginas.mts",
     "migracao:posts": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-posts.mts",
     "migracao:artigos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-artigos.mts",
-    "migracao:diretoria": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-diretoria.mts"
+    "migracao:diretoria": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-diretoria.mts",
+    "migracao:conferir": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/conferir-migracao.mts"
   },
   "dependencies": {
     "firebase": "^12.19.0",
