@@ -17,11 +17,13 @@
 // colisão de slug.
 //
 // Entradas (fora do Git, em docs/dados-privados/): mapa-site-antigo.jsonl
-// (--mapa), imagens-origem.json e posts-convertidos/ ({slug}.md e
-// indice.json). Saídas em tmp-migracao/ (fora do Git): o relatório, só com
+// (--mapa), imagens-origem.json, posts-convertidos/ ({slug}.md e
+// indice.json) e profissionais.json (só nomes e chaves, para a sugestão pela
+// assinatura). Saídas em tmp-migracao/ (fora do Git): o relatório, só com
 // slugs e contagens, e a tabela PROPOSTA de redirecionamentos
 // (redirects.json, nada ativado); em docs/dados-privados/ (fora do Git), a
-// lista sugestao-autor-diretoria.md. Lê as credenciais do .env e do .env.local
+// listas sugestao-autor-diretoria.md e sugestao-autor-assinatura.md (com o
+// nome do profissional; o relatório em tmp-migracao/ só tem contagens). Lê as credenciais do .env e do .env.local
 // e nunca as exibe. Com FIRESTORE_EMULATOR_HOST definida, usa o emulador.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -29,7 +31,7 @@ import { cert, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { conferirProjeto, lerArgumentos, novoIdDeExecucao } from "../src/lib/migracao/execucao.ts";
 import { validarImagensOrigem } from "../src/lib/migracao/imagensOrigem.ts";
-import { desfazerPosts, migrarPosts, relatorioDosPostsEmMarkdown, sugestoesPelaDiretoria, type PostConvertido } from "../src/lib/migracao/posts.ts";
+import { desfazerPosts, migrarPosts, relatorioDosPostsEmMarkdown, sugestoesPelaAssinatura, sugestoesPelaDiretoria, type PostConvertido, type ProfissionalDoArquivo } from "../src/lib/migracao/posts.ts";
 import { lerPostsDoMapa } from "../src/lib/migracao/postsConversao.ts";
 import { juntarRedirecionamentos } from "../src/lib/migracao/produtos.ts";
 import { PASTA_DA_SAIDA, adquirirTrava, gravarRelatorio } from "../src/lib/migracao/saida.ts";
@@ -40,6 +42,9 @@ const CONVERTIDOS = "docs/dados-privados/posts-convertidos";
 const REDIRECTS = join(PASTA_DA_SAIDA, "redirects.json");
 // Fora do Git: posts com a foto do autor só da diretoria (para religar depois).
 const SUGESTOES_DA_DIRETORIA = "docs/dados-privados/sugestao-autor-diretoria.md";
+// Fora do Git: sugestão pela assinatura, com o nome do profissional.
+const SUGESTOES_DA_ASSINATURA = "docs/dados-privados/sugestao-autor-assinatura.md";
+const PROFISSIONAIS = "docs/dados-privados/profissionais.json";
 
 // A trava é liberada antes de sair, inclusive quando o script para no meio.
 let liberarTrava: (() => void) | null = null;
@@ -143,11 +148,29 @@ async function principal() {
     const imagens = validarImagensOrigem(lerJson(IMAGENS));
     if (!imagens.ok) parar(`imagens-origem.json recusado (${imagens.erros.length} problema(s)). Nada foi feito.`);
 
-    const relatorio = await migrarPosts({ db, posts, imagensDeOrigem: imagens.imagens, modo: args.modo, execucao, limite: args.limite });
+    const arquivoDeProfissionais = lerJson(PROFISSIONAIS) as { profissionais?: { id?: unknown; nome?: unknown }[] };
+    const profissionaisDoArquivo: ProfissionalDoArquivo[] = (arquivoDeProfissionais.profissionais ?? []).flatMap((item) => (typeof item.id === "string" && typeof item.nome === "string" ? [{ chave: item.id, nome: item.nome }] : []));
+
+    const relatorio = await migrarPosts({ db, posts, imagensDeOrigem: imagens.imagens, profissionaisDoArquivo, modo: args.modo, execucao, limite: args.limite });
     if (!relatorio.ok) parar(relatorio.mensagem);
     const caminhos = gravarRelatorio(PASTA_DA_SAIDA, `migrar-posts-${execucao}`, relatorio, relatorioDosPostsEmMarkdown(relatorio, String(projectId)));
     const tabela = juntarRedirecionamentos(existsSync(REDIRECTS) ? JSON.parse(readFileSync(REDIRECTS, "utf8")) : null, relatorio.redirecionamentos, new Date().toISOString());
     writeFileSync(REDIRECTS, `${JSON.stringify(tabela, null, 2)}\n`, { mode: 0o600 });
+    const pelaAssinatura = sugestoesPelaAssinatura(posts, imagens.imagens, profissionaisDoArquivo);
+    writeFileSync(
+      SUGESTOES_DA_ASSINATURA,
+      [
+        "# Sugestão de autor pela assinatura (para conferir)",
+        "",
+        "Arquivo gerado por `npm run migracao:posts` (fora do Git). Posts sem sugestão pela foto do autor em que o nome completo de um profissional do `profissionais.json` aparece nos 3 últimos blocos de texto antes da seção de referências (variante conservadora, 23/10/2026). Vai só para `sugestaoDeAutor`, com revisão; nunca vira autoria no site.",
+        "",
+        "| Slug antigo | Slug novo | Profissional (chave) | Nome |",
+        "|---|---|---|---|",
+        ...pelaAssinatura.map((item) => `| ${item.slugAntigo} | ${item.slugNovo} | ${item.chave} | ${item.nome} |`),
+        "",
+      ].join("\n"),
+      { mode: 0o600 },
+    );
     const pelaDiretoria = sugestoesPelaDiretoria(posts, imagens.imagens);
     writeFileSync(
       SUGESTOES_DA_DIRETORIA,
@@ -172,6 +195,7 @@ async function principal() {
     if (relatorio.colisoes.length) console.log("COLISÕES DE SLUG: veja o relatório. A execução real será recusada.");
     console.log(`Relatório: ${caminhos.md}`);
     console.log(`Sugestão de autor pela foto da diretoria: ${pelaDiretoria.length} post(s), em ${SUGESTOES_DA_DIRETORIA}`);
+    console.log(`Sugestão de autor pela assinatura: ${pelaAssinatura.length} post(s), em ${SUGESTOES_DA_ASSINATURA}`);
     console.log(`Redirecionamentos (NÃO ativados): ${REDIRECTS} (${tabela.entradas.length} no total)`);
   } finally {
     liberarTrava?.();

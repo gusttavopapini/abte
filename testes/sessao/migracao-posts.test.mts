@@ -188,6 +188,21 @@ describe("Migração dos posts (emulador)", () => {
     const apagados = (await db.collection(COLECAO_LOG).where("acao", "==", "excluir_definitivo").get()).size;
     assert.equal(apagados, 3);
   });
+
+  test("sugestão pela assinatura: grava só em sugestaoDeAutor, com o motivo de revisão, e o relatório não leva o nome", async () => {
+    await db.collection("profissionais").doc("profAssinatura").set({ nome: "TESTE Nome Assinatura", origem: { sistema: "wix", chave: "prof-assinatura", execucao: "x" } });
+    const assinado = post("post-assinado-ficticio", "Assinado", "Texto fictício.\n\nPor TESTE Nome Assinatura.\n\n## Referências\n\n- Outro Autor Fictício.\n");
+    const execucao = "20261023-000000-0212";
+    const relatorio = await migrarPosts({ db, posts: [assinado], imagensDeOrigem, profissionaisDoArquivo: [{ chave: "prof-assinatura", nome: "TESTE Nome Assinatura" }], modo: "executar", execucao, limite: null });
+    assert.ok(relatorio.ok);
+    const [documento] = await daExecucao(execucao);
+    assert.deepEqual([documento.get("sugestaoDeAutor"), documento.get("autorProfissionalId"), documento.get("revisarMigracao")], ["profAssinatura", undefined, true]);
+    // No relatório, só a contagem: a linha do post não diz que ganhou a sugestão.
+    assert.equal(relatorio.contagens.porMotivo.sugestaoPelaAssinatura, 1);
+    assert.equal(relatorio.posts[0].autor, "sem foto do autor");
+    assert.deepEqual(relatorio.contagens.sugestaoDeAutor, { "pela assinatura, profissional ligado": 1 });
+    assert.doesNotMatch(JSON.stringify(relatorio), /TESTE Nome Assinatura/);
+  });
 });
 
 describe("Script migrar-posts (emulador, só recusas)", () => {

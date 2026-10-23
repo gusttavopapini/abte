@@ -11,7 +11,9 @@
 // documento em midias> (origem.midiaId); imagem ainda não importada (ou na
 // lixeira) fica como está, sem aparecer no site, e marca o post; a sugestão
 // de autor vem da foto do autor no site antigo, quando ela é a foto de um
-// profissional já importado (só revisão, nunca aparece no site).
+// profissional já importado, ou, sem ela, da assinatura (nome completo de um
+// profissional no fim do texto, antes das referências; 23/10/2026). Só
+// revisão, nunca aparece no site.
 //
 // Sem "server-only" e com o Firestore por parâmetro: roda no script
 // (scripts/migrar-posts.mts) e nos testes no emulador. As partes puras são
@@ -138,6 +140,62 @@ export function sugestoesPelaDiretoria(posts: PostConvertido[], imagensDeOrigem:
   });
 }
 
+// Foto do autor no site antigo: vale só a foto de um profissional (uma chave só).
+export type FotoDoAutor = { tipo: "profissional"; chave: string } | { tipo: "ambigua" | "soDiretoria" | "semCorrespondencia" | "semFoto" };
+
+export function fotoDoAutorNaOrigem(midiaIdWix: string | null, imagensDeOrigem: ImagemDeOrigem[]): FotoDoAutor {
+  if (!midiaIdWix) return { tipo: "semFoto" };
+  const usos = imagensDeOrigem.find((imagem) => imagem.midiaIdWix === midiaIdWix)?.usos ?? [];
+  const chaves = [...new Set(usos.filter((uso) => uso.tipo === "profissional").map((uso) => uso.chaveDeOrigem))];
+  if (chaves.length === 1) return { tipo: "profissional", chave: chaves[0] };
+  if (chaves.length > 1) return { tipo: "ambigua" };
+  return usos.some((uso) => uso.tipo === "diretoria") ? { tipo: "soDiretoria" } : { tipo: "semCorrespondencia" };
+}
+
+// Profissional do arquivo privado profissionais.json: a chave (origem.chave
+// do documento depois da migração) e o nome completo.
+export type ProfissionalDoArquivo = { chave: string; nome: string };
+
+const SECAO_DE_REFERENCIAS = /^(refer[eê]ncias|referencias|bibliografia|references)\b/i;
+// Blocos de texto do fim do post em que a assinatura é procurada.
+export const BLOCOS_DA_ASSINATURA = 3;
+
+// Texto para comparar nomes: sem acento, minúsculo, só letras e números
+// separados por um espaço, com espaço nas pontas (para casar palavras inteiras).
+function paraBusca(texto: string): string {
+  return ` ${texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\d]+/gu, " ").trim()} `;
+}
+
+// Sugestão de autor pela assinatura (resposta de 23/10/2026, variante
+// conservadora): o nome COMPLETO de um profissional do arquivo nos 3 últimos
+// blocos de texto ANTES da seção de referências. Nome parcial não conta; nome
+// só nas referências não conta; dois profissionais diferentes (ou dois com o
+// mesmo nome) no fim: nenhuma sugestão. Só vai para sugestaoDeAutor, com
+// revisão.
+export function sugestaoPelaAssinatura(markdown: string, profissionais: ProfissionalDoArquivo[]): string | null {
+  const blocos = textoDoMarkdown(lerMarkdownRestrito(markdown));
+  const corte = blocos.findIndex((bloco) => SECAO_DE_REFERENCIAS.test(bloco.trim()));
+  const fim = paraBusca((corte >= 0 ? blocos.slice(0, corte) : blocos).slice(-BLOCOS_DA_ASSINATURA).join(" "));
+  const achados = profissionais.filter((profissional) => {
+    const nome = paraBusca(profissional.nome);
+    return nome.trim().split(" ").length >= 2 && fim.includes(nome);
+  });
+  return achados.length === 1 ? achados[0].chave : null;
+}
+
+// Posts que ganham sugestão pela assinatura: os que não têm sugestão pela foto
+// (foto institucional ou sem foto). Só para o arquivo privado
+// docs/dados-privados/sugestao-autor-assinatura.md (com o nome).
+export function sugestoesPelaAssinatura(posts: PostConvertido[], imagensDeOrigem: ImagemDeOrigem[], profissionais: ProfissionalDoArquivo[]): { slugAntigo: string; slugNovo: string; chave: string; nome: string }[] {
+  return posts.flatMap((post) => {
+    const foto = fotoDoAutorNaOrigem(post.fotoDoAutorWix, imagensDeOrigem);
+    if (foto.tipo !== "semCorrespondencia" && foto.tipo !== "semFoto") return [];
+    const chave = sugestaoPelaAssinatura(post.markdown, profissionais);
+    const profissional = profissionais.find((item) => item.chave === chave);
+    return profissional ? [{ slugAntigo: post.doMapa.slug, slugNovo: slugNovoDoPost(post.doMapa.slug), chave: profissional.chave, nome: profissional.nome }] : [];
+  });
+}
+
 export const MOTIVOS_DE_REVISAO = [
   // Sempre: o resumo é conferido por uma pessoa.
   "resumo",
@@ -147,6 +205,7 @@ export const MOTIVOS_DE_REVISAO = [
   "imagemRecusadaPeloTipo",
   "pontoDaConversao",
   "dataInvalida",
+  "sugestaoPelaAssinatura",
 ] as const;
 export type MotivoDeRevisao = (typeof MOTIVOS_DE_REVISAO)[number];
 
@@ -158,10 +217,27 @@ function contar(valores: string[]): Record<string, number> {
 
 const ENDERECO_DO_WIX = /wixstatic|wixmp|static\.wix|usrfiles/i;
 
+const DESCRICAO_DA_FOTO: Record<Exclude<FotoDoAutor["tipo"], "profissional">, string> = {
+  ambigua: "foto de mais de um profissional",
+  soDiretoria: "foto só da diretoria",
+  semCorrespondencia: "foto sem profissional (institucional ou outra)",
+  semFoto: "sem foto do autor",
+};
+
 export type RelatorioDosPosts = Extract<Awaited<ReturnType<typeof migrarPosts>>, { ok: true }>;
 
-export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido[]; imagensDeOrigem: ImagemDeOrigem[]; modo: Modo; execucao: string; limite: number | null }) {
-  const { db, posts, imagensDeOrigem, modo, execucao, limite } = opcoes;
+// profissionaisDoArquivo: nomes e chaves do profissionais.json, só para a
+// sugestão pela assinatura (nunca vão para o relatório).
+export async function migrarPosts(opcoes: {
+  db: Firestore;
+  posts: PostConvertido[];
+  imagensDeOrigem: ImagemDeOrigem[];
+  profissionaisDoArquivo?: ProfissionalDoArquivo[];
+  modo: Modo;
+  execucao: string;
+  limite: number | null;
+}) {
+  const { db, posts, imagensDeOrigem, profissionaisDoArquivo = [], modo, execucao, limite } = opcoes;
   const iniciadoEm = new Date().toISOString();
   const imagens = await imagensImportadas(db);
   if (modo === "executar" && imagens.size === 0) return { ok: false as const, mensagem: MENSAGEM_SEM_IMAGENS_DOS_POSTS };
@@ -170,15 +246,6 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
     return imagem && !imagem.naLixeira ? imagem.id : null;
   };
   const capaDe = (slug: string) => imagensDeOrigem.find((imagem) => imagem.usos.some((uso) => uso.tipo === "post" && uso.chaveDeOrigem === slug))?.midiaIdWix ?? null;
-  // Foto do autor: vale só a foto de um profissional (uma chave só).
-  const profissionalDaFoto = (midiaIdWix: string | null): { tipo: "profissional"; chave: string } | { tipo: "ambigua" | "soDiretoria" | "semCorrespondencia" | "semFoto" } => {
-    if (!midiaIdWix) return { tipo: "semFoto" };
-    const usos = imagensDeOrigem.find((imagem) => imagem.midiaIdWix === midiaIdWix)?.usos ?? [];
-    const chaves = [...new Set(usos.filter((uso) => uso.tipo === "profissional").map((uso) => uso.chaveDeOrigem))];
-    if (chaves.length === 1) return { tipo: "profissional", chave: chaves[0] };
-    if (chaves.length > 1) return { tipo: "ambigua" };
-    return usos.some((uso) => uso.tipo === "diretoria") ? { tipo: "soDiretoria" } : { tipo: "semCorrespondencia" };
-  };
 
   const existentes = (await db.collection(COLECAO_POSTS).select("slug", "origem").get()).docs.map((documento) => ({
     id: documento.id,
@@ -221,8 +288,12 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
     const data = new Date(doMapa.publicadoEm);
     if (Number.isNaN(data.getTime())) motivos.add("dataInvalida");
     const resumo = resumoDoPost(post.markdown, post.descricaoMeta);
-    const autor = profissionalDaFoto(post.fotoDoAutorWix);
-    const sugestaoDeAutor = autor.tipo === "profissional" ? profissionais.get(autor.chave) ?? null : null;
+    const autor = fotoDoAutorNaOrigem(post.fotoDoAutorWix, imagensDeOrigem);
+    // Sem profissional pela foto (institucional ou sem foto): a assinatura.
+    const pelaAssinatura = autor.tipo === "semCorrespondencia" || autor.tipo === "semFoto" ? sugestaoPelaAssinatura(post.markdown, profissionaisDoArquivo) : null;
+    if (pelaAssinatura) motivos.add("sugestaoPelaAssinatura");
+    const chaveDoAutor = autor.tipo === "profissional" ? autor.chave : pelaAssinatura;
+    const sugestaoDeAutor = chaveDoAutor ? profissionais.get(chaveDoAutor) ?? null : null;
     const dados = {
       titulo: doMapa.titulo,
       slug: slugNovoDoPost(doMapa.slug),
@@ -247,7 +318,10 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
       recusadas,
       fonteDoResumo: resumo.fonte,
       metaAutomaticaIgnorada: resumo.metaAutomaticaIgnorada,
-      autor: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : { ambigua: "foto de mais de um profissional", soDiretoria: "foto só da diretoria", semCorrespondencia: "foto sem profissional (institucional ou outra)", semFoto: "sem foto do autor" }[autor.tipo],
+      autor: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : pelaAssinatura ? (sugestaoDeAutor ? "pela assinatura, profissional ligado" : "pela assinatura, profissional ainda não importado") : DESCRICAO_DA_FOTO[autor.tipo],
+      // Na linha de cada post do relatório, a sugestão pela assinatura não
+      // aparece: quais posts a ganharam fica só na lista privada (só a contagem vai).
+      autorNaLinha: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : DESCRICAO_DA_FOTO[autor.tipo],
     };
   });
   const candidatos = planos.filter((plano) => !plano.existente);
@@ -342,8 +416,8 @@ export async function migrarPosts(opcoes: { db: Firestore; posts: PostConvertido
       resumo: `${plano.fonteDoResumo}, ${plano.dados.resumo.length} caracteres`,
       tempoLeitura: plano.dados.tempoLeitura,
       caracteres: plano.dados.conteudo.length,
-      autor: plano.autor,
-      motivos: plano.motivos,
+      autor: plano.autorNaLinha,
+      motivos: plano.motivos.filter((motivo) => motivo !== "sugestaoPelaAssinatura"),
       jaExistente: Boolean(plano.existente),
     })),
     redirecionamentos: redirecionamentosDoBlog(planos.map((plano) => ({ slugAntigo: plano.post.doMapa.slug, slugNovo: plano.existente?.slug || plano.dados.slug }))),
@@ -421,6 +495,7 @@ const DESCRICAO_DOS_MOTIVOS: Record<MotivoDeRevisao, string> = {
   imagemRecusadaPeloTipo: "imagem prevista como recusada pelo tipo (GIF ou AVIF)",
   pontoDaConversao: "ponto da conversão (nota em sup ou título h4 a h6)",
   dataInvalida: "data de publicação inválida",
+  sugestaoPelaAssinatura: "sugestão de autor pela assinatura (conferir)",
 };
 
 export function relatorioDosPostsEmMarkdown(relatorio: RelatorioDosPosts, projeto: string): string {
@@ -457,7 +532,7 @@ export function relatorioDosPostsEmMarkdown(relatorio: RelatorioDosPosts, projet
     "",
     `Meta descriptions automáticas do Wix (só o começo do texto) tratadas como inexistentes: ${c.metaAutomaticaIgnorada}.`,
     "",
-    tabela("Sugestão de autor (pela foto do autor)", c.sugestaoDeAutor),
+    tabela("Sugestão de autor (pela foto do autor ou, sem ela, pela assinatura)", c.sugestaoDeAutor),
     "",
     tabela("Motivo de revisão", Object.fromEntries(Object.entries(c.porMotivo).map(([motivo, n]) => [DESCRICAO_DOS_MOTIVOS[motivo as MotivoDeRevisao], n]))),
     "",

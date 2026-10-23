@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { validarImagensOrigem } from "../../src/lib/migracao/imagensOrigem.ts";
-import { ehMetaAutomaticaDoWix, redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, sugestoesPelaDiretoria, tempoDeLeitura, trocarImagens, type PostConvertido } from "../../src/lib/migracao/posts.ts";
+import { ehMetaAutomaticaDoWix, redirecionamentosDoBlog, resumoDoPost, slugNovoDoPost, sugestaoPelaAssinatura, sugestoesPelaAssinatura, sugestoesPelaDiretoria, tempoDeLeitura, trocarImagens, type PostConvertido } from "../../src/lib/migracao/posts.ts";
 
 const hex = (n: number) => n.toString(16).padStart(32, "0");
 const ID = (n: number) => `7dce06_${hex(n)}~mv2.jpg`;
@@ -55,6 +55,41 @@ describe("Importação dos posts: partes puras", () => {
     assert.ok(validacao.ok);
     const post = (slug: string, foto: string | null): PostConvertido => ({ doMapa: { slug, titulo: "T", publicadoEm: "2024-01-01T00:00:00.000Z", atualizadoEm: null, idiomaEstimado: "pt", capa: null }, markdown: "x\n", descricaoMeta: null, fotoDoAutorWix: foto, capaRemovidaDoCorpo: false, paraRevisar: [] });
     assert.deepEqual(sugestoesPelaDiretoria([post("pós-um", ID(1)), post("dois", ID(2)), post("tres", ID(3)), post("quatro", null)], validacao.imagens), [{ slugAntigo: "pós-um", slugNovo: "pos-um", cargos: ["presidente"] }]);
+  });
+
+  test("sugestão pela assinatura: só o nome completo de um profissional nos 3 últimos blocos antes das referências", () => {
+    const profissionais = [
+      { chave: "ana-ficticia", nome: "Ana Clara Fictícia" },
+      { chave: "bruno-teste", nome: "Bruno Teste Exemplo" },
+    ];
+    const corpo = "Primeiro parágrafo.\n\nSegundo parágrafo.\n\nTerceiro parágrafo.\n\nQuarto parágrafo.";
+    // Nome antes das referências (com acento e maiúsculas diferentes): conta.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nTexto por **ana clara ficticia**, fisioterapeuta.\n\n## Referências\n\n- Autor A. Estudo fictício.`, profissionais), "ana-ficticia");
+    // Nome só dentro das referências: não conta.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\n## Referências\n\n- Ana Clara Fictícia. Estudo fictício.`, profissionais), null);
+    // Dois nomes diferentes no fim: não conta.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nAna Clara Fictícia e Bruno Teste Exemplo.`, profissionais), null);
+    // Nome parcial: não conta.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nTexto de Ana Fictícia.`, profissionais), null);
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nTexto de Ana Clara.`, profissionais), null);
+    // Fora dos 3 últimos blocos: não conta.
+    assert.equal(sugestaoPelaAssinatura(`Ana Clara Fictícia.\n\n${corpo}`, profissionais), null);
+    // Dois profissionais com o mesmo nome: não conta.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nAna Clara Fictícia.`, [...profissionais, { chave: "outra-ana", nome: "Ana Clara Ficticia" }]), null);
+    // Palavra inteira: "Ana Clara Fictíciaxyz" não casa.
+    assert.equal(sugestaoPelaAssinatura(`${corpo}\n\nAna Clara Fictíciaxyz.`, profissionais), null);
+  });
+
+  test("sugestão pela assinatura só para post sem profissional pela foto", () => {
+    const uso = (tipo: string, chave: string) => ({ tipo, chaveDeOrigem: chave, rotulo: chave, posicao: 1 });
+    const validacao = validarImagensOrigem({ versao: 1, imagens: [{ midiaIdWix: ID(5), usos: [uso("profissional", "bruno-teste")] }, { midiaIdWix: ID(6), usos: [uso("pagina", "home")] }] });
+    assert.ok(validacao.ok);
+    const profissionais = [{ chave: "ana-ficticia", nome: "Ana Clara Fictícia" }];
+    const post = (slug: string, foto: string | null): PostConvertido => ({ doMapa: { slug, titulo: "T", publicadoEm: "2024-01-01T00:00:00.000Z", atualizadoEm: null, idiomaEstimado: "pt", capa: null }, markdown: "Texto.\n\nAna Clara Fictícia\n", descricaoMeta: null, fotoDoAutorWix: foto, capaRemovidaDoCorpo: false, paraRevisar: [] });
+    assert.deepEqual(
+      sugestoesPelaAssinatura([post("sem-foto", null), post("foto-institucional", ID(6)), post("foto-de-profissional", ID(5))], validacao.imagens, profissionais).map((item) => [item.slugAntigo, item.chave]),
+      [["sem-foto", "ana-ficticia"], ["foto-institucional", "ana-ficticia"]],
+    );
   });
 
   test("tempo de leitura: 200 palavras por minuto, sem contar imagens, no mínimo 1", () => {
