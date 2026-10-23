@@ -65,6 +65,7 @@ type ItemDoPlano = {
   alt: string;
   regra: RegraDoAlt;
   semDadoNoMapa: boolean;
+  provisorio: boolean;
 };
 
 function contar<T>(itens: T[], chave: (item: T) => string | string[]): Record<string, number> {
@@ -144,7 +145,7 @@ export async function migrarImagens(opcoes: {
           else {
             const resultado = await importarImagem(
               servicos,
-              { bytes: ajuste.bytes, alt: item.alt, origem: { sistema: SISTEMA_DE_ORIGEM, midiaId: id, execucao } },
+              { bytes: ajuste.bytes, alt: item.alt, altProvisorio: item.provisorio, origem: { sistema: SISTEMA_DE_ORIGEM, midiaId: id, execucao } },
               AUTOR_DA_MIGRACAO,
             );
             if (resultado.ok) migradas.push({ midiaIdWix: id, midiaId: resultado.id, regraDoAlt: item.regra, reduzida: ajuste.reduzida });
@@ -197,6 +198,10 @@ export async function migrarImagens(opcoes: {
     // Toda imagem importada entra com conferência de menores pendente e alt provisório.
     conferenciaDeMenorPendente: modo === "executar" ? migradas.length : nestaExecucao.length - recusadas.length,
     altsProvisorios: {
+      // Imagens do corpo de post com o alt do site antigo (não provisório).
+      doSiteAntigo: plano.filter((item) => !item.provisorio).length,
+      provisorios: plano.filter((item) => item.provisorio).length,
+      corpoDePostProvisorios: plano.filter((item) => item.provisorio && item.regra === "postCorpo").length,
       semDadoNoMapa: plano.filter((item) => item.semDadoNoMapa).map((item) => item.imagem.midiaIdWix),
       genericos: plano.filter((item) => item.regra === "paginaGenerica").map((item) => item.imagem.midiaIdWix),
     },
@@ -381,6 +386,8 @@ export function relatorioEmMarkdown(relatorio: RelatorioDeImagens, projeto: stri
     tabela("Regra do alt provisório", c.porRegraDoAlt),
     "",
     tabela("Imagens com usos de tipos diferentes (importadas uma vez só)", relatorio.imagensComUsosDeTiposDiferentes),
+    "",
+    `Alts provisórios: ${relatorio.altsProvisorios.provisorios} (corpo de post: ${relatorio.altsProvisorios.corpoDePostProvisorios}). Alts do site antigo, no corpo de post, sem marcar como provisórios: ${relatorio.altsProvisorios.doSiteAntigo}.`,
     "",
     `Alts sem título ou nome no mapa (usaram a chave): ${relatorio.altsProvisorios.semDadoNoMapa.length}. Alts genéricos: ${relatorio.altsProvisorios.genericos.length}.`,
     "",

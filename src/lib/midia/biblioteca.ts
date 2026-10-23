@@ -228,11 +228,15 @@ export type DadosDaImportacao = {
   bytes: Uint8Array;
   alt: unknown;
   origem: OrigemDaMidia;
+  // false só quando o alt veio pronto do site antigo (resposta 2 de
+  // 22/10/2026); sem o campo, o alt é provisório.
+  altProvisorio?: boolean;
 };
 
 // Importação de uma imagem do site antigo (etapa 6). Diferenças do envio pelo
 // painel: guarda a origem (só o id da mídia no sistema antigo, nunca o
-// endereço), marca o alt como provisório e a conferência de menores como
+// endereço), marca o alt como provisório (salvo quando veio pronto do site
+// antigo) e a conferência de menores como
 // pendente, e não grava indicaMenor nem a autorização (ninguém confirmou nada).
 // O registro de alteração leva origem "migracao" e a execução.
 export async function importarImagem(
@@ -250,7 +254,7 @@ export async function importarImagem(
     preparo.variantes,
     () => ({
       alt: alt.alt,
-      altProvisorio: true,
+      altProvisorio: dados.altProvisorio !== false,
       largura: preparo.largura,
       altura: preparo.altura,
       tamanho: dados.bytes.length,

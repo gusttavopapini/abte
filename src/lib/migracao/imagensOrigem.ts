@@ -184,7 +184,7 @@ const PAGINAS: Record<string, string> = {
   blog: "Imagem da página do blog",
 };
 
-export type RegraDoAlt = TipoDeUso | "paginaGenerica";
+export type RegraDoAlt = TipoDeUso | "paginaGenerica" | "postCorpoAltAntigo";
 
 function limitar(texto: string): string {
   const limpo = texto.replace(/\s+/g, " ").trim();
@@ -198,14 +198,47 @@ export function contarImagensPorProduto(imagens: ImagemDeOrigem[]): Map<string, 
   return total;
 }
 
-// Alt PROVISÓRIO (altProvisorio = true no documento), para revisão humana.
+// O alt do site antigo parece nome de arquivo? Sublinhado, extensão de
+// imagem, sufixo de câmera ou de editor (IMG, DSC, "edited", "copy",
+// "Design sem nome"...), sequência longa de números ou trecho hexadecimal
+// (hash), ou uma palavra só com hífens, como um slug.
+export function altPareceNomeDeArquivo(alt: string): boolean {
+  const limpo = alt.trim();
+  return (
+    limpo.includes("_") ||
+    /\.(jpe?g|png|gif|webp|avif|heic|heif|tiff?|bmp|svg)\b/i.test(limpo) ||
+    /\b(img|dsc|dscn|dcim|pxl|mvimg|screenshot|captura de tela|whatsapp image|design sem nome|sem t[ií]tulo|untitled|edited|editada|copy|c[óo]pia)\b/i.test(limpo) ||
+    /\d{6,}/.test(limpo) ||
+    /\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{8,}\b/i.test(limpo) ||
+    /^[\p{L}\d]+(-[\p{L}\d]+)+$/u.test(limpo)
+  );
+}
+
+// Alt do site antigo aproveitável (resposta 2 de 22/10/2026): existe, cabe
+// no limite e não parece nome de arquivo. Senão, null.
+export function altAproveitavelDoSiteAntigo(alt: string | null): string | null {
+  const limpo = alt?.replace(/\s+/g, " ").trim() ?? "";
+  return limpo && limpo.length <= LIMITE_DO_ALT_PROVISORIO && !altPareceNomeDeArquivo(limpo) ? limpo : null;
+}
+
+// Alt da imagem importada. Em geral, PROVISÓRIO (altProvisorio = true no
+// documento), para revisão humana. Exceção (resposta 2 de 22/10/2026): imagem
+// cujo uso que vale é o corpo de um post e que tinha no site antigo um alt
+// aproveitável usa esse alt, sem marcar como provisório (provisorio false).
+// Os alts dos outros tipos não são usados (no arquivo, podem estar cortados).
 // semDadoNoMapa: o título ou nome não foi achado no mapa e o alt usou a chave.
 export function montarAltProvisorio(
   imagem: ImagemDeOrigem,
   mapa: MapaParaAlt,
   imagensPorProduto: Map<string, number>,
-): { alt: string; regra: RegraDoAlt; semDadoNoMapa: boolean } {
+): { alt: string; regra: RegraDoAlt; semDadoNoMapa: boolean; provisorio: boolean } {
   const uso = [...imagem.usos].sort((a, b) => ORDEM_DOS_TIPOS.indexOf(a.tipo) - ORDEM_DOS_TIPOS.indexOf(b.tipo) || a.posicao - b.posicao)[0];
+  const antigo = uso.tipo === "postCorpo" ? altAproveitavelDoSiteAntigo(imagem.altNoSiteAntigo) : null;
+  if (antigo) return { alt: antigo, regra: "postCorpoAltAntigo", semDadoNoMapa: false, provisorio: false };
+  return { ...altPorRegra(uso, mapa, imagensPorProduto), provisorio: true };
+}
+
+function altPorRegra(uso: UsoDeOrigem, mapa: MapaParaAlt, imagensPorProduto: Map<string, number>): { alt: string; regra: RegraDoAlt; semDadoNoMapa: boolean } {
   const chave = uso.chaveDeOrigem;
   const doMapa = (lista: Map<string, string>) => lista.get(chave);
   switch (uso.tipo) {

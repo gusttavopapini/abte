@@ -313,6 +313,28 @@ describe("Migração das imagens (emulador)", () => {
     assert.equal(comEditadas.contagens.desfeitas, 1);
     assert.deepEqual((await documentosDa(execucao)).map((documento) => documento.id), [emUso.id]);
   });
+
+  test("corpo de post com alt aproveitável do site antigo: usa o alt e não marca como provisório", async () => {
+    const comAlt = `7dce06_${hex(30)}~mv2.jpg`;
+    const comNomeDeArquivo = `7dce06_${hex(31)}~mv2.jpg`;
+    arquivos.set(comAlt, await sharp({ create: { width: 500, height: 400, channels: 3, background: { r: 10, g: 20, b: 30 } } }).jpeg().toBuffer());
+    arquivos.set(comNomeDeArquivo, arquivos.get(comAlt) as Uint8Array);
+    const uso = (posicao: number) => ({ tipo: "postCorpo", chaveDeOrigem: "post-de-teste", rotulo: "post-de-teste", posicao });
+    const validacao = validarImagensOrigem({
+      versao: 1,
+      imagens: [
+        { midiaIdWix: comAlt, usos: [uso(5)], altNoSiteAntigo: "Figura fictícia de uma curva" },
+        { midiaIdWix: comNomeDeArquivo, usos: [uso(6)], altNoSiteAntigo: "radiografia_final.jpg" },
+      ],
+    });
+    assert.ok(validacao.ok);
+    const execucao = "20261022-000000-0901";
+    const relatorio = await migrar({ modo: "executar", execucao, lista: validacao.imagens });
+    assert.deepEqual([relatorio.altsProvisorios.doSiteAntigo, relatorio.altsProvisorios.corpoDePostProvisorios], [1, 1]);
+    const porOrigem = new Map((await documentosDa(execucao)).map((documento) => [documento.get("origem.midiaId"), documento]));
+    assert.deepEqual([porOrigem.get(comAlt)?.get("alt"), porOrigem.get(comAlt)?.get("altProvisorio")], ["Figura fictícia de uma curva", false]);
+    assert.deepEqual([porOrigem.get(comNomeDeArquivo)?.get("alt"), porOrigem.get(comNomeDeArquivo)?.get("altProvisorio")], ["Imagem do post: Post de Teste", true]);
+  });
 });
 
 describe("Script migrar-imagens (emulador, só simulação e recusas)", () => {

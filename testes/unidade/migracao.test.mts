@@ -17,6 +17,7 @@ import {
   ehIdDeMidiaWix,
   formatoPrevisto,
   lerMapaParaAlt,
+  altPareceNomeDeArquivo,
   montarAltProvisorio,
   previstoComoRecusado,
   validarImagensOrigem,
@@ -194,14 +195,27 @@ describe("Mapa e alt provisório", () => {
   });
 
   test("uma regra por tipo", () => {
-    assert.deepEqual(alt([{ ...uso("profissional", "pessoa-ficticia"), rotulo: "Pessoa Fictícia" }]), { alt: "Foto de Pessoa Fictícia", regra: "profissional", semDadoNoMapa: false });
+    assert.deepEqual(alt([{ ...uso("profissional", "pessoa-ficticia"), rotulo: "Pessoa Fictícia" }]), { alt: "Foto de Pessoa Fictícia", regra: "profissional", semDadoNoMapa: false, provisorio: true });
     assert.equal(alt([uso("diretoria", "secretaria-geral")]).alt, "Foto de Pessoa Fictícia, secretária-geral");
     assert.equal(alt([uso("post", "post-um")]).alt, "Capa do post: Título do Post Um");
     assert.equal(alt([uso("postCorpo", "post-um", 2)]).alt, "Imagem do post: Título do Post Um");
     assert.equal(alt([uso("artigo", "artigo-3")]).alt, "Imagem do artigo: título a confirmar (artigo 3)");
     assert.equal(alt([uso("categoriaDeProduto", "abte")]).alt, "Imagem da categoria Produtos ABTE");
     assert.equal(alt([uso("pagina", "triagem")]).alt, "Imagem da página Triagem");
-    assert.deepEqual(alt([uso("pagina", "desconhecida")]), { alt: "Imagem do site, a descrever", regra: "paginaGenerica", semDadoNoMapa: false });
+    assert.deepEqual(alt([uso("pagina", "desconhecida")]), { alt: "Imagem do site, a descrever", regra: "paginaGenerica", semDadoNoMapa: false, provisorio: true });
+  });
+
+  test("corpo de post: usa o alt do site antigo quando não parece nome de arquivo (sem marcar como provisório)", () => {
+    const comAlt = (usos: ReturnType<typeof uso>[], altNoSiteAntigo: string | null) =>
+      montarAltProvisorio({ midiaIdWix: ID, usos: usos.map((u) => ({ ...u, papel: null })) as ImagemDeOrigem["usos"], altNoSiteAntigo, observacao: null, prioridade: null }, mapa, new Map());
+    assert.deepEqual(comAlt([uso("postCorpo", "post-um")], "  Figura 1.  Exemplo fictício de curva "), { alt: "Figura 1. Exemplo fictício de curva", regra: "postCorpoAltAntigo", semDadoNoMapa: false, provisorio: false });
+    for (const arquivo of ["foto_coluna", "radiografia.jpg", "IMG 2041", "DSC 1234", "colete edited", "Design sem nome (3)", "Captura de Tela 2024", "imagem 20240312", "a3f9c2e4b1d0", "coluna-vertebral-2", "x".repeat(201), "  ", null]) {
+      const resultado = comAlt([uso("postCorpo", "post-um")], arquivo);
+      assert.deepEqual([resultado.alt, resultado.provisorio], ["Imagem do post: Título do Post Um", true], String(arquivo));
+    }
+    // Vale só quando o uso que conta é o corpo do post (nos outros tipos, o alt do arquivo pode estar cortado).
+    assert.deepEqual([comAlt([uso("postCorpo", "post-um"), uso("post", "post-um")], "Figura fictícia").alt, comAlt([uso("post", "post-um")], "Figura fictícia").provisorio], ["Capa do post: Título do Post Um", true]);
+    assert.equal(altPareceNomeDeArquivo("Escoliose em adolescentes"), false);
   });
 
   test("produto: imagem n de total, contando todas as imagens do produto", () => {
