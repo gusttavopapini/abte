@@ -21,6 +21,8 @@
     "migracao:loja": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-loja.mts",
     "migracao:coletar-posts": "node scripts/coletar-posts.mts",
     "migracao:converter-posts": "node scripts/converter-posts.mts",
+    "migracao:coletar-paginas": "node scripts/coletar-paginas.mts",
+    "migracao:converter-paginas": "node scripts/converter-paginas.mts",
     "migracao:posts": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-posts.mts",
     "migracao:artigos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-artigos.mts",
     "migracao:diretoria": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-diretoria.mts"

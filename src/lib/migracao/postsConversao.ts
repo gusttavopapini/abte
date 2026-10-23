@@ -99,6 +99,9 @@ export type ContextoDoPost = {
   // Imagens do corpo esperadas, na ordem do uso postCorpo (posição 1, 2...).
   imagensEsperadas: string[];
   capa: string | null;
+  // Páginas institucionais (etapa 6, degrau 6): sem ordem nem capa, vale
+  // qualquer imagem desta lista (as outras saem e são contadas).
+  imagensConhecidas?: ReadonlySet<string>;
 };
 
 const DESCARTADOS = new Set(["iframe", "video", "audio", "object", "embed", "script", "style", "svg", "button", "form", "input", "noscript", "canvas", "select", "textarea", "template"]);
@@ -212,7 +215,12 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
   const documento = parse(artigoHtml) as unknown as No;
   const corpo = [...percorrer(documento)].find((no) => atributo(no, "data-hook") === "post-description");
   if (!corpo) return { ok: false, erro: 'Corpo do post (data-hook="post-description") não encontrado.' };
+  return { ok: true, ...converterNosParaMarkdown(corpo.childNodes ?? [], contexto) };
+}
 
+// Converte uma sequência de elementos (o corpo de um post ou os blocos de uma
+// página do site antigo) para o Markdown restrito.
+export function converterNosParaMarkdown(nos: No[], contexto: ContextoDoPost): { markdown: string; relatorio: RelatorioDaConversao } {
   const relatorio: RelatorioDaConversao = {
     blocos: { paragrafos: 0, titulos: 0, itensDeLista: 0, citacoes: 0, imagens: 0 },
     enfase: { negrito: 0, italico: 0, aninhadaSimplificada: 0, emTitulo: 0, emLinkSimplificada: 0, coladaSimplificada: 0 },
@@ -361,25 +369,34 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
       relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo sem id de mídia do Wix: descartada.`);
       return false;
     }
-    // A primeira imagem do corpo igual à capa sai (resposta 4).
-    if (primeira && id === contexto.capa && !contexto.imagensEsperadas.includes(id)) {
-      relatorio.imagens.capaRemovidaDoCorpo++;
-      return false;
-    }
-    const esperada = contexto.imagensEsperadas[proximaEsperada];
-    if (id === esperada) proximaEsperada++;
-    else if (contexto.imagensEsperadas.includes(id)) {
-      relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo está em outra posição no imagens-origem.json (posição ${contexto.imagensEsperadas.indexOf(id) + 1}).`);
-    } else if (id === contexto.capa) {
-      relatorio.imagens.capaNoCorpo++;
-    } else {
-      relatorio.imagens.semUsoNoArquivo.push(id);
-      relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo não está no imagens-origem.json (não importada): descartada.`);
-      return false;
-    }
-    if (id !== contexto.capa || contexto.imagensEsperadas.includes(id)) {
+    if (contexto.imagensConhecidas) {
+      if (!contexto.imagensConhecidas.has(id)) {
+        relatorio.imagens.semUsoNoArquivo.push(id);
+        return false;
+      }
       relatorio.imagens.casadas++;
       usadas.add(id);
+    } else {
+      // A primeira imagem do corpo igual à capa sai (resposta 4).
+      if (primeira && id === contexto.capa && !contexto.imagensEsperadas.includes(id)) {
+        relatorio.imagens.capaRemovidaDoCorpo++;
+        return false;
+      }
+      const esperada = contexto.imagensEsperadas[proximaEsperada];
+      if (id === esperada) proximaEsperada++;
+      else if (contexto.imagensEsperadas.includes(id)) {
+        relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo está em outra posição no imagens-origem.json (posição ${contexto.imagensEsperadas.indexOf(id) + 1}).`);
+      } else if (id === contexto.capa) {
+        relatorio.imagens.capaNoCorpo++;
+      } else {
+        relatorio.imagens.semUsoNoArquivo.push(id);
+        relatorio.avisos.push(`Imagem ${relatorio.imagens.noCorpo} do corpo não está no imagens-origem.json (não importada): descartada.`);
+        return false;
+      }
+      if (id !== contexto.capa || contexto.imagensEsperadas.includes(id)) {
+        relatorio.imagens.casadas++;
+        usadas.add(id);
+      }
     }
     const alt = [...percorrer(no)].map((atual) => (atual.tagName === "img" ? atributo(atual, "alt") ?? "" : "")).find((valor) => valor.trim()) ?? "";
     const altUtil = alt && !/\.(jpe?g|png|gif|webp|avif)$/i.test(alt.trim()) ? alt.replace(/\s+/g, " ").trim() : "";
@@ -492,7 +509,7 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     for (const filho of no.childNodes ?? []) bloco(filho);
   }
 
-  for (const filho of corpo.childNodes ?? []) bloco(filho);
+  for (const filho of nos) bloco(filho);
   descarregarImagens();
 
   for (const id of contexto.imagensEsperadas) {
@@ -522,5 +539,5 @@ export function converterCorpoDoPost(artigoHtml: string, contexto: ContextoDoPos
     else if (linha.tipo === "imagem") saida.push(linha.texto);
     else saida.push(escaparInicio(linha.texto));
   });
-  return { ok: true, markdown: `${saida.join("")}\n`, relatorio };
+  return { markdown: `${saida.join("")}\n`, relatorio };
 }
