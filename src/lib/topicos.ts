@@ -32,3 +32,9 @@ export function lerAtivaDoFormulario(dados: FormData): { ok: true; ativa: boolea
   if (valor === "sim") return { ok: true, ativa: true };
   return { ok: false, mensagem: "Valor inválido para Ativa. Recarregue a página e tente de novo." };
 }
+
+// Página pública /artigos/categoria/[slug] (23/10/2026): categoria inativa
+// ou na lixeira conta como inexistente (404); sem o campo, abre.
+export function categoriaDaPaginaPublica<T extends Pick<Topico, "ativa" | "excluidoEm">>(categoria: T | undefined): T | null {
+  return categoria && categoriaVisivelNoSite(categoria) ? categoria : null;
+}

@@ -3,7 +3,7 @@
 // seletor do painel e a leitura do formulário. Só dados fictícios.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { categoriaVisivelNoSite, lerAtiva, lerAtivaDoFormulario, opcoesDeCategoriaNoPainel } from "../../src/lib/topicos.ts";
+import { categoriaDaPaginaPublica, categoriaVisivelNoSite, lerAtiva, lerAtivaDoFormulario, opcoesDeCategoriaNoPainel } from "../../src/lib/topicos.ts";
 
 const categoria = (id: string, ativa: boolean, excluidoEm: Date | null = null) => ({ id, nome: `Categoria ${id}`, ativa, excluidoEm });
 
@@ -21,6 +21,14 @@ describe("Categorias de artigo: campo ativa", () => {
     assert.equal(categoriaVisivelNoSite({ ativa: lerAtiva(undefined), excluidoEm: null }), true);
     assert.equal(categoriaVisivelNoSite(categoria("lixeira", true, new Date())), false);
     assert.equal(categoriaVisivelNoSite(categoria("lixeira-inativa", false, new Date())), false);
+  });
+
+  test("página /artigos/categoria/[slug]: inativa dá 404, sem o campo abre, na lixeira dá 404", () => {
+    assert.equal(categoriaDaPaginaPublica(categoria("inativa", false)), null);
+    const semCampo = { id: "sem-campo", nome: "Sem campo", ativa: lerAtiva(undefined), excluidoEm: null };
+    assert.equal(categoriaDaPaginaPublica(semCampo), semCampo);
+    assert.equal(categoriaDaPaginaPublica(categoria("lixeira", true, new Date())), null);
+    assert.equal(categoriaDaPaginaPublica(undefined), null, "slug inexistente");
   });
 
   test("seletor do painel: inativa aparece marcada; na lixeira não aparece", () => {

@@ -5,17 +5,18 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
+import { categoriaDaPaginaPublica } from "@/lib/topicos";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
 
 export const dynamic = "force-dynamic";
 
-// Categoria cadastrada no painel, pelo slug; na lixeira conta como inexistente.
+// Categoria cadastrada no painel, pelo slug; inativa ou na lixeira conta
+// como inexistente (404, desde 23/10/2026 também a inativa).
 // O cache evita ler duas vezes (metadata e página) na mesma requisição.
 const lerCategoria = cache(async (slug: string) => {
   const consulta = await lerTopicos("categoria").where("slug", "==", slug).limit(1).get();
-  const categoria = consulta.docs[0]?.data();
-  return categoria && !categoria.excluidoEm ? categoria : null;
+  return categoriaDaPaginaPublica(consulta.docs[0]?.data());
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
