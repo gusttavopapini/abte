@@ -8,6 +8,7 @@ import { deleteApp, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { gravarPost } from "../../src/lib/gravacao/posts.ts";
 import { COLECAO_LOG } from "../../src/lib/log/alteracoes.ts";
+import { listarUsos } from "../../src/lib/midia/biblioteca.ts";
 import { lerMarkdownRestrito, midiasDoMarkdown } from "../../src/lib/markdownRestrito.ts";
 import { validarImagensOrigem, type ImagemDeOrigem } from "../../src/lib/migracao/imagensOrigem.ts";
 import { MENSAGEM_SEM_IMAGENS_DOS_POSTS, desfazerPosts, migrarPosts, type PostConvertido } from "../../src/lib/migracao/posts.ts";
@@ -116,6 +117,10 @@ describe("Migração dos posts (emulador)", () => {
     assert.equal(um.publicadoEm.toDate().toISOString(), "2024-03-04T05:06:07.000Z");
     assert.equal(um.conteudo, `Primeiro parágrafo **fictício**.\n\n![Imagem](midia:corpoUm)\n\n![Outra](midia:wix:${ID(3)})\n`);
     assert.deepEqual(midiasDoMarkdown(lerMarkdownRestrito(um.conteudo)), ["corpoUm", `wix:${ID(3)}`], "a pendente não é um id de documento: não aparece no site");
+    // A imagem do texto conta como em uso (o desfazer das imagens e o "Excluir" do painel veem).
+    const usos = await listarUsos(db, "corpoUm");
+    assert.deepEqual(usos.find((uso) => uso.rotulo === "Posts do blog (imagem no texto)")?.registros, ["Post Fictício Um"]);
+    assert.ok((await listarUsos(db, "capaUm")).every((uso) => uso.rotulo !== "Posts do blog (imagem no texto)" || uso.registros.length === 0));
 
     const es = posts.get("es-post-ficticio");
     assert.deepEqual([es?.idioma, es?.capaMidiaId, es?.resumo, es?.sugestaoDeAutor], ["es", null, "Texto en español ficticio.", null]);

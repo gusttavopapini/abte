@@ -51,12 +51,16 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 // em quais registros a imagem está em uso. campoDoNome identifica o registro
 // na tela (nome ou título, já públicos no site). emLista: o campo é uma lista
 // de objetos e o id fica na chave indicada (ex.: produtos.imagens[].midiaId);
-// essas coleções são lidas inteiras (pequenas) e filtradas aqui.
-export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string };
+// essas coleções são lidas inteiras (pequenas) e filtradas aqui. emMarkdown:
+// o campo é um texto em Markdown restrito e a imagem aparece como
+// ![alt](midia:ID) (corpo dos posts importados, desde 23/10/2026); também
+// lido inteiro e filtrado aqui.
+export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string; emMarkdown?: boolean };
 
 export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
   { colecao: "posts", campo: "capaMidiaId", rotulo: "Posts do blog (capa)", campoDoNome: "titulo" },
+  { colecao: "posts", campo: "conteudo", emMarkdown: true, rotulo: "Posts do blog (imagem no texto)", campoDoNome: "titulo" },
   { colecao: "artigos", campo: "imagemMidiaId", rotulo: "Artigos (imagem)", campoDoNome: "titulo" },
   { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", rotulo: "Categorias de artigos (imagem)", campoDoNome: "nome" },
   { colecao: "produtos", campo: "imagens", emLista: "midiaId", rotulo: "Produtos (galeria)", campoDoNome: "nome" },
@@ -333,11 +337,12 @@ export async function escolhasDeMidiaValidas(db: Firestore, escolhidas: string[]
 // lixeira daquela coleção aparecem marcados, porque voltam se restaurados).
 export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[]> {
   const usos = await Promise.all(
-    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome, emLista }) => {
-      const consulta = emLista ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
+    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome, emLista, emMarkdown }) => {
+      const consulta = emLista || emMarkdown ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
       const encontrados = await consulta.select(campoDoNome, "excluidoEm", campo).get();
       const registros = encontrados.docs
         .filter((documento) => {
+          if (emMarkdown) return String(documento.get(campo) ?? "").includes(`](midia:${id})`);
           if (!emLista) return true;
           const lista = documento.get(campo);
           return Array.isArray(lista) && lista.some((item) => item?.[emLista] === id);
