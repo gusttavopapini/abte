@@ -199,7 +199,7 @@ describe("Migração dos posts (emulador)", () => {
     assert.deepEqual([documento.get("sugestaoDeAutor"), documento.get("autorProfissionalId"), documento.get("revisarMigracao")], ["profAssinatura", undefined, true]);
     // No relatório, só a contagem: a linha do post não diz que ganhou a sugestão.
     assert.equal(relatorio.contagens.porMotivo.sugestaoPelaAssinatura, 1);
-    assert.equal(relatorio.posts[0].autor, "sem foto do autor");
+    assert.ok(!("autor" in relatorio.posts[0]), "nenhuma marcação de sugestão de autor ao lado do slug");
     assert.deepEqual(relatorio.contagens.sugestaoDeAutor, { "pela assinatura, profissional ligado": 1 });
     assert.doesNotMatch(JSON.stringify(relatorio), /TESTE Nome Assinatura/);
   });

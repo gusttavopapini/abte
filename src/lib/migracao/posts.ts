@@ -319,9 +319,6 @@ export async function migrarPosts(opcoes: {
       fonteDoResumo: resumo.fonte,
       metaAutomaticaIgnorada: resumo.metaAutomaticaIgnorada,
       autor: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : pelaAssinatura ? (sugestaoDeAutor ? "pela assinatura, profissional ligado" : "pela assinatura, profissional ainda não importado") : DESCRICAO_DA_FOTO[autor.tipo],
-      // Na linha de cada post do relatório, a sugestão pela assinatura não
-      // aparece: quais posts a ganharam fica só na lista privada (só a contagem vai).
-      autorNaLinha: autor.tipo === "profissional" ? (sugestaoDeAutor ? "profissional ligado" : "profissional ainda não importado") : DESCRICAO_DA_FOTO[autor.tipo],
     };
   });
   const candidatos = planos.filter((plano) => !plano.existente);
@@ -416,7 +413,8 @@ export async function migrarPosts(opcoes: {
       resumo: `${plano.fonteDoResumo}, ${plano.dados.resumo.length} caracteres`,
       tempoLeitura: plano.dados.tempoLeitura,
       caracteres: plano.dados.conteudo.length,
-      autor: plano.autorNaLinha,
+      // Sem nenhuma marcação de sugestão de autor ao lado do slug (regra de
+      // 23/10/2026): a sugestão aparece só nas contagens e nas listas privadas.
       motivos: plano.motivos.filter((motivo) => motivo !== "sugestaoPelaAssinatura"),
       jaExistente: Boolean(plano.existente),
     })),
@@ -566,11 +564,11 @@ export function relatorioDosPostsEmMarkdown(relatorio: RelatorioDosPosts, projet
     "",
     "## Posts",
     "",
-    "| Pos. | Slug antigo | Slug novo | Idioma | Publicado em | Capa | Imagens do corpo | Resumo | Leitura (min) | Caracteres | Autor | Revisão |",
-    "|---|---|---|---|---|---|---|---|---|---|---|---|",
+    "| Pos. | Slug antigo | Slug novo | Idioma | Publicado em | Capa | Imagens do corpo | Resumo | Leitura (min) | Caracteres | Revisão |",
+    "|---|---|---|---|---|---|---|---|---|---|---|",
     ...relatorio.posts.map(
       (post) =>
-        `| ${post.posicao} | ${post.slugAntigo} | ${post.slugNovo}${post.jaExistente ? " (já existe)" : ""} | ${post.idioma} | ${post.publicadoEm ?? "inválida"} | ${post.capa} | ${post.imagensDoCorpo} | ${post.resumo} | ${post.tempoLeitura} | ${post.caracteres} | ${post.autor} | ${post.motivos.join(", ")} |`,
+        `| ${post.posicao} | ${post.slugAntigo} | ${post.slugNovo}${post.jaExistente ? " (já existe)" : ""} | ${post.idioma} | ${post.publicadoEm ?? "inválida"} | ${post.capa} | ${post.imagensDoCorpo} | ${post.resumo} | ${post.tempoLeitura} | ${post.caracteres} | ${post.motivos.join(", ")} |`,
     ),
     "",
     `Redirecionamentos propostos (NÃO ativados): ${relatorio.redirecionamentos.length}, em tmp-migracao/redirects.json.`,
