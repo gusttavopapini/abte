@@ -73,6 +73,21 @@ export type Profissional = {
   excluidoEm: Date | null;
 };
 
+// Membro da diretoria (modelo mínimo da migração, 22/10/2026, mais ativo
+// desde 24/10/2026). A página /diretoria mostra só ativo = true e fora da
+// lixeira (regras em src/lib/diretoria.ts). Sem tela no painel (pendência).
+export type MembroDaDiretoria = {
+  id: string;
+  cargo: string;
+  nome: string;
+  fotoMidiaId: string | null;
+  // Ex.: "2025-2027".
+  periodo: string;
+  ordem: number;
+  ativo: boolean;
+  excluidoEm: Date | null;
+};
+
 // Tópicos editáveis no painel: categorias e tags dos artigos e categorias de
 // produto. O slug é criado com o nome e não muda ao renomear (os endereços
 // públicos continuam valendo). Com excluidoEm preenchido, o tópico está na

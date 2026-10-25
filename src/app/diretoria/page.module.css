@@ -1,0 +1,45 @@
+.secao {
+  background-color: var(--color-bg-alt);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-64);
+  padding-block: var(--section-space);
+}
+
+.titulo,
+.periodo {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-light);
+}
+
+.vazio {
+  color: var(--color-text);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+/* Cards de equipe: 3, 2 e 1 colunas (design-system seção 9) */
+.grade {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-32);
+}
+
+@media (min-width: 768px) {
+  .grade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

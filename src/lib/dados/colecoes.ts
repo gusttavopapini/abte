@@ -4,7 +4,7 @@ import "server-only";
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { lerAtiva } from "@/lib/topicos";
-import type { Artigo, ConferenciaDeMenor, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
+import type { Artigo, ConferenciaDeMenor, MembroDaDiretoria, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
 function texto(valor: unknown): string {
@@ -94,6 +94,17 @@ const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => (
   fotoMidiaId: texto(campos.fotoMidiaId) || null,
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
+  excluidoEm: data(campos.excluidoEm),
+}));
+
+const conversorMembroDaDiretoria = conversorDeLeitura<MembroDaDiretoria>((id, campos) => ({
+  id,
+  cargo: texto(campos.cargo),
+  nome: texto(campos.nome),
+  fotoMidiaId: texto(campos.fotoMidiaId) || null,
+  periodo: texto(campos.periodo),
+  ordem: numero(campos.ordem),
+  ativo: campos.ativo === true,
   excluidoEm: data(campos.excluidoEm),
 }));
 
@@ -204,6 +215,10 @@ export function lerArtigos() {
 
 export function lerProfissionais() {
   return firestoreAdmin().collection("profissionais").withConverter(conversorProfissional);
+}
+
+export function lerDiretoria() {
+  return firestoreAdmin().collection("diretoria").withConverter(conversorMembroDaDiretoria);
 }
 
 export function lerTopicos(tipo: TipoDeTopico) {
