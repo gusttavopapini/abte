@@ -15,8 +15,12 @@ import { ehIdDeDocumentoValido, lerListaDoFormulario, lerTextoDoFormulario } fro
 // Limites de tamanho dos campos curtos. Textos longos (conteúdo e resumo) não
 // têm limite aqui.
 const LIMITE_TITULO = 200;
+// Títulos de artigos científicos são longos (os importados chegam a 239
+// caracteres, 25/10/2026).
+const LIMITE_TITULO_ARTIGO = 300;
 const LIMITE_URL = 2048;
 const LIMITE_TAGS_POR_ARTIGO = 20;
+const LIMITE_TAGS_POR_POST = 20;
 const LIMITE_AUTORES = 300;
 const LIMITE_ACAO = 20;
 
@@ -31,6 +35,12 @@ function lerStatus(dados: FormData): "publicado" | "rascunho" {
 // valor já gravado não é alterado (ver lib/gravacao/posts.ts).
 function lerDadosDoPost(dados: FormData, capaMidiaId: string | null): DadosDoPost {
   const titulo = lerTextoDoFormulario(dados, "titulo", { rotulo: "Título", limite: LIMITE_TITULO });
+  // Categoria opcional (vazio: sem categoria); a existência da categoria e
+  // das tags é conferida na gravação (lib/gravacao/posts.ts).
+  const categoria = dados.get("categoria");
+  if (categoria !== null && categoria !== "" && !ehIdDeDocumentoValido(categoria)) throw new Error("Categoria não encontrada.");
+  const tags = lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: LIMITE_TAGS_POR_POST });
+  if (!tags.every(ehIdDeDocumentoValido)) throw new Error("Tag não encontrada.");
   return {
     titulo,
     conteudo: lerTextoDoFormulario(dados, "conteudo", { rotulo: "Conteúdo" }),
@@ -38,6 +48,8 @@ function lerDadosDoPost(dados: FormData, capaMidiaId: string | null): DadosDoPos
     // O slug é gerado na gravação, só na criação (P16): editar o título não
     // muda o endereço do post.
     capaMidiaId,
+    categoria: typeof categoria === "string" && categoria ? categoria : null,
+    tags,
   };
 }
 
@@ -49,7 +61,7 @@ function lerDadosDoArtigo(dados: FormData, imagemMidiaId: string | null): DadosD
   const tags = lerListaDoFormulario(dados, "tags", { rotulo: "Tags", limite: LIMITE_TAGS_POR_ARTIGO });
   if (!tags.every(ehIdDeDocumentoValido)) throw new Error("Tag não encontrada.");
   return {
-    titulo: lerTextoDoFormulario(dados, "titulo", { rotulo: "Título", limite: LIMITE_TITULO }),
+    titulo: lerTextoDoFormulario(dados, "titulo", { rotulo: "Título", limite: LIMITE_TITULO_ARTIGO }),
     categoria,
     tags,
     autores: lerTextoDoFormulario(dados, "autores", { rotulo: "Autores", limite: LIMITE_AUTORES }),
@@ -62,7 +74,7 @@ function lerDadosDoArtigo(dados: FormData, imagemMidiaId: string | null): DadosD
 
 // Resposta do formulário de post (useActionState): só existe quando algo dá
 // errado; com sucesso, a ação leva de volta para a lista.
-export type RespostaDoPost = { ok: false; mensagem: string; erros?: { capaMidiaId?: string } } | null;
+export type RespostaDoPost = { ok: false; mensagem: string; erros?: { capaMidiaId?: string; categoria?: string } } | null;
 
 // Cria (sem id) ou atualiza (com id) um post. Erros voltam para a tela em
 // português, sem perder o que foi digitado.

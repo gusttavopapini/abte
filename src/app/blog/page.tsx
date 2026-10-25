@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
-import { lerPosts, ordenarPosts } from "@/lib/dados/colecoes";
+import { lerPosts, listarTopicosAtivos, ordenarPosts } from "@/lib/dados/colecoes";
+import { categoriaDoFiltro, categoriasComPublicados } from "@/lib/topicos";
 import type { Post } from "@/lib/dados/tipos";
 import { lerMarkdownRestrito, textoDoMarkdown } from "@/lib/markdownRestrito";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
@@ -21,12 +23,17 @@ function resumoDoPost(post: Post): string {
   return texto ? texto.substring(0, 120) + "..." : "";
 }
 
-export default async function PaginaBlog() {
+export default async function PaginaBlog({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
   // Coleção pequena: ordenada na memória pela data de publicação original
   // (posts importados) ou, sem ela, pela criação.
-  const snapshot = await lerPosts().get();
+  const [snapshot, categorias] = await Promise.all([lerPosts().get(), listarTopicosAtivos("categoriaDePost")]);
 
-  const publicados = ordenarPosts(snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado"));
+  const todosPublicados = ordenarPosts(snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado"));
+  // Filtros: categorias ativas com post publicado (lib/topicos.ts). Slug
+  // desconhecido ou de categoria oculta mostra todos.
+  const filtros = categoriasComPublicados(categorias, todosPublicados);
+  const filtro = categoriaDoFiltro(filtros, (await searchParams).categoria);
+  const publicados = filtro ? todosPublicados.filter((post) => post.categoria === filtro.id) : todosPublicados;
   // Capas fora da lixeira da biblioteca; com capaMidiaId sem imagem, placeholder.
   const capas = await imagensAtivasPorId(publicados.map((post) => post.capaMidiaId));
 
@@ -54,7 +61,24 @@ export default async function PaginaBlog() {
             </p>
           </div>
 
-          <div {...revelar(estilos.grade)}>
+          {filtros.length > 0 && (
+            <nav aria-label="Categorias do blog" className={estilos.filtros}>
+              <ul role="list" className={estilos.listaDeFiltros}>
+                <li>
+                  <Link href="/blog" className={estilos.filtro} aria-current={filtro ? undefined : "page"}>Todos</Link>
+                </li>
+                {filtros.map((categoria) => (
+                  <li key={categoria.id}>
+                    <Link href={`/blog?categoria=${categoria.slug}`} className={estilos.filtro} aria-current={filtro?.id === categoria.id ? "page" : undefined}>
+                      {categoria.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          <div {...revelar("grade-de-cards")}>
             {posts.length === 0 ? (
               <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px 0", opacity: 0.6 }}>Nenhum post publicado ainda.</p>
             ) : (

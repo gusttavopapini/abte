@@ -1,7 +1,7 @@
 "use server";
 
-// Ações de servidor dos tópicos: categorias e tags dos artigos e categorias
-// de produto da loja. Validam o formulário e chamam lib/gravacao/topicos.ts,
+// Ações de servidor dos tópicos: categorias e tags dos artigos e dos posts
+// (25/10/2026) e categorias de produto da loja. Validam o formulário e chamam lib/gravacao/topicos.ts,
 // que grava (e, nas categorias de artigo, registra em logAlteracoes na mesma
 // transação, desde 23/10/2026).
 // Toda ação começa por exigirPapelDoPainel(): sem papel, nada é lido nem gravado.
@@ -11,7 +11,7 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
 import { gerarSlug } from "@/lib/slug";
-import { atualizarTopico as atualizarNoBanco, criarTopico as criarNoBanco, marcarExclusaoDoTopico } from "@/lib/gravacao/topicos";
+import { atualizarTopico as atualizarNoBanco, criarTopico as criarNoBanco, marcarExclusaoDoTopico, temCampoAtiva } from "@/lib/gravacao/topicos";
 import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
 import { lerAtivaDoFormulario } from "@/lib/topicos";
 import { ehIdDeDocumentoValido, lerInteiroDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
@@ -26,7 +26,7 @@ class ErroDeValidacao extends Error {}
 
 function lerTipo(dados: FormData): TipoDeTopico {
   const tipo = dados.get("tipo");
-  if (tipo === "categoria" || tipo === "tag" || tipo === "categoriaDeProduto") return tipo;
+  if (tipo === "categoria" || tipo === "tag" || tipo === "categoriaDePost" || tipo === "tagDePost" || tipo === "categoriaDeProduto") return tipo;
   throw new ErroDeValidacao("Tipo de tópico desconhecido.");
 }
 
@@ -56,7 +56,8 @@ function lerOrdem(dados: FormData): number {
   }
 }
 
-// Só as categorias (de artigos e de produtos) têm imagem; tags não.
+// Só as categorias de artigos e de produtos têm imagem; tags e categorias de
+// post não.
 function temImagem(tipo: TipoDeTopico): boolean {
   return tipo === "categoria" || tipo === "categoriaDeProduto";
 }
@@ -81,6 +82,10 @@ function atualizarPaginas() {
   revalidatePath("/artigos");
   revalidatePath("/artigos/categoria/[slug]", "page");
   revalidatePath("/artigos/[slug]", "page");
+  revalidatePath("/admin/blog/topicos");
+  revalidatePath("/admin/blog");
+  revalidatePath("/blog");
+  revalidatePath("/blog/[slug]", "page");
   revalidatePath("/admin/loja/categorias");
   revalidatePath("/loja");
   revalidatePath("/admin/midia");
@@ -100,7 +105,7 @@ export async function criarTopico(_anterior: RespostaDoTopico | null, dados: For
 }
 
 // Renomeia, muda a ordem e, nas categorias, a imagem; nas categorias de
-// artigo, também o campo ativa (desde 23/10/2026). O slug não muda, para os
+// artigo e de post, também o campo ativa (desde 23/10 e 25/10/2026). O slug não muda, para os
 // endereços continuarem valendo.
 export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
   const usuario = await exigirPapelDoPainel();
@@ -112,9 +117,10 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
     // Tags não têm imagem: o campo nem é gravado. Nas categorias, só quando o
     // formulário traz o campo (sem ele, a imagem gravada fica como está).
     const imagemMidiaId = temImagem(tipo) && dados.has("imagemMidiaId") ? lerImagem(dados) : undefined;
-    // Ativa: só nas categorias de artigo, e só quando o formulário traz o controle.
+    // Ativa: só nas categorias de artigo e de post, e só quando o formulário
+    // traz o controle.
     let ativa: boolean | undefined;
-    if (tipo === "categoria") {
+    if (temCampoAtiva(tipo)) {
       const lida = lerAtivaDoFormulario(dados);
       if (!lida.ok) throw new ErroDeValidacao(lida.mensagem);
       if (lida.ativa !== null) ativa = lida.ativa;

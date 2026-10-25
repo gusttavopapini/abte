@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
@@ -11,13 +12,19 @@ import {
   estiloEntrada,
   estiloFormulario,
   estiloRotulo,
+  estiloSelecao,
 } from "../estilosDoFormulario";
 import classes from "../estilosDoFormulario.module.css";
+
+type OpcaoDeTopico = { id: string; nome: string };
 
 type PropsFormularioPost = {
   acao: (anterior: RespostaDoPost, dados: FormData) => Promise<RespostaDoPost>;
   // Sem post: formulário de criação. Com post: edição, com os valores atuais.
-  post?: Pick<Post, "id" | "titulo" | "imagem" | "conteudo">;
+  post?: Pick<Post, "id" | "titulo" | "imagem" | "conteudo" | "categoria" | "tags">;
+  // Categorias (a inativa vem com "(inativa)" no nome) e tags fora da lixeira.
+  categorias: OpcaoDeTopico[];
+  tags: OpcaoDeTopico[];
   // Capa atual da biblioteca de mídia (imagem null: foi para a lixeira).
   capa: EscolhaDeMidia;
   rotuloPublicar: string;
@@ -26,7 +33,7 @@ type PropsFormularioPost = {
 
 // Formulário de post do blog, usado em "Adicionar Novo Post" e em "Editar Post".
 // Erros voltam da ação em português, sem perder o que foi digitado.
-export function FormularioPost({ acao, post, capa, rotuloPublicar, rotuloRascunho }: PropsFormularioPost) {
+export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPublicar, rotuloRascunho }: PropsFormularioPost) {
   const [resposta, enviar, salvando] = useActionState(acao, null);
   const resumoRef = useRef<HTMLDivElement>(null);
   // Com uma capa da biblioteca escolhida, o aviso da capa antiga sai da tela.
@@ -63,6 +70,37 @@ export function FormularioPost({ acao, post, capa, rotuloPublicar, rotuloRascunh
           required
         />
       </div>
+
+      <div className={classes.grupo}>
+        <label htmlFor="categoria" style={estiloRotulo}>Categoria (opcional)</label>
+        <select id="categoria" name="categoria" defaultValue={post?.categoria ?? ""} style={estiloSelecao} aria-describedby="categoria-ajuda">
+          <option value="">Sem categoria</option>
+          {categorias.map(({ id, nome }) => (
+            <option key={id} value={id}>{nome}</option>
+          ))}
+        </select>
+        <p id="categoria-ajuda" className={classes.ajuda}>
+          {resposta?.erros?.categoria && <>{resposta.erros.categoria} </>}
+          {categorias.length === 0 ? "Nenhuma categoria cadastrada ainda. " : "Para criar ou renomear categorias, use "}
+          <Link href="/admin/blog/topicos">{categorias.length === 0 ? "Cadastre em Tópicos do blog" : "Tópicos do blog"}</Link>.
+        </p>
+      </div>
+
+      <fieldset className={`${classes.grupo} ${classes.semMoldura}`}>
+        <legend style={estiloRotulo}>Tags (opcional)</legend>
+        {tags.length === 0 ? (
+          <p className={classes.ajuda}>Nenhuma tag cadastrada ainda.</p>
+        ) : (
+          <div className={classes.opcoes}>
+            {tags.map(({ id, nome }) => (
+              <label key={id} className={classes.opcao}>
+                <input type="checkbox" name="tags" value={id} defaultChecked={post?.tags.includes(id)} />
+                {nome}
+              </label>
+            ))}
+          </div>
+        )}
+      </fieldset>
 
       <div className={classes.grupo}>
         <SeletorDeMidia nome="capaMidiaId" rotulo="Imagem de capa" inicial={capa} erro={resposta?.erros?.capaMidiaId} aoMudar={(id) => setTemCapa(id !== null)} />

@@ -32,6 +32,11 @@ export function LayoutPainel({ children, usuario }: PropsLayoutPainel) {
                 </Link>
               </li>
               <li>
+                <Link href="/admin/blog/topicos" className={estilos.linkMenu}>
+                  Tópicos do blog
+                </Link>
+              </li>
+              <li>
                 <Link href="/admin/artigos" className={estilos.linkMenu}>
                   Artigos
                 </Link>

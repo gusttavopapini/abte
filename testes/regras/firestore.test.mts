@@ -30,6 +30,8 @@ const COLECOES = [
   "artigos",
   "categoriasDeArtigos",
   "tagsDeArtigos",
+  "categoriasDePosts",
+  "tagsDePosts",
   "produtos",
   "categoriasDeProdutos",
   "logAlteracoes",

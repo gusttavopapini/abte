@@ -1,5 +1,5 @@
 // Regras puras do campo ativa das categorias de artigo (decisão de
-// 23/10/2026, opção A): campo opcional, ausente vale true (os documentos
+// 23/10/2026, opção A) e, desde 25/10/2026, de post: campo opcional, ausente vale true (os documentos
 // antigos não precisam de migração). Categoria inativa some do /artigos
 // público, mas continua no seletor do painel, marcada, e pode ser usada num
 // artigo; a lixeira (excluidoEm) continua escondendo de todo lugar.
@@ -37,4 +37,19 @@ export function lerAtivaDoFormulario(dados: FormData): { ok: true; ativa: boolea
 // ou na lixeira conta como inexistente (404); sem o campo, abre.
 export function categoriaDaPaginaPublica<T extends Pick<Topico, "ativa" | "excluidoEm">>(categoria: T | undefined): T | null {
   return categoria && categoriaVisivelNoSite(categoria) ? categoria : null;
+}
+
+// Categorias que aparecem nas listas públicas (25/10/2026): /blog (filtros)
+// e /artigos (cards). Só as visíveis (ativas e fora da lixeira) que têm pelo
+// menos um conteúdo publicado; a ordem de entrada é mantida.
+export function categoriasComPublicados<T extends Pick<Topico, "id" | "ativa" | "excluidoEm">>(categorias: T[], publicados: { categoria: string }[]): T[] {
+  const usadas = new Set(publicados.map((item) => item.categoria).filter(Boolean));
+  return categorias.filter((categoria) => categoriaVisivelNoSite(categoria) && usadas.has(categoria.id));
+}
+
+// Filtro do /blog pelo parâmetro ?categoria=<slug>: só entre as categorias
+// que aparecem como filtro; slug desconhecido ou de categoria oculta mostra
+// todos os posts (null).
+export function categoriaDoFiltro<T extends Pick<Topico, "slug">>(categoriasDoFiltro: T[], slug: string | undefined): T | null {
+  return slug ? categoriasDoFiltro.find((categoria) => categoria.slug === slug) ?? null : null;
 }

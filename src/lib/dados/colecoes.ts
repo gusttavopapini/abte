@@ -54,6 +54,8 @@ const conversorPost = conversorDeLeitura<Post>((id, campos) => ({
   idioma: campos.idioma === "es" ? "es" : "pt-BR",
   status: texto(campos.status),
   slug: texto(campos.slug),
+  categoria: texto(campos.categoria),
+  tags: listaDeTextos(campos.tags),
   publicadoEm: data(campos.publicadoEm),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
@@ -124,6 +126,8 @@ const conversorTopico = conversorDeLeitura<Topico>((id, campos) => ({
 export const COLECAO_DE_TOPICOS: Record<TipoDeTopico, string> = {
   categoria: "categoriasDeArtigos",
   tag: "tagsDeArtigos",
+  categoriaDePost: "categoriasDePosts",
+  tagDePost: "tagsDePosts",
   categoriaDeProduto: "categoriasDeProdutos",
 };
 

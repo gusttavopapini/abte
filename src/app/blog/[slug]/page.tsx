@@ -5,7 +5,10 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
-import { dataDoPost, lerPosts } from "@/lib/dados/colecoes";
+import Link from "next/link";
+import { dataDoPost, lerPosts, lerTopicos } from "@/lib/dados/colecoes";
+import type { Topico } from "@/lib/dados/tipos";
+import { categoriaVisivelNoSite } from "@/lib/topicos";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { capaParaExibir } from "@/lib/capaDoPost";
@@ -45,6 +48,18 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
   const blocos = post.formatoConteudo === "markdown" ? lerMarkdownRestrito(post.conteudo) : null;
   // Capa e imagens do conteúdo numa leitura só; só as fora da lixeira.
   const imagens = await imagensAtivasPorId([post.capaMidiaId, ...(blocos ? midiasDoMarkdown(blocos) : [])]);
+  // Categoria (visível: ativa e fora da lixeira) e tags fora da lixeira,
+  // classificação de 25/10/2026; a categoria leva ao filtro do /blog.
+  const categoriaLida = ehIdDeDocumentoValido(post.categoria) ? (await lerTopicos("categoriaDePost").doc(post.categoria).get()).data() : undefined;
+  const categoria = categoriaLida && categoriaVisivelNoSite(categoriaLida) ? categoriaLida : null;
+  const colecaoDeTags = lerTopicos("tagDePost");
+  const idsDasTags = post.tags.filter(ehIdDeDocumentoValido);
+  const tags = idsDasTags.length
+    ? (await colecaoDeTags.firestore.getAll(...idsDasTags.map((id) => colecaoDeTags.doc(id))))
+        .map((documento) => documento.data() as Topico | undefined)
+        .filter((tag): tag is Topico => tag !== undefined && !tag.excluidoEm)
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+    : [];
   // Regra em lib/capaDoPost.ts; sem imagem, a página não tem bloco de capa.
   const capa = capaParaExibir(post, post.capaMidiaId ? imagens.get(post.capaMidiaId) : undefined, "pagina");
 
@@ -64,11 +79,23 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
               <div className={estilos.meta}>
                 {dataFormatada && <span className={estilos.data}>{dataFormatada}</span>}
                 <span className={estilos.autor}>ABTE</span>
+                {categoria && (
+                  <Link href={`/blog?categoria=${categoria.slug}`} className={estilos.categoria}>
+                    {categoria.nome}
+                  </Link>
+                )}
               </div>
+              {tags.length > 0 && (
+                <ul role="list" aria-label="Tags do post" className={estilos.tags}>
+                  {tags.map((tag) => (
+                    <li key={tag.id} className={estilos.tag}>{tag.nome}</li>
+                  ))}
+                </ul>
+              )}
             </header>
 
             {capa.tipo !== "nenhuma" && capa.tipo !== "placeholder" && (
-              <div style={{ marginBottom: "var(--space-32)", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ marginBottom: "var(--space-32)", borderRadius: "var(--radius)", overflow: "hidden" }}>
                 {capa.tipo === "biblioteca" ? (
                   <ImagemDaMidia
                     variantes={capa.imagem.variantes}

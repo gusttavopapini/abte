@@ -16,7 +16,7 @@ import type { TipoDeTopico } from "@/lib/dados/tipos";
 import estilos from "./GerenciadorDeTopicos.module.css";
 
 // imagem: só nas categorias (null sem imagem; imagem null dentro: foi para a lixeira).
-// ativa: só usada nas categorias de artigo (ausente no documento vale true).
+// ativa: só usada nas categorias de artigo e de post (ausente no documento vale true).
 export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeMidia; ativa: boolean };
 
 type Props = {
@@ -25,7 +25,7 @@ type Props = {
   comOrdem?: boolean;
   // Com imagem da biblioteca de mídia (categorias) ou sem (tags).
   comImagem?: boolean;
-  // Com o controle "Ativa" (só categorias de artigo, desde 23/10/2026).
+  // Com o controle "Ativa" (categorias de artigo desde 23/10/2026 e de post desde 25/10/2026).
   comAtiva?: boolean;
   // Onde a imagem aparece no site, para a ajuda do campo.
   ondeAparece?: string;
@@ -50,7 +50,7 @@ function NovoTopico({ tipo, comOrdem, comImagem }: { tipo: TipoDeTopico; comOrde
     <form action={acao} className={estilos.caixa}>
       <input type="hidden" name="tipo" value={tipo} />
       <div className={estilos.campos}>
-        <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "tag" ? "Nova tag" : "Nova categoria"} obrigatorio maxLength={60} />
+        <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "tag" || tipo === "tagDePost" ? "Nova tag" : "Nova categoria"} obrigatorio maxLength={60} />
         {comOrdem && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} />}
       </div>
       {comImagem && <p className={estilos.endereco}>A imagem pode ser escolhida depois de criar a categoria, na lista abaixo.</p>}
@@ -98,7 +98,9 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeA
             <input type="hidden" name="ativaNoFormulario" value="sim" />
             <label className={estilos.opcao}>
               <input type="checkbox" name="ativa" value="sim" defaultChecked={topico.ativa} />
-              Ativa (desmarcada, a categoria some de /artigos, mas continua no painel e nos artigos que a usam)
+              {tipo === "categoriaDePost"
+                ? "Ativa (desmarcada, a categoria some dos filtros de /blog, mas continua no painel e nos posts que a usam)"
+                : "Ativa (desmarcada, a categoria some de /artigos, mas continua no painel e nos artigos que a usam)"}
             </label>
           </>
         )}
@@ -139,7 +141,7 @@ function ItemExcluido({ tipo, topico, restaurar }: { tipo: TipoDeTopico; topico:
   );
 }
 
-// Cadastro de um tipo de tópico dos artigos: criar, renomear, excluir (vai
+// Cadastro de um tipo de tópico (artigos, posts ou loja): criar, renomear, excluir (vai
 // para os excluídos) e restaurar.
 export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, comAtiva = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
   const idTitulo = useId();

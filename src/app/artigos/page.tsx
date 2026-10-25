@@ -4,7 +4,7 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
-import { categoriaVisivelNoSite } from "@/lib/topicos";
+import { categoriasComPublicados } from "@/lib/topicos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { revelar } from "@/components/Revelar/revelar";
 
@@ -12,9 +12,14 @@ export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaArtigos() {
-  // Categorias cadastradas no painel ("Tópicos dos artigos"), fora da lixeira,
+  // Categorias cadastradas no painel ("Tópicos dos artigos"): só as ativas,
+  // fora da lixeira e com pelo menos um artigo publicado (desde 25/10/2026),
   // com a imagem da biblioteca; sem imagem, o card usa o placeholder.
-  const [snapshot, categorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria").then((todas) => todas.filter(categoriaVisivelNoSite))]);
+  const [snapshot, todasAsCategorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria")]);
+  const categorias = categoriasComPublicados(
+    todasAsCategorias,
+    snapshot.docs.map((documento) => documento.data()).filter((artigo) => artigo.status === "publicado"),
+  );
   const imagens = await imagensAtivasPorId(categorias.map((categoria) => categoria.imagemMidiaId));
 
   const artigos = snapshot.docs
@@ -59,7 +64,7 @@ export default async function PaginaArtigos() {
               <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Navegue por tópicos</h2>
             </header>
             
-            <div {...revelar(estilos.gradeTres, 1)}>
+            <div {...revelar("grade-de-cards", 1)}>
               {categorias.length === 0 ? (
                 <p className={`tipo-texto ${estilos.vazio}`}>Nenhum tópico cadastrado ainda.</p>
               ) : (
@@ -84,7 +89,7 @@ export default async function PaginaArtigos() {
               <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Mais lidos da semana</h2>
             </header>
 
-            <div {...revelar(estilos.gradeTres, 1)}>
+            <div {...revelar("grade-de-cards", 1)}>
               {artigos.length === 0 ? (
                 <p style={{ gridColumn: "1 / -1", opacity: 0.6 }}>Nenhum artigo publicado ainda.</p>
               ) : (

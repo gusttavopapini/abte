@@ -21,6 +21,10 @@ export type Post = {
   idioma: "pt-BR" | "es";
   status: string;
   slug: string;
+  // Classificação (25/10/2026), no mesmo padrão dos artigos: id do documento
+  // em categoriasDePosts (vazio: sem categoria) e ids em tagsDePosts.
+  categoria: string;
+  tags: string[];
   // Data original de publicação (posts importados); ausente: vale criadoEm.
   publicadoEm: Date | null;
   criadoEm: Date | null;
@@ -102,16 +106,17 @@ export type Topico = {
   // fatias 3c e 3d). O modelo de dados não define este campo: segue o padrão
   // imagemMidiaId dos artigos (registrado no CLAUDE.md).
   imagemMidiaId: string | null;
-  // Só categorias de artigo (23/10/2026): false esconde do /artigos público;
-  // ausente no documento vale true (lib/topicos.ts).
+  // Só categorias de artigo (23/10/2026) e de post (25/10/2026): false
+  // esconde do site; ausente no documento vale true (lib/topicos.ts).
   ativa: boolean;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
   excluidoEm: Date | null;
 };
 
-// categoria e tag: artigos; categoriaDeProduto: loja.
-export type TipoDeTopico = "categoria" | "tag" | "categoriaDeProduto";
+// categoria e tag: artigos; categoriaDePost e tagDePost: blog (25/10/2026);
+// categoriaDeProduto: loja.
+export type TipoDeTopico = "categoria" | "tag" | "categoriaDePost" | "tagDePost" | "categoriaDeProduto";
 
 // Produto da loja. Preços em centavos (inteiros) para não haver erro de
 // arredondamento; precoPromocional null quando não há promoção. O slug é

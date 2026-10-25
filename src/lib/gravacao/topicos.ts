@@ -1,4 +1,5 @@
-// Gravação dos tópicos (categorias e tags dos artigos e categorias de produto)
+// Gravação dos tópicos (categorias e tags dos artigos e dos posts e categorias
+// de produto)
 // no Firestore. Sem sessão e sem "server-only", como os outros módulos de
 // gravação: recebe o Firestore e o autor por parâmetro e é usada por
 // acoes-topicos.ts (que confere sessão e papel antes) e pelos testes no
@@ -8,8 +9,10 @@
 // restauração de CATEGORIA DE ARTIGO grava em logAlteracoes na mesma
 // transação (a alteração e o registro entram juntos, ou nenhum entra), no
 // formato dos profissionais: só os nomes dos campos (nome, ordem,
-// imagemMidiaId, ativa), nunca os valores, e um resumo em português. Tags e
-// categorias de produto ainda não registram (etapa 3).
+// imagemMidiaId, ativa), nunca os valores, e um resumo em português. Desde
+// 25/10/2026, as categorias de post seguem o mesmo padrão (com ativa e
+// registro, sem imagem). Tags e categorias de produto ainda não registram
+// (etapa 3).
 import { FieldValue, type Firestore, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import type { TipoDeTopico } from "../dados/tipos.ts";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
@@ -23,6 +26,8 @@ export const MENSAGEM_IMAGEM_DA_CATEGORIA_INDISPONIVEL = "A imagem escolhida nã
 export const COLECOES_DE_TOPICOS: Record<TipoDeTopico, string> = {
   categoria: "categoriasDeArtigos",
   tag: "tagsDeArtigos",
+  categoriaDePost: "categoriasDePosts",
+  tagDePost: "tagsDePosts",
   categoriaDeProduto: "categoriasDeProdutos",
 };
 
@@ -43,6 +48,16 @@ const TEXTOS: Record<TipoDeTopico, { repetido: string; criado: string; emUso: st
     criado: "Tag criada",
     emUso: "está em uso por pelo menos um artigo. Tire a tag desses artigos antes de excluir.",
   },
+  categoriaDePost: {
+    repetido: "Já existe uma categoria de post com esse nome.",
+    criado: "Categoria criada",
+    emUso: "está em uso por pelo menos um post. Troque a categoria desses posts antes de excluir.",
+  },
+  tagDePost: {
+    repetido: "Já existe uma tag de post com esse nome.",
+    criado: "Tag criada",
+    emUso: "está em uso por pelo menos um post. Tire a tag desses posts antes de excluir.",
+  },
 };
 
 type Falha = { ok: false; mensagem: string };
@@ -55,8 +70,19 @@ function falha(erro: unknown): Falha {
   throw erro;
 }
 
-// Só as categorias de artigo registram em logAlteracoes (por enquanto).
-const comRegistro = (tipo: TipoDeTopico) => tipo === "categoria";
+// Só as categorias de artigo e de post registram em logAlteracoes (por
+// enquanto) e só elas têm o campo ativa.
+const comRegistro = (tipo: TipoDeTopico) => tipo === "categoria" || tipo === "categoriaDePost";
+export const temCampoAtiva = comRegistro;
+
+// Onde cada tópico é usado (para recusar a exclusão de um tópico em uso).
+const USO: Record<TipoDeTopico, { colecao: string; campo: string; lista: boolean }> = {
+  categoria: { colecao: "artigos", campo: "categoria", lista: false },
+  tag: { colecao: "artigos", campo: "tags", lista: true },
+  categoriaDePost: { colecao: "posts", campo: "categoria", lista: false },
+  tagDePost: { colecao: "posts", campo: "tags", lista: true },
+  categoriaDeProduto: { colecao: "produtos", campo: "categoria", lista: false },
+};
 
 // Dois tópicos ativos com o mesmo nome (ignorando acento e maiúsculas) confundem
 // quem navega; o nome repetido é recusado.
@@ -131,7 +157,7 @@ export async function atualizarTopico(
   }
   const novos: Record<string, unknown> = { nome: dados.nome, ordem: dados.ordem };
   if (dados.imagemMidiaId !== undefined) novos.imagemMidiaId = dados.imagemMidiaId;
-  if (dados.ativa !== undefined && tipo === "categoria") novos.ativa = dados.ativa;
+  if (dados.ativa !== undefined && temCampoAtiva(tipo)) novos.ativa = dados.ativa;
   try {
     await db.runTransaction(async (transacao) => {
       const existentes = await transacao.get(colecao);
@@ -159,7 +185,7 @@ export async function atualizarTopico(
 }
 
 // Manda para a lixeira (excluir) ou tira dela (restaurar). Excluir: tópico
-// usado por algum artigo ou produto não sai (uso conta mesmo em itens na
+// usado por algum artigo, post ou produto não sai (uso conta mesmo em itens na
 // lixeira, que podem ser restaurados). Restaurar: recusa se outro tópico
 // ativo já usa o mesmo nome.
 export async function marcarExclusaoDoTopico(db: Firestore, tipo: TipoDeTopico, id: string, excluir: boolean, autor: AutorDaAlteracao): Promise<{ ok: true; nome: string } | Falha> {
@@ -169,12 +195,8 @@ export async function marcarExclusaoDoTopico(db: Firestore, tipo: TipoDeTopico, 
     if (excluir) {
       const atual = await colecao.doc(id).get();
       if (!atual.exists) throw new RecusaDoTopico("Tópico não encontrado.");
-      const emUso =
-        tipo === "categoria"
-          ? await db.collection("artigos").where("categoria", "==", id).limit(1).get()
-          : tipo === "tag"
-            ? await db.collection("artigos").where("tags", "array-contains", id).limit(1).get()
-            : await db.collection("produtos").where("categoria", "==", id).limit(1).get();
+      const uso = USO[tipo];
+      const emUso = await db.collection(uso.colecao).where(uso.campo, uso.lista ? "array-contains" : "==", id).limit(1).get();
       if (!emUso.empty) throw new RecusaDoTopico(`"${String(atual.get("nome") ?? "")}" ${TEXTOS[tipo].emUso}`);
     }
     const nome = await db.runTransaction(async (transacao) => {

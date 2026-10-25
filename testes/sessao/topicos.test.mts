@@ -104,3 +104,36 @@ describe("Categorias de artigo: registro de alterações (emulador)", () => {
     assert.deepEqual([(await registrosDe(tag.id)).length, (await registrosDe(daLoja.id)).length], [0, 0]);
   });
 });
+
+// Categorias e tags dos posts (25/10/2026): mesmo padrão das categorias de
+// artigo (ativa, lixeira e registro); as tags de post não registram.
+describe("Categorias de post: registro, ativa e uso (emulador)", () => {
+  test("cria, desativa e exclui com registro; tag de post não registra", async () => {
+    const criado = await criarTopico(db, "categoriaDePost", { nome: "TESTE Categoria de Post", ordem: 1 }, EDITOR);
+    assert.ok(criado.ok);
+    assert.ok((await atualizarTopico(db, "categoriaDePost", criado.id, { nome: "TESTE Categoria de Post", ordem: 1, ativa: false }, EDITOR)).ok);
+    assert.equal((await db.collection("categoriasDePosts").doc(criado.id).get()).get("ativa"), false);
+    assert.ok((await marcarExclusaoDoTopico(db, "categoriaDePost", criado.id, true, EDITOR)).ok);
+    const registros = await registrosDe(criado.id);
+    assert.deepEqual(registros.map((registro) => [registro.colecao, registro.acao, registro.resumo]), [
+      ["categoriasDePosts", "criar", "Categoria criada."],
+      ["categoriasDePosts", "editar", "Categoria desativada."],
+      ["categoriasDePosts", "excluir", "Categoria movida para os excluídos."],
+    ]);
+    const tag = await criarTopico(db, "tagDePost", { nome: "TESTE Tag de Post", ordem: 0 }, EDITOR);
+    assert.ok(tag.ok);
+    assert.equal((await registrosDe(tag.id)).length, 0);
+  });
+
+  test("categoria e tag de post em uso por um post não vão para a lixeira", async () => {
+    const categoriaDoPost = await criarTopico(db, "categoriaDePost", { nome: "TESTE Categoria em Uso", ordem: 2 }, EDITOR);
+    const tag = await criarTopico(db, "tagDePost", { nome: "TESTE Tag em Uso", ordem: 0 }, EDITOR);
+    assert.ok(categoriaDoPost.ok && tag.ok);
+    await db.collection("posts").doc("postEmUso").set({ titulo: "Fictício", categoria: categoriaDoPost.id, tags: [tag.id] });
+    const recusaCategoria = await marcarExclusaoDoTopico(db, "categoriaDePost", categoriaDoPost.id, true, EDITOR);
+    const recusaTag = await marcarExclusaoDoTopico(db, "tagDePost", tag.id, true, EDITOR);
+    assert.equal(recusaCategoria.ok, false);
+    assert.equal(recusaTag.ok, false);
+    assert.match(recusaCategoria.ok ? "" : recusaCategoria.mensagem, /em uso por pelo menos um post/);
+  });
+});

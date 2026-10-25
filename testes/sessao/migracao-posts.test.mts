@@ -168,7 +168,7 @@ describe("Migração dos posts (emulador)", () => {
     const um = (await daExecucao(execucao)).find((documento) => documento.get("origem.chave") === "pós-fictício-um");
     assert.ok(um);
     // Edição pelo painel: mesma função das ações de servidor; o slug não muda.
-    const editado = await gravarPost(db, um.id, { titulo: "Título revisado", conteudo: um.get("conteudo"), status: "rascunho", capaMidiaId: "capaUm" });
+    const editado = await gravarPost(db, um.id, { titulo: "Título revisado", conteudo: um.get("conteudo"), status: "rascunho", capaMidiaId: "capaUm", categoria: null, tags: [] });
     assert.ok(editado.ok);
     assert.equal(editado.slug, "pos-ficticio-um");
     assert.equal((await um.ref.get()).get("formatoConteudo"), "markdown", "a edição não muda o formato");

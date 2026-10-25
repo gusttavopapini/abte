@@ -27,22 +27,35 @@
   font-weight: var(--font-weight-light);
 }
 
-.grade {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-32);
+/* Filtros por categoria (25/10/2026): links com o estado atual marcado
+   (aria-current), no mesmo estilo dos filtros da loja */
+.filtros {
+  margin-bottom: var(--space-32);
 }
 
-@media (min-width: 768px) {
-  .grade {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.listaDeFiltros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
 }
 
-@media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.filtro {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  text-decoration: none;
 }
 
-/* O mockup do blog tinha 2 colunas no desktop, ao contrário dos profissionais que eram 3 */
+.filtro:hover {
+  text-decoration: underline;
+}
+
+.filtro[aria-current="page"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

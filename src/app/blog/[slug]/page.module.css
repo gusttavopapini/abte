@@ -56,3 +56,24 @@
 .textoCorrido {
   white-space: pre-wrap;
 }
+
+/* Categoria do post (25/10/2026): link para o filtro do /blog */
+.categoria {
+  color: var(--color-primary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+}
+
+.tag {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
