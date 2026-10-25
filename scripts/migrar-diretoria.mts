@@ -1,8 +1,9 @@
 // Migração da diretoria do site antigo (etapa 6, degrau 6): os 7 membros do
 // mapa, com o modelo mínimo aprovado (cargo, nome, fotoMidiaId, periodo,
-// ordem, profissionalId opcional, origem, datas) e revisarMigracao = true.
+// ordem, profissionalId opcional, origem, datas), revisarMigracao = true e
+// ativo = false (fora da página /diretoria até a publicação).
 // profissionalId só quando o nome casa exatamente com um único profissional
-// já cadastrado; senão, null. Sem tela no painel nem página no site.
+// já cadastrado; senão, null. Sem tela no painel.
 //
 // Uso:
 //   npm run migracao:diretoria                                     simulação (padrão)

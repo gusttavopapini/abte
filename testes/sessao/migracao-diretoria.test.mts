@@ -87,7 +87,7 @@ describe("Migração da diretoria (emulador)", () => {
     assert.ok(presidente);
     assert.deepEqual(
       Object.keys(presidente.data()).sort(),
-      ["atualizadoEm", "cargo", "criadoEm", "excluidoEm", "fotoMidiaId", "nome", "ordem", "origem", "periodo", "profissionalId", "revisarMigracao"],
+      ["ativo", "atualizadoEm", "cargo", "criadoEm", "excluidoEm", "fotoMidiaId", "nome", "ordem", "origem", "periodo", "profissionalId", "revisarMigracao"],
     );
     assert.deepEqual(
       [presidente.get("cargo"), presidente.get("nome"), presidente.get("fotoMidiaId"), presidente.get("periodo"), presidente.get("ordem"), presidente.get("profissionalId"), presidente.get("excluidoEm"), presidente.get("revisarMigracao")],

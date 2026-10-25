@@ -1,8 +1,9 @@
 // Migração da diretoria do site antigo (etapa 6, degrau 6), com o modelo
 // mínimo aprovado em 22/10/2026 (decisão 9): cargo, nome, fotoMidiaId,
 // periodo, ordem, profissionalId (opcional), origem, criadoEm, atualizadoEm e
-// excluidoEm, mais revisarMigracao (decisão 8). O site e o painel ainda não
-// leem a coleção (sem tela no painel: pendência).
+// excluidoEm, mais revisarMigracao (decisão 8) e, desde 24/10/2026, ativo
+// (false na importação; a página pública /diretoria mostra só ativo = true).
+// Sem tela no painel (pendência).
 //
 // profissionalId só quando o nome casa EXATAMENTE (sem acento, maiúsculas e
 // espaços extras) com um único profissional fora da lixeira; senão, null.
@@ -141,6 +142,8 @@ export async function migrarDiretoria(opcoes: {
       lote.create(referencia, {
         ...plano.dados,
         origem: { sistema: SISTEMA_DE_ORIGEM, chave: plano.membro.chave, execucao },
+        // Fora do site até a publicação (/diretoria mostra só ativo = true).
+        ativo: false,
         // Todos vão para revisão: cargo, período e foto vêm do site antigo.
         revisarMigracao: true,
         criadoEm: momento,
@@ -151,7 +154,7 @@ export async function migrarDiretoria(opcoes: {
         colecao: COLECAO_DIRETORIA,
         documentoId: referencia.id,
         acao: "criar",
-        campos: [...Object.keys(plano.dados), "origem", "revisarMigracao"],
+        campos: [...Object.keys(plano.dados), "ativo", "origem", "revisarMigracao"],
         resumo: "Membro da diretoria importado do site antigo.",
         origem: "migracao",
         execucao,
@@ -275,7 +278,7 @@ export function relatorioDaDiretoriaEmMarkdown(relatorio: RelatorioDaDiretoria, 
     `- Projeto: ${projeto}`,
     `- Início: ${relatorio.iniciadoEm}; fim: ${relatorio.terminadoEm}`,
     `- Limite: ${relatorio.limite ?? "nenhum"}`,
-    "- Todos entram com revisarMigracao = true. Sem tela no painel nem página no site (pendência). Pessoas identificadas pelo cargo, sem nome.",
+    "- Todos entram com revisarMigracao = true e ativo = false (fora da página /diretoria até a publicação). Sem tela no painel (pendência). Pessoas identificadas pelo cargo, sem nome.",
     "",
     "## Contagens",
     "",
