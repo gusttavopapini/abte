@@ -8,7 +8,8 @@
 //   npm run migracao:publicar -- --tipo=<tipo> --executar --confirmo-projeto=<id exibido> [--limite=N]
 //   npm run migracao:publicar -- --desfazer --execucao=<id>        simulação da reversão
 //   npm run migracao:publicar -- --desfazer --execucao=<id> --executar --confirmo-projeto=<id exibido>
-// Tipos: profissionais, produtos, posts, artigos, diretoria, categorias ou todos.
+// Tipos: profissionais, produtos, posts, artigos, diretoria, categorias (um ou
+// mais, separados por vírgula) ou todos.
 //
 // Por padrão SÓ SIMULA: lê as coleções e o logAlteracoes, sem gravar no
 // Firebase. Gravar exige --executar E --confirmo-projeto com o id do projeto

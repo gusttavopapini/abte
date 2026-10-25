@@ -19,6 +19,9 @@ describe("Publicação do conteúdo importado: partes puras", () => {
     assert.equal(lerTiposDePublicacao("paginas").ok, false);
     assert.deepEqual(lerTiposDePublicacao("posts"), { ok: true, tipos: ["posts"] });
     assert.deepEqual(lerTiposDePublicacao("todos"), { ok: true, tipos: [...TIPOS_DE_PUBLICACAO] });
+    assert.deepEqual(lerTiposDePublicacao("diretoria,profissionais"), { ok: true, tipos: ["profissionais", "diretoria"] });
+    assert.equal(lerTiposDePublicacao("posts,paginas").ok, false);
+    assert.equal(lerTiposDePublicacao("posts,todos").ok, false);
   });
 
   test("cada tipo tem regra; categorias cobre as de artigo e as de produto", () => {

@@ -41,13 +41,15 @@ export type TipoDePublicacao = (typeof TIPOS_DE_PUBLICACAO)[number];
 
 export const RESUMO_DA_PUBLICACAO = "Publicado no site pela exceção de 24/10/2026 (sem conferência de menores e sem revisão da migração).";
 
-// --tipo é obrigatório: um dos tipos ou "todos".
+// --tipo é obrigatório: "todos" ou um ou mais tipos separados por vírgula
+// (ex.: --tipo=profissionais,produtos), na ordem de TIPOS_DE_PUBLICACAO.
 export function lerTiposDePublicacao(valor: string | null): { ok: true; tipos: TipoDePublicacao[] } | { ok: false; mensagem: string } {
   const opcoes = [...TIPOS_DE_PUBLICACAO, "todos"].join("|");
-  if (valor === null) return { ok: false, mensagem: `Escolha o que publicar com --tipo=${opcoes}.` };
+  if (valor === null) return { ok: false, mensagem: `Escolha o que publicar com --tipo=${opcoes} (vários separados por vírgula).` };
   if (valor === "todos") return { ok: true, tipos: [...TIPOS_DE_PUBLICACAO] };
-  if ((TIPOS_DE_PUBLICACAO as readonly string[]).includes(valor)) return { ok: true, tipos: [valor as TipoDePublicacao] };
-  return { ok: false, mensagem: `--tipo desconhecido. Use --tipo=${opcoes}.` };
+  const pedidos = valor.split(",").map((parte) => parte.trim());
+  if (pedidos.some((parte) => !(TIPOS_DE_PUBLICACAO as readonly string[]).includes(parte))) return { ok: false, mensagem: `--tipo desconhecido. Use --tipo=${opcoes} (vários separados por vírgula).` };
+  return { ok: true, tipos: TIPOS_DE_PUBLICACAO.filter((tipo) => pedidos.includes(tipo)) };
 }
 
 // Regra de cada coleção: quando o documento já está no ar, o que gravar para
