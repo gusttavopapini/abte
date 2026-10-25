@@ -11,7 +11,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { COLECAO_LOG } from "../log/alteracoes.ts";
 import { SISTEMA_DE_ORIGEM } from "./imagens.ts";
 
-export const COLECOES_CONFERIDAS = ["midias", "profissionais", "categoriasDeProdutos", "produtos", "posts", "categoriasDeArtigos", "artigos", "diretoria"] as const;
+export const COLECOES_CONFERIDAS = ["midias", "profissionais", "categoriasDeProdutos", "produtos", "posts", "categoriasDePosts", "categoriasDeArtigos", "artigos", "diretoria"] as const;
 
 // Endereço (host) do Wix ou dos servidores de mídia dele.
 const ENDERECO_DO_WIX = /wixstatic\.com|wixmp\.com|static\.wix|usrfiles|parastorage\.com|wix\.com/i;
