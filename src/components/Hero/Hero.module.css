@@ -46,7 +46,7 @@
   cursor: pointer;
   z-index: 3;
   transition: background 0.3s;
-  border-radius: 5px;
+  border-radius: var(--radius);
 }
 
 .seta:hover {

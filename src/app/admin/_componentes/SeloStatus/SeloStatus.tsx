@@ -7,7 +7,7 @@ export function SeloStatus({ status }: { status: string }) {
       style={{
         display: "inline-block",
         padding: "4px 8px",
-        borderRadius: "4px",
+        borderRadius: "var(--radius)",
         fontSize: "12px",
         textTransform: "uppercase",
         background: publicado ? "rgba(46, 204, 113, 0.2)" : "rgba(241, 196, 15, 0.2)",

@@ -18,6 +18,7 @@
 /* Campo de busca com o fundo claro do painel: sobre o fundo branco da página,
    o campo branco do componente Campo não apareceria */
 .campoBusca {
+  border-radius: var(--radius);
   width: 100%;
   min-height: var(--control-min-height-mobile);
   padding: 0 var(--space-8);
@@ -35,6 +36,7 @@
 }
 
 .cartao {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
@@ -44,10 +46,13 @@
 }
 
 .imagem {
+  border-radius: var(--radius);
+  overflow: hidden;
   background: var(--color-bg);
 }
 
 .semPrevia {
+  border-radius: var(--radius);
   display: grid;
   place-items: center;
   min-height: var(--space-96);
@@ -74,6 +79,7 @@
 
 /* Aviso de menores: texto em caixa branca, como as mensagens do site */
 .selo {
+  border-radius: var(--radius);
   padding: var(--space-8);
   background: var(--color-feedback-bg);
   color: var(--color-text);

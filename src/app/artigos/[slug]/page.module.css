@@ -78,6 +78,9 @@
 }
 
 /* Imagem do artigo (biblioteca de mídia), entre o cabeçalho e o resumo */
+/* A imagem é cortada pelo raio do contêiner */
 .imagem {
+  border-radius: var(--radius);
+  overflow: hidden;
   margin-bottom: var(--space-32);
 }

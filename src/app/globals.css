@@ -1,5 +1,6 @@
 /* Estilo base do site da ABTE.
-   Todos os valores vêm de src/styles/tokens.css. Raio 0 e sem sombra. */
+   Todos os valores vêm de src/styles/tokens.css. Sem sombra; o raio
+   (--radius) vai só nos elementos com caixa visível (exceção de 25/10/2026). */
 @import "../styles/tokens.css";
 
 /* ---------- Reset simples ---------- */
@@ -12,7 +13,9 @@
 * {
   margin: 0;
   padding: 0;
-  border-radius: var(--radius);
+  /* Raio zerado no reset: faixas de largura total, tabelas e linhas não
+     arredondam; cada componente com caixa visível usa var(--radius). */
+  border-radius: 0;
   box-shadow: var(--shadow);
 }
 

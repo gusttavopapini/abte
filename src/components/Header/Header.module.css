@@ -63,12 +63,12 @@
 .menuFundoBranco {
   background: var(--color-bg);
   padding: var(--space-8) var(--space-24);
-  border-radius: 5px;
+  border-radius: var(--radius);
 }
 
 .doe {
   white-space: nowrap;
-  border-radius: 5px !important;
+  border-radius: var(--radius) !important;
 }
 
 .hamburguer {

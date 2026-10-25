@@ -25,6 +25,8 @@
 
 /* Prévia da escolha: largura fixa pequena, proporção da própria imagem */
 .previa {
+  border-radius: var(--radius);
+  overflow: hidden;
   width: calc(var(--space-96) + var(--space-64));
   max-width: 100%;
   background: var(--color-bg);
@@ -52,6 +54,7 @@
 }
 
 .erro {
+  border-radius: var(--radius);
   padding: var(--space-8);
   background: var(--color-feedback-bg);
   color: var(--color-error);

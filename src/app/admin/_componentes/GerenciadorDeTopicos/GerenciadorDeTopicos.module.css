@@ -12,6 +12,7 @@
 
 /* Fundo claro para os campos brancos aparecerem */
 .caixa {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);

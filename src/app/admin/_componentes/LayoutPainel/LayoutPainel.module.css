@@ -37,6 +37,7 @@
 }
 
 .linkMenu {
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   padding: var(--space-8) var(--space-24);

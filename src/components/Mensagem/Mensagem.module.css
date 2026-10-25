@@ -1,4 +1,5 @@
 .mensagem {
+  border-radius: var(--radius);
   padding: var(--space-16);
   background: var(--color-feedback-bg);
   font-size: var(--font-size-text);

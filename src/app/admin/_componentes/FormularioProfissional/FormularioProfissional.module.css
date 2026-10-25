@@ -1,5 +1,6 @@
 /* Fundo claro para os campos brancos aparecerem dentro do modal */
 .formulario {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
@@ -81,6 +82,7 @@
 }
 
 .erro {
+  border-radius: var(--radius);
   color: var(--color-error);
   background: var(--color-feedback-bg);
   padding: var(--space-8);

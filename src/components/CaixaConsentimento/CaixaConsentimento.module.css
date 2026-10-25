@@ -26,7 +26,9 @@
   border: 0;
   background: var(--color-bg);
   cursor: pointer;
-  border-radius: 5px;
+  /* Metade do raio: com 10px numa caixa de 24px ela pareceria um botão de
+     opção (redondo); exceção registrada no CLAUDE.md. */
+  border-radius: calc(var(--radius) / 2);
 }
 
 .entrada:checked {
@@ -69,7 +71,7 @@
   color: var(--color-error);
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
-  border-radius: 5px;
+  border-radius: var(--radius);
 }
 
 /* Celular: a linha clicável tem pelo menos 44px de altura */

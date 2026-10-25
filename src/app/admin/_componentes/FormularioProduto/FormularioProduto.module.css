@@ -1,5 +1,6 @@
 /* Fundo claro para os campos brancos aparecerem */
 .formulario {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
@@ -66,6 +67,7 @@
 }
 
 .erro {
+  border-radius: var(--radius);
   padding: var(--space-8);
   background: var(--color-feedback-bg);
   color: var(--color-error);

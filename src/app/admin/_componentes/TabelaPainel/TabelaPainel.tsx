@@ -7,7 +7,7 @@ export const estiloLinha: CSSProperties = { borderBottom: "1px solid color-mix(i
 
 export const classeDaCelula = estilos.celula;
 
-const estiloMoldura: CSSProperties = { background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "5px" };
+const estiloMoldura: CSSProperties = { background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "var(--radius)" };
 
 const estiloLinhaDoCabecalho: CSSProperties = { borderBottom: "1px solid color-mix(in srgb, var(--color-text) 10%, transparent)" };
 

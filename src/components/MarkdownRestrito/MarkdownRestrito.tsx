@@ -53,7 +53,9 @@ export function MarkdownRestrito({ blocos, imagens, sizes }: Props) {
       const imagem = imagens.get(bloco.midia);
       if (!imagem) return null;
       return (
-        <ImagemDaMidia key={i} variantes={imagem.variantes} alt={imagem.alt} largura={imagem.largura} altura={imagem.altura} sizes={sizes} className={estilos.imagem} />
+        <div key={i} className={estilos.moldura}>
+          <ImagemDaMidia variantes={imagem.variantes} alt={imagem.alt} largura={imagem.largura} altura={imagem.altura} sizes={sizes} className={estilos.imagem} />
+        </div>
       );
     }
     return <p key={i}>{trechos(bloco.trechos)}</p>;

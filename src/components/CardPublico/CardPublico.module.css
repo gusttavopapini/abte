@@ -5,7 +5,7 @@
   gap: var(--space-32);
   padding: calc(var(--card-padding) + 30px);
   color: var(--color-text);
-  border-radius: 5px;
+  border-radius: var(--radius);
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }

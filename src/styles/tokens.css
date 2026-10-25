@@ -79,7 +79,10 @@
   --control-min-height-mobile: 44px; /* AJUSTE APROVADO PELA DESIGNER */
 
   /* Forma */
-  --radius: 0; /* medido */
+  /* EXCEÇÃO DE DESIGN (25/10/2026, decisão do responsável): o design system
+     3.1 mede raio 0 (docs/tokens.css). Aplicado explicitamente em cada
+     elemento com caixa visível, nunca pelo reset universal. */
+  --radius: 10px;
   --shadow: none; /* observado */
 
   /* Fora dos tokens:

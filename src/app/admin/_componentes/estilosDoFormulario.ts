@@ -12,7 +12,7 @@ export const estiloRotulo: CSSProperties = { fontWeight: 500 };
 
 export const estiloEntrada: CSSProperties = {
   padding: "var(--space-12)",
-  borderRadius: "5px",
+  borderRadius: "var(--radius)",
   border: "1px solid color-mix(in srgb, var(--color-text) 20%, transparent)",
   background: "transparent",
   color: "var(--color-text)",

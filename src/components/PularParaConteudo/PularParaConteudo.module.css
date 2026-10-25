@@ -1,4 +1,5 @@
 .pular {
+  border-radius: var(--radius);
   position: absolute;
   top: var(--space-8);
   left: var(--space-8);

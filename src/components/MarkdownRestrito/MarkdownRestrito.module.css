@@ -1,5 +1,5 @@
-/* Conteúdo em Markdown restrito: só tokens, sem cor nova, sem raio e sem
-   sombra. Os títulos usam o estilo global de h2 e h3. O espaço entre os
+/* Conteúdo em Markdown restrito: só tokens, sem cor nova e sem sombra; as
+   imagens ficam num contêiner com o raio (exceção de design de 25/10/2026). Os títulos usam o estilo global de h2 e h3. O espaço entre os
    blocos vem do contêiner da página (gap). */
 .lista {
   padding-inline-start: var(--space-24);
@@ -17,6 +17,12 @@
 
 .negrito {
   font-weight: var(--font-weight-bold);
+}
+
+/* A imagem é cortada pelo raio do contêiner */
+.moldura {
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .imagem {

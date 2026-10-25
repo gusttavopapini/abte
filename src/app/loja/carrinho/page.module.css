@@ -25,6 +25,7 @@
 
 /* Resumo em #ADD8E6 (design-system.md: resumo do carrinho) */
 .resumo {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   align-items: flex-start;

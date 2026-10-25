@@ -25,6 +25,7 @@
 }
 
 .consentimento {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -42,6 +43,7 @@
 }
 
 .erro {
+  border-radius: var(--radius);
   padding: var(--space-8);
   background: var(--color-feedback-bg);
   color: var(--color-error);

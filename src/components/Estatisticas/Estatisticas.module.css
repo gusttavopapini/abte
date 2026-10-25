@@ -13,7 +13,7 @@
   min-height: calc(var(--space-96) * 2);
   padding: var(--card-padding);
   color: var(--color-text);
-  border-radius: 5px;
+  border-radius: var(--radius);
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }

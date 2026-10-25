@@ -4,6 +4,7 @@
 
 /* Faixa de versão preliminar: caixa branca, como as mensagens do site */
 .faixa {
+  border-radius: var(--radius);
   margin-bottom: var(--space-32);
   padding: var(--space-16);
   background: var(--color-feedback-bg);

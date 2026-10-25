@@ -5,7 +5,7 @@
   padding: calc(var(--panel-padding) + 25px);
   background: var(--color-contact-bg);
   color: var(--color-text);
-  border-radius: 5px;
+  border-radius: var(--radius);
 }
 
 .titulo {
