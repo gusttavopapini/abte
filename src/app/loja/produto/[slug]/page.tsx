@@ -91,7 +91,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
       {relacionados.length > 0 && (
         <section aria-labelledby="titulo-relacionados" {...revelar(estilos.relacionados)}>
           <h2 id="titulo-relacionados" className="tipo-h3">Produtos relacionados</h2>
-          <ul role="list" className={estilos.grade}>
+          <ul role="list" className="grade-de-cards">
             {relacionados.map((outro) => (
               <li key={outro.id}>
                 <CardProduto

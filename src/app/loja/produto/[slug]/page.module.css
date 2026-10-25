@@ -28,6 +28,7 @@
 }
 
 .selo {
+  border-radius: var(--radius);
   padding: var(--space-8) var(--space-16);
   background: var(--color-primary);
   color: var(--color-on-primary);
@@ -46,6 +47,7 @@
 /* Aviso "Em breve" (design-system.md): caixa com texto --font-size-text.
    Branca porque o fundo da página já é --color-bg-alt. */
 .aviso {
+  border-radius: var(--radius);
   width: 100%;
   padding: var(--card-padding);
   background: var(--color-bg);
@@ -66,20 +68,3 @@
 }
 
 /* Colunas: 1 no celular, 2 no tablet, 3 no desktop */
-.grade {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-32) var(--gutter);
-}
-
-@media (min-width: 768px) {
-  .grade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}

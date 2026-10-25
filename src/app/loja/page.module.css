@@ -24,6 +24,7 @@
 
 /* Filtro de categoria: link com o estado atual marcado (aria-current) */
 .filtro {
+  border-radius: var(--radius);
   display: inline-flex;
   gap: var(--space-8);
   align-items: center;
@@ -38,6 +39,7 @@
 /* Miniatura da categoria no filtro (decisão de 18/10/2026, exceção de design
    pendente da designer); sem imagem, quadrado vazio na cor suave */
 .miniatura {
+  border-radius: var(--radius);
   flex: 0 0 auto;
   width: var(--space-32);
   height: var(--space-32);
@@ -66,24 +68,9 @@
   margin-top: var(--space-32);
 }
 
-/* Colunas: 1 no celular, 2 no tablet, 3 no desktop (design-system.md seção 9) */
+/* Colunas e espaço entre os cards: classe global grade-de-cards */
 .grade {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-32) var(--gutter);
   margin-top: var(--space-32);
-}
-
-@media (min-width: 768px) {
-  .grade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .aviso {

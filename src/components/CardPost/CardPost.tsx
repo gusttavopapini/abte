@@ -14,9 +14,9 @@ type Props = {
   slug: string;
 };
 
-// Largura do card na grade de /blog (1, 2 e 3 colunas), para o navegador
+// Largura do card na grade de /blog (1, 2 e 4 colunas), para o navegador
 // escolher a variante da capa.
-const LARGURA_DA_CAPA = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+const LARGURA_DA_CAPA = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw";
 
 // Card de post do blog. Capa: a da biblioteca, senão a antiga, senão o
 // placeholder interno (sem serviço externo).

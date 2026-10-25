@@ -33,7 +33,7 @@ export default async function PaginaDiretoria() {
             grupos.map((grupo) => (
               <section key={grupo.periodo} className={estilos.grupo} aria-labelledby={`periodo-${grupo.periodo || "sem"}`}>
                 <h2 id={`periodo-${grupo.periodo || "sem"}`} className={`tipo-h2 ${estilos.periodo}`}>{tituloDoPeriodo(grupo.periodo)}</h2>
-                <ul role="list" {...revelar(estilos.grade)}>
+                <ul role="list" {...revelar("grade-de-cards")}>
                   {grupo.membros.map((membro) => (
                     <li key={membro.id}>
                       <CardMembroDiretoria nome={membro.nome} cargo={membro.cargo} foto={membro.fotoMidiaId ? fotos.get(membro.fotoMidiaId) ?? null : null} />

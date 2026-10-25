@@ -173,6 +173,29 @@ h3,
   white-space: nowrap;
 }
 
+/* Grade de cards (EXCEÇÃO DE DESIGN de 25/10/2026, decisão do responsável;
+   o design system 3.1 pede 3 colunas): 4 colunas a partir de 1024px, 2 de
+   768 a 1023px e 1 até 767px, com --space-24 entre os cards nas duas
+   direções. Os cards de uma linha ficam com a mesma altura (stretch). */
+.grade-de-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-items: stretch;
+}
+
+@media (max-width: 1023px) {
+  .grade-de-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .grade-de-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Movimento reduzido: nada anima ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,

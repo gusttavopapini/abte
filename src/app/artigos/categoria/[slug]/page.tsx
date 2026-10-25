@@ -54,7 +54,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
              </p>
           </div>
 
-          <div {...revelar(estilos.gradeTres)}>
+          <div {...revelar("grade-de-cards")}>
             {artigos.length === 0 ? (
               <p className={`tipo-texto ${estilos.vazio}`}>Nenhum artigo publicado nesta categoria ainda.</p>
             ) : (

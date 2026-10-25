@@ -75,7 +75,7 @@ export default function PaginaInicial() {
               />
             </div>
             <div {...revelar()}>
-              <PlaceholderImagem style={{ minHeight: "500px", height: "100%" }} />
+              <PlaceholderImagem style={{ minHeight: "500px", height: "100%", borderRadius: "var(--radius)" }} />
             </div>
           </div>
         </section>
@@ -88,10 +88,10 @@ export default function PaginaInicial() {
             </div>
           </div>
           
-          <div className={estilos.gradeQuatro}>
+          <div className={`grade-de-cards ${estilos.gradeQuatro}`}>
             {/* O Vídeo atuando como 1º card */}
             <div {...revelar()}>
-              <div style={{ aspectRatio: '9/16', background: 'var(--color-surface-soft)', borderRadius: '5px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div className={estilos.cardVideo}>
                 <PlaceholderImagem style={{ flex: 1, minHeight: '100%' }} />
               </div>
             </div>

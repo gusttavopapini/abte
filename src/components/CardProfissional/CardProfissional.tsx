@@ -21,9 +21,9 @@ export type ProfissionalDoCard = {
   foto: ImagemNaTela | null;
 };
 
-// Largura do card na grade de /profissionais (1, 2 e 3 colunas), para o
+// Largura do card na grade de /profissionais (1, 2 e 4 colunas), para o
 // navegador escolher a variante da foto.
-const LARGURA_DA_FOTO = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+const LARGURA_DA_FOTO = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw";
 
 // Card do diretório de profissionais. Com foto, mostra a imagem da biblioteca
 // (texto alternativo cadastrado nela); sem foto, o placeholder.
@@ -32,12 +32,11 @@ export function CardProfissional({ profissional }: { profissional: ProfissionalD
   const nomeCompleto = [tratamento, nome].filter(Boolean).join(" ");
   const novaAba = { target: "_blank", rel: "noopener noreferrer" } as const;
 
+  // Ordem fixa (padronização de 25/10/2026): foto, nome, registro, local,
+  // métodos, apresentação e, no fim do card, os contatos. Nada é escondido:
+  // com apresentação longa, o card cresce e os da mesma linha acompanham.
   return (
     <article className={estilos.card}>
-      <div className={estilos.cabecalho}>
-        <h3 className={estilos.nome}>{nomeCompleto}</h3>
-        {registro && <p className={estilos.especialidade}>{registro}</p>}
-      </div>
       <div className={estilos.imagemContainer}>
         {foto ? (
           <ImagemDaMidia variantes={foto.variantes} alt={foto.alt} largura={foto.largura} altura={foto.altura} sizes={LARGURA_DA_FOTO} className={estilos.imagem} />
@@ -45,13 +44,17 @@ export function CardProfissional({ profissional }: { profissional: ProfissionalD
           <PlaceholderImagem />
         )}
       </div>
+      <div className={estilos.cabecalho}>
+        <h3 className={estilos.nome}>{nomeCompleto}</h3>
+        {registro && <p className={estilos.especialidade}>{registro}</p>}
+      </div>
+      {local && <p className={estilos.texto}>{local}</p>}
+      {telerreabilitacao && <p className={estilos.texto}>Atende por telerreabilitação</p>}
       {metodos.length > 0 && (
         <ul role="list" aria-label="Métodos" className={estilos.metodos}>
           {metodos.map((metodo) => <li key={metodo} className={estilos.metodo}>{metodo}</li>)}
         </ul>
       )}
-      {local && <p className={estilos.texto}>{local}</p>}
-      {telerreabilitacao && <p className={estilos.texto}>Atende por telerreabilitação</p>}
       {bio && <p className={estilos.texto}>{bio}</p>}
       <ul role="list" aria-label={`Contatos de ${nomeCompleto}`} className={estilos.contatos}>
         {whatsapp && (

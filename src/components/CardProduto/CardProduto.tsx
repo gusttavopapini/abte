@@ -16,8 +16,8 @@ export type ProdutoDoCard = {
   imagem: ImagemNaTela | null;
 };
 
-// Largura do card na grade da loja e dos relacionados (1, 2 e 3 colunas).
-const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+// Largura do card na grade da loja e dos relacionados (1, 2 e 4 colunas).
+const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw";
 
 // Card de produto (design-system.md: imagem 3:4, selo em #00449F e preço
 // riscado). Imagem principal da galeria, cortada em 3:4; sem imagem, o placeholder.

@@ -11,9 +11,9 @@ type Props = {
   slug: string;
 };
 
-// Largura do card na grade de /artigos (1, 2 e 3 colunas), para o navegador
+// Largura do card na grade de /artigos (1, 2 e 4 colunas), para o navegador
 // escolher a variante.
-const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw";
+const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw";
 
 export function CardCategoriaArtigo({ nome, imagem, slug }: Props) {
   return (

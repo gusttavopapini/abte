@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   background-color: var(--color-bg);
-  border-radius: 5px;
+  border-radius: var(--radius);
   overflow: hidden;
+  height: 100%;
   transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -25,10 +26,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   display: block;
 }
 
+/* Fica no fim do card, alinhado entre os cards da mesma linha */
 .rodape {
+  margin-top: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -53,7 +53,7 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
         ))}
       </div>
 
-      <div {...revelar(estilos.grade)}>
+      <div {...revelar("grade-de-cards")}>
         {profissionaisFiltrados.map((profissional) => (
           <CardProfissional key={profissional.id} profissional={profissional} />
         ))}

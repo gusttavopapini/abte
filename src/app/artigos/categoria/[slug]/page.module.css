@@ -29,24 +29,6 @@
   font-weight: var(--font-weight-light);
 }
 
-.gradeTres {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-64) var(--space-32);
-}
-
-@media (min-width: 768px) {
-  .gradeTres {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .gradeTres {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 /* Aviso de lista vazia ocupando a linha toda da grade */
 .vazio {
   grid-column: 1 / -1;

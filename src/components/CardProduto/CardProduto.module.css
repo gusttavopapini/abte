@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  height: 100%;
 }
 
 /* Imagem 3:4, com o selo sobreposto no canto */
@@ -17,10 +18,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   display: block;
 }
 
 .selo {
+  border-radius: var(--radius);
   position: absolute;
   top: var(--space-16);
   left: var(--space-16);

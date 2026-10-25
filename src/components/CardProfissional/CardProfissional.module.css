@@ -1,7 +1,10 @@
+/* Coluna flex com a altura da linha da grade: os contatos ficam no fim
+   (margin-top: auto), alinhados entre os cards da mesma linha */
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  height: 100%;
 }
 
 .cabecalho {
@@ -23,13 +26,15 @@
   font-weight: var(--font-weight-light);
 }
 
+/* Foto sempre quadrada, do mesmo tamanho em todos os cards e cortada pelo
+   raio do contêiner; sem foto, o placeholder no mesmo quadrado */
 .imagemContainer {
   position: relative;
-  aspect-ratio: 1; /* Quadrado ou 3/4 dependendo da foto. Usando um valor próximo da referência */
+  aspect-ratio: 1 / 1;
   background-color: var(--color-surface-soft);
-  border-radius: 5px;
+  border-radius: var(--radius);
   overflow: hidden;
-  margin-top: var(--space-8);
+  margin-bottom: var(--space-8);
 }
 
 /* Foto cortada para o formato do card (seletor com duas classes para valer
@@ -38,6 +43,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Alinhada ao alto, para não cortar rostos */
+  object-position: center top;
   display: block;
 }
 
@@ -67,6 +74,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
+  margin-top: auto;
+  padding-top: var(--space-8);
 }
 
 /* Contatos: WhatsApp em destaque, os outros como o botão secundário */
@@ -93,10 +102,4 @@
 
 .contatoPrincipal:hover {
   background: var(--color-primary-hover);
-}
-
-@media (min-width: 768px) {
-  .imagemContainer {
-    aspect-ratio: 4 / 5;
-  }
 }

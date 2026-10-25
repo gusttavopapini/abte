@@ -66,7 +66,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
       {exibidos.length === 0 ? (
         <p className={`tipo-texto ${estilos.vazio}`}>Nenhum produto disponível ainda.</p>
       ) : (
-        <ul role="list" {...revelar(estilos.grade)}>
+        <ul role="list" {...revelar(`grade-de-cards ${estilos.grade}`)}>
           {exibidos.map((produto) => (
             <li key={produto.id}>
               <CardProduto
