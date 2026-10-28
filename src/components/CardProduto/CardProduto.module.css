@@ -1,16 +1,29 @@
+/* Molde do card do blog (CardPost), 28/10/2026: cartão branco com raio,
+   imagem no topo, conteúdo com o mesmo espaçamento e o mesmo hover. */
 .card {
+  /* Proporção da imagem do produto: mude só aqui. */
+  --proporcao-imagem-produto: 3 / 4;
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  background-color: var(--color-bg); /* O fundo da página é bg-alt, os cards são bg para destacar */
+  border-radius: var(--radius);
+  overflow: hidden;
   height: 100%;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-/* Imagem 3:4, com o selo sobreposto no canto */
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* Imagem no topo, com o selo sobreposto no canto */
 .imagem {
   position: relative;
-  aspect-ratio: 3 / 4;
+  width: 100%;
+  aspect-ratio: var(--proporcao-imagem-produto);
   overflow: hidden;
-  border-radius: var(--radius);
 }
 
 /* Seletor com duas classes para valer sobre o height: auto do ImagemDaMidia */
@@ -34,20 +47,26 @@
   line-height: var(--leading-normal);
 }
 
-.nome {
-  font-size: var(--font-size-text-lg);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--leading-normal);
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--card-padding);
+  gap: var(--space-16);
 }
 
-.link {
-  color: var(--color-text);
-  text-decoration: none;
+.conteudo .titulo {
+  color: var(--color-primary);
+  font-size: calc(var(--font-size-h3) * 0.85);
+  font-weight: var(--font-weight-light);
 }
 
-.link:hover {
-  color: var(--color-primary-hover);
-  text-decoration: underline;
+/* Preço, aviso de esgotado e botão ancorados no fim do card */
+.rodape {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: auto;
 }
 
 .esgotado {
@@ -56,11 +75,12 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* Celular: o link do nome tem área de toque mínima de 44px (28/10/2026). */
-@media (max-width: 767px) {
-  .link {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--control-min-height-mobile);
+.botaoVerProduto {
+  align-self: flex-start;
+}
+
+@media (min-width: 1024px) {
+  .conteudo .titulo {
+    font-size: var(--font-size-text-lg);
   }
 }

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import type { ImagemNaTela } from "@/lib/midia/tela";
@@ -19,9 +19,10 @@ export type ProdutoDoCard = {
 // Largura do card na grade da loja e dos relacionados (1, 2 e 4 colunas).
 const LARGURA_DA_IMAGEM = "(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw";
 
-// Card de produto (design-system.md: imagem 3:4, selo em #00449F e preço
-// riscado). Imagem principal da galeria, cortada em 3:4; sem imagem, o placeholder.
-// nivelDoTitulo: h2 na lista da loja, h3 nos relacionados.
+// Card de produto no molde do card do blog (28/10/2026): cartão branco,
+// imagem no topo (3:4, com o selo no canto), título, preço, aviso de esgotado
+// e o botão "Ver produto" no fim, que é o único link do card. Sem compra nem
+// carrinho aqui. nivelDoTitulo: h2 na lista da loja, h3 nos relacionados e na home.
 export function CardProduto({ produto, nivelDoTitulo = 2 }: { produto: ProdutoDoCard; nivelDoTitulo?: 2 | 3 }) {
   const Titulo = nivelDoTitulo === 2 ? "h2" : "h3";
   return (
@@ -41,13 +42,18 @@ export function CardProduto({ produto, nivelDoTitulo = 2 }: { produto: ProdutoDo
         )}
         {produto.selo && <span className={estilos.selo}>{produto.selo}</span>}
       </div>
-      <Titulo className={estilos.nome}>
-        <Link href={`/loja/produto/${produto.slug}`} className={estilos.link}>
-          {produto.nome}
-        </Link>
-      </Titulo>
-      <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} />
-      {produto.esgotado && <p className={estilos.esgotado}>Esgotado</p>}
+      <div className={estilos.conteudo}>
+        <Titulo className={`tipo-h3 ${estilos.titulo}`}>{produto.nome}</Titulo>
+        {/* Preço, aviso e botão ficam juntos no fim do card, alinhados entre
+            os cards da mesma linha, qualquer que seja o tamanho do título. */}
+        <div className={estilos.rodape}>
+          <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} />
+          {produto.esgotado && <p className={estilos.esgotado}>Esgotado</p>}
+          <Botao href={`/loja/produto/${produto.slug}`} variante="primario" className={estilos.botaoVerProduto}>
+            Ver produto<span className="somente-leitor">: {produto.nome}</span>
+          </Botao>
+        </div>
+      </div>
     </article>
   );
 }
