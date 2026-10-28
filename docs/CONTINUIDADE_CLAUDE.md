@@ -31,9 +31,9 @@ Reconstrução do portal da **ABTE, Associação Brasileira de Tratamento da Esc
 | GitHub | Repositório `abte` |
 | Site público validado | [Portal da ABTE](https://abte-lovat.vercel.app) |
 | Branch de trabalho | `feature/midia-upload` |
-| Último commit de implementação na `main` | `8aa4f16` (a `main` está em `040e669`, só documentação a mais) |
-| Trabalho só na branch | Popup dos profissionais (28/10), sem promover |
-| Último deployment de produção conferido | `7395613481` (commit `040e669`) |
+| Último commit na `main` | `fe30984` (popup dos profissionais, promovido em 28/10) |
+| Trabalho só na branch | Produtos em destaque na home (28/10), sem promover |
+| Último deployment de produção conferido | `7396359787` (commit `fe30984`) |
 | Aplicação | Next.js 16.3.6, App Router, React 19.2.8, TypeScript estrito |
 | Aparência | CSS Modules, componentes próprios, Public Sans e tokens CSS |
 | Serviços | Firebase Authentication, Firestore, Storage e Admin SDK |
@@ -116,7 +116,7 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Conferidos 390, 768, 1024, 1280 e 1710 px, sem overflow ou etiquetas cortadas; hover e foco por teclado verificados.
 - TypeScript, linters dos arquivos alterados e compilação isolada com Webpack aprovados; contraste das cores conferido. Nenhum contato externo foi acionado.
 
-### Popup dos profissionais (28/10, só na branch, sem promover)
+### Popup dos profissionais (28/10, promovido para a `main`)
 
 - Card curto: a apresentação aparece em até 140 caracteres, cortada no fim de uma palavra, com "…" (`resumirTexto` em `src/lib/texto.ts`); o texto que cabe fica como está.
 - Foto, nome, registro, local, telerreabilitação, etiquetas e contatos continuam iguais. Os contatos seguem logo depois das etiquetas; o botão "Ver mais" fica no fim de todo card, alinhado embaixo, com nome acessível "Ver mais sobre {nome}".
@@ -125,7 +125,17 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Só campos públicos vão ao navegador (`paraProfissionalPublico`, lista fechada com testes); nada de revisão, origem da migração ou conferência de menores.
 - Medido: 22 dos 96 profissionais têm apresentação acima de 140 caracteres; a maior tem 723.
 - Validação: `test:unidade` 287, `test:regras` 91, `test:sessao` 127 (505), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/popup-profissionais/`.
-- Commits `3e3a4ad`, `431662c` e a documentação, enviados só para `feature/midia-upload`. Promover para a `main` exige o "pode promover" do responsável.
+- Commits `3e3a4ad`, `431662c` e `fe30984`, promovidos para a `main` em 28/10 com autorização explícita (deployment de Produção `7396359787`, conferido em produção em 390 e 1280 px).
+
+### Produtos em destaque na home (28/10, só na branch, sem promover)
+
+- Section nova na home, entre os números ("Mutirões que Transformam Vidas") e "Quem Somos" (posição escolhida pelo responsável, porque a home não tinha section de blog, loja nem profissionais).
+- Conteúdo: H2 "Produtos em destaque", o texto "Cartilhas e materiais educativos da ABTE sobre escoliose.", até 4 cards da loja (o mesmo `CardProduto`, com imagem 3:4, selo, nome com link e preço riscado quando há promoção) e o botão "Ver todos os produtos" para `/loja`. Sem compra nem carrinho.
+- Regra (`escolherProdutosEmDestaque` em `src/lib/produtos.ts`): publicados, fora da lixeira, disponíveis e com imagem; primeiro os com selo, depois a ordem da loja; até 4. Sem nenhum, a section não aparece. Se a leitura falhar, a home abre sem ela.
+- Hoje entram os 2 pacotes de cartilhas com selo "MONTE SEU KIT", o e-book e o banner digital (com preço riscado).
+- No celular, o link do nome do produto ganhou 44px de altura mínima (vale também na `/loja`).
+- Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/home-produtos-em-destaque/`.
+- Commits `765b782`, `25f7c36` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -176,8 +186,8 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: **`040e669`** (documentação de continuidade, publicada em 28/10 com autorização explícita; deployment `7395613481`).
-- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com o popup dos profissionais (28/10), enviada só para `origin/feature/midia-upload`.
+- `origin/main`: **`fe30984`** (popup dos profissionais, promovido em 28/10 com autorização explícita; deployment `7396359787`).
+- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home (28/10), enviada só para `origin/feature/midia-upload`.
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
@@ -191,6 +201,7 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 - Testes da busca: `testes/unidade/busca-blog.test.mts`.
 - Profissionais: `src/components/CardProfissional/`, `PopupProfissional/`, `ContatosProfissional/`, `MetodosProfissional/`, `src/components/Modal/`, `src/lib/texto.ts`, `src/lib/profissionaisPublicos.ts`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
 - Testes do card e do popup: `testes/unidade/profissionais-publicos.test.mts`.
+- Home, produtos em destaque: `src/app/page.tsx`, `page.module.css`, `escolherProdutosEmDestaque` em `src/lib/produtos.ts` e os testes em `testes/unidade/produtos.test.mts`.
 - Dados e acesso: `src/lib/dados/`, `src/lib/gravacao/`, `src/lib/auth/` e `src/lib/firebase/`.
 - Migração: `scripts/`, `src/lib/migracao/`, `docs/dados-privados/` e `tmp-migracao/`.
 
@@ -211,7 +222,7 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
 As sete falhas históricas de Stylelint em Botao/Hero/Modal não foram corrigidas nesta colaboração. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
