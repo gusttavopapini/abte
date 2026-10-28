@@ -1,5 +1,11 @@
 # ABTE: site e painel em código próprio
 
+## Continuidade atual (28/10/2026)
+
+O responsável pediu para continuar no Claude. Leia primeiro [docs/CONTINUIDADE_CLAUDE.md](docs/CONTINUIDADE_CLAUDE.md): ele reúne o projeto, tudo o que foi feito nesta colaboração, o último código publicado (`8aa4f16`) e as pendências reais.
+
+Os 71 posts e cinco artigos já foram publicados em 28/10; busca do blog e novos cards dos profissionais também estão no ar. A `main` local ainda é antiga, enquanto `origin/main` e a branch de trabalho estão atualizadas. As seções antigas abaixo preservam o histórico e não devem ser tomadas como fila de comandos a repetir. A preferência anterior por executar somente no Codex foi substituída pelo pedido mais recente.
+
 ## Resumo do projeto
 
 Reconstrução do site da **ABTE, Associação Brasileira de Tratamento da Escoliose**, que hoje está no Wix, em código próprio (saída 100% do Wix). O site público mostra conteúdo institucional, diretório de profissionais, blog, artigos, loja (só vitrine) e doação. O conteúdo é mantido por um **painel administrativo sob medida** (sem CMS pronto), com dois papéis: **administrador** (acesso total, inclusive usuários e configurações) e **editor** (cadastra e edita conteúdo).
