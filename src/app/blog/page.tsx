@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
 import estilos from "./page.module.css";
@@ -9,6 +10,7 @@ import { lerMarkdownRestrito, textoDoMarkdown } from "@/lib/markdownRestrito";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { capaParaExibir } from "@/lib/capaDoPost";
 import { revelar } from "@/components/Revelar/revelar";
+import { enderecoDoBlog, filtrarPostsPorBusca, lerTermoDeBusca, LIMITE_DA_BUSCA } from "@/lib/buscaBlog";
 
 export const metadata = { title: "Blog" };
 
@@ -29,7 +31,7 @@ function resumoDoPost(post: Post): string {
   return `${ultimaPalavra > 0 ? previa.slice(0, ultimaPalavra) : previa}…`;
 }
 
-export default async function PaginaBlog({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
+export default async function PaginaBlog({ searchParams }: { searchParams: Promise<{ categoria?: string | string[]; busca?: string | string[] }> }) {
   // Coleção pequena: ordenada na memória pela data de publicação original
   // (posts importados) ou, sem ela, pela criação.
   const [snapshot, categorias] = await Promise.all([lerPosts().get(), listarTopicosAtivos("categoriaDePost")]);
@@ -38,8 +40,12 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
   // Filtros: categorias ativas com post publicado (lib/topicos.ts). Slug
   // desconhecido ou de categoria oculta mostra todos.
   const filtros = categoriasComPublicados(categorias, todosPublicados);
-  const filtro = categoriaDoFiltro(filtros, (await searchParams).categoria);
-  const publicados = filtro ? todosPublicados.filter((post) => post.categoria === filtro.id) : todosPublicados;
+  const parametros = await searchParams;
+  const categoria = Array.isArray(parametros.categoria) ? parametros.categoria[0] : parametros.categoria;
+  const filtro = categoriaDoFiltro(filtros, categoria);
+  const busca = lerTermoDeBusca(parametros.busca);
+  const daCategoria = filtro ? todosPublicados.filter((post) => post.categoria === filtro.id) : todosPublicados;
+  const publicados = filtrarPostsPorBusca(daCategoria, busca);
   // Capas fora da lixeira da biblioteca; com capaMidiaId sem imagem, placeholder.
   const capas = await imagensAtivasPorId(publicados.map((post) => post.capaMidiaId));
 
@@ -65,17 +71,36 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
             <p className={`tipo-texto-lg ${estilos.descricao}`}>
               Este é o espaço para oferecermos artigos, guias e materiais valiosos. Ajude a espalhar conhecimento verdadeiro e com base científica sobre a escoliose.
             </p>
+            <Form action="/blog" role="search" aria-label="Buscar no blog" className={estilos.busca} key={`${filtro?.slug ?? "todos"}:${busca}`}>
+              <label htmlFor="busca-blog" className="somente-leitor">Buscar no blog</label>
+              {filtro && <input type="hidden" name="categoria" value={filtro.slug} />}
+              <input
+                id="busca-blog"
+                name="busca"
+                type="search"
+                placeholder="Buscar no blog"
+                defaultValue={busca}
+                maxLength={LIMITE_DA_BUSCA}
+                className={estilos.campoBusca}
+              />
+              <button type="submit" className={estilos.botaoBusca} aria-label="Buscar publicações">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="m16 16 5 5" />
+                </svg>
+              </button>
+            </Form>
           </div>
 
           {filtros.length > 0 && (
             <nav aria-label="Categorias do blog" className={estilos.filtros}>
               <ul role="list" className={estilos.listaDeFiltros}>
                 <li>
-                  <Link href="/blog" className={estilos.filtro} aria-current={filtro ? undefined : "page"}>Todos</Link>
+                  <Link href={enderecoDoBlog(undefined, busca)} className={estilos.filtro} aria-current={filtro ? undefined : "page"}>Todos</Link>
                 </li>
                 {filtros.map((categoria) => (
                   <li key={categoria.id}>
-                    <Link href={`/blog?categoria=${categoria.slug}`} className={estilos.filtro} aria-current={filtro?.id === categoria.id ? "page" : undefined}>
+                    <Link href={enderecoDoBlog(categoria.slug, busca)} className={estilos.filtro} aria-current={filtro?.id === categoria.id ? "page" : undefined}>
                       {categoria.nome}
                     </Link>
                   </li>
@@ -84,9 +109,18 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
             </nav>
           )}
 
+          {busca && (
+            <div className={estilos.resultadoBusca} role="status">
+              <p>{posts.length} {posts.length === 1 ? "publicação encontrada" : "publicações encontradas"} para “{busca}”.</p>
+              <Link href={enderecoDoBlog(filtro?.slug)} className={estilos.limparBusca}>Limpar busca</Link>
+            </div>
+          )}
+
           <div {...revelar("grade-de-cards")}>
             {posts.length === 0 ? (
-              <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px 0", opacity: 0.6 }}>Nenhum post publicado ainda.</p>
+              <p className={estilos.vazio}>
+                {busca ? "Nenhuma publicação corresponde à busca. Tente outra palavra ou escolha outra categoria." : "Nenhum post publicado ainda."}
+              </p>
             ) : (
               posts.map((post) => (
                 <CardPost 

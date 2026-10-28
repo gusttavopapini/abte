@@ -8,13 +8,12 @@
 }
 
 .cabecalho {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   text-align: left;
   gap: var(--space-24);
   margin-bottom: var(--space-64);
-  max-width: 800px;
 }
 
 .titulo {
@@ -23,8 +22,115 @@
 }
 
 .descricao {
+  max-width: 800px;
   color: var(--color-primary);
   font-weight: var(--font-weight-light);
+}
+
+.busca {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.busca:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.campoBusca:focus-visible,
+.botaoBusca:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.campoBusca {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-min-height-mobile);
+  padding-inline: var(--space-16);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.campoBusca::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.botaoBusca {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--control-min-height-mobile);
+  min-height: var(--control-min-height-mobile);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.botaoBusca:hover {
+  background: var(--color-bg-alt);
+}
+
+.botaoBusca:focus-visible {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.botaoBusca svg {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.resultadoBusca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-8) var(--space-16);
+  margin-bottom: var(--space-24);
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  overflow-wrap: anywhere;
+}
+
+.limparBusca {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.vazio {
+  grid-column: 1 / -1;
+  padding-block: var(--space-32);
+  color: var(--color-primary);
+}
+
+@media (min-width: 1024px) {
+  .cabecalho {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    column-gap: var(--space-32);
+  }
+
+  .cabecalho .titulo {
+    grid-column: 1 / -1;
+    font-size: calc(var(--font-size-h1) * 0.85);
+  }
+
+  .busca {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }
 
 /* Filtros por categoria (25/10/2026): links com o estado atual marcado

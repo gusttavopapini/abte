@@ -57,3 +57,9 @@
 .botaoLerMais {
   align-self: flex-start;
 }
+
+@media (min-width: 1024px) {
+  .conteudo .titulo {
+    font-size: var(--font-size-text-lg);
+  }
+}
