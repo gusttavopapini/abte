@@ -32,7 +32,7 @@ Reconstrução do portal da **ABTE, Associação Brasileira de Tratamento da Esc
 | Site público validado | [Portal da ABTE](https://abte-lovat.vercel.app) |
 | Branch de trabalho | `feature/midia-upload` |
 | Último commit na `main` | `fe30984` (popup dos profissionais, promovido em 28/10) |
-| Trabalho só na branch | Produtos em destaque na home (28/10), sem promover |
+| Trabalho só na branch | Produtos em destaque na home e card de produto no molde do blog (28/10), sem promover |
 | Último deployment de produção conferido | `7396359787` (commit `fe30984`) |
 | Aplicação | Next.js 16.3.6, App Router, React 19.2.8, TypeScript estrito |
 | Aparência | CSS Modules, componentes próprios, Public Sans e tokens CSS |
@@ -133,9 +133,18 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Conteúdo: H2 "Produtos em destaque", o texto "Cartilhas e materiais educativos da ABTE sobre escoliose.", até 4 cards da loja (o mesmo `CardProduto`, com imagem 3:4, selo, nome com link e preço riscado quando há promoção) e o botão "Ver todos os produtos" para `/loja`. Sem compra nem carrinho.
 - Regra (`escolherProdutosEmDestaque` em `src/lib/produtos.ts`): publicados, fora da lixeira, disponíveis e com imagem; primeiro os com selo, depois a ordem da loja; até 4. Sem nenhum, a section não aparece. Se a leitura falhar, a home abre sem ela.
 - Hoje entram os 2 pacotes de cartilhas com selo "MONTE SEU KIT", o e-book e o banner digital (com preço riscado).
-- No celular, o link do nome do produto ganhou 44px de altura mínima (vale também na `/loja`).
+- No celular, o link do nome do produto ganhou 44px de altura mínima. Superado no mesmo dia: com o card no molde do blog, o título deixou de ser link.
 - Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/home-produtos-em-destaque/`.
 - Commits `765b782`, `25f7c36` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
+
+### Card de produto no molde do blog (28/10, só na branch, sem promover)
+
+- O `CardProduto` (o mesmo componente, usado na `/loja`, nos relacionados e na home) ficou no formato do `CardPost`: cartão branco com raio, imagem no topo, conteúdo com o mesmo espaçamento e o mesmo hover.
+- Ordem: título (mesma escala do blog), preço (com o riscado), "Esgotado" quando houver e o botão "Ver produto" no fim, alinhado embaixo em todos os cards da linha.
+- Só o botão é link, com o nome acessível "Ver produto: {nome}"; o título não é mais link.
+- Imagem 3:4 com o selo no canto. A proporção fica na variável `--proporcao-imagem-produto`, em `src/components/CardProduto/CardProduto.module.css`: mude ali para trocar em todos os usos.
+- Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px (loja, produto com relacionados e home) sem falha; capturas em `tmp-migracao/capturas/cards-produto-molde-blog/`.
+- Commit `6fbfc7b` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -187,7 +196,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 Na conferência de preparação deste resumo:
 
 - `origin/main`: **`fe30984`** (popup dos profissionais, promovido em 28/10 com autorização explícita; deployment `7396359787`).
-- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home (28/10), enviada só para `origin/feature/midia-upload`.
+- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home e o card de produto no molde do blog (28/10), enviada só para `origin/feature/midia-upload`.
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
@@ -201,6 +210,7 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 - Testes da busca: `testes/unidade/busca-blog.test.mts`.
 - Profissionais: `src/components/CardProfissional/`, `PopupProfissional/`, `ContatosProfissional/`, `MetodosProfissional/`, `src/components/Modal/`, `src/lib/texto.ts`, `src/lib/profissionaisPublicos.ts`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
 - Testes do card e do popup: `testes/unidade/profissionais-publicos.test.mts`.
+- Card de produto: `src/components/CardProduto/` (variável `--proporcao-imagem-produto`).
 - Home, produtos em destaque: `src/app/page.tsx`, `page.module.css`, `escolherProdutosEmDestaque` em `src/lib/produtos.ts` e os testes em `testes/unidade/produtos.test.mts`.
 - Dados e acesso: `src/lib/dados/`, `src/lib/gravacao/`, `src/lib/auth/` e `src/lib/firebase/`.
 - Migração: `scripts/`, `src/lib/migracao/`, `docs/dados-privados/` e `tmp-migracao/`.
@@ -222,7 +232,7 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
 As sete falhas históricas de Stylelint em Botao/Hero/Modal não foram corrigidas nesta colaboração. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
