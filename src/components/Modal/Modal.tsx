@@ -8,6 +8,11 @@ type PropsModal = {
   aoFechar: () => void;
   titulo: string;
   children: ReactNode;
+  // "larga" para conteúdo maior (popup dos profissionais); o padrão é 500px.
+  largura?: "padrao" | "larga";
+  // Onde o foco entra ao abrir: no primeiro campo do conteúdo (padrão) ou no
+  // botão de fechar, quando o conteúdo é longo e começa com texto.
+  focoInicial?: "conteudo" | "fechar";
 };
 
 const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -15,15 +20,17 @@ const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), select
 // Janela sobre a página. Acessível por teclado: Esc fecha, o foco entra no
 // primeiro campo ao abrir, fica preso dentro da janela e volta para quem a
 // abriu ao fechar. A página de fundo não rola.
-export function Modal({ aberto, aoFechar, titulo, children }: PropsModal) {
+export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", focoInicial = "conteudo" }: PropsModal) {
   const idTitulo = useId();
   const janelaRef = useRef<HTMLDivElement>(null);
   // aoFechar muda a cada renderização de quem usa o Modal; a referência evita
   // repetir o efeito (e roubar o foco) enquanto a janela está aberta.
   const aoFecharRef = useRef(aoFechar);
+  const focoInicialRef = useRef(focoInicial);
   useEffect(() => {
     aoFecharRef.current = aoFechar;
-  }, [aoFechar]);
+    focoInicialRef.current = focoInicial;
+  }, [aoFechar, focoInicial]);
 
   useEffect(() => {
     if (!aberto) return;
@@ -32,8 +39,8 @@ export function Modal({ aberto, aoFechar, titulo, children }: PropsModal) {
 
     const focaveis = janelaRef.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
     // O primeiro focável é o botão de fechar; o foco vai para o primeiro campo
-    // ou botão do conteúdo, se houver.
-    (focaveis?.[1] ?? focaveis?.[0])?.focus();
+    // ou botão do conteúdo, se houver, ou fica no fechar, se pedido.
+    (focoInicialRef.current === "fechar" ? focaveis?.[0] : focaveis?.[1] ?? focaveis?.[0])?.focus();
 
     function aoTeclar(evento: globalThis.KeyboardEvent) {
       if (evento.key === "Escape") aoFecharRef.current();
@@ -71,7 +78,7 @@ export function Modal({ aberto, aoFechar, titulo, children }: PropsModal) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={idTitulo}
-        className={estilos.modal}
+        className={`${estilos.modal} ${largura === "larga" ? estilos.larga : ""}`}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={prenderFoco}
       >

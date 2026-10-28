@@ -65,3 +65,24 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Fechar com área de toque mínima de 44px (28/10/2026). */
+.botaoFechar {
+  min-width: var(--control-min-height-mobile);
+  min-height: var(--control-min-height-mobile);
+  border-radius: var(--radius);
+}
+
+/* Janela larga (popup dos profissionais, 28/10/2026): o conteúdo longo rola
+   dentro dela, com o título e o fechar sempre à vista. */
+.larga {
+  max-width: 880px;
+}
+
+.larga .cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  gap: var(--space-16);
+  background: var(--color-bg);
+}

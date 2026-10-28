@@ -1,0 +1,41 @@
+/* Etiquetas de método: mesmos estilos no card e no popup. */
+.metodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space-8) / 2);
+  margin-top: calc(var(--space-8) / 2);
+}
+
+.metodo {
+  --cor-metodo: var(--color-primary);
+
+  padding: calc(var(--space-8) / 4) var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--cor-metodo) 15%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--cor-metodo) 10%, var(--color-bg));
+  color: var(--cor-metodo);
+  font-size: var(--font-size-tag);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-compact);
+  overflow-wrap: anywhere;
+}
+
+.metodo[data-metodo="Schroth ISST"] {
+  --cor-metodo: var(--color-method-schroth);
+}
+
+.metodo[data-metodo="BSPTS Conceito Rigo"] {
+  --cor-metodo: var(--color-method-rigo);
+}
+
+.metodo[data-metodo="SEAS"] {
+  --cor-metodo: var(--color-method-seas);
+}
+
+.metodo[data-metodo="SSOL"] {
+  --cor-metodo: var(--color-method-ssol);
+}
+
+.metodo[data-metodo="Lyon"] {
+  --cor-metodo: var(--color-method-lyon);
+}

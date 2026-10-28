@@ -1,23 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CardProfissional, type ProfissionalDoCard } from "@/components/CardProfissional/CardProfissional";
+import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
+import { PopupProfissional } from "@/components/PopupProfissional/PopupProfissional";
 import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
+import type { ProfissionalPublico } from "@/lib/profissionaisPublicos";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
 
 const TODOS = "Todos";
 const OPCOES_DO_FILTRO: readonly string[] = [TODOS, ...TAGS_DE_PROFISSIONAIS];
 
-export type ProfissionalPublico = ProfissionalDoCard & {
-  id: string;
-  // Tipo do profissional, usado pelo filtro (?tag=...).
-  tipo: string;
-};
-
-// Filtro por tag e grade de cards da página /profissionais. A tag escolhida
-// fica no endereço (?tag=...), para o link do submenu abrir já filtrado.
+// Filtro por tag, grade de cards e popup de detalhes da página /profissionais.
+// A tag escolhida fica no endereço (?tag=...), para o link do submenu abrir já
+// filtrado. Recebe só os campos públicos (paraProfissionalPublico).
 export function ProfissionaisClient({ profissionais }: { profissionais: ProfissionalPublico[] }) {
+  const [aberto, setAberto] = useState<ProfissionalPublico | null>(null);
   const parametros = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -55,9 +54,11 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
 
       <div {...revelar("grade-de-cards")}>
         {profissionaisFiltrados.map((profissional) => (
-          <CardProfissional key={profissional.id} profissional={profissional} />
+          <CardProfissional key={profissional.id} profissional={profissional} aoVerMais={() => setAberto(profissional)} />
         ))}
       </div>
+
+      <PopupProfissional profissional={aberto} aoFechar={() => setAberto(null)} />
     </>
   );
 }

@@ -1,0 +1,61 @@
+/* Contatos do profissional: mesmos estilos no card e no popup. */
+.contatos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: 0;
+  padding-top: calc(var(--space-8) / 2);
+}
+
+.contato {
+  --cor-contato: var(--color-primary);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--space-8) / 2);
+  min-height: var(--control-min-height-mobile);
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--cor-contato) 20%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--cor-contato) 9%, var(--color-bg));
+  color: var(--cor-contato);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-compact);
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.contato:hover,
+.contato:focus-visible {
+  background: var(--cor-contato);
+  color: var(--color-on-primary);
+}
+
+.iconeContato {
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+.whatsapp {
+  --cor-contato: var(--color-social-whatsapp);
+}
+
+.instagram {
+  --cor-contato: var(--color-social-instagram);
+}
+
+.facebook {
+  --cor-contato: var(--color-social-facebook);
+}
+
+.email {
+  --cor-contato: var(--color-social-email);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contato {
+    transition: none;
+  }
+}
