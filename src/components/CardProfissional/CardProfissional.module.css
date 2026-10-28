@@ -1,49 +1,63 @@
-/* Coluna flex com a altura da linha da grade: os contatos ficam no fim
-   (margin-top: auto), alinhados entre os cards da mesma linha */
+/* Um cartão reúne foto, informações, etiquetas e contatos. */
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
   height: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  overflow: hidden;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.card:hover,
+.card:focus-within {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-8) / 2);
+  padding: var(--card-padding);
+  min-width: 0;
 }
 
 .cabecalho {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .nome {
+  margin-bottom: var(--space-16);
   font-size: var(--font-size-text-xl);
   color: var(--color-primary);
   font-weight: var(--font-weight-light);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-snug);
 }
 
-.especialidade {
+.especialidade,
+.texto {
+  color: var(--color-text);
   font-size: var(--font-size-small);
-  color: var(--color-primary);
   font-weight: var(--font-weight-light);
+  line-height: var(--leading-compact);
 }
 
-/* Foto sempre quadrada, do mesmo tamanho em todos os cards e cortada pelo
-   raio do contêiner; sem foto, o placeholder no mesmo quadrado */
+/* A foto permanece quadrada, com o recorte alinhado ao alto. */
 .imagemContainer {
   position: relative;
   aspect-ratio: 1 / 1;
   background-color: var(--color-surface-soft);
-  border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: var(--space-8);
 }
 
-/* Foto cortada para o formato do card (seletor com duas classes para valer
-   sobre o height: auto do ImagemDaMidia) */
 .imagemContainer .imagem {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Alinhada ao alto, para não cortar rostos */
   object-position: center top;
   display: block;
 }
@@ -51,55 +65,108 @@
 .metodos {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
+  gap: calc(var(--space-8) / 2);
+  margin-top: calc(var(--space-8) / 2);
 }
 
-/* Etiqueta de método (design-system.md: etiquetas em #ADD8E6) */
 .metodo {
-  padding: var(--space-8);
+  --cor-metodo: var(--color-primary);
+
+  padding: calc(var(--space-8) / 4) var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--cor-metodo) 15%, transparent);
   border-radius: var(--radius);
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-  font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
+  background: color-mix(in srgb, var(--cor-metodo) 10%, var(--color-bg));
+  color: var(--cor-metodo);
+  font-size: var(--font-size-tag);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-compact);
+  overflow-wrap: anywhere;
 }
 
-.texto {
-  color: var(--color-text);
-  font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
+.metodo[data-metodo="Schroth ISST"] {
+  --cor-metodo: var(--color-method-schroth);
+}
+
+.metodo[data-metodo="BSPTS Conceito Rigo"] {
+  --cor-metodo: var(--color-method-rigo);
+}
+
+.metodo[data-metodo="SEAS"] {
+  --cor-metodo: var(--color-method-seas);
+}
+
+.metodo[data-metodo="SSOL"] {
+  --cor-metodo: var(--color-method-ssol);
+}
+
+.metodo[data-metodo="Lyon"] {
+  --cor-metodo: var(--color-method-lyon);
 }
 
 .contatos {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
-  margin-top: auto;
-  padding-top: var(--space-8);
+  margin-top: 0;
+  padding-top: calc(var(--space-8) / 2);
 }
 
-/* Contatos: WhatsApp em destaque, os outros como o botão secundário */
 .contato {
+  --cor-contato: var(--color-primary);
+
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: calc(var(--space-8) / 2);
   min-height: var(--control-min-height-mobile);
-  padding: var(--space-8) var(--space-16);
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--cor-contato) 20%, transparent);
   border-radius: var(--radius);
-  background: var(--color-surface-soft);
-  color: var(--color-text);
+  background: color-mix(in srgb, var(--cor-contato) 9%, var(--color-bg));
+  color: var(--cor-contato);
   font-size: var(--font-size-small);
+  line-height: var(--leading-compact);
   text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.contato:hover {
-  text-decoration: underline;
-}
-
-.contatoPrincipal {
-  background: var(--color-primary);
+.contato:hover,
+.contato:focus-visible {
+  background: var(--cor-contato);
   color: var(--color-on-primary);
 }
 
-.contatoPrincipal:hover {
-  background: var(--color-primary-hover);
+.iconeContato {
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+.whatsapp {
+  --cor-contato: var(--color-social-whatsapp);
+}
+
+.instagram {
+  --cor-contato: var(--color-social-instagram);
+}
+
+.facebook {
+  --cor-contato: var(--color-social-facebook);
+}
+
+.email {
+  --cor-contato: var(--color-social-email);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .contato {
+    transition: none;
+  }
 }

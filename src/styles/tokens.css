@@ -30,6 +30,17 @@
   --color-neutral: #6B7280; /* PAINEL; uso não observado */
   --color-icon-social: #000000; /* medido */
 
+  /* Cards de profissionais: cores por método e contato (pedido de 28/10/2026). */
+  --color-method-schroth: #2456A6;
+  --color-method-rigo: #7442A8;
+  --color-method-seas: #136B5D;
+  --color-method-ssol: #94501B;
+  --color-method-lyon: #9A3657;
+  --color-social-whatsapp: #126B4D;
+  --color-social-instagram: #A62F70;
+  --color-social-facebook: #185ABD;
+  --color-social-email: #43566F;
+
   /* Foco */
   --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #00449F; /* AJUSTE APROVADO PELA DESIGNER; usar em box-shadow com outline: none */
 
@@ -46,12 +57,14 @@
   --font-size-text-lg: clamp(1.125rem, 1.014rem + 0.455vw, 1.5rem); /* max medido 23.5; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-text: clamp(1rem, 0.926rem + 0.303vw, 1.25rem); /* max medido 20; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-small: clamp(0.875rem, 0.838rem + 0.152vw, 1rem); /* max medido 15.5; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-tag: 0.75rem; /* Etiquetas discretas de métodos dos profissionais. */
   --tracking-heading: -0.04em; /* medido -0.044em */
   --tracking-h3: -0.025em; /* medido -0.026em */
   --tracking-text: 0; /* medido */
   --leading-tight: 0.9; /* medido; H1 do hero */
   --leading-snug: 1.05; /* medido 1.03 a 1.06; H2 e texto extra grande */
   --leading-normal: 1.4; /* medido 1.4 a 1.43; texto e texto grande */
+  --leading-compact: 1.25; /* Dados e etiquetas dos cards de profissionais. */
 
   /* Espaçamento */
   --space-8: 8px; /* medido (calha About; logos 10.5) */
