@@ -164,3 +164,27 @@ export function precoAtual(produto: { preco: number; precoPromocional: number | 
 export function escolherRelacionados<T extends { id: string; categoria: string }>(produto: T, visiveis: T[], limite = 3): T[] {
   return visiveis.filter((outro) => outro.id !== produto.id && outro.categoria === produto.categoria).slice(0, limite);
 }
+
+export const LIMITE_DE_PRODUTOS_EM_DESTAQUE = 4;
+
+type ProdutoParaDestaque = {
+  nome: string;
+  ordem: number;
+  selo: string;
+  status: "disponivel" | "esgotado";
+  publicado: boolean;
+  excluidoEm: Date | null;
+  imagens: ImagemDoProduto[];
+};
+
+// Produtos em destaque na home (28/10/2026): só publicados, fora da lixeira,
+// disponíveis e com imagem da biblioteca (temImagem diz se a galeria tem uma
+// imagem ativa). Primeiro os com selo, depois os outros; dentro de cada grupo,
+// a ordem da loja (ordem e, no empate, o nome). Até `limite`; pode ser vazio.
+export function escolherProdutosEmDestaque<T extends ProdutoParaDestaque>(produtos: T[], temImagem: (imagens: ImagemDoProduto[]) => boolean, limite = LIMITE_DE_PRODUTOS_EM_DESTAQUE): T[] {
+  const ordemDaLoja = (a: T, b: T) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR");
+  return produtos
+    .filter((produto) => produto.publicado && !produto.excluidoEm && produto.status === "disponivel" && temImagem(produto.imagens))
+    .sort((a, b) => Number(!a.selo.trim()) - Number(!b.selo.trim()) || ordemDaLoja(a, b))
+    .slice(0, limite);
+}

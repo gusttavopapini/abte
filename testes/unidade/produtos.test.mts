@@ -2,7 +2,7 @@
 // Preços e nomes abaixo são de exemplo, marcados como TESTE.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { LIMITE_DE_IMAGENS_DO_PRODUTO, escolherRelacionados, formatarPreco, idsEmOrdem, imagemPrincipal, lerImagensDoProduto, lerPrecoEmCentavos, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
+import { LIMITE_DE_IMAGENS_DO_PRODUTO, LIMITE_DE_PRODUTOS_EM_DESTAQUE, escolherProdutosEmDestaque, escolherRelacionados, formatarPreco, idsEmOrdem, imagemPrincipal, lerImagensDoProduto, lerPrecoEmCentavos, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
 
 describe("Preço digitado", () => {
   test("formatos brasileiros viram centavos", () => {
@@ -115,5 +115,43 @@ describe("Galeria do produto", () => {
     assert.equal(imagemPrincipal(imagens, new Map([["a", "A"], ["b", "B"]])), "A");
     assert.equal(imagemPrincipal(imagens, new Map([["b", "B"], ["c", "C"]])), "B", "a primeira foi para a lixeira");
     assert.equal(imagemPrincipal(imagens, new Map()), null);
+  });
+});
+
+describe("Produtos em destaque na home", () => {
+  type Base = { selo: string; status: "disponivel" | "esgotado"; publicado: boolean; excluidoEm: Date | null; imagens: { midiaId: string; ordem: number }[] };
+  const base: Base = { selo: "", status: "disponivel", publicado: true, excluidoEm: null, imagens: [{ midiaId: "m", ordem: 0 }] };
+  const comImagem = (imagens: { midiaId: string }[]) => imagens.some((imagem) => imagem.midiaId !== "sem");
+  const p = (id: string, ordem: number, extra: Partial<Base> = {}) => ({ ...base, id, nome: `Produto ${id}`, ordem, ...extra });
+
+  test("com selo primeiro, depois a ordem da loja, até 4", () => {
+    const lista = [p("a", 1), p("b", 2), p("c", 3, { selo: "MONTE SEU KIT" }), p("d", 4), p("e", 5), p("f", 6, { selo: "NOVO" })];
+    assert.deepEqual(escolherProdutosEmDestaque(lista, comImagem).map((x) => x.id), ["c", "f", "a", "b"]);
+  });
+
+  test("a ordem da entrada não muda o resultado; empate na ordem vai pelo nome", () => {
+    const lista = [p("b", 1), p("a", 1), p("c", 0)];
+    assert.deepEqual(escolherProdutosEmDestaque([...lista].reverse(), comImagem).map((x) => x.id), ["c", "a", "b"]);
+    assert.deepEqual(escolherProdutosEmDestaque(lista, comImagem).map((x) => x.id), ["c", "a", "b"]);
+  });
+
+  test("só disponíveis e publicados; exclui lixeira e produto sem imagem ativa", () => {
+    const lista = [
+      p("esgotado", 1, { selo: "SELO", status: "esgotado" }),
+      p("rascunho", 2, { publicado: false }),
+      p("lixeira", 3, { excluidoEm: new Date(0) }),
+      p("semImagem", 4, { imagens: [] }),
+      p("imagemNaLixeira", 5, { imagens: [{ midiaId: "sem", ordem: 0 }] }),
+      p("ok", 6),
+      p("seloEmBranco", 7, { selo: "   " }),
+    ];
+    assert.deepEqual(escolherProdutosEmDestaque(lista, comImagem).map((x) => x.id), ["ok", "seloEmBranco"]);
+  });
+
+  test("menos de 4 mostra os que houver; zero produtos dá lista vazia", () => {
+    assert.deepEqual(escolherProdutosEmDestaque([p("a", 1)], comImagem).map((x) => x.id), ["a"]);
+    assert.deepEqual(escolherProdutosEmDestaque([], comImagem), []);
+    assert.deepEqual(escolherProdutosEmDestaque([p("a", 1, { status: "esgotado" })], comImagem), []);
+    assert.equal(LIMITE_DE_PRODUTOS_EM_DESTAQUE, 4);
   });
 });
