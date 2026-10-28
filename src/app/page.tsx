@@ -1,4 +1,5 @@
 import { Botao } from "@/components/Botao/Botao";
+import { CardProduto } from "@/components/CardProduto/CardProduto";
 import { CardPublico } from "@/components/CardPublico/CardPublico";
 import { Estatisticas } from "@/components/Estatisticas/Estatisticas";
 import { Hero } from "@/components/Hero/Hero";
@@ -6,6 +7,11 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { revelar } from "@/components/Revelar/revelar";
 import { IconeAlvo, IconeOlho, IconeCoracao } from "@/components/Icones/Icones";
+import { listarProdutosVisiveis } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
+import type { ImagemNaTela } from "@/lib/midia/tela";
+import { escolherProdutosEmDestaque, imagemPrincipal } from "@/lib/produtos";
+import type { ProdutoDoCard } from "@/components/CardProduto/CardProduto";
 import estilos from "./page.module.css";
 
 export const metadata = {
@@ -14,7 +20,33 @@ export const metadata = {
     "No site da Associação Brasileira de Tratamento da Escoliose | Tratando Escoliose você encontra informação confiável, profissionais certificados e apoio para pacientes e famílias. Reunimos conteúdos e profissionais referência nacional no tratamento conservador da escoliose.",
 };
 
-export default function PaginaInicial() {
+// Os produtos em destaque vêm do Firestore a cada visita, como na /loja.
+export const dynamic = "force-dynamic";
+
+// Até 4 produtos da loja para a home (regra em escolherProdutosEmDestaque).
+// Se a leitura falhar, a home abre sem a section, em vez de dar erro.
+async function lerProdutosEmDestaque(): Promise<ProdutoDoCard[]> {
+  try {
+    const produtos = await listarProdutosVisiveis();
+    const imagens = await imagensAtivasPorId(produtos.flatMap((produto) => produto.imagens.map((imagem) => imagem.midiaId)));
+    const principal = (galeria: (typeof produtos)[number]["imagens"]): ImagemNaTela | null => imagemPrincipal(galeria, imagens);
+    return escolherProdutosEmDestaque(produtos, (galeria) => principal(galeria) !== null).map((produto) => ({
+      nome: produto.nome,
+      slug: produto.slug,
+      preco: produto.preco,
+      precoPromocional: produto.precoPromocional,
+      selo: produto.selo,
+      esgotado: false,
+      imagem: principal(produto.imagens),
+    }));
+  } catch (erro) {
+    console.error("Home: falha ao ler os produtos em destaque.", erro);
+    return [];
+  }
+}
+
+export default async function PaginaInicial() {
+  const produtosEmDestaque = await lerProdutosEmDestaque();
   return (
     <LayoutPublico header="transparente">
       {/* Único H1 da página, só para leitores de tela, enquanto o banner não
@@ -79,6 +111,27 @@ export default function PaginaInicial() {
             </div>
           </div>
         </section>
+
+        {/* 3b. Produtos em destaque (28/10/2026): só com produto escolhido;
+            sem nenhum, a section não aparece. Sem compra nem carrinho aqui. */}
+        {produtosEmDestaque.length > 0 && (
+          <section className={`container ${estilos.secao}`} aria-labelledby="titulo-produtos-em-destaque">
+            <div {...revelar(estilos.cabecalhoDosDestaques)}>
+              <h2 id="titulo-produtos-em-destaque" className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Produtos em destaque</h2>
+              <p className={`tipo-texto-lg ${estilos.textoLeve}`}>Cartilhas e materiais educativos da ABTE sobre escoliose.</p>
+            </div>
+            <ul role="list" {...revelar("grade-de-cards")}>
+              {produtosEmDestaque.map((produto) => (
+                <li key={produto.slug}>
+                  <CardProduto produto={produto} nivelDoTitulo={3} />
+                </li>
+              ))}
+            </ul>
+            <div className={estilos.acaoDosDestaques}>
+              <Botao href="/loja">Ver todos os produtos</Botao>
+            </div>
+          </section>
+        )}
 
         {/* 4. Quem somos: vídeo, missão, visão e valores */}
         <section className={`container ${estilos.secao}`}>

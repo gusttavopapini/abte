@@ -174,3 +174,14 @@
     aspect-ratio: 9 / 16;
   }
 }
+
+/* Produtos em destaque (28/10/2026): título e texto, grade de cards da loja
+   (classe global grade-de-cards) e o botão para a /loja. */
+.cabecalhoDosDestaques {
+  margin-bottom: var(--space-32);
+}
+
+.acaoDosDestaques {
+  display: flex;
+  margin-top: var(--space-32);
+}

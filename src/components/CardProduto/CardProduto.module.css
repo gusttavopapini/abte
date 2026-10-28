@@ -55,3 +55,12 @@
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
 }
+
+/* Celular: o link do nome tem área de toque mínima de 44px (28/10/2026). */
+@media (max-width: 767px) {
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
+}
