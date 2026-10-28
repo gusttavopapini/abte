@@ -31,8 +31,9 @@ Reconstrução do portal da **ABTE, Associação Brasileira de Tratamento da Esc
 | GitHub | Repositório `abte` |
 | Site público validado | [Portal da ABTE](https://abte-lovat.vercel.app) |
 | Branch de trabalho | `feature/midia-upload` |
-| Último commit de implementação | `8aa4f16` |
-| Último deployment de produção conferido | `7395076667` |
+| Último commit de implementação na `main` | `8aa4f16` (a `main` está em `040e669`, só documentação a mais) |
+| Trabalho só na branch | Popup dos profissionais (28/10), sem promover |
+| Último deployment de produção conferido | `7395613481` (commit `040e669`) |
 | Aplicação | Next.js 16.3.6, App Router, React 19.2.8, TypeScript estrito |
 | Aparência | CSS Modules, componentes próprios, Public Sans e tokens CSS |
 | Serviços | Firebase Authentication, Firestore, Storage e Admin SDK |
@@ -115,6 +116,17 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Conferidos 390, 768, 1024, 1280 e 1710 px, sem overflow ou etiquetas cortadas; hover e foco por teclado verificados.
 - TypeScript, linters dos arquivos alterados e compilação isolada com Webpack aprovados; contraste das cores conferido. Nenhum contato externo foi acionado.
 
+### Popup dos profissionais (28/10, só na branch, sem promover)
+
+- Card curto: a apresentação aparece em até 140 caracteres, cortada no fim de uma palavra, com "…" (`resumirTexto` em `src/lib/texto.ts`); o texto que cabe fica como está.
+- Foto, nome, registro, local, telerreabilitação, etiquetas e contatos continuam iguais. Os contatos seguem logo depois das etiquetas; o botão "Ver mais" fica no fim de todo card, alinhado embaixo, com nome acessível "Ver mais sobre {nome}".
+- O clique em qualquer ponto do card, fora de links e botões, também abre o popup. Contatos e "Ver mais" mantêm o próprio comportamento.
+- Popup (`PopupProfissional`, sobre o `Modal`): título com o nome, foto maior alinhada ao alto, todos os dados, todas as etiquetas, apresentação completa (um parágrafo por linha) e os mesmos contatos. Fecha com "Fechar", ×, Esc e clique no fundo; o foco volta ao "Ver mais"; o fundo não rola; o texto longo rola dentro da janela. No celular, ocupa a largura com 16px de margem.
+- Só campos públicos vão ao navegador (`paraProfissionalPublico`, lista fechada com testes); nada de revisão, origem da migração ou conferência de menores.
+- Medido: 22 dos 96 profissionais têm apresentação acima de 140 caracteres; a maior tem 723.
+- Validação: `test:unidade` 287, `test:regras` 91, `test:sessao` 127 (505), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/popup-profissionais/`.
+- Commits `3e3a4ad`, `431662c` e a documentação, enviados só para `feature/midia-upload`. Promover para a `main` exige o "pode promover" do responsável.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
@@ -164,11 +176,10 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `HEAD`, `origin/main` e `origin/feature/midia-upload`: **`8aa4f16`**.
-- Branch de trabalho: **`feature/midia-upload`**.
-- `main` **local**: ainda `207c9b1`, 140 commits atrás da referência remota.
-- Os três commits de implementação feitos nesta colaboração foram enviados para ambas as branches remotas, sem forçar histórico.
-- Não há mudança de lógica pendente no diretório de trabalho. Há documentação local alterada/nova, incluindo este resumo, que ainda não foi commitada.
+- `origin/main`: **`040e669`** (documentação de continuidade, publicada em 28/10 com autorização explícita; deployment `7395613481`).
+- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com o popup dos profissionais (28/10), enviada só para `origin/feature/midia-upload`.
+- `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
+- Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
 Não usar a `main` local antiga como se fosse a produção atual. Conferir o diff e preservar a documentação antes de trocar branch ou sincronizar. Nenhum reset, limpeza ou novo deploy é necessário apenas para ler este resumo.
 
@@ -178,7 +189,8 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 
 - Blog: `src/app/blog/page.tsx`, `page.module.css`, `src/lib/buscaBlog.ts` e `src/components/CardPost/`.
 - Testes da busca: `testes/unidade/busca-blog.test.mts`.
-- Profissionais: `src/components/CardProfissional/`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
+- Profissionais: `src/components/CardProfissional/`, `PopupProfissional/`, `ContatosProfissional/`, `MetodosProfissional/`, `src/components/Modal/`, `src/lib/texto.ts`, `src/lib/profissionaisPublicos.ts`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
+- Testes do card e do popup: `testes/unidade/profissionais-publicos.test.mts`.
 - Dados e acesso: `src/lib/dados/`, `src/lib/gravacao/`, `src/lib/auth/` e `src/lib/firebase/`.
 - Migração: `scripts/`, `src/lib/migracao/`, `docs/dados-privados/` e `tmp-migracao/`.
 
@@ -199,7 +211,7 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
 As sete falhas históricas de Stylelint em Botao/Hero/Modal não foram corrigidas nesta colaboração. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
