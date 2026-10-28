@@ -38,12 +38,17 @@
   gap: var(--space-16);
 }
 
-.titulo {
+.conteudo .titulo {
   color: var(--color-primary);
+  font-size: calc(var(--font-size-h3) * 0.85);
   font-weight: var(--font-weight-light);
 }
 
 .resumo {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   color: var(--color-primary);
   font-weight: var(--font-weight-light);
   flex: 1; /* Empurra o botão pro fundo */

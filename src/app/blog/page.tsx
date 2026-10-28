@@ -15,12 +15,18 @@ export const metadata = { title: "Blog" };
 // Sempre lê o Firestore na hora: um post publicado aparece sem novo deploy.
 export const dynamic = "force-dynamic";
 
-// Resumo do card: o gravado no post; sem ele, o começo do texto (no Markdown
-// restrito, o texto sem a marcação).
+// Prévia curta só na listagem, inclusive para resumos importados. O conteúdo
+// completo e o resumo gravado no banco permanecem intactos.
 function resumoDoPost(post: Post): string {
-  if (post.resumo) return post.resumo;
-  const texto = post.formatoConteudo === "markdown" ? textoDoMarkdown(lerMarkdownRestrito(post.conteudo)).join(" ") : post.conteudo;
-  return texto ? texto.substring(0, 120) + "..." : "";
+  const texto = (
+    post.resumo.trim() ||
+    (post.formatoConteudo === "markdown" ? textoDoMarkdown(lerMarkdownRestrito(post.conteudo)).join(" ") : post.conteudo)
+  ).replace(/\s+/g, " ").trim();
+  if (texto.length <= 120) return texto;
+
+  const previa = texto.slice(0, 119);
+  const ultimaPalavra = previa.lastIndexOf(" ");
+  return `${ultimaPalavra > 0 ? previa.slice(0, ultimaPalavra) : previa}…`;
 }
 
 export default async function PaginaBlog({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
