@@ -1,20 +1,13 @@
 import { Suspense } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
-import { PAISES, TAGS_DE_PROFISSIONAIS, TAG_SEM_CLASSIFICACAO } from "@/config/profissionais";
 import { lerProfissionais, ordenarProfissionais } from "@/lib/dados/colecoes";
-import type { Profissional } from "@/lib/dados/tipos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
-import { ProfissionaisClient, type ProfissionalPublico } from "./ProfissionaisClient";
+import { paraProfissionalPublico } from "@/lib/profissionaisPublicos";
+import { ProfissionaisClient } from "./ProfissionaisClient";
 import estilos from "./page.module.css";
 
 export const metadata = { title: "Profissionais" };
 export const dynamic = "force-dynamic";
-
-// "Cidade Um, Cidade Dois / SP" no Brasil; nos outros países, o nome do país.
-function local({ cidades, pais, uf }: Profissional): string {
-  const regiao = pais === "BR" ? uf : PAISES.find((item) => item.codigo === pais)?.nome ?? "";
-  return [cidades.join(", "), regiao].filter(Boolean).join(" / ");
-}
 
 export default async function PaginaProfissionais() {
   // Só quem está marcado para aparecer no site e fora dos excluídos.
@@ -23,22 +16,10 @@ export default async function PaginaProfissionais() {
   // Fotos fora da lixeira da biblioteca; as outras ficam com o placeholder.
   const fotos = await imagensAtivasPorId(visiveis.map((profissional) => profissional.fotoMidiaId));
 
-  const profissionais: ProfissionalPublico[] = visiveis.map((profissional) => ({
-    id: profissional.id,
-    tipo: (TAGS_DE_PROFISSIONAIS as readonly string[]).includes(profissional.tipo) ? profissional.tipo : TAG_SEM_CLASSIFICACAO,
-    tratamento: profissional.tratamento,
-    nome: profissional.nome,
-    registro: profissional.registro,
-    metodos: profissional.metodos,
-    local: local(profissional),
-    telerreabilitacao: profissional.telerreabilitacao,
-    whatsapp: profissional.whatsapp,
-    instagram: profissional.instagram,
-    facebook: profissional.facebook,
-    email: profissional.email,
-    bio: profissional.bio,
-    foto: profissional.fotoMidiaId ? fotos.get(profissional.fotoMidiaId) ?? null : null,
-  }));
+  // Só os campos públicos vão ao navegador (lista fechada e testada).
+  const profissionais = visiveis.map((profissional) =>
+    paraProfissionalPublico(profissional, profissional.fotoMidiaId ? fotos.get(profissional.fotoMidiaId) ?? null : null),
+  );
 
   return (
     <LayoutPublico header="solida">
