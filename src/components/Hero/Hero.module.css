@@ -95,6 +95,31 @@
   .seta {
     font-size: 1.5rem;
     padding: 0.5rem;
+    /* 44px de toque no celular (29/10/2026; antes, 28px de largura) */
+    min-width: var(--control-min-height-mobile);
+    min-height: var(--control-min-height-mobile);
+  }
+  /* Pontos com 44px de toque e o mesmo ponto de 12px no centro: o espaço
+     entre os pontos sai da própria área de toque */
+  .dotsContainer {
+    bottom: var(--space-8);
+    gap: 0;
+  }
+  .dot {
+    position: relative;
+    width: var(--control-min-height-mobile);
+    height: var(--control-min-height-mobile);
+    background: none;
+  }
+  .dot::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--control-min-height-mobile) - 12px) / 2);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-bg) 50%, transparent);
+  }
+  .dotAtivo::after {
+    background: var(--color-bg);
   }
 }
 

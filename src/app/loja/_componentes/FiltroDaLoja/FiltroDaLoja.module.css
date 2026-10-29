@@ -395,6 +395,9 @@
     justify-content: flex-end;
     padding-right: env(safe-area-inset-right);
     pointer-events: none;
+    /* Não ocupa lugar no fim da lista: parado, o botão fica no respiro
+       inferior da página, e o rodapé continua a --section-space dos cards. */
+    margin-bottom: calc(-1 * (var(--button-height) + var(--space-16)));
   }
 }
 

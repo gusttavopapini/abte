@@ -21,7 +21,7 @@ export function PaginaDeTexto({
 }) {
   return (
     <LayoutPublico header="solida">
-      <div className={`container ${estilos.secao}`}>
+      <div className="container pagina-interna">
         {preliminar && (
           <p role="note" className={`tipo-texto ${estilos.faixa}`}>
             Versão preliminar, em revisão pela ABTE.

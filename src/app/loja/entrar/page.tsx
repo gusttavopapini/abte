@@ -15,7 +15,7 @@ export default async function PaginaEntrarLoja({ searchParams }: { searchParams:
   if (await lerSessaoCliente()) redirect(destino);
 
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Entrar na loja</h1>
       <p className="tipo-texto">Use a conta de cliente da loja. A conta do painel não serve aqui.</p>
       <div className={estilos.conteudo}>

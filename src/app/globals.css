@@ -93,6 +93,14 @@ h4 {
   font-weight: var(--font-weight-regular);
 }
 
+/* Títulos com as linhas equilibradas: sem palavra sozinha na última linha
+   (29/10/2026). Só muda onde a linha quebra. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
 h1,
 .tipo-h1 {
   font-size: var(--font-size-h1);
@@ -161,6 +169,15 @@ h3,
   max-width: calc(var(--content-max) + var(--page-margin) * 2);
   margin-inline: auto;
   padding-inline: var(--page-margin);
+}
+
+/* Ritmo vertical das páginas (29/10/2026), num lugar só: o primeiro bloco
+   de toda página interna fica a --section-space do header (esta classe, no
+   invólucro da página), e o último bloco fica a --section-space do rodapé
+   (respiro inferior do <main>, no LayoutPublico). As páginas não têm
+   respiro inferior próprio, para não somar dois espaços antes do rodapé. */
+.pagina-interna {
+  padding-top: var(--section-space);
 }
 
 /* Esconde da tela, mas mantém para leitores de tela */

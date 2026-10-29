@@ -28,7 +28,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
   const imagens = await imagensAtivasPorId(exibidos.flatMap((produto) => produto.imagens.map((imagem) => imagem.midiaId)));
 
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       {parametros.conta === "excluida" && (
         <Mensagem tipo="sucesso" className={estilos.aviso}>Sua conta foi excluída, com seu nome, seu e-mail e seu carrinho.</Mensagem>
       )}

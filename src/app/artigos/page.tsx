@@ -38,11 +38,11 @@ export default async function PaginaArtigos() {
 
   return (
     <LayoutPublico header="solida">
-      <div className={estilos.secao}>
+      <div>
         
         {/* Abertura da página: cabeçalho centralizado, sem a imagem
             decorativa (29/10/2026) */}
-        <section className={estilos.hero}>
+        <section className={`pagina-interna ${estilos.hero}`}>
           <div className="container">
             <CabecalhoDePagina
               titulo="Artigos Científicos"

@@ -1,10 +1,5 @@
 .secao {
   background-color: var(--color-bg-alt);
-  min-height: 100vh;
-}
-
-.container {
-  padding-block: var(--section-space);
 }
 
 /* Filtro por tipo: etiquetas centralizadas, abaixo do cabeçalho, quebrando

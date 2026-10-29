@@ -9,7 +9,7 @@ export default function PaginaContato() {
     <LayoutPublico header="solida">
       {/* Único H1 da página, só para leitores de tela: o título visível é o do bloco de contato. */}
       <h1 className="somente-leitor">Contato</h1>
-      <div className={`container ${estilos.containerForm}`}>
+      <div className={`container pagina-interna ${estilos.containerForm}`}>
         <div className={estilos.formularioCentralizado}>
           <BlocoContato centralizado />
         </div>

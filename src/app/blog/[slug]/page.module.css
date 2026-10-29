@@ -1,14 +1,17 @@
+/* Faixa branca do post: o respiro de cima vem da classe pagina-interna; o
+   de baixo fica dentro da faixa, para o texto não encostar na borda dela. */
 .secao {
   background-color: var(--color-bg);
-  min-height: 100vh;
 }
 
 .container {
-  padding-block: var(--section-space);
+  padding-bottom: var(--section-space);
   max-width: 800px;
 }
 
+/* flex: o link fica no alto da linha, sem a sobra da entrelinha */
 .voltar {
+  display: flex;
   margin-bottom: var(--space-32);
 }
 
@@ -60,6 +63,15 @@
 /* Categoria do post (25/10/2026): link para o filtro do /blog */
 .categoria {
   color: var(--color-primary);
+}
+
+/* 44px de toque no celular */
+@media (max-width: 767px) {
+  .categoria {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
 }
 
 .tags {

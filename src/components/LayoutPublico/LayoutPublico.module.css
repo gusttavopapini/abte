@@ -1,5 +1,9 @@
+/* Respiro inferior de todas as páginas públicas: o último bloco fica a
+   --section-space do rodapé (29/10/2026; antes vinha do invólucro do
+   rodapé e somava com o respiro de cada página). */
 .principal {
   display: block;
+  padding-bottom: var(--section-space);
 }
 
 .principal:focus {
@@ -7,6 +11,5 @@
 }
 
 .rodapeGlobal {
-  padding-top: var(--section-space);
   padding-bottom: var(--page-margin);
 }

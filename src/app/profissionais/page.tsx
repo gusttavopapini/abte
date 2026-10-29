@@ -25,7 +25,7 @@ export default async function PaginaProfissionais() {
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className="container pagina-interna">
           <CabecalhoDePagina
             titulo="Profissionais"
             descricao="Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede."

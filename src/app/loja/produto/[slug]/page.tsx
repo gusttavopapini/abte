@@ -58,7 +58,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   };
 
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       <Botao href="/loja" variante="link">&larr; Voltar para a loja</Botao>
 
       <article className={estilos.produto}>

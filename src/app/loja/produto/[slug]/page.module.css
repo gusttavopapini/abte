@@ -3,7 +3,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-32);
-  padding-block: var(--section-space);
 }
 
 /* Imagem e detalhes lado a lado a partir do tablet; empilhados no celular */

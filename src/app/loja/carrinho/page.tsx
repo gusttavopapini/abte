@@ -20,7 +20,7 @@ export default async function PaginaCarrinho() {
   const linhas = resumo.linhas.map((linha) => ({ ...linha, maximo: quantidadeMaxima(produtos.get(linha.produtoId)?.tipo ?? "fisico") }));
 
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
 
       {linhas.length === 0 ? (

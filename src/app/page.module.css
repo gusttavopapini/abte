@@ -1,10 +1,14 @@
+/* Ritmo entre as sections da home (29/10/2026): cada uma tem só o respiro
+   de cima; o de baixo da última vem do <main> (LayoutPublico). Antes, o
+   respiro de baixo de uma somava com o de cima da seguinte (dois
+   --section-space entre blocos do mesmo fundo). */
 .secao {
-  padding-block: var(--section-space);
+  padding-top: var(--section-space);
 }
 
 .secaoAlt {
   background-color: var(--color-bg-alt);
-  padding-block: var(--section-space);
+  padding-top: var(--section-space);
 }
 
 /* Grids delicados e arejados */
@@ -150,10 +154,6 @@
 .textoDoValor {
   font-weight: var(--font-weight-light);
   color: var(--color-text);
-}
-
-.semRespiroInferior {
-  padding-bottom: 0;
 }
 
 .textoDaChamada {

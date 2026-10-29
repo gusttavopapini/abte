@@ -1,12 +1,8 @@
-.secao {
-  background-color: var(--color-bg);
-  min-height: 100vh;
-}
-
-/* Hero */
+/* Abertura: respiro de cima pela classe pagina-interna; o de baixo separa
+   da faixa branca das categorias */
 .hero {
   background-color: var(--color-bg-alt);
-  padding-block: var(--section-space);
+  padding-bottom: var(--section-space);
 }
 
 /* Categorias e Artigos */
@@ -16,6 +12,11 @@
 }
 .bloco:nth-child(even) {
   background-color: var(--color-bg);
+}
+
+/* A última faixa tem o fundo da página: o respiro até o rodapé vem do <main> */
+.bloco:last-child {
+  padding-bottom: 0;
 }
 
 .blocoCabecalho {

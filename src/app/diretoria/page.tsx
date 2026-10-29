@@ -25,7 +25,7 @@ export default async function PaginaDiretoria() {
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className={`container pagina-interna ${estilos.container}`}>
           <CabecalhoDePagina titulo="Diretoria" espacoAbaixo={false} />
 
           {grupos.length === 0 ? (

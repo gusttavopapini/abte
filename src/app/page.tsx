@@ -179,7 +179,7 @@ export default async function PaginaInicial() {
         {/* 5. Chamada final: caixa flutuante sobre a imagem. Desde 29/10/2026 a
             imagem fica no container, com as bordas alinhadas às do logo e do
             rodapé (antes ia de uma borda à outra da tela). */}
-        <section className={`container ${estilos.secao} ${estilos.semRespiroInferior}`}>
+        <section className={`container ${estilos.secao}`}>
           <div className={estilos.imagemDaChamada}>
             <PlaceholderImagem />
             <div className={estilos.caixaFlutuante}>

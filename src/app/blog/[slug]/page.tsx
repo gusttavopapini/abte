@@ -66,7 +66,7 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className={`container pagina-interna ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/blog" variante="link">
                &larr; Voltar para o Blog

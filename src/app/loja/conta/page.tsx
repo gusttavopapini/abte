@@ -11,7 +11,7 @@ export default async function PaginaMinhaConta() {
   const cliente = await exigirSessaoCliente("/loja/conta");
 
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Minha conta</h1>
 
       <section aria-labelledby="titulo-dados" className={estilos.bloco}>

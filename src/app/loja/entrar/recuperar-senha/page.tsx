@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Esqueci minha senha", robots: { inde
 
 export default function PaginaRecuperarSenhaLoja() {
   return (
-    <div className={`container ${estilos.secao}`}>
+    <div className={`container pagina-interna ${estilos.secao}`}>
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Esqueci minha senha</h1>
       <div className={estilos.conteudo}>
         <FormularioRecuperarSenha rotaDoLogin="/loja/entrar" deOnde="da loja" />

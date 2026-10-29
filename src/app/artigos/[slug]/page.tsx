@@ -50,7 +50,7 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className={`container pagina-interna ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/artigos" variante="link">
                &larr; Voltar para Artigos

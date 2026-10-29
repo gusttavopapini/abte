@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function PaginaNaoEncontrada() {
   return (
     <LayoutPublico>
-      <div className={`container ${estilos.conteudo}`}>
+      <div className={`container pagina-interna ${estilos.conteudo}`}>
         <h1>Página não encontrada</h1>
         <Botao href="/" variante="link">
           Voltar para o início

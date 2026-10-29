@@ -4,6 +4,9 @@
   top: var(--space-8);
   left: var(--space-8);
   z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
   padding: var(--space-8) var(--space-16);
   background: var(--color-primary);
   color: var(--color-on-primary);

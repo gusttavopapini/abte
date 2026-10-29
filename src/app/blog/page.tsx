@@ -66,7 +66,7 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className="container pagina-interna">
           <CabecalhoDePagina
             titulo="Blog da ABTE"
             descricao="Este é o espaço para oferecermos artigos, guias e materiais valiosos. Ajude a espalhar conhecimento verdadeiro e com base científica sobre a escoliose."

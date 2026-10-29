@@ -1,10 +1,9 @@
+/* Bloco de contato centralizado na largura; o espaço até o header é o
+   padrão das páginas internas (antes, só a margem da página e o bloco
+   centralizado em 60% da altura da tela) */
 .containerForm {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding-top: var(--page-margin);
-  padding-bottom: var(--page-margin);
-  min-height: 60vh;
 }
 
 .formularioCentralizado {

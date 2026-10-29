@@ -46,7 +46,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
   return (
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
-        <div className={`container ${estilos.container}`}>
+        <div className="container pagina-interna">
           <div className={estilos.voltar}>
             <Botao href="/artigos" variante="link">
               &larr; Voltar para Artigos
