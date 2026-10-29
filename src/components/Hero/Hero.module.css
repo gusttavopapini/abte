@@ -103,3 +103,29 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Slide com destino (29/10/2026): a imagem inteira é o link. O anel de foco
+   fica num quadro um pouco para dentro, porque o banner corta o que passa da
+   borda. */
+.linkDoSlide {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.linkDoSlide::after {
+  content: "";
+  position: absolute;
+  inset: var(--space-8);
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+.linkDoSlide:focus-visible {
+  box-shadow: none;
+}
+
+.linkDoSlide:focus-visible::after {
+  box-shadow: var(--focus-ring);
+}

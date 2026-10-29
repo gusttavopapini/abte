@@ -11,6 +11,7 @@ import { listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { escolherProdutosEmDestaque, imagemPrincipal } from "@/lib/produtos";
+import { SLIDES_DO_BANNER } from "@/lib/site/banners";
 import { VIDEO_QUEM_SOMOS } from "@/lib/site/video";
 import { VideoVertical } from "@/components/VideoVertical/VideoVertical";
 import type { ProdutoDoCard } from "@/components/CardProduto/CardProduto";
@@ -73,14 +74,7 @@ export default async function PaginaInicial() {
       <h1 className="somente-leitor">ABTE, Associação Brasileira de Tratamento da Escoliose</h1>
 
       {/* 1. Hero */}
-      <Hero
-        sobHeaderFixo
-        imagens={[
-          "https://picsum.photos/id/1018/1920/800",
-          "https://picsum.photos/id/1015/1920/800",
-          "https://picsum.photos/id/1016/1920/800",
-        ]}
-      />
+      <Hero sobHeaderFixo slides={SLIDES_DO_BANNER} />
 
       <div>
         {/* 2. Afirmação + cards de público */}

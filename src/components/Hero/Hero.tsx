@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
 import estilos from "./Hero.module.css";
 
 type PropsHero = {
-  imagens: string[];
+  // Slides configurados em src/lib/site/banners.ts; com destino, o slide
+  // inteiro vira link (29/10/2026).
+  slides: SlideDoBanner[];
   sobHeaderFixo?: boolean;
 };
 
 // Intervalo entre os slides na passagem automática, em milissegundos.
 const INTERVALO_DO_CARROSSEL_MS = 6000;
 
-export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
+export function Hero({ slides, sobHeaderFixo }: PropsHero) {
   const [slideAtual, setSlideAtual] = useState(0);
   // Motivos para não avançar sozinho: mouse sobre o banner, foco dentro dele,
   // aba oculta e movimento reduzido.
@@ -21,11 +25,11 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
   const [movimentoReduzido, setMovimentoReduzido] = useState(false);
 
   const proximo = () => {
-    setSlideAtual((atual) => (atual + 1) % imagens.length);
+    setSlideAtual((atual) => (atual + 1) % slides.length);
   };
 
   const anterior = () => {
-    setSlideAtual((atual) => (atual === 0 ? imagens.length - 1 : atual - 1));
+    setSlideAtual((atual) => (atual === 0 ? slides.length - 1 : atual - 1));
   };
 
   // Acompanha o movimento reduzido e a visibilidade da aba, também se
@@ -49,10 +53,10 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
   // houver motivo de pausa. As setas e os pontos funcionam sempre.
   const pausado = mouseEmCima || focoDentro || abaOculta || movimentoReduzido;
   useEffect(() => {
-    if (pausado || imagens.length < 2) return;
-    const temporizador = setTimeout(() => setSlideAtual((atual) => (atual + 1) % imagens.length), INTERVALO_DO_CARROSSEL_MS);
+    if (pausado || slides.length < 2) return;
+    const temporizador = setTimeout(() => setSlideAtual((atual) => (atual + 1) % slides.length), INTERVALO_DO_CARROSSEL_MS);
     return () => clearTimeout(temporizador);
-  }, [pausado, slideAtual, imagens.length]);
+  }, [pausado, slideAtual, slides.length]);
 
   return (
     <section
@@ -69,15 +73,28 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
       }}
     >
       <div className={estilos.carrossel}>
-        {imagens.map((img, index) => (
-          <div
-            key={index}
-            className={`${estilos.slide} ${index === slideAtual ? estilos.ativo : ""}`}
-            style={{ opacity: index === slideAtual ? 1 : 0, transition: "opacity 0.5s ease-in-out" }}
-          >
-            <img src={img} alt={`Slide ${index + 1}`} className={estilos.imagem} />
-          </div>
-        ))}
+        {/* Só o slide atual fica acessível; os outros ficam inertes (nem o
+            link deles recebe foco). Setas e pontos ficam fora dos links. */}
+        {slides.map((slide, index) => {
+          const ativo = index === slideAtual;
+          const link = linkDoSlide(slide);
+          return (
+            <div
+              key={index}
+              className={`${estilos.slide} ${ativo ? estilos.ativo : ""}`}
+              style={{ opacity: ativo ? 1 : 0, transition: "opacity 0.5s ease-in-out" }}
+              inert={!ativo}
+            >
+              {link ? (
+                <Link href={link.href} className={estilos.linkDoSlide} aria-label={link.nome}>
+                  <img src={slide.imagem} alt="" className={estilos.imagem} />
+                </Link>
+              ) : (
+                <img src={slide.imagem} alt={slide.alt} className={estilos.imagem} />
+              )}
+            </div>
+          );
+        })}
 
         {/* Setas de navegação */}
         <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
@@ -89,7 +106,7 @@ export function Hero({ imagens, sobHeaderFixo }: PropsHero) {
 
         {/* Contadores / Dots */}
         <div className={estilos.dotsContainer}>
-          {imagens.map((_, index) => (
+          {slides.map((_, index) => (
             <button
               key={index}
               type="button"

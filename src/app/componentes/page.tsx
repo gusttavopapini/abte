@@ -133,9 +133,9 @@ export default function PaginaComponentes() {
 
       <Secao titulo="Hero" largura="total">
         <Hero
-          imagens={[
-            "https://picsum.photos/id/1018/1920/800",
-            "https://picsum.photos/id/1015/1920/800",
+          slides={[
+            { imagem: "https://picsum.photos/id/1018/1920/800", alt: "[exemplo] Slide sem link", href: "", rotulo: "" },
+            { imagem: "https://picsum.photos/id/1015/1920/800", alt: "[exemplo] Slide com link", href: "/componentes", rotulo: "[exemplo] Slide com link para esta página" },
           ]}
         />
       </Secao>
