@@ -127,7 +127,7 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Validação: `test:unidade` 287, `test:regras` 91, `test:sessao` 127 (505), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/popup-profissionais/`.
 - Commits `3e3a4ad`, `431662c` e `fe30984`, promovidos para a `main` em 28/10 com autorização explícita (deployment de Produção `7396359787`, conferido em produção em 390 e 1280 px).
 
-### Produtos em destaque na home (28/10, só na branch, sem promover)
+### Produtos em destaque na home (28/10, promovido em 29/10)
 
 - Section nova na home, entre os números ("Mutirões que Transformam Vidas") e "Quem Somos" (posição escolhida pelo responsável, porque a home não tinha section de blog, loja nem profissionais).
 - Conteúdo: H2 "Produtos em destaque", o texto "Cartilhas e materiais educativos da ABTE sobre escoliose.", até 4 cards da loja (o mesmo `CardProduto`, com imagem 3:4, selo, nome com link e preço riscado quando há promoção) e o botão "Ver todos os produtos" para `/loja`. Sem compra nem carrinho.
@@ -135,18 +135,18 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Hoje entram os 2 pacotes de cartilhas com selo "MONTE SEU KIT", o e-book e o banner digital (com preço riscado).
 - No celular, o link do nome do produto ganhou 44px de altura mínima. Superado no mesmo dia: com o card no molde do blog, o título deixou de ser link.
 - Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px sem falha; capturas em `tmp-migracao/capturas/home-produtos-em-destaque/`.
-- Commits `765b782`, `25f7c36` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
+- Commits `765b782`, `25f7c36` e `fdbe704`, promovidos para a `main` em 29/10 (deployment `7405966790`).
 
-### Card de produto no molde do blog (28/10, só na branch, sem promover)
+### Card de produto no molde do blog (28/10, promovido em 29/10)
 
 - O `CardProduto` (o mesmo componente, usado na `/loja`, nos relacionados e na home) ficou no formato do `CardPost`: cartão branco com raio, imagem no topo, conteúdo com o mesmo espaçamento e o mesmo hover.
 - Ordem: título (mesma escala do blog), preço (com o riscado), "Esgotado" quando houver e o botão "Ver produto" no fim, alinhado embaixo em todos os cards da linha.
 - Só o botão é link, com o nome acessível "Ver produto: {nome}"; o título não é mais link.
 - Imagem 3:4 com o selo no canto. A proporção fica na variável `--proporcao-imagem-produto`, em `src/components/CardProduto/CardProduto.module.css`: mude ali para trocar em todos os usos.
 - Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px (loja, produto com relacionados e home) sem falha; capturas em `tmp-migracao/capturas/cards-produto-molde-blog/`.
-- Commit `6fbfc7b` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
+- Commits `6fbfc7b` e `62dc05c`, promovidos para a `main` em 29/10 (deployment `7405966790`).
 
-### Filtro da loja e grade de até 5 colunas (29/10, só na branch, sem promover)
+### Filtro da loja e grade de até 5 colunas (29/10, promovido no mesmo dia)
 
 - Os botões de categoria com miniatura saíram da `/loja`. No lugar, um formulário GET (funciona sem JavaScript) com Busca (nome), Categoria, Tipo, Disponibilidade, Preço (Mínimo e Máximo em R$ e, por cima, uma faixa com dois pontos) e Ofertas ("Em promoção" e um item por selo; hoje "Monte seu kit"), mais "Ordenar por" acima da grade.
 - **Parâmetros da URL:** `busca`, `categoria` (repetível, é o mesmo de antes: `/loja?categoria=produtos-abte` continua valendo), `tipo` (`fisico`, `digital`), `disponibilidade` (`disponivel`, `esgotado`), `preco_min` e `preco_max` (em reais, ex. `39.99`; aceita também `39,99`), `promocao=1`, `selo` (slug do selo, repetível) e `ordem` (`menor-preco`, `maior-preco`, `nome`; relevância é o padrão e não aparece).
@@ -156,7 +156,7 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - **Até 1023px, com JavaScript:** botão flutuante redondo (56px, ícone de funil, número de filtros ativos) abre o painel: folha que sobe de baixo no celular e folha lateral à direita (480px) no tablet em pé. Diálogo com título, "Limpar tudo", "x", grupos (só Busca e Categoria abertos), e "Filtrar" e "Cancelar" fixos embaixo. Só "Filtrar" aplica; "x", "Cancelar", Esc e o fundo escuro descartam. O botão fica preso ao pé da tela enquanto a lista passa e para no fim dela, sem cobrir o rodapé.
 - **Hoje (abte-dev):** 10 produtos. Categoria: Produtos ABTE 6, teste 1, Produtos parceiros 2 (1 sem categoria). Tipo: físico 6, digital 4. Disponível 8, esgotado 2. Em promoção 1. Monte seu kit 2. Preço efetivo de R$ 9,90 a R$ 600. A categoria de teste e o produto de teste (publicado, sem imagem) aparecem na loja pública.
 - Validação: `test:unidade` 329, `test:regras` 91, `test:sessao` 127 (547), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px, também sem JavaScript e com movimento reduzido; capturas em `tmp-migracao/capturas/loja-filtro/`.
-- Commits `a5c8d2e`, `f71516a`, `2392812` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
+- Commits `a5c8d2e`, `f71516a`, `2392812` e `233590d`. Promovidos para a `main` em 29/10 com o "pode promover" do responsável, junto com as duas entregas de 28/10 (fast-forward de `fe30984` para `233590d`, deployment de Produção `7405966790`). Produção conferida em 390 e 1280 px sem falha.
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -207,8 +207,8 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: **`fe30984`** (popup dos profissionais, promovido em 28/10 com autorização explícita; deployment `7396359787`).
-- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home e o card de produto no molde do blog (28/10) e o filtro da loja (29/10), enviada só para `origin/feature/midia-upload`.
+- `origin/main`: igual à branch de trabalho desde 29/10 (promoção de `fe30984` para `233590d`, com o "pode promover" do responsável; deployment `7405966790`), mais este registro.
+- Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` depois da promoção de 29/10.
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
