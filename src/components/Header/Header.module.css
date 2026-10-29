@@ -77,10 +77,13 @@
 
 /* O PNG provisório do logo tem uma faixa transparente à esquerda (24 de
    255 px de largura, 293 de altura; 100px de altura na tela, Logo.module.css):
-   a margem negativa põe a marca visível na borda do container, alinhada às
-   caixas das sections e ao rodapé (29/10/2026). Tirar quando chegar o SVG. */
+   o deslocamento põe a marca visível na borda do container, alinhada às
+   caixas das sections e ao rodapé (29/10/2026). É um deslocamento relativo,
+   e não margem: a margem negativa estreitava o link e encolhia o logo.
+   Tirar quando chegar o SVG. */
 .logo img {
-  margin-left: calc(100px * -24 / 293);
+  position: relative;
+  left: calc(100px * -24 / 293);
 }
 
 .colunaDireita {
