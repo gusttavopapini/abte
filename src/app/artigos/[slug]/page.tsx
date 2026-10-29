@@ -34,7 +34,6 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
   const artigo = await lerArtigoPublicado((await params).slug);
   if (!artigo) notFound();
 
-  const dataFormatada = artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "";
   // Imagem da biblioteca, só nesta página (o card da lista é só texto, como no
   // design). Sem imagem, ou com ela na lixeira, nenhum bloco de imagem.
   const imagem = artigo.imagemMidiaId ? (await imagensAtivasPorId([artigo.imagemMidiaId])).get(artigo.imagemMidiaId) : undefined;
@@ -61,11 +60,9 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
           <article className={estilos.artigo}>
             <header className={estilos.cabecalho}>
               <h1 className={`tipo-h1 ${estilos.titulo}`}>{artigo.titulo}</h1>
-              <div className={estilos.meta}>
-                {dataFormatada && <span className={estilos.data}>{dataFormatada}</span>}
-                <span className={estilos.separador}>•</span>
-                <span className={estilos.autor}>por {artigo.autores || "Autor Desconhecido"}</span>
-              </div>
+              {/* Sem data: a gravada é a da importação, não a do artigo; sem
+                  autores, a linha não aparece (29/10/2026). */}
+              {artigo.autores && <p className={estilos.meta}>por {artigo.autores}</p>}
               {tags.length > 0 && (
                 <ul role="list" aria-label="Tags do artigo" className={estilos.tags}>
                   {tags.map((tag) => (
@@ -88,10 +85,12 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
               </div>
             )}
 
-            <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
-              {artigo.resumo}
-            </div>
-            
+            {artigo.resumo && (
+              <div className={`tipo-texto ${estilos.conteudo} ${estilos.textoCorrido}`}>
+                {artigo.resumo}
+              </div>
+            )}
+
             {artigo.link && (
               <div className={estilos.linkOriginal}>
                 <Botao href={artigo.link} target="_blank" rel="noopener noreferrer">

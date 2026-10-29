@@ -1,5 +1,6 @@
+/* Fundo claro, como no /blog, para os cards brancos aparecerem */
 .secao {
-  background-color: var(--color-bg);
+  background-color: var(--color-bg-alt);
   min-height: 100vh;
 }
 

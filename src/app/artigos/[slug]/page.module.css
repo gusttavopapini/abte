@@ -21,15 +21,17 @@
   padding-bottom: var(--space-32);
 }
 
+/* Os títulos importados chegam a 240 caracteres: o H1 do artigo usa o
+   tamanho do H3, para não ocupar telas inteiras (29/10/2026). */
 .titulo {
   color: var(--color-primary);
+  font-size: var(--font-size-h3);
   font-weight: var(--font-weight-light);
+  letter-spacing: var(--tracking-h3);
+  overflow-wrap: anywhere;
 }
 
 .meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
   color: var(--color-primary);
   font-size: var(--font-size-text);
   font-weight: var(--font-weight-light);

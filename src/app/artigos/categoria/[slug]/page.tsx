@@ -6,6 +6,7 @@ import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
 import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
+import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { categoriaDaPaginaPublica } from "@/lib/topicos";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
@@ -40,6 +41,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
     .map((documento) => documento.data())
     .filter((artigo) => artigo.status === "publicado")
     .sort((a, b) => (b.criadoEm?.getTime() ?? 0) - (a.criadoEm?.getTime() ?? 0));
+  const imagens = await imagensAtivasPorId(artigos.map((artigo) => artigo.imagemMidiaId));
 
   return (
     <LayoutPublico header="solida">
@@ -60,10 +62,11 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
                 <CardArtigo
                   key={artigo.id}
                   titulo={artigo.titulo || "Sem título"}
+                  autores={artigo.autores}
                   resumo={artigo.resumo}
-                  autor={artigo.autores || "Autor Desconhecido"}
-                  data={artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : ""}
+                  imagem={artigo.imagemMidiaId ? imagens.get(artigo.imagemMidiaId) ?? null : null}
                   slug={artigo.id}
+                  nivelDoTitulo={2}
                 />
               ))
             )}

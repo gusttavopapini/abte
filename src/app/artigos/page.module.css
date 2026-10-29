@@ -47,12 +47,6 @@
   font-weight: var(--font-weight-light);
 }
 
-/* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
-   para valer sobre as regras anteriores, como o estilo inline valia. */
-.blocoClaro {
-  background-color: var(--color-bg);
-}
-
 /* Aviso de lista vazia ocupando a linha toda da grade */
 .vazio {
   grid-column: 1 / -1;

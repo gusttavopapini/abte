@@ -20,22 +20,21 @@ export default async function PaginaArtigos() {
     todasAsCategorias,
     snapshot.docs.map((documento) => documento.data()).filter((artigo) => artigo.status === "publicado"),
   );
-  const imagens = await imagensAtivasPorId(categorias.map((categoria) => categoria.imagemMidiaId));
-
-  const artigos = snapshot.docs
-    .map((documento) => {
-      const artigo = documento.data();
-      return {
-        id: artigo.id,
-        titulo: artigo.titulo || "Sem título",
-        resumo: artigo.resumo,
-        autor: artigo.autores || "Autor Desconhecido",
-        data: artigo.criadoEm ? artigo.criadoEm.toLocaleDateString("pt-BR") : "",
-        slug: artigo.id,
-        status: artigo.status,
-      };
-    })
-    .filter((artigo) => artigo.status === "publicado");
+  // Artigos publicados, do mais novo para o mais antigo no site. O card não
+  // mostra data: a gravada é a da importação, não a do artigo (29/10/2026).
+  const publicados = snapshot.docs.map((documento) => documento.data()).filter((artigo) => artigo.status === "publicado");
+  const imagens = await imagensAtivasPorId([
+    ...categorias.map((categoria) => categoria.imagemMidiaId),
+    ...publicados.map((artigo) => artigo.imagemMidiaId),
+  ]);
+  const artigos = publicados.map((artigo) => ({
+    id: artigo.id,
+    titulo: artigo.titulo || "Sem título",
+    resumo: artigo.resumo,
+    autores: artigo.autores,
+    imagem: artigo.imagemMidiaId ? imagens.get(artigo.imagemMidiaId) ?? null : null,
+    slug: artigo.id,
+  }));
 
   return (
     <LayoutPublico header="solida">
@@ -78,25 +77,27 @@ export default async function PaginaArtigos() {
           </div>
         </section>
 
-        {/* Artigos publicados */}
-        <section className={`${estilos.bloco} ${estilos.blocoClaro}`}>
+        {/* Artigos publicados. Antes, "Top Artigos" e "Mais lidos da semana":
+            não existe contagem de leitura (29/10/2026). Fundo claro para os
+            cards brancos aparecerem. */}
+        <section className={estilos.bloco}>
           <div className="container">
             <header {...revelar(estilos.blocoCabecalho)}>
-              <span className={estilos.blocoMarcador}>Top Artigos</span>
-              <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Mais lidos da semana</h2>
+              <span className={estilos.blocoMarcador}>Artigos</span>
+              <h2 className={`tipo-h2 ${estilos.blocoTitulo}`}>Todos os artigos</h2>
             </header>
 
             <div {...revelar("grade-de-cards", 1)}>
               {artigos.length === 0 ? (
-                <p style={{ gridColumn: "1 / -1", opacity: 0.6 }}>Nenhum artigo publicado ainda.</p>
+                <p className={`tipo-texto ${estilos.vazio}`}>Nenhum artigo publicado ainda.</p>
               ) : (
                 artigos.map((artigo) => (
-                  <CardArtigo 
-                    key={artigo.slug}
+                  <CardArtigo
+                    key={artigo.id}
                     titulo={artigo.titulo}
+                    autores={artigo.autores}
                     resumo={artigo.resumo}
-                    autor={artigo.autor}
-                    data={artigo.data}
+                    imagem={artigo.imagem}
                     slug={artigo.slug}
                   />
                 ))

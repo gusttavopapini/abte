@@ -1,60 +1,79 @@
+/* Molde do CardPost (29/10/2026): mesmos valores de cartão, imagem, hover e
+   tipografia. Os títulos importados chegam a 240 caracteres, por isso título
+   e autores têm número de linhas limitado (o texto inteiro está na página
+   do artigo). */
 .card {
   display: flex;
   flex-direction: column;
-  background-color: transparent;
-  padding: 0;
-  gap: var(--space-8);
   height: 100%;
-  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  overflow: hidden;
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .card:hover {
-  transform: translateX(4px);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-.meta {
+.imagemContainer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+/* Duas classes para valer sobre o height: auto do ImagemDaMidia */
+.imagemContainer .imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.conteudo {
   display: flex;
-  align-items: center;
-  gap: var(--space-8);
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--card-padding);
+}
+
+.titulo,
+.autores,
+.resumo {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-light);
+}
+
+.conteudo .titulo {
+  -webkit-line-clamp: 4;
+  font-size: calc(var(--font-size-h3) * 0.85);
+}
+
+.autores {
+  -webkit-line-clamp: 2;
   font-size: var(--font-size-small);
-  color: var(--color-primary);
-  opacity: 0.8;
-  font-weight: var(--font-weight-light);
-}
-
-.autor {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-light);
-}
-
-.titulo {
-  color: var(--color-primary);
-  font-weight: 500;
+  line-height: var(--leading-normal);
 }
 
 .resumo {
-  color: var(--color-primary);
-  line-height: var(--leading-normal);
-  font-weight: var(--font-weight-light);
-  flex: 1;
+  -webkit-line-clamp: 3;
 }
 
-.rodape {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  border-top: 1px solid var(--color-surface-soft);
-  padding-top: var(--space-16);
-  margin-top: var(--space-16);
+/* O botão vai para o fim do card, alinhado entre os cards da linha */
+.botao {
+  align-self: flex-start;
+  margin-top: auto;
 }
 
-.link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-}
-
-.link:hover {
-  text-decoration: underline;
+@media (min-width: 1024px) {
+  .conteudo .titulo {
+    font-size: var(--font-size-text-lg);
+  }
 }
