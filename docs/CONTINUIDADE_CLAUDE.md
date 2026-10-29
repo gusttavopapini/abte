@@ -198,6 +198,12 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Grade:** já estava com no máximo 4 colunas nesta branch (`e129ce4`); a `main` e a produção ainda têm a versão de até 5 colunas, até o "pode promover".
 - **Validação:** 6 larguras (390 a 1920), 3 páginas e 3 posições de rolagem com as distâncias iguais; 465 testes de unidade e sessão, typecheck, lint (4 avisos), lint:css (5) e build. Capturas em `tmp-migracao/capturas/fab-e-grade/`.
 
+### Promoção de 29/10 (tarde)
+
+- Tudo o que estava na `feature/midia-upload` (alterações da ABTE, loja com 4 colunas, menu flutuante, auditoria de espaçamento e botões no canto da janela) foi para a `main` com o "pode promover": fast-forward de `a5bfe89` para `0abcff2`, deployment `7421815588` com sucesso.
+- Antes: 556 testes, typecheck, lint (4 avisos), lint:css (5) e build; varredura de dados pessoais e segredos com 0 achados.
+- Produção conferida em 390, 768, 1280 e 1710 px: 23 páginas com status 200, um H1, 0 erros de console; menu da loja só na loja, no canto da janela; grade da `/loja` com no máximo 4 colunas.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
@@ -247,8 +253,8 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: `a5bfe89` (promoção de 29/10, de `fe30984` para `233590d`, com o "pode promover" do responsável; deployment `7405966790`, mais o registro).
-- Branch de trabalho: **`feature/midia-upload`**, à frente da `origin/main` com as alterações da ABTE de 29/10 (sem promover).
+- `origin/main`: `0abcff2` (promoção de 29/10, fast-forward de `a5bfe89`, 19 commits, com o "pode promover" do responsável; deployment de Produção `7421815588`, conferido em 4 larguras).
+- Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` mais o commit que registra essa promoção (só documentação).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 

@@ -2,11 +2,11 @@
 
 ## Continuidade atual (28/10/2026)
 
-O responsável pediu para continuar no Claude. Leia primeiro [docs/CONTINUIDADE_CLAUDE.md](docs/CONTINUIDADE_CLAUDE.md): ele reúne o projeto, tudo o que foi feito nesta colaboração, o último código publicado (`233590d`, promovido em 29/10/2026 com o "pode promover" do responsável) e as pendências reais.
+O responsável pediu para continuar no Claude. Leia primeiro [docs/CONTINUIDADE_CLAUDE.md](docs/CONTINUIDADE_CLAUDE.md): ele reúne o projeto, tudo o que foi feito nesta colaboração, o último código publicado (`0abcff2`, promovido em 29/10/2026 com o "pode promover" do responsável, deployment de Produção `7421815588`) e as pendências reais.
 
 Os 71 posts e cinco artigos já foram publicados em 28/10; busca do blog e novos cards dos profissionais também estão no ar. A `main` local ainda é antiga, enquanto `origin/main` e a branch de trabalho estão atualizadas. As seções antigas abaixo preservam o histórico e não devem ser tomadas como fila de comandos a repetir. A preferência anterior por executar somente no Codex foi substituída pelo pedido mais recente.
 
-**Popup dos profissionais (28/10/2026):** promovido para a `main` com autorização explícita (`fe30984`, deployment de Produção `7396359787`). **Produtos em destaque na home (28/10/2026), card de produto no molde do blog (28/10/2026) e filtro da loja (29/10/2026):** promovidos para a `main` em 29/10/2026 com o "pode promover" do responsável (fast-forward de `fe30984` para `233590d`, deployment de Produção `7405966790`). Ver os registros em "Estado atual". **Alterações pedidas pela ABTE em 29/10/2026 (documento "ALTERAÇÕES ABTE"):** só na `feature/midia-upload`, sem promover (ver o registro de 29/10/2026, alterações da ABTE).
+**Popup dos profissionais (28/10/2026):** promovido para a `main` com autorização explícita (`fe30984`, deployment de Produção `7396359787`). **Produtos em destaque na home (28/10/2026), card de produto no molde do blog (28/10/2026) e filtro da loja (29/10/2026):** promovidos para a `main` em 29/10/2026 com o "pode promover" do responsável (fast-forward de `fe30984` para `233590d`, deployment de Produção `7405966790`). Ver os registros em "Estado atual". **Alterações pedidas pela ABTE, loja com 4 colunas, menu flutuante, auditoria de espaçamento e botões no canto da janela (29/10/2026):** promovidos para a `main` no mesmo dia com o "pode promover" do responsável (fast-forward de `a5bfe89` para `0abcff2`, 19 commits, deployment de Produção `7421815588`). Ver o registro da promoção em "Estado atual".
 
 ## Resumo do projeto
 
@@ -193,6 +193,12 @@ src/
 Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pendentes".
 
 ## Estado atual (verificado em 21/10/2026; os blocos com data própria valem para a data indicada)
+
+**Registro de 29/10/2026 (promoção para a `main` de tudo o que estava na `feature/midia-upload`):**
+- **Autorização:** "pode promover" do responsável, para tudo até `0abcff2`. Fast-forward de `a5bfe89` para `0abcff2` (19 commits, 71 arquivos; nenhum commit só do lado da `main`, então sem merge). `git ls-remote`: `main` e `feature/midia-upload` em `0abcff2`. Este registro é um commit posterior, só na branch (a `main` fica em `0abcff2` até novo "pode promover").
+- **Divergência antes da promoção:** não era real. `a5bfe89` é um commit só de documentação (2 arquivos) sobre `233590d`; a produção era o deployment `7406003733` (`a5bfe89`), com o código de `233590d`.
+- **Verificações antes de promover:** typecheck e build passam; lint 0 erros e 4 avisos; lint:css 5 erros (saíram da lista antiga de 7 os dois `rgba` pretos das setas do banner em `Hero.module.css`); `test:unidade` 338, `test:sessao` 127, `test:regras` 91 (556). Varredura de `origin/main..HEAD` (1507 linhas novas): 0 e-mails, 0 telefones (2 acertos do padrão eram ids de deployment da Vercel), 0 nomes de profissionais (de 96), 0 endereços ou ids do Wix, 0 chaves ou tokens, 0 valores de `.env`, 0 caminhos da máquina, 0 arquivos privados.
+- **Produção:** deployment `7421815588`, `success`. Conferida em `abte-lovat.vercel.app` (Chrome headless, 390, 768, 1280 e 1710 px; home, `/loja`, um produto, `/blog`, `/profissionais`, `/artigos`): 23 páginas com status 200, um H1 e 0 erros de console, sem rolagem horizontal; faixa azul ausente; menu da loja só nas páginas da loja, a 24px da direita e de baixo (na `/loja` em 390 e 768, a 96px de baixo, acima do botão de filtros a 24/24); grade da `/loja` com 1, 2, 4 e 4 colunas. **Desfazer, se preciso:** `git revert` dos 19 commits de `a5bfe89..0abcff2` na branch e novo push para a `main` (não executado).
 
 **Registro de 29/10/2026 (botões flutuantes da loja no canto da janela e grade de no máximo 4 colunas; só na `feature/midia-upload`, sem promover):**
 - **Commits:** `d33ffba` (posição dos botões), mais o desta documentação. A grade não precisou de mudança: já tinha no máximo 4 colunas nesta branch (`e129ce4`). A versão de até 5 colunas é a da `main` e da produção (`233590d`), que só muda com o "pode promover". Busca por "5 colunas", `repeat(5` e `--colunas-maximas: 5` no código e nos testes da loja: 0.
