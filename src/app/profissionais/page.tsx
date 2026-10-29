@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { lerProfissionais, ordenarProfissionais } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { paraProfissionalPublico } from "@/lib/profissionaisPublicos";
@@ -25,12 +26,10 @@ export default async function PaginaProfissionais() {
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
-          <div className={estilos.cabecalho}>
-            <h1 className={`tipo-h1 ${estilos.titulo}`}>Profissionais</h1>
-            <p className={`tipo-texto-lg ${estilos.descricao}`}>
-              Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede.
-            </p>
-          </div>
+          <CabecalhoDePagina
+            titulo="Profissionais"
+            descricao="Este é o espaço para encontrar profissionais capacitados e referência nacional no tratamento conservador da escoliose. Conecte-se com nossa rede."
+          />
 
           {/* O filtro lê a tag do endereço (useSearchParams), por isso fica em Suspense. */}
           <Suspense>

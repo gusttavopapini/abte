@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import estilos from "./PaginaDeTexto.module.css";
 
 // Página institucional só de texto (doação, associação, páginas legais):
-// título, introdução e corpo com seções. Com "preliminar", mostra antes do
-// título a faixa de versão preliminar, para textos que a ABTE ainda revisa.
+// título e introdução no cabeçalho centralizado (29/10/2026) e corpo com
+// seções, alinhado à esquerda na mesma coluna de leitura. Com "preliminar",
+// mostra antes do título a faixa de versão preliminar, para textos que a
+// ABTE ainda revisa.
 export function PaginaDeTexto({
   titulo,
   introducao,
@@ -24,8 +27,7 @@ export function PaginaDeTexto({
             Versão preliminar, em revisão pela ABTE.
           </p>
         )}
-        <h1 className={`tipo-h1 ${estilos.titulo}`}>{titulo}</h1>
-        <div className={`tipo-texto-lg ${estilos.introducao}`}>{introducao}</div>
+        <CabecalhoDePagina titulo={titulo} descricao={introducao} espacoAbaixo={false} />
         {children && <div className={`tipo-texto ${estilos.corpo}`}>{children}</div>}
       </div>
     </LayoutPublico>

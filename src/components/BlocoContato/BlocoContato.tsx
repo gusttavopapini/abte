@@ -32,7 +32,9 @@ function validar(valores: Valores): Erros {
 
 // Bloco "Fale com a ABTE", antes do rodapé em todas as páginas
 // (design-system.md seção 8.8 e ABTE_design_redesign.md seção 4.2).
-export function BlocoContato({ estadoInicial = "padrao" }: { estadoInicial?: EstadoInicialContato }) {
+// "centralizado": título e aviso no centro, como os cabeçalhos das páginas
+// internas (na /contato, 29/10/2026); o formulário continua à esquerda.
+export function BlocoContato({ estadoInicial = "padrao", centralizado = false }: { estadoInicial?: EstadoInicialContato; centralizado?: boolean }) {
   const id = useId();
   const [valores, setValores] = useState<Valores>(VAZIO);
   const [erros, setErros] = useState<Erros>(() => (estadoInicial === "erro" ? validar(VAZIO) : {}));
@@ -74,7 +76,7 @@ export function BlocoContato({ estadoInicial = "padrao" }: { estadoInicial?: Est
   const idTitulo = `${id}-titulo`;
 
   return (
-    <section className={estilos.painel} aria-labelledby={idTitulo}>
+    <section className={`${estilos.painel} ${centralizado ? estilos.centralizado : ""}`} aria-labelledby={idTitulo}>
       <h2 id={idTitulo} className={estilos.titulo}>
         Fale com a ABTE
       </h2>

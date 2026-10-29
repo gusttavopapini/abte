@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardMembroDiretoria } from "@/components/CardMembroDiretoria/CardMembroDiretoria";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { revelar } from "@/components/Revelar/revelar";
 import { lerDiretoria } from "@/lib/dados/colecoes";
 import { diretoriaPorPeriodo, tituloDoPeriodo } from "@/lib/diretoria";
@@ -25,7 +26,7 @@ export default async function PaginaDiretoria() {
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
-          <h1 className={`tipo-h1 ${estilos.titulo}`}>Diretoria</h1>
+          <CabecalhoDePagina titulo="Diretoria" espacoAbaixo={false} />
 
           {grupos.length === 0 ? (
             <p className={`tipo-texto ${estilos.vazio}`}>Nenhum membro da diretoria publicado ainda.</p>

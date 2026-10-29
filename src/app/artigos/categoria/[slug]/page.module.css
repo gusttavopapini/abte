@@ -7,26 +7,11 @@
   padding-block: var(--section-space);
 }
 
-.cabecalho {
-  margin-bottom: var(--space-64);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-16);
-}
-
+/* O link de voltar fica na borda do conteúdo, acima do cabeçalho
+   centralizado. Antes, uma margem de -24px o tirava do container (o link do
+   Botao não tem padding). */
 .voltar {
-  margin-left: -24px; /* Compensar o padding padrão interno do botão para ficar alinhado */
-}
-
-.titulo {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-light);
-}
-
-.descricao {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-light);
+  margin-bottom: var(--space-32);
 }
 
 /* Aviso de lista vazia ocupando a linha toda da grade */

@@ -2,33 +2,23 @@
   padding-block: var(--section-space);
 }
 
-/* Faixa de versão preliminar: caixa branca, como as mensagens do site */
+/* Faixa de versão preliminar: caixa branca, como as mensagens do site, na
+   coluna de leitura centralizada */
 .faixa {
   border-radius: var(--radius);
-  margin-bottom: var(--space-32);
+  max-width: calc(var(--content-max) / 2);
+  margin: 0 auto var(--space-32);
+  text-align: center;
   padding: var(--space-16);
   background: var(--color-feedback-bg);
   color: var(--color-primary);
 }
 
-.titulo {
-  font-weight: var(--font-weight-light);
-  color: var(--color-primary);
-}
-
-/* Linhas de leitura confortável: metade da largura máxima do conteúdo */
-.introducao,
+/* Linhas de leitura confortável: metade da largura máxima do conteúdo, na
+   mesma coluna centralizada do cabeçalho; o texto continua à esquerda */
 .corpo {
   max-width: calc(var(--content-max) / 2);
-}
-
-.introducao {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-24);
-  margin-top: var(--space-24);
-  font-weight: var(--font-weight-light);
+  margin-inline: auto;
 }
 
 .corpo {

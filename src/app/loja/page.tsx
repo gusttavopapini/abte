@@ -1,3 +1,4 @@
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
@@ -31,8 +32,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
       {parametros.conta === "excluida" && (
         <Mensagem tipo="sucesso" className={estilos.aviso}>Sua conta foi excluída, com seu nome, seu e-mail e seu carrinho.</Mensagem>
       )}
-      <h1 className={`tipo-h1 ${estilos.titulo}`}>Loja da ABTE</h1>
-      <p className={`tipo-texto-xl ${estilos.descricao}`}>Conheça nossos produtos. Cada compra apoia pacientes com escoliose.</p>
+      <CabecalhoDePagina titulo="Loja da ABTE" descricao="Conheça nossos produtos. Cada compra apoia pacientes com escoliose." espacoAbaixo={false} />
 
       {produtos.length === 0 ? (
         <p className={`tipo-texto ${estilos.vazio}`}>Nenhum produto disponível ainda.</p>

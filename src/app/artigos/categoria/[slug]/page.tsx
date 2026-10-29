@@ -4,6 +4,7 @@ import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { lerArtigos, lerTopicos } from "@/lib/dados/colecoes";
 import { categoriaDaPaginaPublica } from "@/lib/topicos";
 import estilos from "./page.module.css";
@@ -44,15 +45,12 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
-          <div className={estilos.cabecalho}>
-             <Botao href="/artigos" variante="link" className={estilos.voltar}>
-               &larr; Voltar para Artigos
-             </Botao>
-             <h1 className={`tipo-h1 ${estilos.titulo}`}>Artigos sobre {categoria.nome}</h1>
-             <p className={`tipo-texto-lg ${estilos.descricao}`}>
-               Explorando os artigos e publicações classificados nesta categoria.
-             </p>
+          <div className={estilos.voltar}>
+            <Botao href="/artigos" variante="link">
+              &larr; Voltar para Artigos
+            </Botao>
           </div>
+          <CabecalhoDePagina titulo={`Artigos sobre ${categoria.nome}`} descricao="Explorando os artigos e publicações classificados nesta categoria." />
 
           <div {...revelar("grade-de-cards")}>
             {artigos.length === 0 ? (

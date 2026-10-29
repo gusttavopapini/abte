@@ -2,7 +2,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardCategoriaArtigo } from "@/components/CardCategoriaArtigo/CardCategoriaArtigo";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
-import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import { lerArtigos, listarTopicosAtivos } from "@/lib/dados/colecoes";
 import { categoriasComPublicados } from "@/lib/topicos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
@@ -41,18 +41,15 @@ export default async function PaginaArtigos() {
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         
-        {/* Abertura da página */}
+        {/* Abertura da página: cabeçalho centralizado, sem a imagem
+            decorativa (29/10/2026) */}
         <section className={estilos.hero}>
-          <div className={`container ${estilos.heroGrid}`}>
-            <div>
-               <h1 className={`tipo-h1 ${estilos.heroTitulo}`}>Artigos Científicos</h1>
-               <p className={`tipo-texto-lg ${estilos.heroDescricao}`}>
-                 Acesse nosso acervo de publicações científicas, pesquisas e estudos de caso para aprofundar seu conhecimento sobre o tratamento da escoliose.
-               </p>
-            </div>
-            <div className={estilos.heroImagemContainer}>
-               <PlaceholderImagem />
-            </div>
+          <div className="container">
+            <CabecalhoDePagina
+              titulo="Artigos Científicos"
+              descricao="Acesse nosso acervo de publicações científicas, pesquisas e estudos de caso para aprofundar seu conhecimento sobre o tratamento da escoliose."
+              espacoAbaixo={false}
+            />
           </div>
         </section>
 

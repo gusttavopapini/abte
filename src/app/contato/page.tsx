@@ -11,7 +11,7 @@ export default function PaginaContato() {
       <h1 className="somente-leitor">Contato</h1>
       <div className={`container ${estilos.containerForm}`}>
         <div className={estilos.formularioCentralizado}>
-          <BlocoContato />
+          <BlocoContato centralizado />
         </div>
       </div>
     </LayoutPublico>

@@ -16,6 +16,11 @@
   font-size: var(--font-size-small);
 }
 
+.centralizado .titulo,
+.centralizado .aviso {
+  text-align: center;
+}
+
 .formulario {
   display: flex;
   flex-direction: column;

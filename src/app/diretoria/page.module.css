@@ -9,7 +9,6 @@
   padding-block: var(--section-space);
 }
 
-.titulo,
 .periodo {
   color: var(--color-primary);
   font-weight: var(--font-weight-light);

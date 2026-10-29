@@ -2,16 +2,6 @@
   padding-block: var(--section-space);
 }
 
-.titulo {
-  font-weight: var(--font-weight-light);
-  color: var(--color-primary);
-}
-
-.descricao {
-  margin-top: var(--space-24);
-  font-weight: var(--font-weight-light);
-}
-
 .vazio {
   margin-top: var(--space-32);
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Form from "next/form";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { CardPost } from "@/components/CardPost/CardPost";
+import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
 import estilos from "./page.module.css";
 import { lerPosts, listarTopicosAtivos, ordenarPosts } from "@/lib/dados/colecoes";
 import { categoriaDoFiltro, categoriasComPublicados } from "@/lib/topicos";
@@ -66,11 +67,10 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
     <LayoutPublico header="solida">
       <div className={estilos.secao}>
         <div className={`container ${estilos.container}`}>
-          <div className={estilos.cabecalho}>
-            <h1 className={`tipo-h1 ${estilos.titulo}`}>Blog da ABTE</h1>
-            <p className={`tipo-texto-lg ${estilos.descricao}`}>
-              Este é o espaço para oferecermos artigos, guias e materiais valiosos. Ajude a espalhar conhecimento verdadeiro e com base científica sobre a escoliose.
-            </p>
+          <CabecalhoDePagina
+            titulo="Blog da ABTE"
+            descricao="Este é o espaço para oferecermos artigos, guias e materiais valiosos. Ajude a espalhar conhecimento verdadeiro e com base científica sobre a escoliose."
+          >
             <Form action="/blog" role="search" aria-label="Buscar no blog" className={estilos.busca} key={`${filtro?.slug ?? "todos"}:${busca}`}>
               <label htmlFor="busca-blog" className="somente-leitor">Buscar no blog</label>
               {filtro && <input type="hidden" name="categoria" value={filtro.slug} />}
@@ -90,7 +90,7 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
                 </svg>
               </button>
             </Form>
-          </div>
+          </CabecalhoDePagina>
 
           {filtros.length > 0 && (
             <nav aria-label="Categorias do blog" className={estilos.filtros}>
