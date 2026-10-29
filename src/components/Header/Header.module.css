@@ -34,6 +34,27 @@
   background: transparent;
 }
 
+/* Degradê branco sutil atrás do logo e do menu, para a marca sobressair
+   sobre a foto (EXCEÇÃO DE DESIGN de 29/10/2026, pedido da ABTE). Só no
+   header transparente e só no topo: com o fundo sólido (.comFundo) ou
+   escondido, o degradê some, para não haver faixa dupla nem texto
+   desbotado. Fica atrás do conteúdo do header (z-index -1 dentro dele). */
+.transparente::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: calc(100% + var(--space-32));
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 85%, transparent), transparent);
+  pointer-events: none;
+  transition: opacity var(--header-duracao) var(--header-curva);
+}
+
+.transparente.comFundo::before,
+.transparente.escondido::before {
+  opacity: 0;
+}
+
 /* Depois de rolar a página, o header visível ganha fundo sólido para não
    ficar transparente sobre o conteúdo (EXCEÇÃO DE DESIGN pendente de
    confirmação da designer: header visível ao rolar é PROPOSTA). No topo, nada
