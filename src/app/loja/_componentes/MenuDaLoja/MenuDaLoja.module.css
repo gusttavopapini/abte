@@ -144,6 +144,9 @@
   align-items: flex-end;
   gap: var(--espaco-das-opcoes);
   visibility: hidden;
+  /* Fechando, as opções descem sob o cursor parado: sem receber o
+     ponteiro, não contam como uma nova "entrada" do mouse no menu. */
+  pointer-events: none;
   transition: visibility 0s linear 450ms;
 }
 
@@ -159,6 +162,7 @@
 
 .aberto .opcoes {
   visibility: visible;
+  pointer-events: auto;
   transition: visibility 0s;
 }
 
@@ -166,6 +170,7 @@
 :global(html:not(.com-js)) .menu:hover .opcoes,
 :global(html:not(.com-js)) .menu:focus-within .opcoes {
   visibility: visible;
+  pointer-events: auto;
 }
 
 .item {

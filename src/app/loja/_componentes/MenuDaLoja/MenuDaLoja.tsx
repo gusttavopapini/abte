@@ -67,6 +67,10 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
   const temporizador = useRef(0);
   // O foco devolvido ao botão pelo Esc não reabre o menu.
   const ignorarFoco = useRef(false);
+  // Depois de escolher uma opção (ou do Esc), o mouse só reabre o menu
+  // depois de sair dele: a página nova que aparece sob o cursor conta como
+  // uma "entrada" e reabriria o menu sozinho.
+  const hoverBloqueado = useRef(false);
   const idLista = useId();
 
   // Ao trocar de página, o menu fecha.
@@ -88,6 +92,7 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
     const aoTeclar = (evento: KeyboardEvent) => {
       if (evento.key !== "Escape") return;
       setAberto(false);
+      hoverBloqueado.current = true;
       ignorarFoco.current = true;
       botaoRef.current?.focus();
       ignorarFoco.current = false;
@@ -119,8 +124,12 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
       ref={raizRef}
       className={`${estilos.menu} ${aberto ? estilos.aberto : ""}`}
       style={{ "--total": opcoes.length } as CSSProperties}
-      onPointerEnter={(evento) => evento.pointerType === "mouse" && agendar(true, ATRASO_PARA_ABRIR_MS)}
-      onPointerLeave={(evento) => evento.pointerType === "mouse" && agendar(false, TOLERANCIA_PARA_FECHAR_MS)}
+      onPointerEnter={(evento) => evento.pointerType === "mouse" && !hoverBloqueado.current && agendar(true, ATRASO_PARA_ABRIR_MS)}
+      onPointerLeave={(evento) => {
+        if (evento.pointerType !== "mouse") return;
+        hoverBloqueado.current = false;
+        agendar(false, TOLERANCIA_PARA_FECHAR_MS);
+      }}
       onFocus={aoFocar}
       onBlur={aoDesfocar}
     >
@@ -159,7 +168,11 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
           const Icone = ICONES[opcao.chave];
           return (
             <li key={opcao.chave} className={estilos.item} style={{ "--ordem": ordem } as CSSProperties}>
-              <Link href={opcao.href} className={estilos.opcao} aria-current={opcao.atual ? "page" : undefined} onClick={() => setAberto(false)}>
+              <Link href={opcao.href} className={estilos.opcao} aria-current={opcao.atual ? "page" : undefined} onClick={() => {
+                  window.clearTimeout(temporizador.current);
+                  hoverBloqueado.current = true;
+                  setAberto(false);
+                }}>
                 <span className={estilos.rotulo}>{opcao.rotulo}</span>
                 <span className={estilos.circulo}>
                   <Icone className={estilos.iconeDaOpcao} />
