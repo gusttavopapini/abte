@@ -146,7 +146,7 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px (loja, produto com relacionados e home) sem falha; capturas em `tmp-migracao/capturas/cards-produto-molde-blog/`.
 - Commits `6fbfc7b` e `62dc05c`, promovidos para a `main` em 29/10 (deployment `7405966790`).
 
-### Filtro da loja e grade de até 5 colunas (29/10, promovido no mesmo dia)
+### Filtro da loja e grade de até 5 colunas (29/10, promovido no mesmo dia; depois, 4 colunas, ver abaixo)
 
 - Os botões de categoria com miniatura saíram da `/loja`. No lugar, um formulário GET (funciona sem JavaScript) com Busca (nome), Categoria, Tipo, Disponibilidade, Preço (Mínimo e Máximo em R$ e, por cima, uma faixa com dois pontos) e Ofertas ("Em promoção" e um item por selo; hoje "Monte seu kit"), mais "Ordenar por" acima da grade.
 - **Parâmetros da URL:** `busca`, `categoria` (repetível, é o mesmo de antes: `/loja?categoria=produtos-abte` continua valendo), `tipo` (`fisico`, `digital`), `disponibilidade` (`disponivel`, `esgotado`), `preco_min` e `preco_max` (em reais, ex. `39.99`; aceita também `39,99`), `promocao=1`, `selo` (slug do selo, repetível) e `ordem` (`menor-preco`, `maior-preco`, `nome`; relevância é o padrão e não aparece).
@@ -171,6 +171,24 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Item 12:** artigos sem a data da importação e sem "Autor Desconhecido", com títulos contidos e card no molde do blog (imagem 16:9, "Ler artigo"). "Mais lidos da semana" virou "Todos os artigos".
 - **Validação:** 554 testes (336 de unidade, 91 de regras, 127 de sessão), typecheck, lint (4 avisos), lint:css (5) e build. Navegador em 5 larguras e 9 páginas sem falha. Capturas em `tmp-migracao/capturas/alteracoes-abte/`.
 - **Commits:** `5b83625`, `764fa84`, `f94f7ed`, `b112502`, `15899dd`, `a1e16ae`, `e29cd60` e `a3ea085`, mais o desta documentação. A `main` continua em `a5bfe89` até o "pode promover".
+
+### Loja com 4 colunas, sem a faixa, menu flutuante e espaçamento (29/10, só na `feature/midia-upload`, sem promover)
+
+- **4 colunas:** a grade da `/loja` vai até 4 colunas (mínimo de 200px por card, por auto-fill). São 3 colunas de 1024 a cerca de 1239px e 4 a partir de 1240px. Ficou 200px, e não os 160px do pedido, porque com 160px o "Ver produto" quebrava.
+- **Sem a faixa azul:** a faixa de Produtos, Carrinho e Entrar saiu de todas as páginas da loja. A contagem do carrinho e o login ficam no layout da loja.
+- **Menu flutuante da loja** (`src/app/loja/_componentes/MenuDaLoja/`, regras em `src/lib/loja/menu.ts`):
+  - Fica só nas páginas da loja: botão redondo com Produtos, Carrinho e Entrar ou Minha conta.
+  - Abre com o mouse, o foco ou o clique. Fecha com Esc, toque fora ou ao escolher uma opção.
+  - Animação em cascata com a corrente de pontinhos do logo, até 450ms. Com movimento reduzido, não há deslocamento nem escala.
+  - Na `/loja` até 1023px, fica 16px acima do botão de filtros.
+  - Exceção de design: o ícone de sacola, só na opção Carrinho.
+- **Espaçamento num lugar só:**
+  - `.pagina-interna` (`globals.css`) põe `--section-space` entre o header e o primeiro bloco.
+  - O `<main>` (`LayoutPublico`) dá o mesmo espaço antes do rodapé.
+  - Na home, cada section tem só o respiro de cima.
+  - Títulos com `text-wrap: balance`. Alvos de 44px no banner, no "Pular para o conteúdo" e na categoria do post.
+- **Auditoria:** a de antes e depois está em `tmp-migracao/auditoria/` (fora do Git). Todos os desvios reais foram de muitos para 0; o detalhe está no registro de 29/10 do `CLAUDE.md`.
+- **Validação:** 556 testes (338 de unidade, 91 de regras, 127 de sessão), typecheck, lint (4 avisos), lint:css (5) e build.
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -237,6 +255,7 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 - Profissionais: `src/components/CardProfissional/`, `PopupProfissional/`, `ContatosProfissional/`, `MetodosProfissional/`, `src/components/Modal/`, `src/lib/texto.ts`, `src/lib/profissionaisPublicos.ts`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
 - Testes do card e do popup: `testes/unidade/profissionais-publicos.test.mts`.
 - Card de produto: `src/components/CardProduto/` (variável `--proporcao-imagem-produto`).
+- Menu flutuante da loja: `src/app/loja/_componentes/MenuDaLoja/` e `src/lib/loja/menu.ts` (testes em `testes/unidade/menu-da-loja.test.mts`). Espaçamento das páginas: `.pagina-interna` em `src/app/globals.css` e o respiro do `<main>` em `src/components/LayoutPublico/`.
 - Filtro da loja: `src/app/loja/page.tsx`, `src/app/loja/_componentes/` (`FiltroDaLoja`, `GrupoDoFiltro`, `OpcaoDoFiltro`, `FaixaDePreco`, `EtiquetasDosFiltros`), `src/lib/filtrosDaLoja.ts` e `testes/unidade/filtros-da-loja.test.mts`.
 - Home, produtos em destaque: `src/app/page.tsx`, `page.module.css`, `escolherProdutosEmDestaque` em `src/lib/produtos.ts` e os testes em `testes/unidade/produtos.test.mts`.
 - Home, vídeo e banner (29/10): `src/lib/site/video.ts`, `src/lib/site/banners.ts`, `src/components/VideoVertical/`, `src/components/Hero/` e os testes `testes/unidade/video.test.mts` e `banners.test.mts`.
@@ -261,7 +280,7 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Em 29/10, com o filtro da loja, **547** (329 de unidade); com as alterações da ABTE, **554** (336 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Em 29/10, com o filtro da loja, **547** (329 de unidade); com as alterações da ABTE, **554** (336 de unidade); com o menu da loja, **556** (338 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
 As falhas históricas de Stylelint eram sete (Botao, Hero e Modal); desde 29/10 são cinco (Botao e Modal), porque as setas do banner deixaram o preto. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
