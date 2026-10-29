@@ -11,14 +11,16 @@
 }
 
 /* Grade da loja: 1 e 2 colunas pela classe global grade-de-cards; a partir
-   de 1024px, com a barra de filtros ao lado, até 5 colunas de no mínimo
-   200px (pelos tokens), por auto-fill: na área estreita cabem 4 ou 3, sem
-   breakpoint novo (29/10/2026). Com menos de 200px, o "Ver produto" do card
-   quebrava em duas linhas (decisão do responsável: mínimo de 200px). */
+   de 1024px, com a barra de filtros ao lado, até 4 colunas de no mínimo
+   200px (pelos tokens), por auto-fill: na área estreita (de 1024 a cerca de
+   1240px) cabem 3, sem breakpoint novo (4 colunas no máximo, pedido do
+   responsável de 29/10/2026). O mínimo continua 200px: com
+   menos, o "Ver produto" do card quebrava em duas linhas (decisão do
+   responsável de 29/10/2026). */
 @media (min-width: 1024px) {
   .grade:global(.grade-de-cards) {
     --largura-minima-do-card: calc(var(--space-20) * 10);
-    --colunas-maximas: 5;
+    --colunas-maximas: 4;
 
     grid-template-columns: repeat(auto-fill, minmax(max(var(--largura-minima-do-card), (100% - (var(--colunas-maximas) - 1) * var(--space-24)) / var(--colunas-maximas)), 1fr));
   }
