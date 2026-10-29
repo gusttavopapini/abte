@@ -78,6 +78,8 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
         {slides.map((slide, index) => {
           const ativo = index === slideAtual;
           const link = linkDoSlide(slide);
+          // Com link, o nome vem do link e a imagem fica decorativa.
+          const imagem = <img src={slide.imagem} alt={link ? "" : slide.alt} className={estilos.imagem} />;
           return (
             <div
               key={index}
@@ -87,10 +89,10 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
             >
               {link ? (
                 <Link href={link.href} className={estilos.linkDoSlide} aria-label={link.nome}>
-                  <img src={slide.imagem} alt="" className={estilos.imagem} />
+                  {imagem}
                 </Link>
               ) : (
-                <img src={slide.imagem} alt={slide.alt} className={estilos.imagem} />
+                imagem
               )}
             </div>
           );
