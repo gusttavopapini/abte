@@ -18,7 +18,7 @@ export default async function PaginaCategoriasDaLoja() {
         tipo="categoriaDeProduto"
         comOrdem
         comImagem
-        ondeAparece="miniatura no filtro da loja"
+        ondeAparece="sem uso no site desde 29/10/2026"
         prefixoDoEndereco="/loja?categoria="
         titulo="Categorias de produto"
         descricao="Cada produto tem uma categoria. Elas aparecem como filtro na loja, na ordem definida aqui."

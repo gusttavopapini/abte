@@ -1,0 +1,413 @@
+/* Filtro da loja (29/10/2026). Sem JavaScript (ou antes dele), tudo é uma
+   seção comum da página: o formulário e, depois, os produtos. A classe
+   com-js no <html> vem do script do app/layout.tsx. */
+.loja {
+  /* Largura da barra de filtros a partir de 1024px: 288px, pelos tokens. */
+  --largura-dos-filtros: calc(var(--space-96) * 3);
+  /* Movimento (PROPOSTA): a barra acompanha o header que se esconde (mesma
+     duração e curva do Header.module.css); o painel do celular entra e sai
+     deslizando. Com movimento reduzido, o globals.css desliga as transições. */
+  --filtros-duracao: 300ms;
+  --filtros-curva: ease-in-out;
+  --painel-duracao: 300ms;
+  --painel-curva: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  margin-top: var(--space-32);
+}
+
+.fundo {
+  display: none;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-text-xl);
+  font-weight: var(--font-weight-light);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-text);
+}
+
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.rodape {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Controles que só fazem sentido no painel do celular e do tablet em pé
+   (duas classes para valer sobre o display do Botao). */
+.formulario .soNoPainel {
+  display: none;
+}
+
+:global(html.com-js) .soSemJs {
+  display: none;
+}
+
+.acoesDoCabecalho {
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.fechar {
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.fechar:hover {
+  background: var(--color-bg-alt);
+}
+
+.iconeFechar {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.limparTudo {
+  min-height: var(--control-min-height-mobile);
+  padding-inline: var(--space-8);
+  font-size: var(--font-size-small);
+  text-decoration: underline;
+}
+
+/* ---------- Campos dentro dos grupos ---------- */
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.busca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.campoDeBusca {
+  position: relative;
+  display: block;
+}
+
+.entradaDeBusca {
+  border-radius: var(--radius);
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 var(--control-min-height-mobile) 0 var(--space-8);
+  border: 0;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+/* O botão de limpar é o próprio, não o do navegador. */
+.entradaDeBusca::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+
+.limparBusca {
+  border-radius: var(--radius);
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.iconePequeno {
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+/* ---------- Resultados ---------- */
+.resultados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-16);
+}
+
+.contagem {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.ordenar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.seletor {
+  position: relative;
+  display: inline-flex;
+}
+
+.selecao {
+  border-radius: var(--radius);
+  appearance: none;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 calc(var(--space-16) * 2.5) 0 var(--space-16);
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  cursor: pointer;
+}
+
+.setaDoSeletor {
+  position: absolute;
+  top: 50%;
+  right: var(--space-16);
+  width: var(--space-16);
+  height: var(--space-16);
+  color: var(--color-text);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Enquanto a lista nova chega, a grade atual fica mais clara. */
+.lista {
+  transition: opacity 200ms ease-out;
+}
+
+.carregando {
+  opacity: 0.5;
+}
+
+/* Botão flutuante: só no painel (até 1023px, com JavaScript). */
+.lugarDoBotao {
+  display: none;
+}
+
+.flutuante {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--button-height);
+  height: var(--button-height);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 150ms ease-out;
+}
+
+.flutuante:hover {
+  background: var(--color-primary-hover);
+}
+
+.iconeFiltro {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+/* Quantidade de filtros ativos, no canto do botão. */
+.quantidade {
+  border-radius: var(--radius);
+  position: absolute;
+  top: calc(var(--space-8) / -2);
+  right: calc(var(--space-8) / -2);
+  min-width: var(--space-20);
+  height: var(--space-20);
+  padding: 0 calc(var(--space-8) / 2);
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-size: var(--font-size-tag);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--space-20);
+  text-align: center;
+}
+
+/* ---------- 1024px ou mais: barra fixa à esquerda ---------- */
+@media (min-width: 1024px) {
+  .loja {
+    display: grid;
+    grid-template-columns: var(--largura-dos-filtros) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* Parada ao rolar, logo abaixo do header (que publica a própria altura em
+     --altura-do-header-visivel e zera ao se esconder); mais alta que a
+     janela, rola por dentro. */
+  .painel {
+    position: sticky;
+    top: calc(var(--altura-do-header-visivel, 0px) + var(--space-24));
+    max-height: calc(100dvh - var(--altura-do-header-visivel, 0px) - 2 * var(--space-24));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transition: top var(--filtros-duracao) var(--filtros-curva), max-height var(--filtros-duracao) var(--filtros-curva);
+  }
+
+  /* Com JavaScript, os filtros aplicam na hora: o "Filtrar" sobra. */
+  :global(html.com-js) .rodape {
+    display: none;
+  }
+}
+
+/* ---------- Até 1023px, com JavaScript: painel aberto pelo botão ---------- */
+@media (max-width: 1023px) {
+  :global(html.com-js) .fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: block;
+    background: color-mix(in srgb, var(--color-primary-hover) 55%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--painel-duracao) ease-out, visibility 0s linear var(--painel-duracao);
+  }
+
+  :global(html.com-js) .fundoVisivel {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--painel-duracao) ease-out, visibility 0s;
+  }
+
+  :global(html.com-js) .painel {
+    position: fixed;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    /* clip, e não hidden: o foco num campo não consegue rolar a folha e
+       tirar o cabeçalho da tela; só o corpo rola. */
+    overflow: clip;
+    background: var(--color-bg-alt);
+    visibility: hidden;
+    transition: transform var(--painel-duracao) var(--painel-curva), visibility 0s linear var(--painel-duracao);
+  }
+
+  :global(html.com-js) .painelAberto {
+    visibility: visible;
+    transform: none;
+    transition: transform var(--painel-duracao) var(--painel-curva), visibility 0s;
+  }
+
+  :global(html.com-js) .formulario {
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+  }
+
+  :global(html.com-js) .cabecalho {
+    flex: none;
+    padding: var(--space-8) var(--space-8) var(--space-8) var(--page-margin);
+    background: var(--color-bg);
+  }
+
+  :global(html.com-js) .corpo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-16) var(--page-margin);
+  }
+
+  :global(html.com-js) .rodape {
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--space-16) var(--page-margin) calc(var(--space-16) + env(safe-area-inset-bottom));
+    background: var(--color-bg);
+  }
+
+  :global(html.com-js) .formulario .soNoPainel {
+    display: inline-flex;
+  }
+
+  :global(html.com-js) .soForaDoPainel {
+    display: none;
+  }
+
+  /* Preso ao pé da tela enquanto a lista passa e parado no fim dela: nunca
+     fica sobre o rodapé do site. */
+  :global(html.com-js) .lugarDoBotao {
+    position: sticky;
+    bottom: calc(var(--space-16) + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: env(safe-area-inset-right);
+    pointer-events: none;
+  }
+}
+
+/* Celular: folha que sobe de baixo, quase da altura da tela. */
+@media (max-width: 767px) {
+  :global(html.com-js) .painel {
+    inset: auto 0 0;
+    height: calc(100dvh - var(--space-32));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  :global(html.com-js) .painel:not(.painelAberto) {
+    transform: translateY(100%);
+  }
+}
+
+/* Tablet em pé: folha lateral, à direita, na altura toda. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :global(html.com-js) .painel {
+    inset: 0 0 0 auto;
+    width: min(100%, calc(var(--space-96) * 5));
+    border-radius: var(--radius) 0 0 var(--radius);
+  }
+
+  :global(html.com-js) .painel:not(.painelAberto) {
+    transform: translateX(100%);
+  }
+}

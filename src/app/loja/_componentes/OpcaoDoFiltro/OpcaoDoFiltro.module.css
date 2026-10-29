@@ -1,0 +1,80 @@
+/* Opção do filtro da loja (29/10/2026). A linha inteira é o rótulo. */
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--input-height);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  cursor: pointer;
+}
+
+.caixa {
+  position: relative;
+  flex: none;
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+/* Sobre o cartão branco, a caixa vazia é azul-clara; marcada, azul com o
+   visto branco (o estado aparece pela marca, não só pela cor). Metade do
+   raio, como na caixa do consentimento. */
+.entrada {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: var(--color-bg-alt);
+  border-radius: calc(var(--radius) / 2);
+  cursor: inherit;
+  transition: background-color 150ms ease-out;
+}
+
+.entrada:checked {
+  background: var(--color-primary);
+}
+
+.marca {
+  position: absolute;
+  inset: 0;
+  color: var(--color-on-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+
+.entrada:checked + .marca {
+  opacity: 1;
+}
+
+.rotulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.contagem {
+  flex: none;
+}
+
+.opcao:hover .rotulo {
+  text-decoration: underline;
+}
+
+/* Sem resultado: apagada e sem resposta ao clique; a contagem (0) também diz. */
+.desabilitada {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.desabilitada:hover .rotulo {
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .opcao {
+    min-height: var(--control-min-height-mobile);
+  }
+}

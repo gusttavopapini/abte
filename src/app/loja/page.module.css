@@ -12,67 +12,64 @@
   font-weight: var(--font-weight-light);
 }
 
-.filtros {
-  margin-top: var(--space-32);
-}
-
-.listaDeFiltros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-16);
-}
-
-/* Filtro de categoria: link com o estado atual marcado (aria-current) */
-.filtro {
-  border-radius: var(--radius);
-  display: inline-flex;
-  gap: var(--space-8);
-  align-items: center;
-  min-height: var(--control-min-height-mobile);
-  padding: 0 var(--space-16);
-  background: var(--color-bg-alt);
-  color: var(--color-text);
-  font-size: var(--font-size-small);
-  text-decoration: none;
-}
-
-/* Miniatura da categoria no filtro (decisão de 18/10/2026, exceção de design
-   pendente da designer); sem imagem, quadrado vazio na cor suave */
-.miniatura {
-  border-radius: var(--radius);
-  flex: 0 0 auto;
-  width: var(--space-32);
-  height: var(--space-32);
-  overflow: hidden;
-  background: var(--color-surface-soft);
-}
-
-/* Seletor com duas classes para valer sobre o height: auto do ImagemDaMidia */
-.miniatura .imagemDoFiltro {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.filtro:hover {
-  text-decoration: underline;
-}
-
-.filtro[aria-current="page"] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
 .vazio {
-  margin-top: var(--space-32);
-}
-
-/* Colunas e espaço entre os cards: classe global grade-de-cards */
-.grade {
   margin-top: var(--space-32);
 }
 
 .aviso {
   margin-bottom: var(--space-32);
+}
+
+/* Grade da loja: 1 e 2 colunas pela classe global grade-de-cards; a partir
+   de 1024px, com a barra de filtros ao lado, até 5 colunas de no mínimo
+   200px (pelos tokens), por auto-fill: na área estreita cabem 4 ou 3, sem
+   breakpoint novo (29/10/2026). Com menos de 200px, o "Ver produto" do card
+   quebrava em duas linhas (decisão do responsável: mínimo de 200px). */
+@media (min-width: 1024px) {
+  .grade:global(.grade-de-cards) {
+    --largura-minima-do-card: calc(var(--space-20) * 10);
+    --colunas-maximas: 5;
+
+    grid-template-columns: repeat(auto-fill, minmax(max(var(--largura-minima-do-card), (100% - (var(--colunas-maximas) - 1) * var(--space-24)) / var(--colunas-maximas)), 1fr));
+  }
+}
+
+/* Movimento (PROPOSTA): a grade nova entra em cascata, com opacidade e um
+   pequeno deslocamento. Com movimento reduzido, o globals.css desliga. */
+.item {
+  --cascata-duracao: 400ms;
+  --cascata-passo: 40ms;
+
+  animation: entrarNaGrade var(--cascata-duracao) cubic-bezier(0.25, 0.1, 0.25, 1) backwards;
+  animation-delay: calc(var(--posicao, 0) * var(--cascata-passo));
+}
+
+@keyframes entrarNaGrade {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-8));
+  }
+}
+
+.semResultado {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+  padding: var(--panel-padding);
+  background: var(--color-bg);
+}
+
+.limpar {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  text-decoration: underline;
+}
+
+.limpar:hover {
+  color: var(--color-primary-hover);
 }

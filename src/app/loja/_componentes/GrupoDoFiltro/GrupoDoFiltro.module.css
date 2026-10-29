@@ -1,0 +1,86 @@
+/* Grupo do filtro da loja (29/10/2026): cartão branco com raio. */
+.grupo {
+  /* Movimento (PROPOSTA): abrir e fechar com a altura animada e a seta girando.
+     Com movimento reduzido, o globals.css desliga as transições. */
+  --grupo-duracao: 250ms;
+  --grupo-curva: ease-in-out;
+
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  padding: var(--space-8) var(--card-padding);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-text);
+}
+
+.alternar {
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Sem JavaScript o botão não faz nada: fica com a aparência de título. */
+.alternar:disabled {
+  cursor: default;
+}
+
+.alternar:disabled .seta {
+  display: none;
+}
+
+.seta {
+  flex: none;
+  width: var(--space-20);
+  height: var(--space-20);
+  transition: transform var(--grupo-duracao) var(--grupo-curva);
+}
+
+.alternar[aria-expanded="true"] .seta {
+  transform: rotate(180deg);
+}
+
+/* Altura animada: a linha da grade vai de 0fr a 1fr. Fechado, o conteúdo
+   fica invisível (fora do Tab e dos leitores de tela) depois da animação. */
+.conteudo {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows var(--grupo-duracao) var(--grupo-curva), visibility 0s linear var(--grupo-duracao);
+}
+
+.conteudo.aberto {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows var(--grupo-duracao) var(--grupo-curva), visibility 0s;
+}
+
+.interno {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* O espaço de baixo fica dentro da parte que recolhe; a folga lateral deixa o
+   anel de foco dos campos inteiro, sem ser cortado. */
+.miolo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-16);
+  margin-inline: calc(-1 * var(--space-8));
+}

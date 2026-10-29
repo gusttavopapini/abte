@@ -1,0 +1,55 @@
+/* Filtros ativos da loja (29/10/2026): etiquetas brancas com raio. */
+.lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.etiqueta {
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--input-height);
+  padding: 0 var(--space-8) 0 var(--space-16);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  text-decoration: none;
+  transition: background-color 150ms ease-out;
+}
+
+.etiqueta:hover {
+  background: var(--color-surface-soft);
+}
+
+.icone {
+  flex: none;
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+.limpar {
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--input-height);
+  padding: 0 var(--space-8);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  text-decoration: underline;
+}
+
+.limpar:hover {
+  color: var(--color-primary-hover);
+}
+
+@media (max-width: 767px) {
+  .etiqueta,
+  .limpar {
+    min-height: var(--control-min-height-mobile);
+  }
+}
