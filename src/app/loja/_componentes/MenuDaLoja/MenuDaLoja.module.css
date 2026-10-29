@@ -1,0 +1,277 @@
+/* Menu flutuante da loja (29/10/2026). Botão redondo (--button-height) e,
+   acima dele, as opções em círculos (48px de toque) com o rótulo à
+   esquerda. Movimento (PROPOSTA, exceção de design registrada no CLAUDE.md):
+   as opções sobem do botão em cascata, como pontos se soltando da corrente
+   do logo, com um pequeno elástico; os rótulos vêm depois; uma corrente de
+   pontinhos liga o botão às opções. Fecha na ordem inversa. Tudo em até
+   450ms. Com movimento reduzido, só aparece e some (opacidade), sem
+   deslocamento nem escala. */
+.menu {
+  --tamanho-da-opcao: calc(var(--space-24) * 2);
+  --espaco-das-opcoes: var(--space-16);
+  --passo: 50ms;
+  --curva-de-saida: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --curva-de-volta: cubic-bezier(0.36, 0, 0.66, -0.56);
+  --borda-suave: color-mix(in srgb, var(--color-primary) 20%, transparent);
+
+  position: relative;
+  width: var(--button-height);
+  height: var(--button-height);
+  pointer-events: auto;
+}
+
+/* Âncora no fim do <main> (fora da doca do filtro). O <main> tem
+   --section-space de respiro embaixo (LayoutPublico): presa ao pé da tela,
+   a âncora fica a esse respiro do fundo e o botão, 16px acima do fundo;
+   parada no fim da página, o botão fica dentro do respiro, sem cobrir o
+   conteúdo nem o rodapé. */
+.lugar {
+  position: sticky;
+  bottom: calc(var(--section-space) + env(safe-area-inset-bottom));
+  z-index: 40;
+  height: 0;
+  pointer-events: none;
+}
+
+.lugar > .menu {
+  position: absolute;
+  top: calc(var(--section-space) - var(--button-height) - var(--space-16));
+  /* Na borda direita do conteúdo, como o resto da página */
+  right: calc(max(var(--page-margin), (100% - var(--content-max)) / 2) + env(safe-area-inset-right));
+}
+
+/* ---------- Botão principal ---------- */
+.principal {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.principal:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Os pontos do logo viram o "x" ao abrir */
+.icone {
+  position: absolute;
+  width: var(--space-24);
+  height: var(--space-24);
+  transition: opacity 200ms ease-out, transform 300ms var(--curva-de-saida);
+}
+
+.iconeFechar {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.aberto .iconePontos {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+.aberto .iconeFechar {
+  opacity: 1;
+  transform: none;
+}
+
+/* Quantidade de itens no carrinho, no canto do botão (como no botão de filtros) */
+.quantidade {
+  border-radius: var(--radius);
+  position: absolute;
+  top: calc(var(--space-8) / -2);
+  right: calc(var(--space-8) / -2);
+  min-width: var(--space-20);
+  height: var(--space-20);
+  padding: 0 calc(var(--space-8) / 2);
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-size: var(--font-size-tag);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--space-20);
+  text-align: center;
+}
+
+/* ---------- Corrente de pontinhos ---------- */
+.corrente {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-around;
+  height: calc(var(--total) * (var(--tamanho-da-opcao) + var(--espaco-das-opcoes)));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.ponto {
+  width: calc(var(--space-8) * 0.75);
+  height: calc(var(--space-8) * 0.75);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  opacity: 0;
+  transform: scale(0);
+  transition:
+    opacity 150ms ease-in calc((4 - var(--ponto)) * 30ms),
+    transform 150ms ease-in calc((4 - var(--ponto)) * 30ms);
+}
+
+.aberto .ponto {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 150ms ease-out calc(var(--ponto) * 30ms),
+    transform 150ms var(--curva-de-saida) calc(var(--ponto) * 30ms);
+}
+
+/* ---------- Opções ---------- */
+.opcoes {
+  position: absolute;
+  right: calc((var(--button-height) - var(--tamanho-da-opcao)) / 2);
+  bottom: calc(100% + var(--espaco-das-opcoes));
+  z-index: 2;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: var(--espaco-das-opcoes);
+  visibility: hidden;
+  transition: visibility 0s linear 450ms;
+}
+
+/* Ponte invisível entre o botão e as opções: o mouse não "sai" do menu */
+.opcoes::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: var(--espaco-das-opcoes);
+}
+
+.aberto .opcoes {
+  visibility: visible;
+  transition: visibility 0s;
+}
+
+/* Sem JavaScript: abre com o mouse ou com o foco do teclado, só por CSS */
+:global(html:not(.com-js)) .menu:hover .opcoes,
+:global(html:not(.com-js)) .menu:focus-within .opcoes {
+  visibility: visible;
+}
+
+.item {
+  opacity: 0;
+  /* Fechada, cada opção fica sobre o botão principal, pequena */
+  transform: translateY(calc((var(--ordem) + 1) * (var(--tamanho-da-opcao) + var(--espaco-das-opcoes)))) scale(0.4);
+  transform-origin: calc(100% - var(--tamanho-da-opcao) / 2) 50%;
+  transition:
+    transform 250ms var(--curva-de-volta) calc((var(--total) - 1 - var(--ordem)) * var(--passo)),
+    opacity 200ms ease-in calc((var(--total) - 1 - var(--ordem)) * var(--passo));
+}
+
+.aberto .item,
+:global(html:not(.com-js)) .menu:hover .item,
+:global(html:not(.com-js)) .menu:focus-within .item {
+  opacity: 1;
+  transform: none;
+  transition:
+    transform 300ms var(--curva-de-saida) calc(var(--ordem) * var(--passo)),
+    opacity 150ms ease-out calc(var(--ordem) * var(--passo));
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--tamanho-da-opcao);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.rotulo {
+  padding: calc(var(--space-8) / 2) var(--space-16);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(var(--space-8));
+  transition: opacity 100ms ease-in, transform 100ms ease-in;
+}
+
+.aberto .rotulo,
+:global(html:not(.com-js)) .menu:hover .rotulo,
+:global(html:not(.com-js)) .menu:focus-within .rotulo {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 150ms ease-out calc(var(--ordem) * var(--passo) + 200ms),
+    transform 150ms ease-out calc(var(--ordem) * var(--passo) + 200ms);
+}
+
+.circulo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tamanho-da-opcao);
+  height: var(--tamanho-da-opcao);
+  border: 1px solid var(--borda-suave);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.iconeDaOpcao {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.opcao:hover .circulo,
+.opcao:focus-visible .circulo {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* O anel de foco fica no círculo, não na caixa toda do link */
+.opcao:focus-visible {
+  box-shadow: none;
+}
+
+.opcao:focus-visible .circulo {
+  box-shadow: var(--focus-ring);
+}
+
+/* Página atual: círculo com borda azul e rótulo sublinhado */
+.opcao[aria-current="page"] .circulo {
+  border: 2px solid var(--color-primary);
+}
+
+.opcao[aria-current="page"] .rotulo {
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+}
+
+/* Movimento reduzido: sem deslocamento nem escala (a regra global do
+   globals.css já tira as transições; aparece e some na hora). */
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .rotulo,
+  .ponto,
+  .icone,
+  .aberto .icone {
+    transform: none;
+  }
+}

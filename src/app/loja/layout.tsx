@@ -3,6 +3,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { SubcabecalhoLoja, type LinkDaLoja } from "@/components/SubcabecalhoLoja/SubcabecalhoLoja";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { lerItensDoCarrinho } from "@/lib/dados/carrinho";
+import { MenuDaLoja } from "./_componentes/MenuDaLoja/MenuDaLoja";
 
 // Layout de toda a área da loja: o layout público do site com o subcabeçalho
 // próprio da loja logo abaixo do cabeçalho. Login e conta só aparecem aqui.
@@ -20,7 +21,8 @@ export default async function LayoutLoja({ children }: { children: ReactNode }) 
   return (
     <LayoutPublico header="solida">
       <SubcabecalhoLoja links={links} />
-      {children}
+      {/* Menu flutuante da loja (29/10/2026): só nas páginas da loja. */}
+      <MenuDaLoja logado={cliente !== null} unidades={unidades}>{children}</MenuDaLoja>
     </LayoutPublico>
   );
 }

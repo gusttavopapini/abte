@@ -117,3 +117,44 @@ export function IconeCoracao({ className }: PropsIcone) {
     </svg>
   );
 }
+
+// Grade de quatro quadrados: "Produtos" no menu da loja (29/10/2026).
+export function IconeGrade({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Sacola: SÓ na opção "Carrinho" do menu da loja (exceção registrada no
+// CLAUDE.md: o design system proíbe ícone de carrinho com o pagamento
+// desativado; a loja tem carrinho pela decisão D1).
+export function IconeSacola({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Pessoa: "Entrar" e "Minha conta" no menu da loja.
+export function IconePessoa({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Três pontos em coluna, como a corrente de pontos do logo: botão do menu da loja.
+export function IconePontos({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <circle cx="12" cy="5" r="2" fill="currentColor" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+      <circle cx="12" cy="19" r="2" fill="currentColor" />
+    </svg>
+  );
+}

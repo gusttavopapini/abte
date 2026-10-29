@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeFechar, IconeFiltro, IconeSeta } from "@/components/Icones/Icones";
+import { useRegistrarDocaDoMenuDaLoja } from "../MenuDaLoja/MenuDaLoja";
 import {
   DISPONIBILIDADES,
   LIMITE_DA_BUSCA,
@@ -118,6 +119,7 @@ export function FiltroDaLoja({
   const urlAplicada = enderecoDaLoja(filtros);
   const [rascunho, setRascunho] = useState(() => paraRascunho(filtros));
   const [painelAberto, setPainelAberto] = useState(false);
+  const registrarDoca = useRegistrarDocaDoMenuDaLoja();
   // Grupos que a pessoa abriu ou fechou; os outros seguem o padrão do modo.
   const [alternados, setAlternados] = useState<Partial<Record<Grupo, boolean>>>({});
 
@@ -453,6 +455,9 @@ export function FiltroDaLoja({
           {children}
         </div>
         <div className={estilos.lugarDoBotao}>
+          {/* Doca do menu da loja: até 1023px, o menu fica logo acima deste
+              botão; com o painel aberto, some e fica inerte. */}
+          <div ref={registrarDoca} className={`${estilos.doca} ${painelAberto ? estilos.docaEscondida : ""}`} inert={painelAberto} />
           <button
             ref={botaoRef}
             type="button"

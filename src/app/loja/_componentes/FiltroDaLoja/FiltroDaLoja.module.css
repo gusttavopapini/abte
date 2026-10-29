@@ -231,6 +231,18 @@
   display: none;
 }
 
+/* Doca do menu flutuante da loja: 16px acima do botão de filtros, na mesma
+   coluna (29/10/2026). */
+.doca {
+  position: absolute;
+  right: env(safe-area-inset-right);
+  bottom: calc(100% + var(--space-16));
+}
+
+.docaEscondida {
+  visibility: hidden;
+}
+
 .flutuante {
   position: relative;
   display: inline-flex;
