@@ -86,6 +86,21 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
     };
   }, [demonstracao]);
 
+  // Altura que o header ocupa no alto da janela (0 quando escondido), em
+  // --altura-do-header-visivel no <html>: a barra de filtros da loja fica
+  // logo abaixo dele e acompanha quando ele se esconde (29/10/2026).
+  const ocupaOAlto = !escondido || menuAberto;
+  useEffect(() => {
+    const header = headerRef.current;
+    if (demonstracao || !header) return;
+    const raiz = document.documentElement;
+    const publicar = () => raiz.style.setProperty("--altura-do-header-visivel", ocupaOAlto ? `${header.offsetHeight}px` : "0px");
+    publicar();
+    const observador = new ResizeObserver(publicar);
+    observador.observe(header);
+    return () => observador.disconnect();
+  }, [ocupaOAlto, demonstracao]);
+
   const fecharMenu = useCallback((devolverFoco = true) => {
     setMenuAberto(false);
     // O foco volta para o botão que abriu o menu.

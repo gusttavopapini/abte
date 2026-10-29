@@ -28,6 +28,15 @@ export function IconeSeta({ className }: PropsIcone) {
   );
 }
 
+// Funil do botão de filtros da loja (29/10/2026).
+export function IconeFiltro({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // Vetor WhatsApp: Simple Icons (CC0), no padrão visual dos demais ícones.
 export function IconeWhatsapp({ className }: PropsIcone) {
   return (

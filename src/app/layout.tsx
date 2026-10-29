@@ -29,7 +29,9 @@ export const metadata: Metadata = {
 // só com JavaScript ativo, IntersectionObserver disponível e sem preferência
 // por movimento reduzido. Se o observador não avisar em 3 segundos que
 // carregou (data-revelacao-pronta), a marca sai e nada fica escondido.
-const SCRIPT_DO_MOVIMENTO = `(function(){var h=document.documentElement;try{if(!window.matchMedia("(prefers-reduced-motion: no-preference)").matches||!("IntersectionObserver" in window))return;h.classList.add("movimento");setTimeout(function(){if(!h.hasAttribute("data-revelacao-pronta"))h.classList.remove("movimento")},3000)}catch(e){h.classList.remove("movimento")}})();`;
+// A classe com-js (29/10/2026) diz ao CSS que há JavaScript: sem ela, o
+// filtro da loja fica como formulário comum na página, e não como painel.
+const SCRIPT_DO_MOVIMENTO = `(function(){var h=document.documentElement;h.classList.add("com-js");try{if(!window.matchMedia("(prefers-reduced-motion: no-preference)").matches||!("IntersectionObserver" in window))return;h.classList.add("movimento");setTimeout(function(){if(!h.hasAttribute("data-revelacao-pronta"))h.classList.remove("movimento")},3000)}catch(e){h.classList.remove("movimento")}})();`;
 
 export default function LayoutRaiz({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
