@@ -28,7 +28,7 @@
   --color-success: #0F6B5C; /* AJUSTE APROVADO PELA DESIGNER; sempre sobre --color-feedback-bg */
   --color-feedback-bg: #FFFFFF; /* AJUSTE APROVADO PELA DESIGNER; caixa branca de mensagens */
   --color-neutral: #6B7280; /* PAINEL; uso não observado */
-  --color-icon-social: #000000; /* medido */
+  --color-icon-social: var(--color-primary); /* medido #000000; EXCEÇÃO DE DESIGN de 29/10/2026 (pedido da ABTE): ícones sociais no azul da marca */
 
   /* Cards de profissionais: cores por método e contato (pedido de 28/10/2026). */
   --color-method-schroth: #2456A6;

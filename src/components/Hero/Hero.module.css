@@ -38,7 +38,9 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
+  /* Azul da marca no lugar do preto translúcido (29/10/2026); 80% para a
+     seta branca manter contraste sobre fotos claras. */
+  background: color-mix(in srgb, var(--color-primary) 80%, transparent);
   color: var(--color-on-primary);
   border: none;
   font-size: 2rem;
@@ -50,7 +52,7 @@
 }
 
 .seta:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--color-primary-hover);
 }
 
 .setaEsquerda {
