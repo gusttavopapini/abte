@@ -1,6 +1,6 @@
 # ABTE: resumo de continuidade para o Claude
 
-**Atualizado em 28/10/2026.** Este documento reúne a visão do projeto, a auditoria e as entregas concluídas nesta colaboração. As informações de produção são da última conferência registrada em 28/10; confira eventuais mudanças posteriores antes de agir.
+**Atualizado em 29/10/2026.** Este documento reúne a visão do projeto, a auditoria e as entregas concluídas nesta colaboração. As informações de produção são da última conferência registrada em 28/10; confira eventuais mudanças posteriores antes de agir.
 
 ## 1. Pedido mais recente e forma de trabalho
 
@@ -146,6 +146,18 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Validação: `test:unidade` 291, `test:regras` 91, `test:sessao` 127 (509), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px (loja, produto com relacionados e home) sem falha; capturas em `tmp-migracao/capturas/cards-produto-molde-blog/`.
 - Commit `6fbfc7b` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
 
+### Filtro da loja e grade de até 5 colunas (29/10, só na branch, sem promover)
+
+- Os botões de categoria com miniatura saíram da `/loja`. No lugar, um formulário GET (funciona sem JavaScript) com Busca (nome), Categoria, Tipo, Disponibilidade, Preço (Mínimo e Máximo em R$ e, por cima, uma faixa com dois pontos) e Ofertas ("Em promoção" e um item por selo; hoje "Monte seu kit"), mais "Ordenar por" acima da grade.
+- **Parâmetros da URL:** `busca`, `categoria` (repetível, é o mesmo de antes: `/loja?categoria=produtos-abte` continua valendo), `tipo` (`fisico`, `digital`), `disponibilidade` (`disponivel`, `esgotado`), `preco_min` e `preco_max` (em reais, ex. `39.99`; aceita também `39,99`), `promocao=1`, `selo` (slug do selo, repetível) e `ordem` (`menor-preco`, `maior-preco`, `nome`; relevância é o padrão e não aparece).
+- **Regras** (funções puras em `src/lib/filtrosDaLoja.ts`, testadas em `testes/unidade/filtros-da-loja.test.mts`): opções do mesmo grupo somam (basta uma), grupos diferentes valem juntos; "Em promoção" e os selos formam o grupo Ofertas. Preço pelo valor efetivo (o promocional, quando houver). Busca sem acento e sem diferença de maiúsculas, com todas as palavras no nome. Valor desconhecido ou inválido na URL é ignorado; mínimo maior que o máximo mostra a mensagem e não aplica a faixa. Cada opção mostra a contagem com os OUTROS filtros ativos; com 0 e desmarcada, fica desabilitada e apagada. Relevância é a ordem da loja; nos empates de preço, também.
+- **1024px ou mais:** barra de filtros à esquerda (288px), parada ao rolar logo abaixo do header e acompanhando quando ele se esconde (o header publica a própria altura em `--altura-do-header-visivel`); mais alta que a janela, rola por dentro. Cada mudança aplica na hora, sem recarregar (`router.replace`, por isso o "voltar" do navegador leva à página anterior, e não ao filtro anterior); texto e preço com 400ms de pausa. Acima da grade: "N produtos", ordem, etiquetas removíveis e "Limpar filtros".
+- **Grade:** até 5 colunas, mínimo de 200px por card, por auto-fill. Decisão do responsável de 29/10: com 160px, o "Ver produto" quebrava em duas linhas. Medido: 3 colunas em 1024px (206px), 4 em 1280px (210px), 5 em 1710px (246px). Até 1023px continuam 2 e 1 colunas.
+- **Até 1023px, com JavaScript:** botão flutuante redondo (56px, ícone de funil, número de filtros ativos) abre o painel: folha que sobe de baixo no celular e folha lateral à direita (480px) no tablet em pé. Diálogo com título, "Limpar tudo", "x", grupos (só Busca e Categoria abertos), e "Filtrar" e "Cancelar" fixos embaixo. Só "Filtrar" aplica; "x", "Cancelar", Esc e o fundo escuro descartam. O botão fica preso ao pé da tela enquanto a lista passa e para no fim dela, sem cobrir o rodapé.
+- **Hoje (abte-dev):** 10 produtos. Categoria: Produtos ABTE 6, teste 1, Produtos parceiros 2 (1 sem categoria). Tipo: físico 6, digital 4. Disponível 8, esgotado 2. Em promoção 1. Monte seu kit 2. Preço efetivo de R$ 9,90 a R$ 600. A categoria de teste e o produto de teste (publicado, sem imagem) aparecem na loja pública.
+- Validação: `test:unidade` 329, `test:regras` 91, `test:sessao` 127 (547), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px, também sem JavaScript e com movimento reduzido; capturas em `tmp-migracao/capturas/loja-filtro/`.
+- Commits `a5c8d2e`, `f71516a`, `2392812` e a documentação, enviados só para `feature/midia-upload`. Promover exige o "pode promover" do responsável.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
@@ -196,7 +208,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 Na conferência de preparação deste resumo:
 
 - `origin/main`: **`fe30984`** (popup dos profissionais, promovido em 28/10 com autorização explícita; deployment `7396359787`).
-- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home e o card de produto no molde do blog (28/10), enviada só para `origin/feature/midia-upload`.
+- Branch de trabalho: **`feature/midia-upload`**, à frente da `main` com os produtos em destaque da home e o card de produto no molde do blog (28/10) e o filtro da loja (29/10), enviada só para `origin/feature/midia-upload`.
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
@@ -211,6 +223,7 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 - Profissionais: `src/components/CardProfissional/`, `PopupProfissional/`, `ContatosProfissional/`, `MetodosProfissional/`, `src/components/Modal/`, `src/lib/texto.ts`, `src/lib/profissionaisPublicos.ts`, `src/components/Icones/Icones.tsx` e `src/styles/tokens.css`.
 - Testes do card e do popup: `testes/unidade/profissionais-publicos.test.mts`.
 - Card de produto: `src/components/CardProduto/` (variável `--proporcao-imagem-produto`).
+- Filtro da loja: `src/app/loja/page.tsx`, `src/app/loja/_componentes/` (`FiltroDaLoja`, `GrupoDoFiltro`, `OpcaoDoFiltro`, `FaixaDePreco`, `EtiquetasDosFiltros`), `src/lib/filtrosDaLoja.ts` e `testes/unidade/filtros-da-loja.test.mts`.
 - Home, produtos em destaque: `src/app/page.tsx`, `page.module.css`, `escolherProdutosEmDestaque` em `src/lib/produtos.ts` e os testes em `testes/unidade/produtos.test.mts`.
 - Dados e acesso: `src/lib/dados/`, `src/lib/gravacao/`, `src/lib/auth/` e `src/lib/firebase/`.
 - Migração: `scripts/`, `src/lib/migracao/`, `docs/dados-privados/` e `tmp-migracao/`.
@@ -232,7 +245,7 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Em 29/10, com o filtro da loja, **547** (329 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
 As sete falhas históricas de Stylelint em Botao/Hero/Modal não foram corrigidas nesta colaboração. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
