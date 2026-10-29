@@ -11,6 +11,8 @@ import { listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { escolherProdutosEmDestaque, imagemPrincipal } from "@/lib/produtos";
+import { VIDEO_QUEM_SOMOS } from "@/lib/site/video";
+import { VideoVertical } from "@/components/VideoVertical/VideoVertical";
 import type { ProdutoDoCard } from "@/components/CardProduto/CardProduto";
 import estilos from "./page.module.css";
 
@@ -19,6 +21,23 @@ export const metadata = {
   description:
     "No site da Associação Brasileira de Tratamento da Escoliose | Tratando Escoliose você encontra informação confiável, profissionais certificados e apoio para pacientes e famílias. Reunimos conteúdos e profissionais referência nacional no tratamento conservador da escoliose.",
 };
+
+// Missão, visão e valores da section "Quem Somos", na ordem da página.
+const VALORES = [
+  {
+    titulo: "Missão",
+    Icone: IconeAlvo,
+    texto:
+      "Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.",
+  },
+  { titulo: "Visão", Icone: IconeOlho, texto: "Ser referência em Tratamento Conservador da Escoliose na América Latina." },
+  {
+    titulo: "Valores",
+    Icone: IconeCoracao,
+    texto:
+      "Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.",
+  },
+];
 
 // Os produtos em destaque vêm do Firestore a cada visita, como na /loja.
 export const dynamic = "force-dynamic";
@@ -133,56 +152,32 @@ export default async function PaginaInicial() {
           </section>
         )}
 
-        {/* 4. Quem somos: vídeo, missão, visão e valores */}
-        <section className={`container ${estilos.secao}`}>
+        {/* 4. Quem somos (29/10/2026): missão, visão e valores empilhados numa
+            coluna e, ao lado, o vídeo vertical, na mesma altura dos blocos.
+            Até 1023px, os blocos primeiro e o vídeo abaixo, centralizado. */}
+        <section className={`container ${estilos.secao}`} aria-labelledby="titulo-quem-somos">
           <div className={estilos.blocoCentralizado}>
             <div {...revelar()}>
-              <h2 className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
+              <h2 id="titulo-quem-somos" className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
             </div>
           </div>
-          
-          <div className={`grade-de-cards ${estilos.gradeQuatro}`}>
-            {/* O Vídeo atuando como 1º card */}
-            <div {...revelar()}>
-              <div className={estilos.cardVideo}>
-                <PlaceholderImagem style={{ flex: 1, minHeight: '100%' }} />
-              </div>
-            </div>
 
-            <div {...revelar(undefined, 1)}>
-              <div className={estilos.cardValor}>
-                <div className={estilos.cabecalhoDoValor}>
-                  <IconeAlvo className={estilos.iconeValor} />
-                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Missão</h3>
+          <div className={estilos.quemSomos}>
+            <div className={estilos.valores}>
+              {VALORES.map((valor, indice) => (
+                <div key={valor.titulo} {...revelar(estilos.itemDoValor, (indice + 1) as 1 | 2 | 3)}>
+                  <div className={estilos.cardValor}>
+                    <div className={estilos.cabecalhoDoValor}>
+                      <valor.Icone className={estilos.iconeValor} />
+                      <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>{valor.titulo}</h3>
+                    </div>
+                    <p className={estilos.textoDoValor}>{valor.texto}</p>
+                  </div>
                 </div>
-                <p className={estilos.textoDoValor}>
-                  Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.
-                </p>
-              </div>
+              ))}
             </div>
-
-            <div {...revelar(undefined, 2)}>
-              <div className={estilos.cardValor}>
-                <div className={estilos.cabecalhoDoValor}>
-                  <IconeOlho className={estilos.iconeValor} />
-                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Visão</h3>
-                </div>
-                <p className={estilos.textoDoValor}>
-                  Ser referência em Tratamento Conservador da Escoliose na América Latina.
-                </p>
-              </div>
-            </div>
-
-            <div {...revelar(undefined, 3)}>
-              <div className={estilos.cardValor}>
-                <div className={estilos.cabecalhoDoValor}>
-                  <IconeCoracao className={estilos.iconeValor} />
-                  <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>Valores</h3>
-                </div>
-                <p className={estilos.textoDoValor}>
-                  Ética, Empatia, Comprometimento, Acolhimento, Respeito, Trabalho em equipe, Responsabilidade Social, Educação Continuada e Prática Baseada em Evidências.
-                </p>
-              </div>
+            <div {...revelar(estilos.colunaDoVideo)}>
+              <VideoVertical endereco={VIDEO_QUEM_SOMOS} titulo="Vídeo da ABTE" />
             </div>
           </div>
         </section>
