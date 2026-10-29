@@ -190,6 +190,14 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Auditoria:** a de antes e depois está em `tmp-migracao/auditoria/` (fora do Git). Todos os desvios reais foram de muitos para 0; o detalhe está no registro de 29/10 do `CLAUDE.md`.
 - **Validação:** 556 testes (338 de unidade, 91 de regras, 127 de sessão), typecheck, lint (4 avisos), lint:css (5) e build.
 
+### Botões flutuantes da loja no canto da janela (29/10, só na `feature/midia-upload`, sem promover)
+
+- **Pedido:** o menu da loja preso ao canto inferior direito da janela, com a mesma distância das duas bordas, e a grade da `/loja` com no máximo 4 colunas.
+- **Causa:** nenhum ancestral tinha transform, filter, perspective, will-change, contain ou backdrop-filter. O menu estava numa âncora `sticky` no fim do `<main>`, alinhada à borda do conteúdo (e não da janela), e, na `/loja` até 1023px, numa doca dentro do botão de filtros, também `sticky`.
+- **Correção:** variável única `--fab-distancia: var(--space-24)` (`globals.css`). O menu da loja e o botão de filtros usam `position: fixed`, com `right` e `bottom` em `max(var(--fab-distancia), env(safe-area-inset-*))`. Na `/loja` até 1023px, o menu fica 16px acima do botão de filtros e some, inerte, com o painel aberto. A doca saiu. O rodapé das páginas da loja reserva embaixo o espaço dos botões (`reservarFlutuantes` no `LayoutPublico`), para o fim da página nunca ficar sob eles.
+- **Grade:** já estava com no máximo 4 colunas nesta branch (`e129ce4`); a `main` e a produção ainda têm a versão de até 5 colunas, até o "pode promover".
+- **Validação:** 6 larguras (390 a 1920), 3 páginas e 3 posições de rolagem com as distâncias iguais; 465 testes de unidade e sessão, typecheck, lint (4 avisos), lint:css (5) e build. Capturas em `tmp-migracao/capturas/fab-e-grade/`.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
