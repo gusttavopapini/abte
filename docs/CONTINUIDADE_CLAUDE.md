@@ -158,6 +158,20 @@ Os títulos originais e autores foram preservados. Não foram inventados resumos
 - Validação: `test:unidade` 329, `test:regras` 91, `test:sessao` 127 (547), typecheck, lint (4 avisos), lint:css (7 conhecidos) e build. Navegador em 390, 768, 1024, 1280 e 1710 px, também sem JavaScript e com movimento reduzido; capturas em `tmp-migracao/capturas/loja-filtro/`.
 - Commits `a5c8d2e`, `f71516a`, `2392812` e `233590d`. Promovidos para a `main` em 29/10 com o "pode promover" do responsável, junto com as duas entregas de 28/10 (fast-forward de `fe30984` para `233590d`, deployment de Produção `7405966790`). Produção conferida em 390 e 1280 px sem falha.
 
+### Alterações da ABTE (29/10, só na `feature/midia-upload`, sem promover)
+
+Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsável. As capturas do documento não foram vistas; as suposições estão no registro de 29/10 do `CLAUDE.md`, para a ABTE conferir.
+
+- **Item 1:** caixas da home alinhadas à marca e ao rodapé. A imagem da chamada final foi para o container, e o logo compensa a faixa transparente do PNG. "Produtos em destaque" já vinha logo abaixo dos números.
+- **Item 2:** Quem Somos com Missão, Visão e Valores numa coluna e o vídeo 9:16 ao lado (`VideoVertical`), com altura igual medida em 1024 a 1710 px. Abaixo dos blocos até 1023px. Endereço em `src/lib/site/video.ts`, vazio ("Vídeo em breve").
+- **Item 3:** slides do banner em `src/lib/site/banners.ts`, com `href` e `rotulo` opcionais (slide inteiro como link). Os 3 slides estão sem destino: **a ABTE precisa preencher**.
+- **Item 4:** ícones sociais e setas do banner no azul da marca. O lint:css caiu de 7 para 5 erros.
+- **Item 6:** degradê branco sutil atrás do logo e do menu, só no topo da home. Some com o header sólido ou escondido.
+- **Itens 7 a 11:** `CabecalhoDePagina` centraliza título, subtítulo e filtros de Profissionais, Blog, Artigos, categoria, Loja, Diretoria, Doe, Seja associado e páginas legais. Na Contato, ficam centralizados o título e o aviso do bloco. Saiu o bloco "IMAGEM" do topo de Artigos.
+- **Item 12:** artigos sem a data da importação e sem "Autor Desconhecido", com títulos contidos e card no molde do blog (imagem 16:9, "Ler artigo"). "Mais lidos da semana" virou "Todos os artigos".
+- **Validação:** 554 testes (336 de unidade, 91 de regras, 127 de sessão), typecheck, lint (4 avisos), lint:css (5) e build. Navegador em 5 larguras e 9 páginas sem falha. Capturas em `tmp-migracao/capturas/alteracoes-abte/`.
+- **Commits:** `5b83625`, `764fa84`, `f94f7ed`, `b112502`, `15899dd`, `a1e16ae`, `e29cd60` e `a3ea085`, mais o desta documentação. A `main` continua em `a5bfe89` até o "pode promover".
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
@@ -193,7 +207,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 - Os quatro artigos científicos continuam sem resumo textual e sem link original preenchido; exibem título, autores, imagem e classificação.
 - Treze PDFs ficaram fora: oito de artigos e cinco de cartilhas. Não foram adicionados nesta colaboração.
 - Doze páginas antigas foram convertidas apenas para conferência, sem importação automática; história, triagem, cartilha e outros destinos institucionais precisam ser fechados.
-- Home com imagens/vídeo provisórios e números a confirmar; associação/doação e textos legais/consentimento definitivos pendentes.
+- Home com imagens provisórias, vídeo de "Quem Somos" a enviar (`src/lib/site/video.ts`), destinos dos 3 slides do banner a definir (`src/lib/site/banners.ts`) e números a confirmar; associação/doação e textos legais/consentimento definitivos pendentes.
 - Exemplos continuam públicos; sua remoção não foi solicitada.
 
 ### Lançamento
@@ -207,8 +221,8 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: igual à branch de trabalho desde 29/10 (promoção de `fe30984` para `233590d`, com o "pode promover" do responsável; deployment `7405966790`), mais este registro.
-- Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` depois da promoção de 29/10.
+- `origin/main`: `a5bfe89` (promoção de 29/10, de `fe30984` para `233590d`, com o "pode promover" do responsável; deployment `7405966790`, mais o registro).
+- Branch de trabalho: **`feature/midia-upload`**, à frente da `origin/main` com as alterações da ABTE de 29/10 (sem promover).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
 
@@ -225,6 +239,8 @@ A integração GitHub-Vercel publica `main`. A credencial local de acesso direto
 - Card de produto: `src/components/CardProduto/` (variável `--proporcao-imagem-produto`).
 - Filtro da loja: `src/app/loja/page.tsx`, `src/app/loja/_componentes/` (`FiltroDaLoja`, `GrupoDoFiltro`, `OpcaoDoFiltro`, `FaixaDePreco`, `EtiquetasDosFiltros`), `src/lib/filtrosDaLoja.ts` e `testes/unidade/filtros-da-loja.test.mts`.
 - Home, produtos em destaque: `src/app/page.tsx`, `page.module.css`, `escolherProdutosEmDestaque` em `src/lib/produtos.ts` e os testes em `testes/unidade/produtos.test.mts`.
+- Home, vídeo e banner (29/10): `src/lib/site/video.ts`, `src/lib/site/banners.ts`, `src/components/VideoVertical/`, `src/components/Hero/` e os testes `testes/unidade/video.test.mts` e `banners.test.mts`.
+- Cabeçalho das páginas internas: `src/components/CabecalhoDePagina/`. Card de artigo: `src/components/CardArtigo/`.
 - Dados e acesso: `src/lib/dados/`, `src/lib/gravacao/`, `src/lib/auth/` e `src/lib/firebase/`.
 - Migração: `scripts/`, `src/lib/migracao/`, `docs/dados-privados/` e `tmp-migracao/`.
 
@@ -245,9 +261,9 @@ npm run build
 
 Os emuladores exigem Java e usam projetos demonstrativos. O build obtém Public Sans pela rede. O servidor local foi utilizado em `http://localhost:3000`; verificar se já está em execução antes de iniciar outro.
 
-Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Em 29/10, com o filtro da loja, **547** (329 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
+Em 28/10, com o popup dos profissionais, a execução completa deu **505 testes** (287 de unidade, 91 de regras e 127 de sessão); com os produtos em destaque da home, **509** (291 de unidade), igual depois do card de produto no molde do blog. Em 29/10, com o filtro da loja, **547** (329 de unidade); com as alterações da ABTE, **554** (336 de unidade). Os **487 testes** são a execução completa de **26/10**. Os seis testes da busca foram acrescentados em 28/10; houve uma execução pertinente de 23 testes nessa entrega, sem nova execução integral de todas as suítes. As compilações posteriores foram feitas em cópias isoladas com `--webpack`; isso não equivale a validar novamente o caminho padrão local com Turbopack.
 
-As sete falhas históricas de Stylelint em Botao/Hero/Modal não foram corrigidas nesta colaboração. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
+As falhas históricas de Stylelint eram sete (Botao, Hero e Modal); desde 29/10 são cinco (Botao e Modal), porque as setas do banner deixaram o preto. Os arquivos modificados nas entregas visuais passaram nas verificações específicas.
 
 ## 10. Convenções para preservar
 
