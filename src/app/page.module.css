@@ -86,13 +86,29 @@
   color: var(--color-primary);
   flex-shrink: 0;
 }
+/* Imagem da chamada final, no container e com o raio (29/10/2026) */
+.imagemDaChamada {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
 .caixaFlutuante {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
-  padding-left: var(--space-64);
+  padding: var(--space-64);
   pointer-events: none; /* Deixa clicar na imagem através do wrapper flex se precisar */
+}
+
+/* No celular, a caixa fica dentro da imagem, com a margem do painel */
+@media (max-width: 767px) {
+  .caixaFlutuante {
+    padding: var(--panel-padding);
+  }
 }
 
 .caixaFlutuanteConteudo {

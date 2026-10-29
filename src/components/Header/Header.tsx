@@ -118,7 +118,7 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
   return (
     <header ref={headerRef} className={classes}>
       <div className={`container ${estilos.barra}`}>
-        <Logo />
+        <Logo className={estilos.logo} />
         <div className={estilos.colunaDireita}>
           <div className={`${estilos.menuFundoBranco} ${estilos.somenteDesktop}`}>
             <MenuDesktop itens={MENU_PRINCIPAL} rotulo={`Menu principal${sufixo}`} />

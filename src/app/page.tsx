@@ -187,9 +187,11 @@ export default async function PaginaInicial() {
           </div>
         </section>
 
-        {/* 5. Chamada final: caixa flutuante sobre a imagem */}
-        <section className={`${estilos.secao} ${estilos.semRespiroInferior}`}>
-          <div style={{ position: "relative", width: "100%", height: "600px", overflow: "hidden" }}>
+        {/* 5. Chamada final: caixa flutuante sobre a imagem. Desde 29/10/2026 a
+            imagem fica no container, com as bordas alinhadas às do logo e do
+            rodapé (antes ia de uma borda à outra da tela). */}
+        <section className={`container ${estilos.secao} ${estilos.semRespiroInferior}`}>
+          <div className={estilos.imagemDaChamada}>
             <PlaceholderImagem />
             <div className={estilos.caixaFlutuante}>
               <div {...revelar(estilos.caixaFlutuanteConteudo, 2)}>
