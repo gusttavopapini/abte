@@ -2,37 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, type CSSProperties, type FocusEvent, type ReactNode, useContext, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { createContext, type CSSProperties, type FocusEvent, type ReactNode, useContext, useEffect, useId, useRef, useState } from "react";
 import { IconeFechar, IconeGrade, IconePessoa, IconePontos, IconeSacola } from "@/components/Icones/Icones";
 import { opcoesDoMenuDaLoja, type OpcaoDoMenuDaLoja } from "@/lib/loja/menu";
 import estilos from "./MenuDaLoja.module.css";
 
-// Até 1023px, na /loja, o botão de filtros oferece uma "doca" logo acima dele
-// (FiltroDaLoja): o menu vai para lá, para os dois nunca se sobreporem.
-const MIDIA_DA_DOCA = "(max-width: 1023px)";
 // Desktop: abre 80ms depois de o mouse entrar e fecha 250ms depois de sair,
 // para não fechar ao passar de uma opção para outra.
 const ATRASO_PARA_ABRIR_MS = 80;
 const TOLERANCIA_PARA_FECHAR_MS = 250;
 
-const ContextoDaDoca = createContext<(doca: HTMLElement | null) => void>(() => {});
+// Na /loja, o FiltroDaLoja avisa que tem o botão de filtros (até 1023px, o
+// menu fica 16px acima dele) e se o painel de filtros está aberto (o menu
+// some e fica inerte); null quando não há filtro na página.
+type EstadoDoFiltro = { painelAberto: boolean } | null;
+const ContextoDoFiltro = createContext<(estado: EstadoDoFiltro) => void>(() => {});
 
-// Para o FiltroDaLoja registrar a doca (ref de um elemento vazio).
-export function useRegistrarDocaDoMenuDaLoja() {
-  return useContext(ContextoDaDoca);
-}
-
-function useMidiaDaDoca(): boolean {
-  return useSyncExternalStore(
-    (avisar) => {
-      const midia = window.matchMedia(MIDIA_DA_DOCA);
-      midia.addEventListener("change", avisar);
-      return () => midia.removeEventListener("change", avisar);
-    },
-    () => window.matchMedia(MIDIA_DA_DOCA).matches,
-    () => false,
-  );
+export function useAvisarMenuDaLoja() {
+  return useContext(ContextoDoFiltro);
 }
 
 const ICONES: Record<OpcaoDoMenuDaLoja["chave"], (props: { className?: string }) => ReactNode> = {
@@ -44,21 +31,19 @@ const ICONES: Record<OpcaoDoMenuDaLoja["chave"], (props: { className?: string })
 
 // Menu flutuante da loja (29/10/2026), só nas páginas da loja (montado no
 // layout da loja), no lugar do antigo subcabeçalho: Produtos, Carrinho e
-// Entrar ou Minha conta. Fora da doca, fica preso ao pé da tela enquanto a
-// página passa e para antes do rodapé (âncora no fim do <main>).
+// Entrar ou Minha conta. Preso ao canto inferior direito da janela
+// (position: fixed, à --fab-distancia das duas bordas).
 export function MenuDaLoja({ logado, unidades, children }: { logado: boolean; unidades: number; children: ReactNode }) {
-  const [doca, setDoca] = useState<HTMLElement | null>(null);
-  const naDoca = useMidiaDaDoca() && doca !== null;
-  const menu = <BotaoDoMenu logado={logado} unidades={unidades} />;
+  const [filtro, setFiltro] = useState<EstadoDoFiltro>(null);
   return (
-    <ContextoDaDoca.Provider value={setDoca}>
+    <ContextoDoFiltro.Provider value={setFiltro}>
       {children}
-      {naDoca ? createPortal(menu, doca) : <div className={estilos.lugar}>{menu}</div>}
-    </ContextoDaDoca.Provider>
+      <BotaoDoMenu logado={logado} unidades={unidades} acimaDoFiltro={filtro !== null} escondido={filtro?.painelAberto ?? false} />
+    </ContextoDoFiltro.Provider>
   );
 }
 
-function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }) {
+function BotaoDoMenu({ logado, unidades, acimaDoFiltro, escondido }: { logado: boolean; unidades: number; acimaDoFiltro: boolean; escondido: boolean }) {
   const caminho = usePathname();
   const opcoes = opcoesDoMenuDaLoja(caminho, { logado, unidades });
   const [aberto, setAberto] = useState(false);
@@ -79,6 +64,8 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
     setCaminhoVisto(caminho);
     setAberto(false);
   }
+  // Com o painel de filtros aberto, o menu some fechado.
+  if (escondido && aberto) setAberto(false);
 
   function agendar(abrir: boolean, ms: number) {
     window.clearTimeout(temporizador.current);
@@ -122,7 +109,8 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
   return (
     <div
       ref={raizRef}
-      className={`${estilos.menu} ${aberto ? estilos.aberto : ""}`}
+      className={`${estilos.menu} ${aberto ? estilos.aberto : ""} ${acimaDoFiltro ? estilos.acimaDoFiltro : ""} ${escondido ? estilos.escondido : ""}`}
+      inert={escondido}
       style={{ "--total": opcoes.length } as CSSProperties}
       onPointerEnter={(evento) => evento.pointerType === "mouse" && !hoverBloqueado.current && agendar(true, ATRASO_PARA_ABRIR_MS)}
       onPointerLeave={(evento) => {

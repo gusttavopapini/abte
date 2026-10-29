@@ -231,18 +231,6 @@
   display: none;
 }
 
-/* Doca do menu flutuante da loja: 16px acima do botão de filtros, na mesma
-   coluna (29/10/2026). */
-.doca {
-  position: absolute;
-  right: env(safe-area-inset-right);
-  bottom: calc(100% + var(--space-16));
-}
-
-.docaEscondida {
-  visibility: hidden;
-}
-
 .flutuante {
   position: relative;
   display: inline-flex;
@@ -385,19 +373,16 @@
     display: none;
   }
 
-  /* Preso ao pé da tela enquanto a lista passa e parado no fim dela: nunca
-     fica sobre o rodapé do site. */
+  /* Preso ao canto inferior direito da janela, à --fab-distancia das duas
+     bordas (globals.css), como o menu da loja, que fica 16px acima. O
+     LayoutPublico reserva o espaço dos dois abaixo do rodapé, para o fim da
+     página nunca ficar sob eles. */
   :global(html.com-js) .lugarDoBotao {
-    position: sticky;
-    bottom: calc(var(--space-16) + env(safe-area-inset-bottom));
+    position: fixed;
+    right: max(var(--fab-distancia), env(safe-area-inset-right));
+    bottom: max(var(--fab-distancia), env(safe-area-inset-bottom));
     z-index: 40;
     display: flex;
-    justify-content: flex-end;
-    padding-right: env(safe-area-inset-right);
-    pointer-events: none;
-    /* Não ocupa lugar no fim da lista: parado, o botão fica no respiro
-       inferior da página, e o rodapé continua a --section-space dos cards. */
-    margin-bottom: calc(-1 * (var(--button-height) + var(--space-16)));
   }
 }
 

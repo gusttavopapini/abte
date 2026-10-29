@@ -13,7 +13,7 @@ export default async function LayoutLoja({ children }: { children: ReactNode }) 
   // Unidades guardadas no carrinho (contagem simples, sem conferir os produtos).
   const unidades = cliente ? (await lerItensDoCarrinho(cliente.uid)).reduce((soma, item) => soma + item.quantidade, 0) : 0;
   return (
-    <LayoutPublico header="solida">
+    <LayoutPublico header="solida" reservarFlutuantes>
       <MenuDaLoja logado={cliente !== null} unidades={unidades}>
         {children}
       </MenuDaLoja>

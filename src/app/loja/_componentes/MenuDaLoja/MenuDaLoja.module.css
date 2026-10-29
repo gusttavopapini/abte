@@ -14,30 +14,27 @@
   --curva-de-volta: cubic-bezier(0.36, 0, 0.66, -0.56);
   --borda-suave: color-mix(in srgb, var(--color-primary) 20%, transparent);
 
-  position: relative;
+  /* Preso ao canto inferior direito da janela, à --fab-distancia (globals.css)
+     da borda direita e da de baixo, ou à área segura do aparelho. Nenhum
+     ancestral tem transform, filter ou contain, que prenderiam o fixed. */
+  position: fixed;
+  right: max(var(--fab-distancia), env(safe-area-inset-right));
+  bottom: max(var(--fab-distancia), env(safe-area-inset-bottom));
+  z-index: 40;
   width: var(--button-height);
   height: var(--button-height);
-  pointer-events: auto;
 }
 
-/* Âncora no fim do <main> (fora da doca do filtro). O <main> tem
-   --section-space de respiro embaixo (LayoutPublico): presa ao pé da tela,
-   a âncora fica a esse respiro do fundo e o botão, 16px acima do fundo;
-   parada no fim da página, o botão fica dentro do respiro, sem cobrir o
-   conteúdo nem o rodapé. */
-.lugar {
-  position: sticky;
-  bottom: calc(var(--section-space) + env(safe-area-inset-bottom));
-  z-index: 40;
-  height: 0;
-  pointer-events: none;
+/* Na /loja até 1023px: 16px acima do botão de filtros, na mesma coluna. */
+@media (max-width: 1023px) {
+  .acimaDoFiltro {
+    bottom: calc(max(var(--fab-distancia), env(safe-area-inset-bottom)) + var(--button-height) + var(--space-16));
+  }
 }
 
-.lugar > .menu {
-  position: absolute;
-  top: calc(var(--section-space) - var(--button-height) - var(--space-16));
-  /* Na borda direita do conteúdo, como o resto da página */
-  right: calc(max(var(--page-margin), (100% - var(--content-max)) / 2) + env(safe-area-inset-right));
+/* Com o painel de filtros aberto, some (e fica inerte, no componente). */
+.escondido {
+  visibility: hidden;
 }
 
 /* ---------- Botão principal ---------- */

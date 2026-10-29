@@ -7,8 +7,20 @@ import { Rodape } from "@/components/Rodape/Rodape";
 import estilos from "./LayoutPublico.module.css";
 
 // Layout de todas as páginas públicas: header, conteúdo e rodapé.
-// Nunca usado no /admin.
-export function LayoutPublico({ children, header = "solida", ocultarRodape = false }: { children: ReactNode; header?: VarianteHeader; ocultarRodape?: boolean }) {
+// Nunca usado no /admin. Com reservarFlutuantes (páginas da loja), o rodapé
+// ganha embaixo o espaço dos botões flutuantes, para o fim da página nunca
+// ficar sob eles.
+export function LayoutPublico({
+  children,
+  header = "solida",
+  ocultarRodape = false,
+  reservarFlutuantes = false,
+}: {
+  children: ReactNode;
+  header?: VarianteHeader;
+  ocultarRodape?: boolean;
+  reservarFlutuantes?: boolean;
+}) {
   return (
     <>
       <ObservadorDeRevelacao />
@@ -18,7 +30,7 @@ export function LayoutPublico({ children, header = "solida", ocultarRodape = fal
         {children}
       </main>
       {!ocultarRodape && (
-        <div className={`container ${estilos.rodapeGlobal}`}>
+        <div className={`container ${estilos.rodapeGlobal} ${reservarFlutuantes ? estilos.reservaFlutuantes : ""}`}>
           <Rodape />
         </div>
       )}

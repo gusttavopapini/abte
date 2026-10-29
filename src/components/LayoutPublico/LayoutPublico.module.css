@@ -13,3 +13,16 @@
 .rodapeGlobal {
   padding-bottom: var(--page-margin);
 }
+
+/* Páginas da loja: os botões flutuantes (menu da loja e, na /loja até
+   1023px, também o de filtros, 16px abaixo dele) ficam presos ao canto da
+   janela. No fim da página, o rodapé termina 16px acima deles. */
+.rodapeGlobal.reservaFlutuantes {
+  padding-bottom: calc(var(--fab-distancia) + var(--button-height) + var(--space-16));
+}
+
+@media (max-width: 1023px) {
+  :global(html.com-js) .principal:has([data-flutuante-de-filtros]) + .reservaFlutuantes {
+    padding-bottom: calc(var(--fab-distancia) + 2 * var(--button-height) + 2 * var(--space-16));
+  }
+}

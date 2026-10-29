@@ -180,6 +180,13 @@ h3,
   padding-top: var(--section-space);
 }
 
+/* Botões flutuantes da loja (menu da loja e filtros, 29/10/2026): presos ao
+   canto inferior direito da janela, à mesma distância da borda direita e da
+   de baixo (ou à área segura do aparelho, se for maior). */
+:root {
+  --fab-distancia: var(--space-24);
+}
+
 /* Esconde da tela, mas mantém para leitores de tela */
 .somente-leitor {
   position: absolute;
