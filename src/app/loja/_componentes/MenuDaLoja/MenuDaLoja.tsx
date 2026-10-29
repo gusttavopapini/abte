@@ -65,6 +65,8 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
   const raizRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
   const temporizador = useRef(0);
+  // O foco devolvido ao botão pelo Esc não reabre o menu.
+  const ignorarFoco = useRef(false);
   const idLista = useId();
 
   // Ao trocar de página, o menu fecha.
@@ -86,7 +88,9 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
     const aoTeclar = (evento: KeyboardEvent) => {
       if (evento.key !== "Escape") return;
       setAberto(false);
+      ignorarFoco.current = true;
       botaoRef.current?.focus();
+      ignorarFoco.current = false;
     };
     const aoTocar = (evento: PointerEvent) => {
       if (!raizRef.current?.contains(evento.target as Node)) setAberto(false);
@@ -102,7 +106,7 @@ function BotaoDoMenu({ logado, unidades }: { logado: boolean; unidades: number }
   // Foco de teclado dentro do menu abre; o foco que sai dele fecha. O foco
   // que fica no botão depois de um toque não abre (o toque usa o clique).
   function aoFocar(evento: FocusEvent<HTMLDivElement>) {
-    if (!evento.target.matches(":focus-visible")) return;
+    if (ignorarFoco.current || !evento.target.matches(":focus-visible")) return;
     window.clearTimeout(temporizador.current);
     setAberto(true);
   }
