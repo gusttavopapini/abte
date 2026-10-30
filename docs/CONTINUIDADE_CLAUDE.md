@@ -211,6 +211,7 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Imagens da home** (`ba3797f`): `/admin/home`, documento `configuracoes/home` (banners e as imagens de "Mutirões" e "Faça parte dessa rede"). Sem imagem, a home mostra o padrão de antes.
 - **Painel** (`5f0dd47`): gaveta até 1023px, trilha, caixas de aviso, seções, barra de salvar, aviso de alterações não salvas, busca e filtros nas listas, cartões no celular, exclusões confirmadas em modal.
 - **Validação:** 600 testes (367 de unidade, 138 de sessão, 95 de regras), typecheck, lint (4 avisos), lint:css (5) e build. Navegador: 45 conferências do site público e 84 do painel sem falha, 22 interações. Capturas em `tmp-migracao/capturas/quatro-frentes/`.
+- **Promovido** em 30/10 (`e6544fd`, deployment `7437411662`, produção conferida).
 - **Pendências:** tela da diretoria no painel; textos do aviso de menores; registro de alterações de posts, artigos e produtos.
 
 ## 5. Migração: o que não deve ser refeito
@@ -262,7 +263,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: `0abcff2` (promoção de 29/10, fast-forward de `a5bfe89`, 19 commits, com o "pode promover" do responsável; deployment de Produção `7421815588`, conferido em 4 larguras).
+- `origin/main`: `e6544fd` (promoção de 30/10 das quatro frentes, fast-forward de `2128555`, deployment de Produção `7437411662`, conferido em 390 e 1280 px).
 - Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` mais o commit que registra essa promoção (só documentação).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
