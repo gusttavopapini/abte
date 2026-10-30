@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PaginaDeTexto } from "@/components/PaginaDeTexto/PaginaDeTexto";
+import { PaginaInstitucional } from "@/components/PaginaInstitucional/PaginaInstitucional";
 import { EMAIL_CONTATO } from "@/config/navegacao";
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 // Descreve só o que o código faz hoje. Sem base legal, prazos, encarregado
 // ou outras afirmações jurídicas (pendências no CLAUDE.md). Ao mudar o
 // texto definitivo, trocar VERSAO_DO_CONSENTIMENTO em src/lib/loja/contas.ts.
-export default function PaginaPoliticaDePrivacidade() {
+function TextoPreliminar() {
   return (
     <PaginaDeTexto
       preliminar
@@ -103,4 +104,11 @@ export default function PaginaPoliticaDePrivacidade() {
       </section>
     </PaginaDeTexto>
   );
+}
+
+// Desde 30/10/2026 a página só existe quando publicada em /admin/paginas
+// (paginasInstitucionais/politica-de-privacidade); publicada sem corpo, mostra o texto
+// preliminar acima, que continua no código.
+export default async function PaginaPoliticaDePrivacidade() {
+  return <PaginaInstitucional slug="politica-de-privacidade" preliminar={<TextoPreliminar />} />;
 }

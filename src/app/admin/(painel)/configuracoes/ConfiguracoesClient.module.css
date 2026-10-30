@@ -27,75 +27,6 @@
   gap: var(--space-16);
 }
 
-.linhaDoInterruptor {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-16);
-  align-items: center;
-}
-
-.rotulo {
-  color: var(--color-text);
-  font-size: var(--font-size-text);
-  font-weight: var(--font-weight-bold);
-}
-
-/* Interruptor: trilho com a bolinha e o estado escrito (não depende só da
-   cor); 44px de toque. */
-.interruptor {
-  display: inline-flex;
-  gap: var(--space-8);
-  align-items: center;
-  min-height: var(--control-min-height-mobile);
-  padding: 0 var(--space-8);
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.interruptor:focus-visible {
-  box-shadow: var(--focus-ring);
-}
-
-.trilho {
-  position: relative;
-  display: inline-block;
-  width: calc(var(--space-24) * 2);
-  height: var(--space-24);
-  border-radius: var(--space-24);
-  background: var(--color-bg-alt);
-  transition: background var(--realce-duracao);
-}
-
-.botaoDoTrilho {
-  position: absolute;
-  top: calc(var(--space-8) / 2);
-  left: calc(var(--space-8) / 2);
-  width: var(--space-16);
-  height: var(--space-16);
-  border-radius: 50%;
-  background: var(--color-text);
-  transition: transform var(--realce-duracao);
-}
-
-.interruptor[aria-checked="true"] .trilho {
-  background: var(--color-primary);
-}
-
-.interruptor[aria-checked="true"] .botaoDoTrilho {
-  background: var(--color-on-primary);
-  transform: translateX(var(--space-24));
-}
-
-.estado {
-  min-width: calc(var(--space-64) + var(--space-8));
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-bold);
-}
-
 .grupo {
   display: flex;
   flex-direction: column;
@@ -136,4 +67,10 @@
   background: var(--color-feedback-bg);
   color: var(--color-error);
   font-size: var(--font-size-small);
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }

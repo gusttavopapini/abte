@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PaginaDeTexto } from "@/components/PaginaDeTexto/PaginaDeTexto";
+import { PaginaInstitucional } from "@/components/PaginaInstitucional/PaginaInstitucional";
 import { EMAIL_CONTATO } from "@/config/navegacao";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 // VERSÃO PRELIMINAR, em revisão pela ABTE. Descreve só o que o código faz
 // hoje e os problemas registrados no CLAUDE.md; não declara conformidade
 // com nenhuma norma (o site não passou por auditoria).
-export default function PaginaAcessibilidade() {
+function TextoPreliminar() {
   return (
     <PaginaDeTexto
       preliminar
@@ -54,4 +55,11 @@ export default function PaginaAcessibilidade() {
       </section>
     </PaginaDeTexto>
   );
+}
+
+// Desde 30/10/2026 a página só existe quando publicada em /admin/paginas
+// (paginasInstitucionais/acessibilidade); publicada sem corpo, mostra o texto
+// preliminar acima, que continua no código.
+export default async function PaginaAcessibilidade() {
+  return <PaginaInstitucional slug="acessibilidade" preliminar={<TextoPreliminar />} />;
 }

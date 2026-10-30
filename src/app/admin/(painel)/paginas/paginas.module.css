@@ -1,0 +1,126 @@
+/* Páginas institucionais no painel (30/10/2026): cartões e formulário. */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--space-96) * 3)), 1fr));
+  gap: var(--space-24);
+}
+
+.cartao,
+.secao {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  padding: var(--panel-padding);
+  background: var(--color-bg);
+}
+
+.nome {
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.etiqueta {
+  border-radius: var(--radius);
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: var(--font-size-tag);
+}
+
+.publicada {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.detalhe,
+.ajuda,
+.contador {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.contador {
+  text-align: right;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: auto;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.entrada {
+  border-radius: var(--radius);
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: var(--space-8);
+  border: 0;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-text);
+}
+
+.entrada[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.corpo {
+  min-height: calc(var(--space-96) * 4);
+  resize: vertical;
+}
+
+.erro {
+  border-radius: var(--radius);
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}
+
+/* Prévia: o corpo como no site, numa caixa com contorno */
+.previa {
+  border-radius: var(--radius);
+  padding: var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  color: var(--color-text);
+}
+
+.previa > * + * {
+  margin-top: var(--space-16);
+}

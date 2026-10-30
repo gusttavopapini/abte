@@ -5,7 +5,9 @@ import { PularParaConteudo } from "@/components/PularParaConteudo/PularParaConte
 import { ObservadorDeRevelacao } from "@/components/Revelar/ObservadorDeRevelacao";
 import { Rodape } from "@/components/Rodape/Rodape";
 import { MENU_PRINCIPAL, RODAPE_LEGAL, RODAPE_MENU } from "@/config/navegacao";
+import { lerPaginasEmCache } from "@/lib/dados/paginas";
 import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
+import { ehSlugDePagina, paginaNoSite } from "@/lib/site/paginas";
 import { itensDoMenu, linksDisponiveis } from "@/lib/site/configuracoes";
 import estilos from "./LayoutPublico.module.css";
 
@@ -25,7 +27,12 @@ export async function LayoutPublico({
   ocultarRodape?: boolean;
   reservarFlutuantes?: boolean;
 }) {
-  const configuracao = await lerConfiguracaoDoSiteEmCache();
+  const [configuracao, paginas] = await Promise.all([lerConfiguracaoDoSiteEmCache(), lerPaginasEmCache()]);
+  // Páginas legais: só as publicadas em /admin/paginas (30/10/2026).
+  const legal = RODAPE_LEGAL.filter((link) => {
+    const slug = link.href.slice(1);
+    return !ehSlugDePagina(slug) || paginaNoSite(paginas.get(slug));
+  });
   return (
     <>
       <ObservadorDeRevelacao />
@@ -36,7 +43,7 @@ export async function LayoutPublico({
       </main>
       {!ocultarRodape && (
         <div className={`container ${estilos.rodapeGlobal} ${reservarFlutuantes ? estilos.reservaFlutuantes : ""}`}>
-          <Rodape menu={linksDisponiveis(RODAPE_MENU, configuracao)} legal={RODAPE_LEGAL} />
+          <Rodape menu={linksDisponiveis(RODAPE_MENU, configuracao)} legal={legal} />
         </div>
       )}
     </>

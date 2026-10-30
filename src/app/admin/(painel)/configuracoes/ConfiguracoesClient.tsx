@@ -15,33 +15,8 @@ import {
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
+import { Interruptor } from "@/app/admin/_componentes/Interruptor/Interruptor";
 import estilos from "./ConfiguracoesClient.module.css";
-
-// Interruptor acessível (role="switch"), com o estado escrito ao lado.
-export function Interruptor({ id, rotulo, ligado, aoMudar, descricao }: { id: string; rotulo: string; ligado: boolean; aoMudar: (ligado: boolean) => void; descricao?: string }) {
-  return (
-    <div className={estilos.linhaDoInterruptor}>
-      <span id={`${id}-rotulo`} className={estilos.rotulo}>
-        {rotulo}
-      </span>
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={ligado}
-        aria-labelledby={`${id}-rotulo`}
-        aria-describedby={descricao}
-        onClick={() => aoMudar(!ligado)}
-        className={estilos.interruptor}
-      >
-        <span className={estilos.trilho} aria-hidden="true">
-          <span className={estilos.botaoDoTrilho} />
-        </span>
-        <span className={estilos.estado}>{ligado ? "Ativo" : "Inativo"}</span>
-      </button>
-    </div>
-  );
-}
 
 // Caixa "Menu e rodapé": exibir ou não os Artigos no site. Desativar pede
 // confirmação num Modal.

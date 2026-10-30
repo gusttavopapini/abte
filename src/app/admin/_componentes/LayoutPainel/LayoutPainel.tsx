@@ -29,6 +29,7 @@ const ITENS: ItemDoPainel[] = [
   { href: "/admin/loja/categorias", rotulo: "Loja: categorias" },
   { href: "/admin/midia", rotulo: "Mídia" },
   // Só administrador (30/10/2026); para o editor, o item não aparece.
+  { href: "/admin/paginas", rotulo: "Páginas", soAdministrador: true },
   { href: "/admin/configuracoes", rotulo: "Configurações", soAdministrador: true },
 ];
 

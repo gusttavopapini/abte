@@ -14,7 +14,9 @@ import estilos from "./FormularioCadastroLoja.module.css";
 
 // Cadastro de cliente da loja: a conta é criada pelo servidor; depois o
 // navegador entra com ela para gerar o cookie de sessão da loja.
-export function FormularioCadastroLoja({ destino }: { destino: string }) {
+// politicaPublicada (30/10/2026): sem a política publicada, o texto a cita
+// sem link (a rota daria 404).
+export function FormularioCadastroLoja({ destino, politicaPublicada = true }: { destino: string; politicaPublicada?: boolean }) {
   const router = useRouter();
   const [resposta, setResposta] = useState<RespostaDoCadastro | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -67,7 +69,7 @@ export function FormularioCadastroLoja({ destino }: { destino: string }) {
         <p id="cadastro-uso-dos-dados" className="texto-corrido">
           Para manter sua conta na loja, a ABTE guarda seu nome, seu e-mail e os itens do seu carrinho. A senha fica com o
           serviço de login (Firebase Authentication) e a ABTE não tem acesso a ela. Você pode excluir a conta, com esses dados,
-          quando quiser, em &ldquo;Minha conta&rdquo;. Detalhes na <Link href="/politica-de-privacidade">Política de privacidade</Link>.
+          quando quiser, em &ldquo;Minha conta&rdquo;. Detalhes na {politicaPublicada ? <Link href="/politica-de-privacidade">Política de privacidade</Link> : "Política de privacidade"}.
         </p>
         <label className={estilos.opcao}>
           <input type="checkbox" name="consentimento" value="sim" required aria-describedby={`cadastro-uso-dos-dados${erros.consentimento ? " cadastro-consentimento-erro" : ""}`} aria-invalid={erros.consentimento ? true : undefined} />

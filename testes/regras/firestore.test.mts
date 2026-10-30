@@ -112,6 +112,28 @@ describe("Diretoria (modelo mínimo)", () => {
 // Imagens da home (29/10/2026): o documento configuracoes/home só é lido e
 // gravado pelo servidor; nem administrador nem editor o leem ou gravam pelo
 // navegador.
+describe("Páginas institucionais (30/10/2026)", () => {
+  const pagina = { titulo: "Termos de uso", corpo: "", publicada: false };
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["logado sem papel", () => ambiente.authenticatedContext("usuario-sem-papel")],
+    ["administrador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem} não lê nem grava paginasInstitucionais`, async () => {
+      await ambiente.withSecurityRulesDisabled(async (contexto) => {
+        await setDoc(doc(contexto.firestore(), "paginasInstitucionais", "termos-de-uso"), pagina);
+      });
+      const db = obterContexto().firestore();
+      await assertFails(getDoc(doc(db, "paginasInstitucionais", "termos-de-uso")));
+      await assertFails(getDocs(collection(db, "paginasInstitucionais")));
+      await assertFails(setDoc(doc(db, "paginasInstitucionais", "termos-de-uso"), pagina));
+      await assertFails(deleteDoc(doc(db, "paginasInstitucionais", "termos-de-uso")));
+    });
+  }
+});
+
 describe("Configurações do site (30/10/2026)", () => {
   const site = { artigosAtivo: false };
   const contextos: [string, () => RulesTestContext][] = [

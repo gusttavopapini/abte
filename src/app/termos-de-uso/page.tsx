@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PaginaDeTexto } from "@/components/PaginaDeTexto/PaginaDeTexto";
+import { PaginaInstitucional } from "@/components/PaginaInstitucional/PaginaInstitucional";
 import { EMAIL_CONTATO } from "@/config/navegacao";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 // VERSÃO PRELIMINAR, em revisão pela ABTE e pela assessoria jurídica.
 // Descreve só como o site funciona hoje, sem regras ou afirmações jurídicas
 // (pendências no CLAUDE.md).
-export default function PaginaTermosDeUso() {
+function TextoPreliminar() {
   return (
     <PaginaDeTexto
       preliminar
@@ -65,4 +66,11 @@ export default function PaginaTermosDeUso() {
       </section>
     </PaginaDeTexto>
   );
+}
+
+// Desde 30/10/2026 a página só existe quando publicada em /admin/paginas
+// (paginasInstitucionais/termos-de-uso); publicada sem corpo, mostra o texto
+// preliminar acima, que continua no código.
+export default async function PaginaTermosDeUso() {
+  return <PaginaInstitucional slug="termos-de-uso" preliminar={<TextoPreliminar />} />;
 }

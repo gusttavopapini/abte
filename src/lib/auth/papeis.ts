@@ -11,7 +11,7 @@ export function ehPapelDoPainel(valor: unknown): valor is PapelDoPainel {
 
 // Ações do painel que nem todo papel pode executar. Ponto ÚNICO das permissões
 // por papel: para mudar quem pode o quê, mude só a tabela PERMISSOES.
-export type AcaoDoPainel = "midia.enviar" | "midia.editar" | "midia.excluir" | "midia.restaurar" | "midia.excluirDeVez" | "home.editar" | "configuracoes.editar";
+export type AcaoDoPainel = "midia.enviar" | "midia.editar" | "midia.excluir" | "midia.restaurar" | "midia.excluirDeVez" | "home.editar" | "configuracoes.editar" | "paginas.editar";
 
 // PROVISÓRIO (pendência P7 no CLAUDE.md, depende da diretoria): administrador
 // e editor enviam, editam, excluem para a lixeira e restauram mídia; só o
@@ -26,6 +26,9 @@ const PERMISSOES: Record<AcaoDoPainel, readonly PapelDoPainel[]> = {
   "home.editar": ["administrador", "editor"],
   // Configurações do site (Artigos no site e Pix), 30/10/2026: só administrador.
   "configuracoes.editar": ["administrador"],
+  // Páginas institucionais (acessibilidade, privacidade e termos), 30/10/2026:
+  // só administrador.
+  "paginas.editar": ["administrador"],
 };
 
 export function papelPodeExecutar(papel: PapelDoPainel, acao: AcaoDoPainel): boolean {

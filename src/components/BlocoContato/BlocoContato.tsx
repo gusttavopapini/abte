@@ -34,7 +34,9 @@ function validar(valores: Valores): Erros {
 // (design-system.md seção 8.8 e ABTE_design_redesign.md seção 4.2).
 // "centralizado": título e aviso no centro, como os cabeçalhos das páginas
 // internas (na /contato, 29/10/2026); o formulário continua à esquerda.
-export function BlocoContato({ estadoInicial = "padrao", centralizado = false }: { estadoInicial?: EstadoInicialContato; centralizado?: boolean }) {
+// politicaPublicada (30/10/2026): sem a Política de privacidade publicada
+// em /admin/paginas, o consentimento cita a política sem link (a rota daria 404).
+export function BlocoContato({ estadoInicial = "padrao", centralizado = false, politicaPublicada = true }: { estadoInicial?: EstadoInicialContato; centralizado?: boolean; politicaPublicada?: boolean }) {
   const id = useId();
   const [valores, setValores] = useState<Valores>(VAZIO);
   const [erros, setErros] = useState<Erros>(() => (estadoInicial === "erro" ? validar(VAZIO) : {}));
@@ -136,7 +138,7 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false }:
           aoMudar={(marcado) => atualizar("consentimento", marcado)}
           erro={erros.consentimento}
         >
-          Li e concordo com a <Link href="/politica-de-privacidade">Política de Privacidade</Link>
+          Li e concordo com a {politicaPublicada ? <Link href="/politica-de-privacidade">Política de Privacidade</Link> : "Política de Privacidade"}
         </CaixaConsentimento>
 
         {/* Sucesso: mensagem em caixa branca no lugar do botão */}
