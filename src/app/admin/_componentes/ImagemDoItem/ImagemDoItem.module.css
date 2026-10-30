@@ -97,6 +97,7 @@
 .previaEmMoldura .imagem {
   height: 100%;
   object-fit: cover;
+  object-position: var(--posicao-na-moldura);
 }
 
 .ladoDaPrevia {

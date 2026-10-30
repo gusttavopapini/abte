@@ -165,6 +165,13 @@
   align-items: start;
 }
 
+/* Ponto de foco: três opções na mesma linha, quebrando se faltar espaço. */
+.opcoesDoFoco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+}
+
 .copiar {
   display: flex;
   flex-wrap: wrap;

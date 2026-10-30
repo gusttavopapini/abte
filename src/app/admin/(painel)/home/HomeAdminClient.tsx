@@ -12,7 +12,13 @@ import { Modal } from "@/components/Modal/Modal";
 import type { CampoDoDono } from "@/lib/midia/dono";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import {
+  AVISO_IMAGEM_LARGA,
   AVISO_SEM_VERSAO_CELULAR,
+  DICA_DO_BANNER,
+  PONTOS_DE_FOCO,
+  POSICAO_DO_PONTO_DE_FOCO,
+  ROTULOS_DOS_PONTOS_DE_FOCO,
+  bannerMuitoLargo,
   LIMITE_DE_BANNERS,
   LIMITE_DO_ALT_DA_HOME,
   LIMITE_DO_LINK,
@@ -21,6 +27,7 @@ import {
   nomeDoBanner,
   type BannerDaHome,
   type IdentificadorDoEspaco,
+  type PontoDeFoco,
   type ProporcoesDoEspaco,
 } from "@/lib/site/home";
 import estilos from "./HomeAdminClient.module.css";
@@ -105,6 +112,9 @@ function VersoesDaImagem({
   rotulo,
   aoMudarComputador,
   aoMudarCelular,
+  pontoDeFoco,
+  dica,
+  avisarLarga,
 }: {
   idDoDono: string;
   campos: { computador: CampoDoDono; celular: CampoDoDono };
@@ -114,6 +124,11 @@ function VersoesDaImagem({
   rotulo: string;
   aoMudarComputador: (escolha: EscolhaDeImagem) => void;
   aoMudarCelular?: (escolha: EscolhaDeImagem) => void;
+  // Banners (30/10/2026): ponto de foco aplicado às prévias, dica de
+  // composição e aviso de imagem bem mais larga que 16:9.
+  pontoDeFoco?: PontoDeFoco;
+  dica?: string;
+  avisarLarga?: boolean;
 }) {
   const [computador, setComputador] = useState<EscolhaDeImagem>(inicial.computador);
   const [celular, setCelular] = useState<EscolhaDeImagem>(inicial.celular);
@@ -160,6 +175,7 @@ function VersoesDaImagem({
   const mesmaImagem = Boolean(computador && celular && computador.id === celular.id);
   return (
     <div className={estilos.versoes}>
+      {dica && <p className={estilos.ajuda}>{dica}</p>}
       <div className={estilos.areasDasVersoes}>
         <ImagemDoItem
           nome="midiaId"
@@ -168,7 +184,7 @@ function VersoesDaImagem({
           dono={{ tipo: "home", id: idDoDono, campo: campos.computador }}
           proporcao={proporcoes.computador.texto}
           tamanho={proporcoes.computador.tamanho}
-          moldura={{ razao: proporcoes.computador.razao, rotulo: "Prévia no computador" }}
+          moldura={{ razao: proporcoes.computador.razao, rotulo: "Prévia no computador", posicao: pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco] }}
           erro={erros.midiaId}
           aoMudar={mudarComputador}
         />
@@ -180,12 +196,13 @@ function VersoesDaImagem({
           dono={{ tipo: "home", id: idDoDono, campo: campos.celular }}
           proporcao={proporcoes.celular.texto}
           tamanho={proporcoes.celular.tamanho}
-          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular" }}
+          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular", posicao: pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco] }}
           erro={erros.midiaMobileId}
           aoMudar={mudarCelular}
         />
       </div>
 
+      {avisarLarga && bannerMuitoLargo(computador?.imagem) && <CaixaDoPainel tipo="atencao">{AVISO_IMAGEM_LARGA}</CaixaDoPainel>}
       {computador && !celular && <CaixaDoPainel tipo="informacao">{AVISO_SEM_VERSAO_CELULAR}</CaixaDoPainel>}
 
       <div className={estilos.copiar}>
@@ -264,6 +281,7 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
   // Controlados: um erro na resposta não apaga o que foi digitado.
   const [href, setHref] = useState(banner?.href ?? "");
   const [ativo, setAtivo] = useState(banner ? banner.ativo : true);
+  const [pontoDeFoco, setPontoDeFoco] = useState<PontoDeFoco>(banner?.pontoDeFoco ?? "centro");
   const [temImagem, setTemImagem] = useState(Boolean(banner?.midiaId));
   const ultimoAltSugerido = useRef(banner?.imagem?.alt ?? "");
   // Posição: o banner novo entra no fim.
@@ -300,6 +318,9 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
         campos={{ computador: "banner", celular: "bannerCelular" }}
         proporcoes={PROPORCOES_DO_BANNER}
         rotulo="banner"
+        pontoDeFoco={pontoDeFoco}
+        dica={DICA_DO_BANNER}
+        avisarLarga
         inicial={{
           computador: banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null,
           celular: banner?.midiaMobileId ? { id: banner.midiaMobileId, imagem: banner.imagemCelular } : null,
@@ -307,6 +328,20 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
         erros={erros}
         aoMudarComputador={aoMudarImagem}
       />
+
+      <fieldset className={estilos.grupoSemMoldura} aria-describedby={[`${id}-foco-ajuda`, erros.pontoDeFoco ? `${id}-foco-erro` : ""].filter(Boolean).join(" ")}>
+        <legend className={estilos.rotulo}>Ponto de foco da imagem</legend>
+        <p id={`${id}-foco-ajuda`} className={estilos.ajuda}>Escolha a parte da imagem que não pode ser cortada em telas mais estreitas ou mais altas.</p>
+        <div className={estilos.opcoesDoFoco}>
+          {PONTOS_DE_FOCO.map((ponto) => (
+            <label key={ponto} className={estilos.opcao}>
+              <input type="radio" name="pontoDeFoco" value={ponto} checked={pontoDeFoco === ponto} onChange={() => setPontoDeFoco(ponto)} />
+              {ROTULOS_DOS_PONTOS_DE_FOCO[ponto]}
+            </label>
+          ))}
+        </div>
+        {erros.pontoDeFoco && <p id={`${id}-foco-erro`} className={estilos.erro}>{erros.pontoDeFoco}</p>}
+      </fieldset>
 
       <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
 

@@ -36,7 +36,8 @@ type Props = {
   tamanho?: string;
   // Prévia numa moldura com a proporção do espaço no site (largura/altura),
   // estreita na versão celular e larga na de computador: mostra o corte real.
-  moldura?: { razao: number; estreita?: boolean; rotulo: string };
+  // posicao: object-position da imagem na moldura (ponto de foco do banner).
+  moldura?: { razao: number; estreita?: boolean; rotulo: string; posicao?: string };
   erro?: string;
   aoMudar?: (escolha: EscolhaDeImagem) => void;
   // Texto do botão de enviar (ex.: "Inserir no texto").
@@ -216,7 +217,7 @@ export function ImagemDoItem({ nome, rotulo, inicial, dono, proporcao, tamanho, 
         <div className={`${estilos.escolhida} ${moldura ? estilos.comMoldura : ""}`}>
           <div
             className={`${estilos.previa} ${moldura ? estilos.previaEmMoldura : ""} ${moldura?.estreita ? estilos.molduraEstreita : ""}`}
-            style={moldura ? ({ "--razao-da-moldura": moldura.razao } as CSSProperties) : undefined}
+            style={moldura ? ({ "--razao-da-moldura": moldura.razao, "--posicao-na-moldura": moldura.posicao ?? "50% 50%" } as CSSProperties) : undefined}
             role={moldura ? "group" : undefined}
             aria-label={moldura?.rotulo}
           >
