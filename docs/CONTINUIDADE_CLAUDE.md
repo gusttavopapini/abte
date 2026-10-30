@@ -231,6 +231,7 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Ponto de foco** opcional por banner (esquerda, centro, direita; ausente vale o centro), com grupo de rádio no painel, prévias de tela cheia, dica e aviso de imagem mais larga que 2:1.
 - **Validação:** 616 testes (378, 143, 95); navegador em 6 tamanhos com o Hero igual à janela (0px); painel 17 de 17.
 - **Pendência:** os 3 banners atuais não têm versão para celular e, em 390x844, mostram só 25,8% da largura da imagem.
+- **Promovido** em 30/10 (`c96e6e0`, deployment `7446451745`, produção conferida).
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -281,7 +282,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: `0b362f7` (promoção de 30/10 das duas versões das imagens da home, fast-forward de `089e763`, deployment de Produção `7442085357`, home conferida em 390 e 1280 px). Antes: `e6544fd` (quatro frentes, deployment `7437411662`).
+- `origin/main`: `c96e6e0` (promoção de 30/10 do banner em tela cheia e do ponto de foco, fast-forward de `5b3a8e2`, deployment de Produção `7446451745`, home conferida em 390x844 e 1280x720). Antes: `0b362f7` (duas versões das imagens da home) e `5b3a8e2` ("Produtos em destaque" centralizado).
 - Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` mais o commit que registra essa promoção (só documentação).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
