@@ -65,7 +65,7 @@ export function FormularioRecuperarSenha({ rotaDoLogin, deOnde }: Props) {
           Se houver uma conta {deOnde} com este e-mail, enviamos um link para criar uma nova senha. Confira sua caixa de
           entrada e também a pasta de spam.
         </Mensagem>
-        <Link href={rotaDoLogin} className={estilos.link}>
+        <Link href={rotaDoLogin} className={`realce ${estilos.link}`}>
           Voltar para o login
         </Link>
       </div>
@@ -90,7 +90,7 @@ export function FormularioRecuperarSenha({ rotaDoLogin, deOnde }: Props) {
       <Botao variante="envio" type="submit" disabled={enviando}>
         {enviando ? "Enviando…" : "Enviar link"}
       </Botao>
-      <Link href={rotaDoLogin} className={estilos.link}>
+      <Link href={rotaDoLogin} className={`realce ${estilos.link}`}>
         Voltar para o login
       </Link>
     </form>

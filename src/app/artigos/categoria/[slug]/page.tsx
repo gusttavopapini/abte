@@ -49,7 +49,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
         <div className="container pagina-interna">
           <div className={estilos.voltar}>
             <Botao href="/artigos" variante="link">
-              &larr; Voltar para Artigos
+              <span className="seta-para-tras" aria-hidden="true">&larr;</span>&nbsp;Voltar para Artigos
             </Botao>
           </div>
           <CabecalhoDePagina titulo={`Artigos sobre ${categoria.nome}`} descricao="Explorando os artigos e publicações classificados nesta categoria." />

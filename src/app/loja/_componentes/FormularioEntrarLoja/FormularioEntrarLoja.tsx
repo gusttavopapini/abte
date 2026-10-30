@@ -64,8 +64,8 @@ export function FormularioEntrarLoja({ destino }: { destino: string }) {
       <Campo id="loja-senha" ref={senhaRef} rotulo="Senha" type="password" obrigatorio autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} erro={erros.senha} />
       {erroGeral && <Mensagem tipo="erro">{erroGeral}</Mensagem>}
       <Botao type="submit" disabled={enviando}>{enviando ? "Entrando…" : "Entrar"}</Botao>
-      <Link href="/loja/entrar/recuperar-senha" className={estilos.link}>Esqueci minha senha</Link>
-      <Link href={`/loja/cadastro?voltar=${encodeURIComponent(destino)}`} className={estilos.link}>Ainda não tenho conta: criar conta</Link>
+      <Link href="/loja/entrar/recuperar-senha" className={`realce ${estilos.link}`}>Esqueci minha senha</Link>
+      <Link href={`/loja/cadastro?voltar=${encodeURIComponent(destino)}`} className={`realce ${estilos.link}`}>Ainda não tenho conta: criar conta</Link>
     </form>
   );
 }

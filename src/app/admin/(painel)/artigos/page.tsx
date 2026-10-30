@@ -33,7 +33,7 @@ export default async function PaginaAdminArtigos() {
               <SeloStatus status={artigo.status} />
             </td>
             <td className={classeDaCelula}>
-              <Link href={`/admin/artigos/editar/${artigo.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>
+              <Link href={`/admin/artigos/editar/${artigo.id}`} className="realce">
                 Editar
               </Link>
             </td>

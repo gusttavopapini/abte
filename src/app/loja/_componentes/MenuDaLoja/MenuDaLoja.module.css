@@ -52,8 +52,10 @@
   transition: background-color 150ms ease-out;
 }
 
-.principal:hover {
-  background: var(--color-primary-hover);
+@media (hover: hover) and (pointer: fine) {
+  .principal:hover {
+    background: var(--color-primary-hover);
+  }
 }
 
 /* Os pontos do logo viram o "x" ao abrir */
@@ -241,7 +243,13 @@
   height: var(--space-24);
 }
 
-.opcao:hover .circulo,
+@media (hover: hover) and (pointer: fine) {
+  .opcao:hover .circulo {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
 .opcao:focus-visible .circulo {
   background: var(--color-primary);
   color: var(--color-on-primary);
@@ -256,14 +264,13 @@
   box-shadow: var(--focus-ring);
 }
 
-/* Página atual: círculo com borda azul e rótulo sublinhado */
+/* Página atual: círculo com borda azul e rótulo em negrito */
 .opcao[aria-current="page"] .circulo {
   border: 2px solid var(--color-primary);
 }
 
 .opcao[aria-current="page"] .rotulo {
   font-weight: var(--font-weight-bold);
-  text-decoration: underline;
 }
 
 /* Movimento reduzido: sem deslocamento nem escala (a regra global do

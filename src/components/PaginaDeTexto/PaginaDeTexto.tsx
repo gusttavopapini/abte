@@ -28,7 +28,7 @@ export function PaginaDeTexto({
           </p>
         )}
         <CabecalhoDePagina titulo={titulo} descricao={introducao} espacoAbaixo={false} />
-        {children && <div className={`tipo-texto ${estilos.corpo}`}>{children}</div>}
+        {children && <div className={`tipo-texto texto-corrido ${estilos.corpo}`}>{children}</div>}
       </div>
     </LayoutPublico>
   );

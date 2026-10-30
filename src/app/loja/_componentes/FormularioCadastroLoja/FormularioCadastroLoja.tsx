@@ -64,7 +64,7 @@ export function FormularioCadastroLoja({ destino }: { destino: string }) {
       </div>
 
       <div className={estilos.consentimento}>
-        <p id="cadastro-uso-dos-dados">
+        <p id="cadastro-uso-dos-dados" className="texto-corrido">
           Para manter sua conta na loja, a ABTE guarda seu nome, seu e-mail e os itens do seu carrinho. A senha fica com o
           serviço de login (Firebase Authentication) e a ABTE não tem acesso a ela. Você pode excluir a conta, com esses dados,
           quando quiser, em &ldquo;Minha conta&rdquo;. Detalhes na <Link href="/politica-de-privacidade">Política de privacidade</Link>.
@@ -77,7 +77,7 @@ export function FormularioCadastroLoja({ destino }: { destino: string }) {
       </div>
 
       <Botao type="submit" disabled={enviando}>{enviando ? "Criando conta…" : "Criar conta"}</Botao>
-      <Link href={`/loja/entrar?voltar=${encodeURIComponent(destino)}`} className={estilos.link}>Já tenho conta: entrar</Link>
+      <Link href={`/loja/entrar?voltar=${encodeURIComponent(destino)}`} className={`realce ${estilos.link}`}>Já tenho conta: entrar</Link>
     </form>
   );
 }

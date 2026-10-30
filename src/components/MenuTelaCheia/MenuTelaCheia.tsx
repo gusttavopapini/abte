@@ -93,7 +93,7 @@ export function MenuTelaCheia({
           <ul role="list" className={estilos.lista}>
             {MENU_PRINCIPAL.map((item, indice) => {
               const ativo = itemEstaAtivo(pathname, item);
-              const classesDoLink = `${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
+              const classesDoLink = `realce ${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
 
               if (!item.submenu) {
                 return (
@@ -137,7 +137,7 @@ export function MenuTelaCheia({
                         const subAtivo = linkEstaAtivo(pathname, sub.href);
                         return (
                           <li key={sub.href}>
-                            <Link href={sub.href} className={`${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={fechar}>
+                            <Link href={sub.href} className={`realce ${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={fechar}>
                               {sub.rotulo}
                             </Link>
                           </li>

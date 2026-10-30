@@ -82,7 +82,7 @@ export function MenuDesktop({ itens, rotulo, className }: { itens: ItemDoMenu[];
         {itens.map((item, indice) => {
           const ativo = itemEstaAtivo(pathname, item);
 
-          const classesDoLink = `${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
+          const classesDoLink = `realce ${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
 
           if (!item.submenu) {
             return (
@@ -168,7 +168,7 @@ export function MenuDesktop({ itens, rotulo, className }: { itens: ItemDoMenu[];
                     const subAtivo = linkEstaAtivo(pathname, sub.href);
                     return (
                       <li key={sub.href}>
-                        <Link href={sub.href} className={`${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={() => setAberto(null)}>
+                        <Link href={sub.href} className={`realce ${estilos.link} ${subAtivo ? estilos.linkAtivo : ""}`} onClick={() => setAberto(null)}>
                           {sub.rotulo}
                         </Link>
                       </li>

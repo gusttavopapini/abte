@@ -58,7 +58,6 @@
   min-height: var(--control-min-height-mobile);
   color: var(--color-text);
   font-size: var(--font-size-text);
-  text-decoration: underline;
 }
 
 .limpar:hover {

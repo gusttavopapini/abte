@@ -118,8 +118,20 @@
   text-decoration: none;
 }
 
-.filtro:hover {
-  text-decoration: underline;
+/* Hover: o fundo da pílula do site (globals.css), sem sublinhado */
+.filtro {
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filtro:not([aria-current="page"]):hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
+}
+
+.filtro:not([aria-current="page"]):focus-visible {
+  background: var(--realce-fundo);
 }
 
 .filtro[aria-current="page"] {

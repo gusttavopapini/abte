@@ -116,7 +116,7 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
                     <button
                       ref={registrar(`${item.id}:subir`)}
                       type="button"
-                      className={estilos.acao}
+                      className={`realce ${estilos.acao}`}
                       onClick={() => mover(posicao, -1)}
                       disabled={posicao === 0}
                       aria-label={`Subir ${descricao} (posição ${posicao + 1} de ${itens.length})`}
@@ -126,7 +126,7 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
                     <button
                       ref={registrar(`${item.id}:descer`)}
                       type="button"
-                      className={estilos.acao}
+                      className={`realce ${estilos.acao}`}
                       onClick={() => mover(posicao, 1)}
                       disabled={posicao === itens.length - 1}
                       aria-label={`Descer ${descricao} (posição ${posicao + 1} de ${itens.length})`}
@@ -136,7 +136,7 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
                     <button
                       ref={registrar(`${item.id}:remover`)}
                       type="button"
-                      className={estilos.acao}
+                      className={`realce ${estilos.acao}`}
                       onClick={() => remover(posicao)}
                       aria-label={`Remover ${descricao} da galeria`}
                     >

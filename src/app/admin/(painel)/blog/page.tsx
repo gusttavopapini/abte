@@ -33,7 +33,7 @@ export default async function PaginaAdminBlog() {
               {post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "N/A"}
             </td>
             <td className={classeDaCelula}>
-              <Link href={`/admin/blog/editar/${post.id}`} style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}>
+              <Link href={`/admin/blog/editar/${post.id}`} className="realce">
                 Editar
               </Link>
             </td>

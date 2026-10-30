@@ -72,8 +72,12 @@
   cursor: pointer;
 }
 
-.opcao:hover {
-  text-decoration: underline;
+/* Hover: o fundo da pílula do site (globals.css), sem sublinhado */
+@media (hover: hover) and (pointer: fine) {
+  .opcao:hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
 }
 
 /* Imagem já escolhida: fundo do botão primário */

@@ -53,7 +53,7 @@ export default async function PaginaLeituraArtigo({ params }: { params: Promise<
         <div className={`container pagina-interna ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/artigos" variante="link">
-               &larr; Voltar para Artigos
+               <span className="seta-para-tras" aria-hidden="true">&larr;</span>&nbsp;Voltar para Artigos
              </Botao>
           </div>
 

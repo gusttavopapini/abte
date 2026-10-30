@@ -187,6 +187,114 @@ h3,
   --fab-distancia: var(--space-24);
 }
 
+/* ---------- Hover do site e do painel (29/10/2026) ----------
+   Nenhum hover sublinha. Só tokens, sem cor nova.
+   (a) .realce: links soltos e botões de texto (menu, rodapé, "Voltar",
+       links de navegação): pílula de fundo suave atrás do texto, sem mudar o
+       layout (pseudo-elemento), e a cor vai para --color-primary-hover.
+   (b) .seta-para-frente e .seta-para-tras dentro de um .realce: a seta
+       desliza 4px no sentido em que aponta.
+   (c) .texto-corrido a: links no meio do texto (corpo do blog, páginas
+       legais, consentimento): sublinhado fino EM REPOUSO, para não
+       dependerem só da cor; no hover, o sublinhado some e um fundo cresce da
+       esquerda para a direita.
+   (d) Botões: sem sublinhado; a variante "link" do Botao usa o (a).
+   (e) Cards: a elevação de sempre, nos próprios módulos.
+   Só com mouse ou trackpad (hover: hover e pointer: fine), para não grudar
+   no toque; o foco de teclado mostra o mesmo destaque, junto com o
+   --focus-ring. Com movimento reduzido, a regra global abaixo tira as
+   transições e o .seta-* não se move: só troca a cor e o fundo. */
+:root {
+  --realce-fundo: color-mix(in srgb, var(--color-surface-soft) 70%, transparent);
+  --realce-duracao: 200ms;
+}
+
+.realce {
+  position: relative;
+  isolation: isolate;
+  text-decoration: none;
+  transition: color var(--realce-duracao) ease-out;
+}
+
+.realce::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--space-8) / -2) calc(var(--space-8) * -1);
+  z-index: -1;
+  border-radius: var(--radius);
+  background: transparent;
+  pointer-events: none;
+  transition: background-color var(--realce-duracao) ease-out;
+}
+
+.seta-para-frente,
+.seta-para-tras {
+  display: inline-block;
+  transition: transform var(--realce-duracao) ease-out;
+}
+
+.texto-corrido a {
+  border-radius: calc(var(--radius) / 2);
+  background-image: linear-gradient(var(--realce-fundo), var(--realce-fundo));
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  color: var(--color-text);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition:
+    background-size var(--realce-duracao) ease-out,
+    color var(--realce-duracao) ease-out,
+    text-decoration-color var(--realce-duracao) ease-out;
+}
+
+.realce:focus-visible,
+.texto-corrido a:focus-visible {
+  color: var(--color-primary-hover);
+}
+
+.realce:focus-visible::before {
+  background: var(--realce-fundo);
+}
+
+.texto-corrido a:focus-visible {
+  background-size: 100% 100%;
+  text-decoration-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .realce:hover {
+    color: var(--color-primary-hover);
+  }
+
+  .realce:hover::before {
+    background: var(--realce-fundo);
+  }
+
+  .realce:hover .seta-para-frente {
+    transform: translateX(calc(var(--space-8) / 2));
+  }
+
+  .realce:hover .seta-para-tras {
+    transform: translateX(calc(var(--space-8) / -2));
+  }
+
+  .texto-corrido a:hover {
+    background-size: 100% 100%;
+    color: var(--color-primary-hover);
+    text-decoration-color: transparent;
+  }
+}
+
+.realce:focus-visible .seta-para-frente {
+  transform: translateX(calc(var(--space-8) / 2));
+}
+
+.realce:focus-visible .seta-para-tras {
+  transform: translateX(calc(var(--space-8) / -2));
+}
+
 /* Esconde da tela, mas mantém para leitores de tela */
 .somente-leitor {
   position: absolute;
@@ -228,5 +336,11 @@ h3,
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+
+  /* As setas dos links não se movem (o fundo e a cor continuam). */
+  .seta-para-frente,
+  .seta-para-tras {
+    transform: none !important;
   }
 }

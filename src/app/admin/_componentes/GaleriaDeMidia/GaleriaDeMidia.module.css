@@ -94,12 +94,8 @@
   color: var(--color-primary);
   font: inherit;
   font-size: var(--font-size-small);
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
-}
-
-.acao:hover {
-  color: var(--color-primary-hover);
 }
 
 .acao:disabled {

@@ -19,7 +19,8 @@ type PropsBotao = PropsComuns & { href?: undefined } & Omit<ComponentPropsWithRe
 // Botão do design system (seção 8.2). Com href vira link; sem href, <button>.
 export function Botao(props: PropsLink | PropsBotao) {
   const { variante = "primario", demonstrar, className, ...resto } = props;
-  const classes = `${estilos.botao} ${estilos[variante]} ${className ?? ""}`;
+  // A variante "link" usa o realce em pílula do site (globals.css).
+  const classes = `${estilos.botao} ${estilos[variante]} ${variante === "link" ? "realce" : ""} ${className ?? ""}`;
 
   if (resto.href !== undefined) {
     return <Link {...(resto as Omit<PropsLink, keyof PropsComuns>)} className={classes} data-demonstrar={demonstrar} />;

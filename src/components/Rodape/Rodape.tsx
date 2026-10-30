@@ -11,7 +11,7 @@ function Coluna({ titulo, links }: { titulo: string; links: LinkDeNavegacao[] })
       <ul role="list" className={estilos.lista}>
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className={estilos.link}>
+            <Link href={link.href} className={`realce ${estilos.link}`}>
               {link.rotulo}
             </Link>
           </li>
@@ -31,7 +31,7 @@ export function Rodape() {
         <Coluna titulo="Legal" links={RODAPE_LEGAL} />
         <div className={estilos.coluna}>
           <h2 className={estilos.tituloColuna}>Contato</h2>
-          <a href={`mailto:${EMAIL_CONTATO}`} className={estilos.link}>
+          <a href={`mailto:${EMAIL_CONTATO}`} className={`realce ${estilos.link}`}>
             {EMAIL_CONTATO}
           </a>
           <ul role="list" className={estilos.redes}>

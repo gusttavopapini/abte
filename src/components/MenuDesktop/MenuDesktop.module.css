@@ -15,11 +15,12 @@
   white-space: nowrap;
 }
 
-.link:hover,
+/* Hover: a pílula do .realce (globals.css), sem trocar o peso (antes o
+   peso 600 no hover empurrava os itens vizinhos); a página atual continua
+   em negrito */
 .linkAtivo {
   color: var(--color-primary-hover);
   font-weight: 600;
-  /* Sem underline para manter visual mais clean da referencia */
 }
 
 .botaoTexto {
@@ -47,9 +48,14 @@
   color: var(--color-text);
 }
 
-.seta:hover,
 .setaAtiva {
   color: var(--color-primary-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .seta:hover {
+    color: var(--color-primary-hover);
+  }
 }
 
 .icone {
@@ -94,14 +100,29 @@
   /* Arredondamento do item para o efeito hover */
   border-radius: var(--radius);
   justify-content: flex-start;
-  transition: all 0.2s ease;
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
 }
 
-.submenu .link:hover,
+/* No submenu, o item já tem a caixa: a pílula é o próprio fundo dele */
+.submenu .link::before {
+  content: none;
+}
+
 .submenu .linkAtivo {
   background-color: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .submenu .link:not(.linkAtivo):hover {
+    background-color: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
+}
+
+.submenu .link:not(.linkAtivo):focus-visible {
+  background-color: var(--realce-fundo);
 }
 
 /* Movimento (PROPOSTA, NÃO VERIFICADO no design system): submenu entra com um

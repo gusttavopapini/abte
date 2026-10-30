@@ -60,8 +60,8 @@ export function ProdutosAdminClient({ ativos, excluidos, salvo }: { ativos: Linh
             <td className={classeDaCelula}>{produto.situacao}</td>
             <td className={classeDaCelula}>{produto.publicado ? "Sim" : "Não (rascunho)"}</td>
             <td className={`${classeDaCelula} ${estilos.acoes}`}>
-              <Link href={`/admin/loja/editar/${produto.id}`} className={estilos.acao} aria-label={`Editar ${produto.nome}`}>Editar</Link>
-              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setExcluindo(produto); }} aria-label={`Excluir ${produto.nome}`}>Excluir</button>
+              <Link href={`/admin/loja/editar/${produto.id}`} className={`realce ${estilos.acao}`} aria-label={`Editar ${produto.nome}`}>Editar</Link>
+              <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setExcluindo(produto); }} aria-label={`Excluir ${produto.nome}`}>Excluir</button>
             </td>
           </tr>
         ))}

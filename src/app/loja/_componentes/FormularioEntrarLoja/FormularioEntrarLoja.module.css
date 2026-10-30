@@ -22,6 +22,4 @@
   font-size: var(--font-size-text);
 }
 
-.link:hover {
-  color: var(--color-primary-hover);
-}
+/* Hover: a pílula do .realce (globals.css) */

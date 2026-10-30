@@ -59,18 +59,23 @@
   flex: none;
 }
 
-.opcao:hover .rotulo {
-  text-decoration: underline;
+/* Hover: o rótulo ganha a pílula do site (globals.css), sem sublinhado */
+.rotulo {
+  border-radius: calc(var(--radius) / 2);
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .opcao:not(.desabilitada):hover .rotulo {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
 }
 
 /* Sem resultado: apagada e sem resposta ao clique; a contagem (0) também diz. */
 .desabilitada {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.desabilitada:hover .rotulo {
-  text-decoration: none;
 }
 
 @media (max-width: 767px) {

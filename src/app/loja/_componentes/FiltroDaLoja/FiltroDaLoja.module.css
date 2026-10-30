@@ -96,8 +96,22 @@
 .limparTudo {
   min-height: var(--control-min-height-mobile);
   padding-inline: var(--space-8);
+  border-radius: var(--radius);
   font-size: var(--font-size-small);
-  text-decoration: underline;
+  text-decoration: none;
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
+}
+
+/* Hover: o fundo da pílula do site (globals.css), sem sublinhado */
+@media (hover: hover) and (pointer: fine) {
+  .limparTudo:hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
+}
+
+.limparTudo:focus-visible {
+  background: var(--realce-fundo);
 }
 
 /* ---------- Campos dentro dos grupos ---------- */

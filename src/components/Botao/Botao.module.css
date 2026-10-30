@@ -46,11 +46,14 @@
   text-align: left;
 }
 
-.link:hover,
 .link:active,
 .link[data-demonstrar="hover"] {
   color: var(--color-primary-hover);
-  text-decoration: underline;
+}
+
+/* Hover da variante link: a pílula do .realce (globals.css), sem sublinhado */
+.link[data-demonstrar="hover"]::before {
+  background: var(--realce-fundo);
 }
 
 /* Envio: como o primário, mais baixo e em largura total */

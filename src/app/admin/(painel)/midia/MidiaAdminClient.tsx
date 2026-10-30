@@ -168,10 +168,10 @@ export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props)
                 {midia.indicaMenor && <p className={estilos.selo}>Criança ou adolescente, com autorização confirmada</p>}
               </div>
               <div className={estilos.acoes}>
-                <button type="button" className={estilos.acao} onClick={() => abrir({ tipo: "editar", midia })} aria-label={`Editar o texto alternativo de ${midia.alt}`}>
+                <button type="button" className={`realce ${estilos.acao}`} onClick={() => abrir({ tipo: "editar", midia })} aria-label={`Editar o texto alternativo de ${midia.alt}`}>
                   Editar texto
                 </button>
-                <button type="button" className={estilos.acao} onClick={() => abrir({ tipo: "excluir", midia })} aria-label={`Excluir ${midia.alt}`}>
+                <button type="button" className={`realce ${estilos.acao}`} onClick={() => abrir({ tipo: "excluir", midia })} aria-label={`Excluir ${midia.alt}`}>
                   Excluir
                 </button>
               </div>

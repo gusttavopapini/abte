@@ -41,7 +41,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
           {exibidos.length === 0 ? (
             <div className={estilos.semResultado}>
               <p className="tipo-texto">Nenhum produto encontrado com estes filtros.</p>
-              <Link href={enderecoDaLoja(semFiltros(filtros))} replace scroll={false} className={estilos.limpar}>
+              <Link href={enderecoDaLoja(semFiltros(filtros))} replace scroll={false} className={`realce ${estilos.limpar}`}>
                 Limpar filtros
               </Link>
             </div>

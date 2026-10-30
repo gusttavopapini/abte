@@ -40,7 +40,7 @@ export function CaixaConsentimento({
             <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.5" />
           </svg>
         </span>
-        <span className={estilos.texto}>
+        <span className={`texto-corrido ${estilos.texto}`}>
           {children}
           {obrigatorio && <span aria-hidden="true"> *</span>}
         </span>

@@ -21,8 +21,10 @@
   transition: background-color 150ms ease-out;
 }
 
-.etiqueta:hover {
-  background: var(--color-surface-soft);
+@media (hover: hover) and (pointer: fine) {
+  .etiqueta:hover {
+    background: var(--color-surface-soft);
+  }
 }
 
 .icone {
@@ -40,11 +42,20 @@
   color: var(--color-text);
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
-  text-decoration: underline;
+  text-decoration: none;
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
 }
 
-.limpar:hover {
-  color: var(--color-primary-hover);
+/* Hover: o fundo da pílula do site (globals.css), sem sublinhado */
+@media (hover: hover) and (pointer: fine) {
+  .limpar:hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
+}
+
+.limpar:focus-visible {
+  background: var(--realce-fundo);
 }
 
 @media (max-width: 767px) {

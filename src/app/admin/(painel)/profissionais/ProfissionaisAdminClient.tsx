@@ -73,10 +73,10 @@ export function ProfissionaisAdminClient({ ativos, excluidos }: Props) {
             <td className={classeDaCelula}>{local(profissional)}</td>
             <td className={classeDaCelula}>{profissional.ativo ? "Sim" : "Não (oculto)"}</td>
             <td className={`${classeDaCelula} ${estilos.acoes}`}>
-              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional }); }} aria-label={`Editar ${profissional.nome}`}>
+              <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional }); }} aria-label={`Editar ${profissional.nome}`}>
                 Editar
               </button>
-              <button type="button" className={estilos.acao} onClick={() => { setAviso(null); setJanela({ tipo: "excluir", profissional }); }} aria-label={`Excluir ${profissional.nome}`}>
+              <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setJanela({ tipo: "excluir", profissional }); }} aria-label={`Excluir ${profissional.nome}`}>
                 Excluir
               </button>
             </td>

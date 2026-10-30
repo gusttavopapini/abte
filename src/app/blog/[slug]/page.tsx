@@ -69,7 +69,7 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
         <div className={`container pagina-interna ${estilos.container}`}>
           <div className={estilos.voltar}>
              <Botao href="/blog" variante="link">
-               &larr; Voltar para o Blog
+               <span className="seta-para-tras" aria-hidden="true">&larr;</span>&nbsp;Voltar para o Blog
              </Botao>
           </div>
 
@@ -113,7 +113,7 @@ export default async function PaginaPost({ params }: { params: Promise<{ slug: s
             )}
 
             {blocos ? (
-              <div className={`tipo-texto ${estilos.conteudo}`}>
+              <div className={`tipo-texto texto-corrido ${estilos.conteudo}`}>
                 <MarkdownRestrito blocos={blocos} imagens={imagens} sizes={LARGURA_DAS_IMAGENS} />
               </div>
             ) : (
