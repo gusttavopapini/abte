@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useActionState, useCallback, useEffect, useId, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
@@ -18,6 +18,10 @@ import type { ImagemNaTela } from "@/lib/midia/tela";
 import {
   AVISO_IMAGEM_LARGA,
   AVISO_IMAGEM_SEM_TEXTO,
+  MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO,
+  PAGINAS_DO_SITE,
+  textoDoBotaoPareceEndereco,
+  validarLinkDoBanner,
   AVISO_VERSAO_FALTANDO,
   LIMITE_DO_SUBTITULO_DO_BANNER,
   LIMITE_DO_TEXTO_DO_BOTAO,
@@ -40,6 +44,7 @@ import {
   linkEhExterno,
   nomeDoBanner,
   type BannerDaHome,
+  type CampoDoBanner,
   type IdentificadorDoEspaco,
   type PontoDeFoco,
   type ProporcoesDoEspaco,
@@ -343,15 +348,19 @@ function MolduraDaPrevia({ formato, slide }: { formato: FormatoDaPrevia; slide: 
   );
 }
 
+// Campo de texto com contador (30/10/2026): rótulo, campo, contador e depois
+// a ajuda curta; o erro fica junto do campo, com role="alert".
 function CampoDeTexto({
   id,
   rotulo,
   nome,
   valor,
   aoMudar,
+  aoSair,
   limite,
   erro,
   ajuda,
+  exemplo,
   multilinha,
 }: {
   id: string;
@@ -359,18 +368,22 @@ function CampoDeTexto({
   nome: string;
   valor: string;
   aoMudar: (valor: string) => void;
+  aoSair?: () => void;
   limite: number;
   erro?: string;
   ajuda?: string;
+  exemplo?: string;
   multilinha?: boolean;
 }) {
-  const descricao = [ajuda ? `${id}-ajuda` : "", `${id}-contador`, erro ? `${id}-erro` : ""].filter(Boolean).join(" ");
+  const descricao = [`${id}-contador`, ajuda ? `${id}-ajuda` : "", erro ? `${id}-erro` : ""].filter(Boolean).join(" ");
   const comum = {
     id,
     name: nome,
     value: valor,
     maxLength: limite,
+    placeholder: exemplo,
     autoComplete: "off",
+    onBlur: aoSair,
     "aria-invalid": erro ? true : undefined,
     "aria-describedby": descricao,
     className: `${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`,
@@ -378,10 +391,10 @@ function CampoDeTexto({
   return (
     <div className={estilos.grupo}>
       <label htmlFor={id} className={estilos.rotulo}>{rotulo}</label>
-      {ajuda && <p id={`${id}-ajuda`} className={estilos.ajuda}>{ajuda}</p>}
       {multilinha ? <textarea {...comum} rows={3} onChange={(evento) => aoMudar(evento.target.value)} /> : <input {...comum} type="text" onChange={(evento) => aoMudar(evento.target.value)} />}
       <p id={`${id}-contador`} className={estilos.contador}>{valor.length} de {limite} caracteres</p>
-      {erro && <p id={`${id}-erro`} className={estilos.erro}>{erro}</p>}
+      {ajuda && <p id={`${id}-ajuda`} className={estilos.ajuda}>{ajuda}</p>}
+      {erro && <p id={`${id}-erro`} role="alert" className={estilos.erro}>{erro}</p>}
     </div>
   );
 }
@@ -406,38 +419,76 @@ function GrupoDeOpcoes<T extends string>({ id, legenda, ajuda, nome, opcoes, rot
 
 type TipoDoLink = "nenhum" | "secao" | "pagina" | "externo";
 const ROTULOS_DOS_TIPOS_DE_LINK: Record<TipoDoLink, string> = { nenhum: "Sem link", secao: "Seção da home", pagina: "Página do site", externo: "Link externo" };
+const OUTRO_CAMINHO = "outro";
 
 function tipoDoLink(href: string): TipoDoLink {
   if (!href) return "nenhum";
-  if (href.startsWith("#")) return "secao";
+  if (href.startsWith("#") || href.startsWith("/#")) return "secao";
   if (href.startsWith("https://")) return "externo";
   return "pagina";
 }
 
-// Link do banner com tipo (30/10/2026): seção da home (lista das âncoras de
-// src/lib/site/ancoras.ts), página do site (caminho com /) ou link externo
-// (https://). O formulário envia um só campo, "href"; o servidor confere.
-function CampoDoLink({ id, valor, aoMudar, erro }: { id: string; valor: string; aoMudar: (valor: string) => void; erro?: string }) {
+// Link do banner com tipo (30/10/2026): seção da home (âncoras de
+// src/lib/site/ancoras.ts), página do site (lista das páginas conhecidas ou
+// "Outro caminho") ou link externo (https://). O formulário envia um só
+// campo, "href". Validação ao sair do campo e ao salvar, pela mesma função
+// do servidor (validarLinkDoBanner); trocar o tipo limpa o valor e o erro;
+// endereço do próprio site vira o caminho interno, com aviso.
+function CampoDoLink({
+  id,
+  valor,
+  aoMudar,
+  erro,
+  aoErro,
+  artigosAtivo,
+}: {
+  id: string;
+  valor: string;
+  aoMudar: (valor: string) => void;
+  erro?: string;
+  aoErro: (mensagem: string | undefined) => void;
+  artigosAtivo: boolean;
+}) {
   const [tipo, setTipo] = useState<TipoDoLink>(() => tipoDoLink(valor));
-  const [porTipo, setPorTipo] = useState<Record<TipoDoLink, string>>(() => ({ nenhum: "", secao: tipoDoLink(valor) === "secao" ? valor : `#${ANCORAS_DA_HOME[0].id}`, pagina: tipoDoLink(valor) === "pagina" ? valor : "", externo: tipoDoLink(valor) === "externo" ? valor : "" }));
+  const [outro, setOutro] = useState(() => tipoDoLink(valor) === "pagina" && !PAGINAS_DO_SITE.some((pagina) => pagina.href === valor));
+  const [aviso, setAviso] = useState<string | null>(null);
 
   function trocarTipo(novo: TipoDoLink) {
     setTipo(novo);
-    aoMudar(porTipo[novo]);
+    setOutro(false);
+    setAviso(null);
+    aoErro(undefined);
+    // O valor do tipo anterior não fica guardado.
+    aoMudar(novo === "secao" ? `#${ANCORAS_DA_HOME[ANCORAS_DA_HOME.length - 1].id}` : "");
   }
 
-  function mudarValor(novo: string) {
-    setPorTipo((atual) => ({ ...atual, [tipo]: novo }));
+  function mudar(novo: string) {
+    setAviso(null);
+    aoErro(undefined);
     aoMudar(novo);
   }
 
-  const descricao = [`${id}-ajuda`, erro ? `${id}-erro` : ""].filter(Boolean).join(" ");
+  // Ao sair do campo: confere e, se for o endereço do próprio site, converte.
+  function conferir() {
+    if (!valor.trim()) return;
+    const lido = validarLinkDoBanner(valor);
+    if (!lido.ok) return aoErro(lido.mensagem);
+    if (lido.convertido) {
+      setTipo("pagina");
+      setOutro(!PAGINAS_DO_SITE.some((pagina) => pagina.href === lido.href));
+      aoMudar(lido.href);
+      setAviso(`Este é um endereço do próprio site: ficou o caminho interno ${lido.href}.`);
+    }
+  }
+
+  const descricao = [`${id}-ajuda`, erro ? `${id}-erro` : "", aviso ? `${id}-aviso` : ""].filter(Boolean).join(" ");
   const ajudas: Record<TipoDoLink, string> = {
     nenhum: "O banner não é link.",
     secao: "O banner leva a uma seção desta página: a tela rola até ela.",
-    pagina: "Um caminho do site começando com / (ex.: /loja), aberto na mesma aba.",
+    pagina: "Uma página deste site, aberta na mesma aba.",
     externo: "Um endereço completo começando com https://, aberto em nova aba.",
   };
+  const valorDaLista = outro ? OUTRO_CAMINHO : PAGINAS_DO_SITE.some((pagina) => pagina.href === valor) ? valor : "";
   return (
     <div className={estilos.grupo}>
       <input type="hidden" name="href" value={valor} />
@@ -453,7 +504,7 @@ function CampoDoLink({ id, valor, aoMudar, erro }: { id: string; valor: string; 
       {tipo === "secao" && (
         <>
           <label htmlFor={id} className={estilos.rotulo}>Seção da home</label>
-          <select id={id} value={porTipo.secao} onChange={(evento) => mudarValor(evento.target.value)} className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`} aria-invalid={erro ? true : undefined} aria-describedby={descricao}>
+          <select id={id} value={valor.replace(/^\//, "")} onChange={(evento) => mudar(evento.target.value)} className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`} aria-invalid={erro ? true : undefined} aria-describedby={descricao}>
             {ANCORAS_DA_HOME.map((ancora) => (
               <option key={ancora.id} value={`#${ancora.id}`}>
                 {ancora.nome}
@@ -462,26 +513,49 @@ function CampoDoLink({ id, valor, aoMudar, erro }: { id: string; valor: string; 
           </select>
         </>
       )}
-      {(tipo === "pagina" || tipo === "externo") && (
+      {tipo === "pagina" && (
         <>
-          <label htmlFor={id} className={estilos.rotulo}>{tipo === "pagina" ? "Caminho da página" : "Endereço do link externo"}</label>
-          <input
-            id={id}
-            type="text"
-            inputMode="url"
-            value={porTipo[tipo]}
-            onChange={(evento) => mudarValor(evento.target.value)}
-            placeholder={tipo === "pagina" ? "/loja" : "https://"}
-            maxLength={LIMITE_DO_LINK}
-            autoComplete="off"
-            spellCheck={false}
-            aria-invalid={erro ? true : undefined}
+          <label htmlFor={`${id}-pagina`} className={estilos.rotulo}>Página</label>
+          <select
+            id={`${id}-pagina`}
+            value={valorDaLista}
+            onChange={(evento) => {
+              const escolhida = evento.target.value;
+              setOutro(escolhida === OUTRO_CAMINHO);
+              mudar(escolhida === OUTRO_CAMINHO ? "" : escolhida);
+            }}
+            className={`${estilos.entrada} ${erro && !outro ? estilos.entradaComErro : ""}`}
+            aria-invalid={erro && !outro ? true : undefined}
             aria-describedby={descricao}
-            className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`}
-          />
+          >
+            <option value="">Escolha a página</option>
+            {PAGINAS_DO_SITE.map((pagina) => {
+              const desativada = pagina.href === "/artigos" && !artigosAtivo;
+              return (
+                <option key={pagina.href} value={pagina.href} disabled={desativada}>
+                  {pagina.nome}
+                  {desativada ? " (desativado nas configurações)" : ""}
+                </option>
+              );
+            })}
+            <option value={OUTRO_CAMINHO}>Outro caminho</option>
+          </select>
+          {outro && (
+            <>
+              <label htmlFor={id} className={estilos.rotulo}>Caminho da página</label>
+              <input id={id} type="text" inputMode="url" value={valor} onChange={(evento) => mudar(evento.target.value)} onBlur={conferir} placeholder="Ex.: /blog/nome-do-post" maxLength={LIMITE_DO_LINK} autoComplete="off" spellCheck={false} aria-invalid={erro ? true : undefined} aria-describedby={descricao} className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`} />
+            </>
+          )}
         </>
       )}
-      {erro && <p id={`${id}-erro`} className={estilos.erro}>{erro}</p>}
+      {tipo === "externo" && (
+        <>
+          <label htmlFor={id} className={estilos.rotulo}>Endereço do link externo</label>
+          <input id={id} type="text" inputMode="url" value={valor} onChange={(evento) => mudar(evento.target.value)} onBlur={conferir} placeholder="Ex.: https://www.exemplo.org" maxLength={LIMITE_DO_LINK} autoComplete="off" spellCheck={false} aria-invalid={erro ? true : undefined} aria-describedby={descricao} className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`} />
+        </>
+      )}
+      {aviso && <p id={`${id}-aviso`} className={estilos.ajuda} role="status">{aviso}</p>}
+      {erro && <p id={`${id}-erro`} role="alert" className={estilos.erro}>{erro}</p>}
     </div>
   );
 }
@@ -525,7 +599,33 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
     ultimoAltSugerido.current = sugerido;
   }
 
-  const erros = resposta?.ok === false ? resposta.erros ?? {} : {};
+  // Erros à vista (30/10/2026): os da resposta do servidor e os da
+  // conferência no navegador; cada um some quando o campo dele muda.
+  const [erros, setErros] = useState<Partial<Record<CampoDoBanner, string>>>({});
+  const [respostaVista, setRespostaVista] = useState(resposta);
+  if (resposta !== respostaVista) {
+    setRespostaVista(resposta);
+    setErros(resposta?.ok === false ? resposta.erros ?? {} : {});
+  }
+  const definirErro = (campo: CampoDoBanner, mensagem: string | undefined) => setErros((atual) => ({ ...atual, [campo]: mensagem }));
+  const ao = (campo: CampoDoBanner, mudar: (valor: string) => void) => (valor: string) => {
+    mudar(valor);
+    if (erros[campo]) definirErro(campo, undefined);
+  };
+  function conferirTextoDoBotao() {
+    if (textoDoBotaoPareceEndereco(textoDoBotao)) definirErro("textoDoBotao", MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO);
+  }
+  // Ao salvar, a mesma conferência do servidor, antes de enviar.
+  function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+    const novos: Partial<Record<CampoDoBanner, string>> = {};
+    const link = validarLinkDoBanner(href);
+    if (!link.ok) novos.href = link.mensagem;
+    if (textoDoBotaoPareceEndereco(textoDoBotao)) novos.textoDoBotao = MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO;
+    if (Object.keys(novos).length > 0) {
+      evento.preventDefault();
+      setErros((atual) => ({ ...atual, ...novos }));
+    } else if (link.ok && link.href !== href) setHref(link.href);
+  }
   const limitar = (valor: number) => Math.min(Math.max(valor, 1), maximo);
   const temImagem = Boolean(imagens.computador);
   const slideDaPrevia: SlideDoBanner = {
@@ -539,9 +639,9 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
   };
 
   return (
-    <form action={salvar} className={estilos.formulario}>
+    <form action={salvar} onSubmit={aoEnviar} className={estilos.formulario}>
       <input type="hidden" name="chave" value={chave} />
-      {resposta?.ok === false && (
+      {resposta?.ok === false && (Object.keys(resposta.erros ?? {}).length === 0 || Object.values(erros).some(Boolean)) && (
         <Mensagem tipo="erro" ref={resumoRef}>
           {resposta.mensagem}
         </Mensagem>
@@ -562,24 +662,24 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           erros={erros}
           aoMudar={aoMudarImagem}
         />
-        <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
+        <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={ao("alt", setAlt)} erro={erros.alt} obrigatorio={temImagem} />
       </section>
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-texto`}>
         <h3 id={`${id}-texto`} className={estilos.tituloDaCaixa}>Texto</h3>
         <p className={estilos.ajuda}>Opcional. Sem título, subtítulo e botão, o banner mostra só a imagem, como antes.</p>
-        <CampoDeTexto id={`${id}-titulo`} rotulo="Título" nome="titulo" valor={titulo} aoMudar={setTitulo} limite={LIMITE_DO_TITULO_DO_BANNER} erro={erros.titulo} />
+        <CampoDeTexto id={`${id}-titulo`} rotulo="Título" nome="titulo" valor={titulo} aoMudar={ao("titulo", setTitulo)} limite={LIMITE_DO_TITULO_DO_BANNER} erro={erros.titulo} />
         <CampoDeTexto
           id={`${id}-destaque`}
           rotulo="Trecho em destaque"
           nome="trechoEmDestaque"
           valor={trechoEmDestaque}
-          aoMudar={setTrechoEmDestaque}
+          aoMudar={ao("trechoEmDestaque", setTrechoEmDestaque)}
           limite={LIMITE_DO_TITULO_DO_BANNER}
           erro={erros.trechoEmDestaque}
           ajuda="Uma parte do título, escrita exatamente igual, que aparece em negrito e na cor de destaque."
         />
-        <CampoDeTexto id={`${id}-subtitulo`} rotulo="Subtítulo" nome="subtitulo" valor={subtitulo} aoMudar={setSubtitulo} limite={LIMITE_DO_SUBTITULO_DO_BANNER} erro={erros.subtitulo} multilinha />
+        <CampoDeTexto id={`${id}-subtitulo`} rotulo="Subtítulo" nome="subtitulo" valor={subtitulo} aoMudar={ao("subtitulo", setSubtitulo)} limite={LIMITE_DO_SUBTITULO_DO_BANNER} erro={erros.subtitulo} multilinha />
       </section>
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-link`}>
@@ -589,12 +689,14 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           rotulo="Texto do botão"
           nome="textoDoBotao"
           valor={textoDoBotao}
-          aoMudar={setTextoDoBotao}
+          aoMudar={ao("textoDoBotao", setTextoDoBotao)}
+          aoSair={conferirTextoDoBotao}
+          exemplo="Ex.: Acesse nosso blog"
           limite={LIMITE_DO_TEXTO_DO_BOTAO}
           erro={erros.textoDoBotao}
-          ajuda="Com texto, o botão é o link do banner (e o banner inteiro continua clicável). Sem texto, o banner inteiro é o link."
+          ajuda="Uma frase curta. Com texto, o botão leva ao link de destino abaixo (e o banner inteiro continua clicável); sem texto, o banner inteiro é o link."
         />
-        <CampoDoLink id={`${id}-href`} valor={href} aoMudar={setHref} erro={erros.href} />
+        <CampoDoLink id={`${id}-href`} valor={href} aoMudar={setHref} erro={erros.href} aoErro={(mensagem) => definirErro("href", mensagem)} artigosAtivo={artigosAtivo} />
         {!artigosAtivo && ehCaminhoDosArtigos(href.trim()) && (
           <CaixaDoPainel tipo="atencao">Os Artigos estão fora do site (em Configurações). Enquanto isso, este banner aparece sem link.</CaixaDoPainel>
         )}

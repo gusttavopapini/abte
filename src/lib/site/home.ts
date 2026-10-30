@@ -6,6 +6,7 @@
 import type { ImagemNaTela } from "../midia/tela.ts";
 import { ehIdDeDocumentoValido } from "../validacao.ts";
 import { SLIDES_DO_BANNER, type SlideDoBanner } from "./banners.ts";
+import { DOMINIOS_DO_SITE } from "../../config/links.ts";
 import { ancoraDoLink } from "./ancoras.ts";
 import { ehCaminhoDosArtigos } from "./configuracoes.ts";
 import { lerVideoQuemSomos, type VideoQuemSomos } from "./videoQuemSomos.ts";
@@ -177,25 +178,57 @@ export function nomeDoBanner(posicao: number): string {
   return `${ORDINAIS[posicao - 1] ?? `${posicao}º`} banner`;
 }
 
-// Link de destino do banner: vazio (sem link), seção da home ("#âncora" da
-// lista em ancoras.ts, desde 30/10/2026), caminho interno começando com "/"
-// ou endereço https completo. Recusa javascript:, data:, http:, "//", barra
-// invertida, espaços, âncora fora da lista e endereços inválidos.
-export function validarLinkDoBanner(valor: unknown): { ok: true; href: string } | { ok: false; mensagem: string } {
+// Páginas conhecidas do site para o link do banner (30/10/2026; não há
+// página "Quem Somos": é uma seção da home, na lista das âncoras).
+export const PAGINAS_DO_SITE = [
+  { href: "/blog", nome: "Blog" },
+  { href: "/artigos", nome: "Artigos" },
+  { href: "/loja", nome: "Loja" },
+  { href: "/profissionais", nome: "Profissionais" },
+  { href: "/diretoria", nome: "Diretoria" },
+  { href: "/contato", nome: "Contato" },
+  { href: "/doe", nome: "Doe para a ABTE" },
+  { href: "/seja-associado", nome: "Seja associado" },
+] as const;
+
+export const MENSAGEM_LINK_INVALIDO = "Use um caminho do site começando com / (ex.: /loja) ou um endereço completo começando com https://.";
+export const MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO = "O texto do botão deve ser uma frase curta, como Acesse nosso blog. O endereço vai no campo Link de destino.";
+
+// Caminho interno seguro: uma barra só no começo e só caracteres de URL
+// (letras, números e - . _ ~ % / ? = & + : , ; ! * ' ( ) @ #).
+const CAMINHO_SEGURO = /^\/(?!\/)[A-Za-z0-9\-._~%/?=&+:,;!*'()@#]*$/;
+
+// Link de destino do banner, uma função só para o navegador e o servidor
+// (30/10/2026): vazio (sem link), "#âncora" ou "/#âncora" da lista da home,
+// caminho interno seguro (/blog, /blog/um-post, /loja?categoria=x) ou
+// endereço https. Endereço do próprio site vira o caminho interno
+// (convertido: true). Recusa javascript:, data:, http:, "//", barra
+// invertida, espaços, âncora fora da lista e endereços malformados.
+export function validarLinkDoBanner(valor: unknown, dominiosDoSite: readonly string[] = DOMINIOS_DO_SITE): { ok: true; href: string; convertido?: boolean } | { ok: false; mensagem: string } {
   const href = typeof valor === "string" ? valor.trim() : "";
   if (!href) return { ok: true, href: "" };
-  if (href.startsWith("#")) return ancoraDoLink(href) ? { ok: true, href } : { ok: false, mensagem: "Escolha uma das seções da home da lista." };
-  const invalido = { ok: false as const, mensagem: "Use um caminho do site começando com / (ex.: /loja) ou um endereço completo começando com https://." };
   if (href.length > LIMITE_DO_LINK) return { ok: false, mensagem: `O link aceita no máximo ${LIMITE_DO_LINK} caracteres.` };
-  if (/[\s\\\u0000-\u001f\u007f]/.test(href)) return invalido;
-  if (href.startsWith("/")) return href.startsWith("//") ? invalido : { ok: true, href };
+  if (/[\s\\\u0000-\u001f\u007f]/.test(href)) return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
+  if (href.startsWith("#") || href.startsWith("/#")) return ancoraDoLink(href) ? { ok: true, href } : { ok: false, mensagem: "Escolha uma das seções da home da lista." };
+  if (href.startsWith("/")) return CAMINHO_SEGURO.test(href) ? { ok: true, href } : { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
+  let endereco: URL;
   try {
-    const endereco = new URL(href);
-    if (endereco.protocol !== "https:" || !endereco.hostname.includes(".")) return invalido;
-    return { ok: true, href };
+    endereco = new URL(href);
   } catch {
-    return invalido;
+    return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
   }
+  if (endereco.protocol !== "https:" || !endereco.hostname.includes(".") || endereco.username || endereco.password) return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
+  if (dominiosDoSite.includes(endereco.hostname)) {
+    const interno = `${endereco.pathname}${endereco.search}${endereco.hash}` || "/";
+    const lido = validarLinkDoBanner(interno, dominiosDoSite);
+    return lido.ok ? { ok: true, href: lido.href, convertido: true } : lido;
+  }
+  return { ok: true, href };
+}
+
+// O texto do botão parece um endereço? (começa com http ou tem "://")
+export function textoDoBotaoPareceEndereco(texto: string): boolean {
+  return /^\s*https?/i.test(texto) || texto.includes("://");
 }
 
 export function linkEhExterno(href: string): boolean {
@@ -439,7 +472,8 @@ export function lerBannerDoFormulario(campos: {
   if (titulo.length > LIMITE_DO_TITULO_DO_BANNER) erros.titulo = `O título aceita no máximo ${LIMITE_DO_TITULO_DO_BANNER} caracteres.`;
   if (trechoEmDestaque && !titulo.includes(trechoEmDestaque)) erros.trechoEmDestaque = "O trecho em destaque precisa fazer parte do título, escrito exatamente igual.";
   if (subtitulo.length > LIMITE_DO_SUBTITULO_DO_BANNER) erros.subtitulo = `O subtítulo aceita no máximo ${LIMITE_DO_SUBTITULO_DO_BANNER} caracteres.`;
-  if (textoDoBotao.length > LIMITE_DO_TEXTO_DO_BOTAO) erros.textoDoBotao = `O texto do botão aceita no máximo ${LIMITE_DO_TEXTO_DO_BOTAO} caracteres.`;
+  if (textoDoBotaoPareceEndereco(textoDoBotao)) erros.textoDoBotao = MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO;
+  else if (textoDoBotao.length > LIMITE_DO_TEXTO_DO_BOTAO) erros.textoDoBotao = `O texto do botão aceita no máximo ${LIMITE_DO_TEXTO_DO_BOTAO} caracteres.`;
   else if (textoDoBotao && link.ok && !link.href) erros.textoDoBotao = "Preencha o link para o botão aparecer, ou deixe o texto do botão vazio.";
   const posicaoDoTexto = campos.posicaoDoTexto === null || campos.posicaoDoTexto === undefined ? "esquerda" : campos.posicaoDoTexto;
   if (!ehPosicaoDoTexto(posicaoDoTexto)) erros.posicaoDoTexto = "Escolha a posição do texto: esquerda, centro ou direita.";

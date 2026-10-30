@@ -11,7 +11,7 @@ import { verificarCookieDeSessao } from "../../src/lib/auth/verificacao.ts";
 import { MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, MENSAGEM_IMAGEM_TABLET_INDISPONIVEL, excluirBanner, salvarBanner, salvarImagemDoEspaco } from "../../src/lib/gravacao/home.ts";
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
 import { COLECAO_MIDIAS } from "../../src/lib/midia/biblioteca.ts";
-import { LIMITE_DE_BANNERS, lerConfiguracaoDaHome } from "../../src/lib/site/home.ts";
+import { LIMITE_DE_BANNERS, lerBannerDoFormulario, lerConfiguracaoDaHome } from "../../src/lib/site/home.ts";
 
 const HOST_AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST;
 let app: App;
@@ -247,5 +247,19 @@ describe("Home: três versões e texto do banner (30/10/2026)", () => {
     const recusado = await salvarBanner(db, { chave: "banner-tablet01", midiaId: "midiaUm", midiaMobileId: null, alt: "x", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro", ...vazio, midiaTabletId: "celularNaLixeira" }, EDITOR);
     assert.deepEqual(recusado, { ok: false, mensagem: MENSAGEM_IMAGEM_TABLET_INDISPONIVEL, campo: "midiaTabletId" });
     assert.equal((await registros()).length, antes);
+  });
+});
+
+describe("Home: link do banner por tipo (30/10/2026)", () => {
+  test("seção da home, página do site, endereço do próprio site e link externo gravam o destino certo", async () => {
+    const vazioDoTexto = { midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const };
+    const casos: [string, string][] = [["#faca-parte", "#faca-parte"], ["/blog", "/blog"], ["/blog/um-post", "/blog/um-post"], ["https://abte-lovat.vercel.app/loja", "/loja"], ["https://www.exemplo.org/x", "https://www.exemplo.org/x"]];
+    for (const [entrada, esperado] of casos) {
+      const lido = lerBannerDoFormulario({ chave: "banner-link0001", midiaId: "midiaUm", alt: "Link", href: entrada, ativo: "sim", posicao: "1" });
+      assert.ok(lido.ok, entrada);
+      assert.equal((await salvarBanner(db, { ...lido.dados, ...vazioDoTexto, pontoDeFoco: "centro" }, EDITOR)).ok, true, entrada);
+      const gravado = ((await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[]).find((item) => item.chave === "banner-link0001");
+      assert.equal(gravado?.href, esperado, entrada);
+    }
   });
 });
