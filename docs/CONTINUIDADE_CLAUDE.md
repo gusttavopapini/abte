@@ -233,6 +233,13 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Pendência:** os 3 banners atuais não têm versão para celular e, em 390x844, mostram só 25,8% da largura da imagem.
 - **Promovido** em 30/10 (`c96e6e0`, deployment `7446451745`, produção conferida).
 
+### Lote de nove itens (30/10)
+
+- **Commits:** `ec91690` (rodapé sem Facebook, "Siga nosso Instagram"), `c86d5ed` (Seja associado com Google Forms, decisão provisória), `52e53fb` (Artigos centralizados e opcionais, `configuracoes/site`, `/admin/configuracoes`), `b2215d1` (Pix estático pelo painel), `3833b88` (páginas institucionais editáveis, `/admin/paginas`), `4b310bd` (banner com tablet e texto em código), `5b04843` (link do banner para seção da home), `1c3589e` (vídeo de Quem Somos), `39bd030` (correções).
+- **Papéis:** Home e vídeo para administrador e editor; Configurações e Páginas só administrador.
+- **Validação:** 674 testes (416, 155, 103), lint 3 avisos, lint:css 5, build. Navegador: 67 conferências públicas e 33 do painel. Capturas em `tmp-migracao/capturas/lote-30-10/`.
+- **Pendências:** aplicar o CORS do bucket (`docs/infra/cors.json`, comando no CLAUDE.md) para o envio de vídeo por arquivo; publicar as páginas institucionais no painel (até lá, ficam fora do site); cadastrar a chave Pix quando a ABTE enviar; textos dos banners em código (os atuais têm o texto na arte); versões tablet e celular dos banners.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
