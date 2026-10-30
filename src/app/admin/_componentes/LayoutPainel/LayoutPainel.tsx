@@ -125,7 +125,7 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
           <Logo />
           <p className={estilos.nomeDoPainel}>Painel</p>
         </div>
-        {configuracoes && <BotaoDasConfiguracoes configuracoes={configuracoes} className={estilos.botaoDasConfiguracoes} />}
+
         {menu}
         {rodapeDoMenu}
       </aside>
@@ -164,6 +164,7 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
       </div>
 
       <main id="conteudo-do-painel" className={estilos.principal}>
+        {configuracoes && <div className={estilos.barraSuperior}><BotaoDasConfiguracoes configuracoes={configuracoes} /></div>}
         {children}
       </main>
     </div>

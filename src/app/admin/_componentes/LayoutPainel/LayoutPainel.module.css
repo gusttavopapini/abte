@@ -221,3 +221,13 @@
 .botaoDasConfiguracoes {
   align-self: flex-start;
 }
+
+.barraSuperior {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-24);
+}
+
+@media (max-width: 1023px) {
+  .barraSuperior { display: none; }
+}

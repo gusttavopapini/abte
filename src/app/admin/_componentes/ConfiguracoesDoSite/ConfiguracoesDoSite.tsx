@@ -112,7 +112,7 @@ function CaixaDoPix({ inicial }: { inicial: ChavePix | null }) {
   const [chave, setChave] = useState(inicial?.chave ?? "");
   const [favorecido, setFavorecido] = useState(inicial?.favorecido ?? "");
   const [orientacao, setOrientacao] = useState(inicial?.orientacao ?? "");
-  const [gravada, setGravada] = useState({ tipo: inicial?.tipo ?? null, chave: inicial?.chave ?? "" });
+  const [gravada, setGravada] = useState({ tipo: inicial?.tipo ?? null, chave: inicial?.chave ?? "", favorecido: inicial?.favorecido ?? "", orientacao: inicial?.orientacao ?? "" });
   const [enviada, setEnviada] = useState(gravada);
   const [respostaVista, setRespostaVista] = useState(resposta);
   const [confirmar, setConfirmar] = useState(false);
@@ -132,16 +132,16 @@ function CaixaDoPix({ inicial }: { inicial: ChavePix | null }) {
     if (!formulario.current) return;
     const dados = new FormData(formulario.current);
     setConfirmar(false);
-    setEnviada({ tipo, chave: chave.trim() });
+    setEnviada({ tipo, chave: chave.trim(), favorecido: favorecido.trim(), orientacao: orientacao.trim() });
     startTransition(() => salvar(dados));
   }
 
   // Cancelar: volta ao que está gravado.
   function descartar() {
-    setTipo(inicial?.tipo ?? "cnpj");
-    setChave(inicial?.chave ?? "");
-    setFavorecido(inicial?.favorecido ?? "");
-    setOrientacao(inicial?.orientacao ?? "");
+    setTipo(gravada.tipo ?? "cnpj");
+    setChave(gravada.chave);
+    setFavorecido(gravada.favorecido);
+    setOrientacao(gravada.orientacao);
   }
 
   function aoEnviar(evento: FormEvent<HTMLFormElement>) {
