@@ -40,9 +40,6 @@
 
 /* Setas de navegação */
 .seta {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   /* Azul da marca no lugar do preto translúcido (29/10/2026); 80% para a
      seta branca manter contraste sobre fotos claras. */
   background: color-mix(in srgb, var(--color-primary) 80%, transparent);
@@ -60,24 +57,24 @@
   background: var(--color-primary-hover);
 }
 
-.setaEsquerda {
-  left: 20px;
-}
-
-.setaDireita {
-  right: 20px;
-}
-
 /* Contadores / Dots: na base, com folga de --space-24 e a área segura do
    celular (30/10/2026). */
-.dotsContainer {
+/* Setas e pontos numa linha só, centralizada na base do banner
+   (30/10/2026), acima do link esticado do slide. */
+.controles {
   position: absolute;
   bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
   left: 50%;
+  z-index: 3;
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
   transform: translateX(-50%);
+}
+
+.dotsContainer {
   display: flex;
   gap: 10px;
-  z-index: 3;
 }
 
 .dot {
@@ -176,38 +173,56 @@
 /* Texto em código sobre a imagem (30/10/2026). O véu é um degradê do branco
    (--color-bg a 85%) para transparente, só com tokens: com 85% sob o texto,
    o contraste do --color-text fica em pelo menos 6,4:1 e o do trecho em
-   destaque em 3,4:1 (texto grande), mesmo sobre uma imagem preta. A largura
-   da caixa de texto e as paradas do degradê usam os mesmos valores, para o
-   texto ficar sempre sobre a parte cheia do véu. */
+   destaque em 3,4:1 (texto grande), mesmo sobre uma imagem preta.
+   Alinhamento (lote seguinte de 30/10/2026): o texto fica dentro do mesmo
+   .container do cabeçalho, então a borda dele coincide com a do logo; a
+   coluna ocupa --fracao da largura do container (metade no computador, três
+   quartos no tablet, toda no celular) e o véu cobre a coluna. O topo fica
+   abaixo do cabeçalho (--altura-do-header, publicada pelo Header). */
 .conteudo {
   --veu: color-mix(in srgb, var(--color-bg) 85%, transparent);
-  --largura-do-texto: calc(var(--content-max) / 3);
-  --margem-do-texto: calc(var(--space-64) + var(--space-24));
+  --fracao: 0.5;
+  /* Coluna: a fração da largura, com no mínimo 576px (--space-96 x 6) para
+     o título não passar de 4 linhas em 1024px; o véu cobre o mesmo tanto. */
+  --coluna-do-veu: max(calc(100% * var(--fracao)), calc(var(--space-96) * 6 + var(--space-64)));
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: var(--space-96) var(--margem-do-texto);
+  padding: calc(var(--altura-do-header, var(--space-96)) + var(--space-24)) 0 calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
+}
+
+.linhaDoTexto {
+  display: flex;
+}
+
+.textoEsquerda .linhaDoTexto {
+  justify-content: flex-start;
+}
+
+.textoDireita .linhaDoTexto {
+  justify-content: flex-end;
+}
+
+.textoCentro .linhaDoTexto {
+  justify-content: center;
+  text-align: center;
 }
 
 .textoEsquerda {
-  justify-content: flex-start;
-  background: linear-gradient(to right, var(--veu) 0, var(--veu) calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-24)), transparent calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-96) * 2));
+  background: linear-gradient(to right, var(--veu) 0, var(--veu) calc(var(--coluna-do-veu) + var(--space-24)), transparent calc(var(--coluna-do-veu) + var(--space-96) * 2));
 }
 
 .textoDireita {
-  justify-content: flex-end;
-  background: linear-gradient(to left, var(--veu) 0, var(--veu) calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-24)), transparent calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-96) * 2));
+  background: linear-gradient(to left, var(--veu) 0, var(--veu) calc(var(--coluna-do-veu) + var(--space-24)), transparent calc(var(--coluna-do-veu) + var(--space-96) * 2));
 }
 
 .textoCentro {
-  justify-content: center;
-  text-align: center;
   background: linear-gradient(
     to right,
-    transparent calc(50% - var(--largura-do-texto) / 2 - var(--space-96) * 2),
-    var(--veu) calc(50% - var(--largura-do-texto) / 2 - var(--space-24)),
-    var(--veu) calc(50% + var(--largura-do-texto) / 2 + var(--space-24)),
-    transparent calc(50% + var(--largura-do-texto) / 2 + var(--space-96) * 2)
+    transparent calc(50% - var(--coluna-do-veu) / 2 - var(--space-96) * 2),
+    var(--veu) calc(50% - var(--coluna-do-veu) / 2 - var(--space-24)),
+    var(--veu) calc(50% + var(--coluna-do-veu) / 2 + var(--space-24)),
+    transparent calc(50% + var(--coluna-do-veu) / 2 + var(--space-96) * 2)
   );
 }
 
@@ -216,7 +231,7 @@
   flex-direction: column;
   gap: var(--space-24);
   width: 100%;
-  max-width: var(--largura-do-texto);
+  max-width: max(calc(100% * var(--fracao)), min(100%, calc(var(--space-96) * 6)));
   color: var(--color-text);
 }
 
@@ -224,11 +239,17 @@
   align-items: center;
 }
 
+/* Título: um degrau abaixo do H1 (75%), limitado pela altura da tela (7svh)
+   para o conjunto caber em telas baixas; nunca parte uma palavra (o
+   globals.css aplica overflow-wrap: break-word aos títulos). */
 .tituloDoBanner {
   color: var(--color-text);
-  font-size: var(--font-size-h1);
+  font-size: min(calc(var(--font-size-h1) * 0.75), 7svh);
   font-weight: var(--font-weight-light);
   line-height: var(--leading-snug);
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
   text-wrap: balance;
 }
 
@@ -240,6 +261,16 @@
 .subtituloDoBanner {
   font-size: var(--font-size-text-lg);
   line-height: var(--leading-normal);
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: pretty;
+}
+
+@media (max-width: 1023px) {
+  .conteudo {
+    --fracao: 0.75;
+  }
 }
 
 /* O botão é o link real; o ::after dele cobre o slide inteiro (o
@@ -267,45 +298,24 @@
 }
 
 /* Celular (e a prévia do celular no painel): texto na parte de baixo, acima
-   dos pontos, com o véu subindo da base; a ordem e o conteúdo são os mesmos. */
+   dos controles, com o véu subindo da base; a ordem e o conteúdo são os
+   mesmos. */
 @media (max-width: 767px) {
   .conteudo {
-    --margem-do-texto: var(--page-margin);
+    --fracao: 1;
     align-items: flex-end;
-    padding: var(--space-96) var(--page-margin) calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
-  }
-
-  .caixaDeTexto {
-    max-width: none;
   }
 }
 
 .formatoCelular .conteudo {
-  --margem-do-texto: var(--page-margin);
+  --fracao: 1;
   align-items: flex-end;
-  padding: var(--space-96) var(--page-margin) calc(var(--space-64) + var(--space-24));
   background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
 }
 
-.formatoCelular .caixaDeTexto {
-  max-width: none;
-}
-
-.linkDoSlide::after {
-  content: "";
-  position: absolute;
-  inset: var(--space-8);
-  border-radius: var(--radius);
-  pointer-events: none;
-}
-
-.linkDoSlide:focus-visible {
-  box-shadow: none;
-}
-
-.linkDoSlide:focus-visible::after {
-  box-shadow: var(--focus-ring);
+.formatoTablet .conteudo {
+  --fracao: 0.75;
 }
 
 /* Prévia do painel em formato fixo (30/10/2026): os mesmos estilos do site;

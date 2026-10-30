@@ -90,25 +90,27 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
           );
         })}
 
-        {/* Setas de navegação */}
-        <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
-          &#10094;
-        </button>
-        <button type="button" className={`${estilos.seta} ${estilos.setaDireita}`} onClick={proximo} aria-label="Próximo slide">
-          &#10095;
-        </button>
-
-        {/* Contadores / Dots */}
-        <div className={estilos.dotsContainer}>
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`${estilos.dot} ${index === slideAtual ? estilos.dotAtivo : ""}`}
-              onClick={() => setSlideAtual(index)}
-              aria-label={`Ir para o slide ${index + 1}`}
-            />
-          ))}
+        {/* Setas e pontos numa linha só, na base do banner (30/10/2026): o
+            texto alinhado ao logo ficava sob as setas no meio da altura.
+            Fora dos links, acima do link esticado. */}
+        <div className={estilos.controles}>
+          <button type="button" className={estilos.seta} onClick={anterior} aria-label="Slide anterior">
+            &#10094;
+          </button>
+          <div className={estilos.dotsContainer}>
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                className={`${estilos.dot} ${index === slideAtual ? estilos.dotAtivo : ""}`}
+                onClick={() => setSlideAtual(index)}
+                aria-label={`Ir para o slide ${index + 1}`}
+              />
+            ))}
+          </div>
+          <button type="button" className={estilos.seta} onClick={proximo} aria-label="Próximo slide">
+            &#10095;
+          </button>
         </div>
       </div>
     </section>

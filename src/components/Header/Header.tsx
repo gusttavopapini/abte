@@ -97,7 +97,12 @@ export function Header({ variante = "solida", demonstracao = false, menu = MENU_
     const header = headerRef.current;
     if (demonstracao || !header) return;
     const raiz = document.documentElement;
-    const publicar = () => raiz.style.setProperty("--altura-do-header-visivel", ocupaOAlto ? `${header.offsetHeight}px` : "0px");
+    // --altura-do-header (30/10/2026): a altura inteira, mesmo escondido; o
+    // texto do banner da home começa abaixo dela.
+    const publicar = () => {
+      raiz.style.setProperty("--altura-do-header-visivel", ocupaOAlto ? `${header.offsetHeight}px` : "0px");
+      raiz.style.setProperty("--altura-do-header", `${header.offsetHeight}px`);
+    };
     publicar();
     const observador = new ResizeObserver(publicar);
     observador.observe(header);

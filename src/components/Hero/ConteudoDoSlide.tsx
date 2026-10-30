@@ -8,6 +8,7 @@ import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
 import { ancoraDoLink } from "@/lib/site/ancoras";
 import { partesDoTitulo } from "@/lib/site/home";
 import estilos from "./Hero.module.css";
+import { TituloAjustavel } from "./TituloAjustavel";
 
 export type FormatoDaPrevia = "computador" | "tablet" | "celular";
 
@@ -79,9 +80,12 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
 
   const conteudo = texto ? (
     <div className={`${estilos.conteudo} ${CLASSE_DA_POSICAO[texto.posicao]}`}>
+      {/* O mesmo .container do cabeçalho: a borda do texto coincide com a do
+          logo (e, à direita, com a do botão "Doe para a ABTE"). */}
+      <div className={`container ${estilos.linhaDoTexto}`}>
       <div className={estilos.caixaDeTexto}>
         {texto.titulo && (
-          <h2 className={estilos.tituloDoBanner}>
+          <TituloAjustavel className={estilos.tituloDoBanner}>
             {partesDoTitulo(texto.titulo, texto.trechoEmDestaque).map((parte, indice) =>
               parte.destaque ? (
                 <strong key={indice} className={estilos.destaque}>
@@ -91,7 +95,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
                 <span key={indice}>{parte.texto}</span>
               ),
             )}
-          </h2>
+          </TituloAjustavel>
         )}
         {texto.subtitulo && <p className={estilos.subtituloDoBanner}>{texto.subtitulo}</p>}
         {comBotao && (
@@ -113,6 +117,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   ) : null;

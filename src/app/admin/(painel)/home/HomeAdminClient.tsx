@@ -417,6 +417,9 @@ function GrupoDeOpcoes<T extends string>({ id, legenda, ajuda, nome, opcoes, rot
   );
 }
 
+// Palavra acima disto no título do banner: aviso de que ele será reduzido.
+const LIMITE_DA_PALAVRA_DO_TITULO = 18;
+
 type TipoDoLink = "nenhum" | "secao" | "pagina" | "externo";
 const ROTULOS_DOS_TIPOS_DE_LINK: Record<TipoDoLink, string> = { nenhum: "Sem link", secao: "Seção da home", pagina: "Página do site", externo: "Link externo" };
 const OUTRO_CAMINHO = "outro";
@@ -669,6 +672,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
         <h3 id={`${id}-texto`} className={estilos.tituloDaCaixa}>Texto</h3>
         <p className={estilos.ajuda}>Opcional. Sem título, subtítulo e botão, o banner mostra só a imagem, como antes.</p>
         <CampoDeTexto id={`${id}-titulo`} rotulo="Título" nome="titulo" valor={titulo} aoMudar={ao("titulo", setTitulo)} limite={LIMITE_DO_TITULO_DO_BANNER} erro={erros.titulo} />
+        {titulo.split(/\s+/).some((palavra) => palavra.length > LIMITE_DA_PALAVRA_DO_TITULO) && <CaixaDoPainel tipo="atencao">Palavra muito longa: o título será reduzido para caber.</CaixaDoPainel>}
         <CampoDeTexto
           id={`${id}-destaque`}
           rotulo="Trecho em destaque"
