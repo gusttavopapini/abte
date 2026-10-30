@@ -43,3 +43,10 @@ describe("Link do banner", () => {
     assert.equal(lido.erros.href, undefined, "o erro fica no campo certo");
   });
 });
+
+
+test("recusa https malformado e escapes incompletos", () => {
+  for (const link of ["https:/exemplo.org", "https:exemplo.org", "https:///exemplo.org", "/blog%zz", "/blog%", "https://exemplo.org/%zz"]) {
+    assert.equal(validarLinkDoBanner(link).ok, false, link);
+  }
+});

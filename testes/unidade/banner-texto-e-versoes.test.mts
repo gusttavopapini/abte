@@ -62,7 +62,7 @@ describe("Texto e botão do banner", () => {
   test("limites, trecho fora do título, botão sem link e posição inválida", () => {
     const lido = lerBannerDoFormulario({ ...base, href: "", titulo: "x".repeat(91), trechoEmDestaque: "outra coisa", subtitulo: "y".repeat(201), textoDoBotao: "Botão", posicaoDoTexto: "topo" });
     assert.ok(!lido.ok);
-    assert.deepEqual(Object.keys(lido.erros).sort(), ["posicaoDoTexto", "subtitulo", "textoDoBotao", "titulo", "trechoEmDestaque"]);
+    assert.deepEqual(Object.keys(lido.erros).sort(), ["href", "posicaoDoTexto", "subtitulo", "titulo", "trechoEmDestaque"]);
     const longo = lerBannerDoFormulario({ ...base, textoDoBotao: "z".repeat(31) });
     assert.ok(!longo.ok && longo.erros.textoDoBotao?.includes("30"));
   });

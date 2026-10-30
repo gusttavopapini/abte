@@ -208,9 +208,10 @@ export function validarLinkDoBanner(valor: unknown, dominiosDoSite: readonly str
   const href = typeof valor === "string" ? valor.trim() : "";
   if (!href) return { ok: true, href: "" };
   if (href.length > LIMITE_DO_LINK) return { ok: false, mensagem: `O link aceita no máximo ${LIMITE_DO_LINK} caracteres.` };
-  if (/[\s\\\u0000-\u001f\u007f]/.test(href)) return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
+  if (/%(?![A-Fa-f0-9]{2})/.test(href) || /[\s\\\u0000-\u001f\u007f]/.test(href)) return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
   if (href.startsWith("#") || href.startsWith("/#")) return ancoraDoLink(href) ? { ok: true, href } : { ok: false, mensagem: "Escolha uma das seções da home da lista." };
   if (href.startsWith("/")) return CAMINHO_SEGURO.test(href) ? { ok: true, href } : { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
+  if (!/^https:\/\/[^/]/i.test(href)) return { ok: false, mensagem: MENSAGEM_LINK_INVALIDO };
   let endereco: URL;
   try {
     endereco = new URL(href);
@@ -474,7 +475,7 @@ export function lerBannerDoFormulario(campos: {
   if (subtitulo.length > LIMITE_DO_SUBTITULO_DO_BANNER) erros.subtitulo = `O subtítulo aceita no máximo ${LIMITE_DO_SUBTITULO_DO_BANNER} caracteres.`;
   if (textoDoBotaoPareceEndereco(textoDoBotao)) erros.textoDoBotao = MENSAGEM_TEXTO_DO_BOTAO_COM_ENDERECO;
   else if (textoDoBotao.length > LIMITE_DO_TEXTO_DO_BOTAO) erros.textoDoBotao = `O texto do botão aceita no máximo ${LIMITE_DO_TEXTO_DO_BOTAO} caracteres.`;
-  else if (textoDoBotao && link.ok && !link.href) erros.textoDoBotao = "Preencha o link para o botão aparecer, ou deixe o texto do botão vazio.";
+  else if (textoDoBotao && link.ok && !link.href) erros.href = "Preencha o link para o botão aparecer, ou deixe o texto do botão vazio.";
   const posicaoDoTexto = campos.posicaoDoTexto === null || campos.posicaoDoTexto === undefined ? "esquerda" : campos.posicaoDoTexto;
   if (!ehPosicaoDoTexto(posicaoDoTexto)) erros.posicaoDoTexto = "Escolha a posição do texto: esquerda, centro ou direita.";
   if (Object.keys(erros).length > 0) return { ok: false, erros, mensagem: "Confira os campos marcados." };
