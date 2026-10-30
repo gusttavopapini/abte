@@ -6,6 +6,7 @@
 import type { ImagemNaTela } from "../midia/tela.ts";
 import { ehIdDeDocumentoValido } from "../validacao.ts";
 import { SLIDES_DO_BANNER, type SlideDoBanner } from "./banners.ts";
+import { ancoraDoLink } from "./ancoras.ts";
 import { ehCaminhoDosArtigos } from "./configuracoes.ts";
 
 export const COLECAO_DA_HOME = "configuracoes";
@@ -173,12 +174,14 @@ export function nomeDoBanner(posicao: number): string {
   return `${ORDINAIS[posicao - 1] ?? `${posicao}º`} banner`;
 }
 
-// Link de destino do banner: vazio (sem link), caminho interno começando com
-// "/" ou endereço https completo. Recusa javascript:, data:, http:, "//",
-// barra invertida, espaços e endereços inválidos.
+// Link de destino do banner: vazio (sem link), seção da home ("#âncora" da
+// lista em ancoras.ts, desde 30/10/2026), caminho interno começando com "/"
+// ou endereço https completo. Recusa javascript:, data:, http:, "//", barra
+// invertida, espaços, âncora fora da lista e endereços inválidos.
 export function validarLinkDoBanner(valor: unknown): { ok: true; href: string } | { ok: false; mensagem: string } {
   const href = typeof valor === "string" ? valor.trim() : "";
   if (!href) return { ok: true, href: "" };
+  if (href.startsWith("#")) return ancoraDoLink(href) ? { ok: true, href } : { ok: false, mensagem: "Escolha uma das seções da home da lista." };
   const invalido = { ok: false as const, mensagem: "Use um caminho do site começando com / (ex.: /loja) ou um endereço completo começando com https://." };
   if (href.length > LIMITE_DO_LINK) return { ok: false, mensagem: `O link aceita no máximo ${LIMITE_DO_LINK} caracteres.` };
   if (/[\s\\\u0000-\u001f\u007f]/.test(href)) return invalido;

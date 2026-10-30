@@ -1,11 +1,30 @@
+"use client";
+
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
+import { ancoraDoLink } from "@/lib/site/ancoras";
 import { partesDoTitulo } from "@/lib/site/home";
 import estilos from "./Hero.module.css";
 
 export type FormatoDaPrevia = "computador" | "tablet" | "celular";
+
+// Link para uma seção da home (30/10/2026): na própria home, rola até a
+// seção (suave, ou direto com movimento reduzido), põe o foco no título e
+// atualiza o endereço; em outra página, o "/#âncora" segue normalmente.
+function irParaAncora(evento: MouseEvent<HTMLAnchorElement>, href: string) {
+  const id = ancoraDoLink(href);
+  if (!id || window.location.pathname !== "/") return;
+  const secao = document.getElementById(id);
+  if (!secao) return;
+  evento.preventDefault();
+  const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  secao.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
+  secao.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
+  window.history.pushState(null, "", `#${id}`);
+}
 
 // Ponto de foco do banner: a classe com o object-position.
 const CLASSE_DO_FOCO = { esquerda: estilos.focoEsquerda, centro: estilos.focoCentro, direita: estilos.focoDireita };
@@ -80,6 +99,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
             {link ? (
               <Botao
                 href={link.href}
+                onClick={(evento) => irParaAncora(evento, link.href)}
                 target={externo ? "_blank" : undefined}
                 rel={externo ? "noopener noreferrer" : undefined}
                 aria-label={externo ? `${texto.textoDoBotao} (abre em nova aba)` : undefined}
@@ -110,7 +130,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
         {corpo}
       </a>
     ) : (
-      <Link href={link.href} className={`${estilos.linkDoSlide} ${estilos.camadas} ${classeDoFormato}`} aria-label={link.nome}>
+      <Link href={link.href} onClick={(evento) => irParaAncora(evento, link.href)} className={`${estilos.linkDoSlide} ${estilos.camadas} ${classeDoFormato}`} aria-label={link.nome}>
         {corpo}
       </Link>
     );

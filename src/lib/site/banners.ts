@@ -39,6 +39,9 @@ export const SLIDES_DO_BANNER: SlideDoBanner[] = [
 export function linkDoSlide(slide: Pick<SlideDoBanner, "href" | "rotulo" | "alt">): { href: string; nome: string } | null {
   const href = slide.href.trim();
   if (!href) return null;
+  // Seção da home (30/10/2026): "#âncora" vira "/#âncora", que funciona de
+  // qualquer página; na home, o Hero rola até a seção.
+  if (/^#[a-z0-9-]{1,60}$/.test(href)) return { href: `/${href}`, nome: slide.rotulo.trim() || slide.alt.trim() };
   const interno = href.startsWith("/") && !href.startsWith("//") && !href.includes("\\");
   let externo = false;
   if (!interno) {

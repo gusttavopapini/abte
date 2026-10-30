@@ -11,6 +11,7 @@ import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ConteudoDoSlide, type FormatoDaPrevia } from "@/components/Hero/ConteudoDoSlide";
 import { Modal } from "@/components/Modal/Modal";
 import type { SlideDoBanner } from "@/lib/site/banners";
+import { ANCORAS_DA_HOME } from "@/lib/site/ancoras";
 import { ehCaminhoDosArtigos } from "@/lib/site/configuracoes";
 import type { CampoDoDono } from "@/lib/midia/dono";
 import type { ImagemNaTela } from "@/lib/midia/tela";
@@ -401,6 +402,88 @@ function GrupoDeOpcoes<T extends string>({ id, legenda, ajuda, nome, opcoes, rot
   );
 }
 
+type TipoDoLink = "nenhum" | "secao" | "pagina" | "externo";
+const ROTULOS_DOS_TIPOS_DE_LINK: Record<TipoDoLink, string> = { nenhum: "Sem link", secao: "Seção da home", pagina: "Página do site", externo: "Link externo" };
+
+function tipoDoLink(href: string): TipoDoLink {
+  if (!href) return "nenhum";
+  if (href.startsWith("#")) return "secao";
+  if (href.startsWith("https://")) return "externo";
+  return "pagina";
+}
+
+// Link do banner com tipo (30/10/2026): seção da home (lista das âncoras de
+// src/lib/site/ancoras.ts), página do site (caminho com /) ou link externo
+// (https://). O formulário envia um só campo, "href"; o servidor confere.
+function CampoDoLink({ id, valor, aoMudar, erro }: { id: string; valor: string; aoMudar: (valor: string) => void; erro?: string }) {
+  const [tipo, setTipo] = useState<TipoDoLink>(() => tipoDoLink(valor));
+  const [porTipo, setPorTipo] = useState<Record<TipoDoLink, string>>(() => ({ nenhum: "", secao: tipoDoLink(valor) === "secao" ? valor : `#${ANCORAS_DA_HOME[0].id}`, pagina: tipoDoLink(valor) === "pagina" ? valor : "", externo: tipoDoLink(valor) === "externo" ? valor : "" }));
+
+  function trocarTipo(novo: TipoDoLink) {
+    setTipo(novo);
+    aoMudar(porTipo[novo]);
+  }
+
+  function mudarValor(novo: string) {
+    setPorTipo((atual) => ({ ...atual, [tipo]: novo }));
+    aoMudar(novo);
+  }
+
+  const descricao = [`${id}-ajuda`, erro ? `${id}-erro` : ""].filter(Boolean).join(" ");
+  const ajudas: Record<TipoDoLink, string> = {
+    nenhum: "O banner não é link.",
+    secao: "O banner leva a uma seção desta página: a tela rola até ela.",
+    pagina: "Um caminho do site começando com / (ex.: /loja), aberto na mesma aba.",
+    externo: "Um endereço completo começando com https://, aberto em nova aba.",
+  };
+  return (
+    <div className={estilos.grupo}>
+      <input type="hidden" name="href" value={valor} />
+      <label htmlFor={`${id}-tipo`} className={estilos.rotulo}>Link de destino</label>
+      <select id={`${id}-tipo`} value={tipo} onChange={(evento) => trocarTipo(evento.target.value as TipoDoLink)} className={estilos.entrada} aria-describedby={`${id}-ajuda`}>
+        {(Object.keys(ROTULOS_DOS_TIPOS_DE_LINK) as TipoDoLink[]).map((opcao) => (
+          <option key={opcao} value={opcao}>
+            {ROTULOS_DOS_TIPOS_DE_LINK[opcao]}
+          </option>
+        ))}
+      </select>
+      <p id={`${id}-ajuda`} className={estilos.ajuda}>{ajudas[tipo]}</p>
+      {tipo === "secao" && (
+        <>
+          <label htmlFor={id} className={estilos.rotulo}>Seção da home</label>
+          <select id={id} value={porTipo.secao} onChange={(evento) => mudarValor(evento.target.value)} className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`} aria-invalid={erro ? true : undefined} aria-describedby={descricao}>
+            {ANCORAS_DA_HOME.map((ancora) => (
+              <option key={ancora.id} value={`#${ancora.id}`}>
+                {ancora.nome}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+      {(tipo === "pagina" || tipo === "externo") && (
+        <>
+          <label htmlFor={id} className={estilos.rotulo}>{tipo === "pagina" ? "Caminho da página" : "Endereço do link externo"}</label>
+          <input
+            id={id}
+            type="text"
+            inputMode="url"
+            value={porTipo[tipo]}
+            onChange={(evento) => mudarValor(evento.target.value)}
+            placeholder={tipo === "pagina" ? "/loja" : "https://"}
+            maxLength={LIMITE_DO_LINK}
+            autoComplete="off"
+            spellCheck={false}
+            aria-invalid={erro ? true : undefined}
+            aria-describedby={descricao}
+            className={`${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`}
+          />
+        </>
+      )}
+      {erro && <p id={`${id}-erro`} className={estilos.erro}>{erro}</p>}
+    </div>
+  );
+}
+
 function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancelar }: { banner: BannerNaTela | null; total: number; artigosAtivo: boolean; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
   const id = useId();
   const [resposta, salvar, salvando] = useActionState(salvarBannerDaHome, null);
@@ -509,27 +592,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           erro={erros.textoDoBotao}
           ajuda="Com texto, o botão é o link do banner (e o banner inteiro continua clicável). Sem texto, o banner inteiro é o link."
         />
-        <div className={estilos.grupo}>
-          <label htmlFor={`${id}-href`} className={estilos.rotulo}>Link de destino (opcional)</label>
-          <p id={`${id}-href-ajuda`} className={estilos.ajuda}>
-            Um caminho do site começando com / (ex.: /loja) abre na mesma aba; um endereço completo começando com https:// abre em nova aba. Vazio: o banner não é link.
-          </p>
-          <input
-            id={`${id}-href`}
-            name="href"
-            type="text"
-            inputMode="url"
-            value={href}
-            onChange={(evento) => setHref(evento.target.value)}
-            maxLength={LIMITE_DO_LINK}
-            autoComplete="off"
-            spellCheck={false}
-            aria-invalid={erros.href ? true : undefined}
-            aria-describedby={[`${id}-href-ajuda`, erros.href ? `${id}-href-erro` : ""].filter(Boolean).join(" ")}
-            className={`${estilos.entrada} ${erros.href ? estilos.entradaComErro : ""}`}
-          />
-          {erros.href && <p id={`${id}-href-erro`} className={estilos.erro}>{erros.href}</p>}
-        </div>
+        <CampoDoLink id={`${id}-href`} valor={href} aoMudar={setHref} erro={erros.href} />
         {!artigosAtivo && ehCaminhoDosArtigos(href.trim()) && (
           <CaixaDoPainel tipo="atencao">Os Artigos estão fora do site (em Configurações). Enquanto isso, este banner aparece sem link.</CaixaDoPainel>
         )}

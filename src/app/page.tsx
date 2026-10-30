@@ -99,9 +99,9 @@ export default async function PaginaInicial() {
 
       <div>
         {/* 2. Afirmação + cards de público */}
-        <section className={`container ${estilos.secao}`}>
+        <section id="o-que-fazemos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`}>
           <div {...revelar(estilos.gradeLadoALado)}>
-            <h2 className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
+            <h2 tabIndex={-1} className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
             <p className={`tipo-texto-xl ${estilos.textoLeve}`}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
@@ -127,10 +127,10 @@ export default async function PaginaInicial() {
         </section>
 
         {/* 3. Estatísticas: números à esquerda e imagem à direita */}
-        <section className={estilos.secaoAlt}>
+        <section id="mutiroes" className={`${estilos.secaoAlt} ${estilos.secaoComAncora}`}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
             <div {...revelar(estilos.colunaCentralizada)}>
-              <h2 className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
+              <h2 tabIndex={-1} className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
                 itens={[
                   { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
@@ -163,9 +163,9 @@ export default async function PaginaInicial() {
         {/* 3b. Produtos em destaque (28/10/2026): só com produto escolhido;
             sem nenhum, a section não aparece. Sem compra nem carrinho aqui. */}
         {produtosEmDestaque.length > 0 && (
-          <section className={`container ${estilos.secao}`} aria-labelledby="titulo-produtos-em-destaque">
+          <section id="produtos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`} aria-labelledby="titulo-produtos-em-destaque">
             <div {...revelar(estilos.cabecalhoDosDestaques)}>
-              <h2 id="titulo-produtos-em-destaque" className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Produtos em destaque</h2>
+              <h2 id="titulo-produtos-em-destaque" tabIndex={-1} className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Produtos em destaque</h2>
               <p className={`tipo-texto-lg ${estilos.textoLeve}`}>Cartilhas e materiais educativos da ABTE sobre escoliose.</p>
             </div>
             <ul role="list" {...revelar("grade-de-cards")}>
@@ -184,10 +184,10 @@ export default async function PaginaInicial() {
         {/* 4. Quem somos (29/10/2026): missão, visão e valores empilhados numa
             coluna e, ao lado, o vídeo vertical, na mesma altura dos blocos.
             Até 1023px, os blocos primeiro e o vídeo abaixo, centralizado. */}
-        <section className={`container ${estilos.secao}`} aria-labelledby="titulo-quem-somos">
+        <section id="quem-somos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`} aria-labelledby="titulo-quem-somos">
           <div className={estilos.blocoCentralizado}>
             <div {...revelar()}>
-              <h2 id="titulo-quem-somos" className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
+              <h2 id="titulo-quem-somos" tabIndex={-1} className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
             </div>
           </div>
 
@@ -214,7 +214,7 @@ export default async function PaginaInicial() {
         {/* 5. Chamada final: caixa flutuante sobre a imagem. Desde 29/10/2026 a
             imagem fica no container, com as bordas alinhadas às do logo e do
             rodapé (antes ia de uma borda à outra da tela). */}
-        <section className={`container ${estilos.secao}`}>
+        <section id="faca-parte" className={`container ${estilos.secao} ${estilos.secaoComAncora}`}>
           <div className={estilos.imagemDaChamada}>
             {imagensDaHome.chamada ? (
               <ImagemDaMidia
@@ -231,7 +231,7 @@ export default async function PaginaInicial() {
             )}
             <div className={estilos.caixaFlutuante}>
               <div {...revelar(estilos.caixaFlutuanteConteudo, 2)}>
-                <h2 className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Faça parte dessa rede</h2>
+                <h2 tabIndex={-1} className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Faça parte dessa rede</h2>
                 <p className={`tipo-texto-lg ${estilos.textoLeve} ${estilos.textoDaChamada}`}>
                   Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
                 </p>
