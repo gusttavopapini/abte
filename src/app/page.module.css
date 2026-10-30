@@ -235,11 +235,18 @@
 
 /* Produtos em destaque (28/10/2026): título e texto, grade de cards da loja
    (classe global grade-de-cards) e o botão para a /loja. */
+/* Título, subtítulo e botão centralizados (30/10/2026, pedido do
+   responsável); o subtítulo com a largura dos cabeçalhos centralizados das
+   páginas internas (CabecalhoDePagina), sem esticar em telas largas. */
 .cabecalhoDosDestaques {
+  max-width: calc(var(--content-max) / 2);
+  margin-inline: auto;
   margin-bottom: var(--space-32);
+  text-align: center;
 }
 
 .acaoDosDestaques {
   display: flex;
+  justify-content: center;
   margin-top: var(--space-32);
 }
