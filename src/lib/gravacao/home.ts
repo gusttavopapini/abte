@@ -69,6 +69,7 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
       alt: dados.midiaId ? dados.alt : "",
       href: dados.href,
       ativo: dados.ativo,
+      pontoDeFoco: dados.pontoDeFoco,
     };
     const outros = configuracao.banners.filter((banner) => banner.chave !== dados.chave);
     const banners = posicionarBanner([...outros, novo], dados.chave, dados.posicao);

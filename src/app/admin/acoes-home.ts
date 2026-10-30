@@ -11,7 +11,7 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { excluirBanner, salvarBanner, salvarImagemDoEspaco } from "@/lib/gravacao/home";
 import { ehChaveDeBanner, lerBannerDoFormulario, lerImagemDoEspacoDoFormulario } from "@/lib/site/home";
 
-export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<"midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo", string>> } | null;
+export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<"midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo" | "pontoDeFoco", string>> } | null;
 
 const ERRO_GENERICO = "Não foi possível salvar agora. Tente de novo em instantes.";
 
@@ -31,6 +31,7 @@ export async function salvarBannerDaHome(_anterior: RespostaDaHome, dados: FormD
     href: dados.get("href"),
     ativo: dados.get("ativo"),
     posicao: dados.get("posicao"),
+    pontoDeFoco: dados.get("pontoDeFoco"),
   });
   if (!lido.ok) return { ok: false, mensagem: lido.mensagem, erros: lido.erros };
   try {

@@ -10,6 +10,9 @@ export type SlideDoBanner = {
   // Imagem da biblioteca escolhida no painel (29/10/2026, lib/site/home.ts);
   // sem ela, vale o endereço em "imagem" (slides padrão).
   midia?: ImagemNaTela & { celular?: ImagemNaTela | null };
+  // Parte da imagem que fica à vista quando a tela corta as laterais
+  // (banner do painel, 30/10/2026); ausente vale o centro.
+  pontoDeFoco?: "esquerda" | "centro" | "direita";
   alt: string;
   href: string;
   rotulo: string;

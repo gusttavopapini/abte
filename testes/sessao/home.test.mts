@@ -86,11 +86,11 @@ describe("Home: sessão e papel (sessões reais no emulador)", () => {
 
 describe("Home: gravação e registro", () => {
   test("cria, reordena, altera e exclui banners, com uma linha no registro por ação", async () => {
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-um000001", midiaId: "midiaUm", midiaMobileId: null, alt: "Um", href: "/loja", ativo: true, posicao: 1 }, EDITOR), { ok: true, nome: "Primeiro banner" });
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-dois00002", midiaId: "midiaDois", midiaMobileId: null, alt: "Dois", href: "https://www.exemplo.org", ativo: true, posicao: 1 }, EDITOR), { ok: true, nome: "Primeiro banner" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-um000001", midiaId: "midiaUm", midiaMobileId: null, alt: "Um", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro" }, EDITOR), { ok: true, nome: "Primeiro banner" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-dois00002", midiaId: "midiaDois", midiaMobileId: null, alt: "Dois", href: "https://www.exemplo.org", ativo: true, posicao: 1, pontoDeFoco: "centro" }, EDITOR), { ok: true, nome: "Primeiro banner" });
     assert.deepEqual((await configuracao()).banners.map((banner) => [banner.chave, banner.ordem]), [["banner-dois00002", 1], ["banner-um000001", 2]]);
 
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-um000001", midiaId: "midiaUm", midiaMobileId: null, alt: "Um", href: "", ativo: false, posicao: 2 }, EDITOR), { ok: true, nome: "Segundo banner" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-um000001", midiaId: "midiaUm", midiaMobileId: null, alt: "Um", href: "", ativo: false, posicao: 2, pontoDeFoco: "centro" }, EDITOR), { ok: true, nome: "Segundo banner" });
     assert.deepEqual(await excluirBanner(db, "banner-dois00002", EDITOR), { ok: true, nome: "Primeiro banner" });
     assert.deepEqual((await configuracao()).banners.map((banner) => [banner.chave, banner.ordem, banner.ativo]), [["banner-um000001", 1, false]]);
 
@@ -113,11 +113,11 @@ describe("Home: gravação e registro", () => {
 
   test("imagem fora da biblioteca e limite de banners recusam sem gravar", async () => {
     const antes = (await registros()).length;
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-lixo0001", midiaId: "midiaNaLixeira", midiaMobileId: null, alt: "x", href: "", ativo: true, posicao: 1 }, EDITOR), { ok: false, mensagem: MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, campo: "midiaId" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-lixo0001", midiaId: "midiaNaLixeira", midiaMobileId: null, alt: "x", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro" }, EDITOR), { ok: false, mensagem: MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, campo: "midiaId" });
     for (let indice = (await configuracao()).banners.length; indice < LIMITE_DE_BANNERS; indice++) {
-      await salvarBanner(db, { chave: `banner-limite${indice}x`, midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: indice + 1 }, EDITOR);
+      await salvarBanner(db, { chave: `banner-limite${indice}x`, midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: indice + 1, pontoDeFoco: "centro" }, EDITOR);
     }
-    const recusado = await salvarBanner(db, { chave: "banner-nono0009", midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: 1 }, EDITOR);
+    const recusado = await salvarBanner(db, { chave: "banner-nono0009", midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: 1, pontoDeFoco: "centro" }, EDITOR);
     assert.deepEqual(recusado, { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners.` });
     assert.equal((await configuracao()).banners.length, LIMITE_DE_BANNERS);
     assert.equal((await registros()).length, antes + LIMITE_DE_BANNERS - 1);
@@ -142,8 +142,8 @@ describe("Home: versão para celular (30/10/2026)", () => {
     const inicio = (await registros()).length;
     assert.equal(inicio - antes > 0, true);
 
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-cel00001", midiaId: "midiaUm", midiaMobileId: "celularUm", alt: "Com celular", href: "", ativo: true, posicao: 1 }, EDITOR), { ok: true, nome: "Primeiro banner" });
-    assert.deepEqual(await salvarBanner(db, { chave: "banner-cel00001", midiaId: "midiaUm", midiaMobileId: "celularDois", alt: "Com celular", href: "", ativo: true, posicao: 1 }, ADMINISTRADOR), { ok: true, nome: "Primeiro banner" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-cel00001", midiaId: "midiaUm", midiaMobileId: "celularUm", alt: "Com celular", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro" }, EDITOR), { ok: true, nome: "Primeiro banner" });
+    assert.deepEqual(await salvarBanner(db, { chave: "banner-cel00001", midiaId: "midiaUm", midiaMobileId: "celularDois", alt: "Com celular", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro" }, ADMINISTRADOR), { ok: true, nome: "Primeiro banner" });
     assert.deepEqual(await salvarImagemDoEspaco(db, "secao-faca-parte", { midiaId: "midiaDois", midiaMobileId: "celularUm", alt: "Chamada" }, ADMINISTRADOR), { ok: true, nome: "Faça parte dessa rede" });
     assert.deepEqual(await salvarImagemDoEspaco(db, "secao-faca-parte", { midiaId: "midiaDois", midiaMobileId: null, alt: "Chamada" }, EDITOR), { ok: true, nome: "Faça parte dessa rede" });
 
@@ -169,7 +169,7 @@ describe("Home: versão para celular (30/10/2026)", () => {
     const configuracaoAntes = await configuracao();
     for (const midiaMobileId of ["naoExiste", "celularNaLixeira", "celularSemVariantes"]) {
       assert.deepEqual(
-        await salvarBanner(db, { chave: "banner-cel00002", midiaId: "midiaUm", midiaMobileId, alt: "x", href: "", ativo: true, posicao: 1 }, EDITOR),
+        await salvarBanner(db, { chave: "banner-cel00002", midiaId: "midiaUm", midiaMobileId, alt: "x", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro" }, EDITOR),
         { ok: false, mensagem: MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, campo: "midiaMobileId" },
       );
       assert.deepEqual(
@@ -182,10 +182,38 @@ describe("Home: versão para celular (30/10/2026)", () => {
   });
 
   test("banner sem versão celular é gravado sem o campo, como antes", async () => {
-    await salvarBanner(db, { chave: "banner-cel00003", midiaId: "midiaDois", midiaMobileId: null, alt: "Sem celular", href: "", ativo: true, posicao: 2 }, EDITOR);
+    await salvarBanner(db, { chave: "banner-cel00003", midiaId: "midiaDois", midiaMobileId: null, alt: "Sem celular", href: "", ativo: true, posicao: 2, pontoDeFoco: "centro" }, EDITOR);
     const bruto = (await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[];
     const semCelular = bruto.find((item) => item.chave === "banner-cel00003");
     assert.ok(semCelular && !("midiaMobileId" in semCelular));
     assert.equal(bruto.find((item) => item.chave === "banner-cel00001")?.midiaMobileId, "celularDois");
+  });
+});
+
+describe("Home: ponto de foco do banner (30/10/2026)", () => {
+  test("sem sessão e sem papel recusados; editor e administrador gravam o ponto de foco, com registro", async () => {
+    assert.deepEqual(decidirAcessoAoPainel(await verificarCookieDeSessao(auth, undefined), "home.editar"), { permitido: false, motivo: "sem-sessao" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-foco-sem-papel@exemplo.invalid"), "home.editar"), { permitido: false, motivo: "sem-papel" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-foco-editor@exemplo.invalid", "editor"), "home.editar"), { permitido: true, papel: "editor" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-foco-admin@exemplo.invalid", "administrador"), "home.editar"), { permitido: true, papel: "administrador" });
+
+    const inicio = (await registros()).length;
+    const base = { chave: "banner-foco0001", midiaId: "midiaUm", midiaMobileId: null, alt: "Foco", href: "", ativo: true, posicao: 1 };
+    assert.equal((await salvarBanner(db, { ...base, pontoDeFoco: "esquerda" }, EDITOR)).ok, true);
+    assert.equal((await configuracao()).banners.find((item) => item.chave === "banner-foco0001")?.pontoDeFoco, "esquerda");
+    assert.equal((await salvarBanner(db, { ...base, pontoDeFoco: "direita" }, ADMINISTRADOR)).ok, true);
+    const bruto = (await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[];
+    assert.equal(bruto.find((item) => item.chave === "banner-foco0001")?.pontoDeFoco, "direita");
+
+    const linhas = (await registros()).slice(inicio);
+    assert.deepEqual(linhas.map((linha) => [linha.usuarioId, linha.campos]), [[EDITOR.uid, ["banners"]], [ADMINISTRADOR.uid, ["banners"]]]);
+    assert.match(linhas[0].resumo, /criado\.$/);
+    assert.match(linhas[1].resumo, /alterado: ponto de foco\.$/);
+  });
+
+  test("banner gravado antes do campo continua valendo, com o centro", async () => {
+    const atual = (await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[];
+    await db.collection("configuracoes").doc("home").set({ banners: [...atual, { chave: "banner-antigo001", ordem: 99, midiaId: "midiaDois", alt: "Antigo", href: "", ativo: true }] }, { merge: true });
+    assert.equal((await configuracao()).banners.find((item) => item.chave === "banner-antigo001")?.pontoDeFoco, "centro");
   });
 });

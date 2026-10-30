@@ -48,10 +48,39 @@ export const ESPACOS_DA_HOME = [
 
 export type IdentificadorDoEspaco = (typeof ESPACOS_DA_HOME)[number]["identificador"];
 
+// Banner em tela cheia (30/10/2026): largura e altura da janela.
 export const PROPORCOES_DO_BANNER: ProporcoesDoEspaco = {
-  computador: { texto: "16:9, deitada (largura toda da tela e 90% da altura da janela; a imagem é recortada nas pontas)", tamanho: "1920 x 1080 px", razao: 16 / 9 },
-  celular: { texto: "4:5, em pé (largura toda da tela e no mínimo 500 px de altura; a imagem é recortada nas pontas)", tamanho: "1080 x 1350 px", razao: 4 / 5 },
+  computador: { texto: "16:9, deitada (a tela inteira do computador; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1920 x 1080 px", razao: 16 / 9 },
+  celular: { texto: "9:16, em pé (a tela inteira do celular; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1080 x 1920 px", razao: 9 / 16 },
 };
+
+export const DICA_DO_BANNER = "Mantenha textos e rostos na parte central da imagem; as bordas podem ser cortadas conforme o tamanho da tela.";
+
+// Ponto de foco do banner (30/10/2026): a parte da imagem que fica à vista
+// quando a tela corta as laterais. Ausente vale "centro" (documentos
+// antigos continuam valendo). Só nos banners: as imagens das seções não
+// ocupam a altura da tela.
+export const PONTOS_DE_FOCO = ["esquerda", "centro", "direita"] as const;
+export type PontoDeFoco = (typeof PONTOS_DE_FOCO)[number];
+export const ROTULOS_DOS_PONTOS_DE_FOCO: Record<PontoDeFoco, string> = { esquerda: "Esquerda", centro: "Centro", direita: "Direita" };
+export const MENSAGEM_PONTO_DE_FOCO_INVALIDO = "Escolha o ponto de foco: esquerda, centro ou direita.";
+
+export function ehPontoDeFoco(valor: unknown): valor is PontoDeFoco {
+  return typeof valor === "string" && (PONTOS_DE_FOCO as readonly string[]).includes(valor);
+}
+
+// object-position de cada ponto de foco (versões computador e celular).
+export const POSICAO_DO_PONTO_DE_FOCO: Record<PontoDeFoco, string> = { esquerda: "0% 50%", centro: "50% 50%", direita: "100% 50%" };
+
+// "Bem mais larga que 16:9": mais que 2:1 (ex.: 2000 x 900). Sem medidas,
+// não avisa.
+export const RAZAO_LARGA_DEMAIS = 2;
+export const AVISO_IMAGEM_LARGA = "Esta imagem é mais larga que o formato recomendado e pode ser cortada nas laterais. Ajuste o ponto de foco ou envie uma versão em 16:9.";
+
+export function bannerMuitoLargo(medidas: { largura: number; altura: number } | null | undefined): boolean {
+  if (!medidas || !(medidas.largura > 0) || !(medidas.altura > 0)) return false;
+  return medidas.largura / medidas.altura > RAZAO_LARGA_DEMAIS;
+}
 
 export const AVISO_SEM_VERSAO_CELULAR = "Sem versão para celular: no celular será usada a imagem de computador, que pode ser cortada.";
 
@@ -66,6 +95,7 @@ export type BannerDaHome = {
   alt: string;
   href: string;
   ativo: boolean;
+  pontoDeFoco: PontoDeFoco;
 };
 
 // Um alt só por espaço, usado nas duas versões.
@@ -162,6 +192,8 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
         alt: texto(banner.alt, LIMITE_DO_ALT_DA_HOME),
         href: link.ok ? link.href : "",
         ativo: banner.ativo === true,
+        // Ausente ou estranho: o centro, como antes.
+        pontoDeFoco: ehPontoDeFoco(banner.pontoDeFoco) ? banner.pontoDeFoco : "centro",
       };
     })
     .filter((banner, indice, lista) => lista.findIndex((outro) => outro.chave === banner.chave) === indice)
@@ -187,7 +219,7 @@ export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: M
       const alt = banner.alt || midia.alt;
       // Versão celular na lixeira ou excluída: fica só a de computador.
       const celular = banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null;
-      return { imagem: "", midia: { ...midia, alt, celular }, alt, href: banner.href, rotulo: "" };
+      return { imagem: "", midia: { ...midia, alt, celular }, alt, href: banner.href, rotulo: "", pontoDeFoco: banner.pontoDeFoco };
     });
   return slides.length > 0 ? slides : SLIDES_DO_BANNER;
 }
@@ -210,8 +242,8 @@ export function midiasDaHome(configuracao: ConfiguracaoDaHome | null): string[] 
   ].filter((id): id is string => typeof id === "string");
 }
 
-export type CampoDoBanner = "midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo";
-export type DadosDoBanner = { chave: string; midiaId: string | null; midiaMobileId: string | null; alt: string; href: string; ativo: boolean; posicao: number };
+export type CampoDoBanner = "midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo" | "pontoDeFoco";
+export type DadosDoBanner = { chave: string; midiaId: string | null; midiaMobileId: string | null; alt: string; href: string; ativo: boolean; posicao: number; pontoDeFoco: PontoDeFoco };
 
 const MENSAGEM_IMAGEM_INVALIDA = "Imagem inválida. Envie ou escolha a imagem de novo.";
 export const MENSAGEM_CELULAR_SEM_COMPUTADOR = "Envie também a versão para computador: a versão para celular é opcional e só vale junto com ela.";
@@ -259,6 +291,7 @@ export function lerBannerDoFormulario(campos: {
   href: unknown;
   ativo: unknown;
   posicao: unknown;
+  pontoDeFoco?: unknown;
 }): { ok: true; dados: DadosDoBanner } | { ok: false; erros: Partial<Record<CampoDoBanner, string>>; mensagem: string } {
   if (!ehChaveDeBanner(campos.chave)) return { ok: false, erros: {}, mensagem: "Banner não encontrado. Recarregue a página." };
   const { midiaId, midiaMobileId, erros: errosDasVersoes } = lerVersoes(campos);
@@ -272,8 +305,11 @@ export function lerBannerDoFormulario(campos: {
   if (ativo && !midiaId && !erros.midiaId) erros.midiaId = "Um banner ativo precisa de imagem. Envie uma imagem ou deixe o banner inativo.";
   const posicao = Number(campos.posicao);
   if (!Number.isInteger(posicao) || posicao < 1 || posicao > LIMITE_DE_BANNERS) erros.posicao = `Escolha uma posição de 1 a ${LIMITE_DE_BANNERS}.`;
+  // Sem o campo (formulário anterior a ele): o centro. Valor estranho: recusa.
+  const pontoDeFoco = campos.pontoDeFoco === null || campos.pontoDeFoco === undefined ? "centro" : campos.pontoDeFoco;
+  if (!ehPontoDeFoco(pontoDeFoco)) erros.pontoDeFoco = MENSAGEM_PONTO_DE_FOCO_INVALIDO;
   if (Object.keys(erros).length > 0) return { ok: false, erros, mensagem: "Confira os campos marcados." };
-  return { ok: true, dados: { chave: campos.chave, midiaId, midiaMobileId, alt, href: link.ok ? link.href : "", ativo, posicao } };
+  return { ok: true, dados: { chave: campos.chave, midiaId, midiaMobileId, alt, href: link.ok ? link.href : "", ativo, posicao, pontoDeFoco: pontoDeFoco as PontoDeFoco } };
 }
 
 // Imagem de um espaço fixo (modal de /admin/home).
@@ -291,7 +327,7 @@ export function lerImagemDoEspacoDoFormulario(campos: { identificador: unknown; 
 
 // Nomes (sem valores) do que mudou num banner, para o registro de alterações.
 export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: BannerDaHome): string[] {
-  if (!antes) return ["imagem", ...(depois.midiaMobileId ? ["imagem para celular"] : []), "texto alternativo", "link", "ativo", "posição"];
+  if (!antes) return ["imagem", ...(depois.midiaMobileId ? ["imagem para celular"] : []), "texto alternativo", "link", "ativo", "posição", ...(depois.pontoDeFoco !== "centro" ? ["ponto de foco"] : [])];
   const alterados: string[] = [];
   if (antes.midiaId !== depois.midiaId) alterados.push("imagem");
   if (antes.midiaMobileId !== depois.midiaMobileId) alterados.push("imagem para celular");
@@ -299,6 +335,7 @@ export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: Bann
   if (antes.href !== depois.href) alterados.push("link");
   if (antes.ativo !== depois.ativo) alterados.push("ativo");
   if (antes.ordem !== depois.ordem) alterados.push("posição");
+  if (antes.pontoDeFoco !== depois.pontoDeFoco) alterados.push("ponto de foco");
   return alterados;
 }
 

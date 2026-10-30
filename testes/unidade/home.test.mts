@@ -6,6 +6,9 @@ import { decidirAcessoAoPainel, papelPodeExecutar } from "../../src/lib/auth/pap
 import { SLIDES_DO_BANNER } from "../../src/lib/site/banners.ts";
 import {
   MENSAGEM_CELULAR_SEM_COMPUTADOR,
+  MENSAGEM_PONTO_DE_FOCO_INVALIDO,
+  POSICAO_DO_PONTO_DE_FOCO,
+  bannerMuitoLargo,
   camposAlteradosDoBanner,
   camposAlteradosDoEspaco,
   imagemDoEspaco,
@@ -23,7 +26,7 @@ import {
 import type { ImagemNaTela } from "../../src/lib/midia/tela.ts";
 
 const IMAGEM: ImagemNaTela = { alt: "Alt da biblioteca", largura: 1920, altura: 800, variantes: [{ largura: 1600, url: "https://exemplo.invalid/a.webp" }] };
-const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, ...extra });
+const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", ...extra });
 
 describe("Link do banner", () => {
   test("vazio, caminho interno e https valem", () => {
@@ -115,7 +118,7 @@ describe("Formulários da home", () => {
   const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "/loja", ativo: "sim", posicao: "1" };
 
   test("banner válido", () => {
-    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1 } });
+    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro" } });
   });
 
   test("erros por campo, em português", () => {
@@ -214,6 +217,55 @@ describe("Versão para celular (30/10/2026)", () => {
     assert.deepEqual(camposAlteradosDoBanner(antes, { ...antes, midiaMobileId: "c1" }), ["imagem para celular"]);
     assert.deepEqual(camposAlteradosDoEspaco({ midiaId: "m1", midiaMobileId: "c1", alt: "x" }, { midiaId: "m1", midiaMobileId: null, alt: "x" }), ["imagem para celular"]);
     assert.deepEqual(camposAlteradosDoEspaco(null, { midiaId: "m1", midiaMobileId: null, alt: "x" }), ["imagem", "texto alternativo"]);
+  });
+});
+
+describe("Ponto de foco do banner (30/10/2026)", () => {
+  const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "", ativo: "sim", posicao: "1" };
+
+  test("formulário: esquerda, centro e direita valem; ausente vale o centro", () => {
+    for (const ponto of ["esquerda", "centro", "direita"]) {
+      const lido = lerBannerDoFormulario({ ...base, pontoDeFoco: ponto });
+      assert.ok(lido.ok && lido.dados.pontoDeFoco === ponto, ponto);
+    }
+    const ausente = lerBannerDoFormulario(base);
+    assert.ok(ausente.ok && ausente.dados.pontoDeFoco === "centro");
+  });
+
+  test("formulário: valor inválido recusado com mensagem em português", () => {
+    for (const ponto of ["cima", "", "Esquerda", "50% 50%"]) {
+      const lido = lerBannerDoFormulario({ ...base, pontoDeFoco: ponto });
+      assert.ok(!lido.ok, ponto);
+      assert.equal(lido.erros.pontoDeFoco, MENSAGEM_PONTO_DE_FOCO_INVALIDO);
+    }
+  });
+
+  test("leitura: documento antigo ou valor estranho valem o centro; o site recebe o ponto de foco", () => {
+    const lida = lerConfiguracaoDaHome({
+      banners: [
+        { chave: "banner-aaaa", ordem: 1, midiaId: "m1", alt: "A", href: "", ativo: true },
+        { chave: "banner-bbbb", ordem: 2, midiaId: "m2", alt: "B", href: "", ativo: true, pontoDeFoco: "direita" },
+        { chave: "banner-cccc", ordem: 3, midiaId: "m3", alt: "C", href: "", ativo: true, pontoDeFoco: "topo" },
+      ],
+    });
+    assert.deepEqual(lida.banners.map((item) => item.pontoDeFoco), ["centro", "direita", "centro"]);
+    const slides = slidesDaHome(lida, new Map([["m1", IMAGEM], ["m2", IMAGEM], ["m3", IMAGEM]]));
+    assert.deepEqual(slides.map((slide) => slide.pontoDeFoco), ["centro", "direita", "centro"]);
+    assert.deepEqual(POSICAO_DO_PONTO_DE_FOCO, { esquerda: "0% 50%", centro: "50% 50%", direita: "100% 50%" });
+  });
+
+  test("alterar o ponto de foco entra no registro, sem valores", () => {
+    const antes = banner("banner-aaaa", 1);
+    assert.deepEqual(camposAlteradosDoBanner(antes, { ...antes, pontoDeFoco: "esquerda" }), ["ponto de foco"]);
+  });
+
+  test("aviso de imagem larga: só bem mais larga que 16:9 e com medidas", () => {
+    assert.equal(bannerMuitoLargo({ largura: 2000, altura: 900 }), true);
+    assert.equal(bannerMuitoLargo({ largura: 1920, altura: 1080 }), false);
+    assert.equal(bannerMuitoLargo({ largura: 1920, altura: 800 }), true);
+    assert.equal(bannerMuitoLargo({ largura: 2000, altura: 1000 }), false, "2:1 ainda não avisa");
+    assert.equal(bannerMuitoLargo(null), false);
+    assert.equal(bannerMuitoLargo({ largura: 0, altura: 0 }), false);
   });
 });
 
