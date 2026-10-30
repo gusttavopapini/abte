@@ -223,6 +223,8 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Validação:** 609 testes (373, 141, 95), lint (4 avisos), lint:css (5) e build. Navegador: 36 de 36 no painel, 8 de 8 nos links do banner, 6 larguras na home. Capturas em `tmp-migracao/capturas/home-duas-versoes/`.
 - **Promovido** em 30/10 (`0b362f7`, deployment `7442085357`, produção conferida; documentos sem versão celular funcionando).
 
+- **"Produtos em destaque" centralizado (30/10):** título, subtítulo e botão da section da home centralizados, só no CSS; medido a 0px do centro da grade nas 5 larguras.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
