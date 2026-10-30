@@ -1,0 +1,14 @@
+/* Dois botões lado a lado e centralizados; empilhados até 767px (30/10/2026). */
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .botoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
