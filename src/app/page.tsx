@@ -11,9 +11,11 @@ import { listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { escolherProdutosEmDestaque, imagemPrincipal } from "@/lib/produtos";
-import { SLIDES_DO_BANNER } from "@/lib/site/banners";
 import { VIDEO_QUEM_SOMOS } from "@/lib/site/video";
 import { VideoVertical } from "@/components/VideoVertical/VideoVertical";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
+import { lerImagensDaHome } from "@/lib/dados/home";
+import { imagemDoEspaco, midiasDaHome, slidesDaHome } from "@/lib/site/home";
 import type { ProdutoDoCard } from "@/components/CardProduto/CardProduto";
 import estilos from "./page.module.css";
 
@@ -65,8 +67,26 @@ async function lerProdutosEmDestaque(): Promise<ProdutoDoCard[]> {
   }
 }
 
+// Imagens editadas em /admin/home (29/10/2026). Sem o documento, com um
+// espaço vazio ou se a leitura falhar, vale o padrão de antes: os slides de
+// SLIDES_DO_BANNER e os placeholders das sections.
+async function lerImagensEditadas() {
+  const configuracao = await lerImagensDaHome();
+  try {
+    const imagens = await imagensAtivasPorId(midiasDaHome(configuracao));
+    return {
+      slides: slidesDaHome(configuracao, imagens),
+      mutiroes: imagemDoEspaco(configuracao, "secao-mutiroes", imagens),
+      chamada: imagemDoEspaco(configuracao, "secao-faca-parte", imagens),
+    };
+  } catch (erro) {
+    console.error("Home: falha ao ler as imagens editadas.", erro);
+    return { slides: slidesDaHome(null, new Map()), mutiroes: null, chamada: null };
+  }
+}
+
 export default async function PaginaInicial() {
-  const produtosEmDestaque = await lerProdutosEmDestaque();
+  const [produtosEmDestaque, imagensDaHome] = await Promise.all([lerProdutosEmDestaque(), lerImagensEditadas()]);
   return (
     <LayoutPublico header="transparente">
       {/* Único H1 da página, só para leitores de tela, enquanto o banner não
@@ -74,7 +94,7 @@ export default async function PaginaInicial() {
       <h1 className="somente-leitor">ABTE, Associação Brasileira de Tratamento da Escoliose</h1>
 
       {/* 1. Hero */}
-      <Hero sobHeaderFixo slides={SLIDES_DO_BANNER} />
+      <Hero sobHeaderFixo slides={imagensDaHome.slides} />
 
       <div>
         {/* 2. Afirmação + cards de público */}
@@ -120,7 +140,20 @@ export default async function PaginaInicial() {
               />
             </div>
             <div {...revelar()}>
-              <PlaceholderImagem style={{ minHeight: "500px", height: "100%", borderRadius: "var(--radius)" }} />
+              {imagensDaHome.mutiroes ? (
+                <div className={estilos.imagemDosMutiroes}>
+                  <ImagemDaMidia
+                    variantes={imagensDaHome.mutiroes.variantes}
+                    alt={imagensDaHome.mutiroes.alt}
+                    largura={imagensDaHome.mutiroes.largura}
+                    altura={imagensDaHome.mutiroes.altura}
+                    sizes="(max-width: 1023px) 100vw, 50vw"
+                    className={estilos.imagemQuePreenche}
+                  />
+                </div>
+              ) : (
+                <PlaceholderImagem style={{ minHeight: "500px", height: "100%", borderRadius: "var(--radius)" }} />
+              )}
             </div>
           </div>
         </section>
@@ -181,7 +214,18 @@ export default async function PaginaInicial() {
             rodapé (antes ia de uma borda à outra da tela). */}
         <section className={`container ${estilos.secao}`}>
           <div className={estilos.imagemDaChamada}>
-            <PlaceholderImagem />
+            {imagensDaHome.chamada ? (
+              <ImagemDaMidia
+                variantes={imagensDaHome.chamada.variantes}
+                alt={imagensDaHome.chamada.alt}
+                largura={imagensDaHome.chamada.largura}
+                altura={imagensDaHome.chamada.altura}
+                sizes="(max-width: 1710px) 100vw, 1710px"
+                className={estilos.imagemQuePreenche}
+              />
+            ) : (
+              <PlaceholderImagem />
+            )}
             <div className={estilos.caixaFlutuante}>
               <div {...revelar(estilos.caixaFlutuanteConteudo, 2)}>
                 <h2 className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Faça parte dessa rede</h2>

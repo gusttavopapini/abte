@@ -56,7 +56,10 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 // o campo é um texto em Markdown restrito e a imagem aparece como
 // ![alt](midia:ID) (corpo dos posts importados, desde 23/10/2026); também
 // lido inteiro e filtrado aqui.
-export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string; emMarkdown?: boolean };
+// emMapa: o campo é um mapa de objetos e a imagem fica numa chave de cada um
+// (imagens das seções da home); nomeFixo: nome mostrado no lugar de um campo
+// (o documento da home não tem nome). Desde 29/10/2026.
+export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string; emMarkdown?: boolean; emMapa?: string; nomeFixo?: string };
 
 export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
@@ -67,7 +70,17 @@ export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", rotulo: "Categorias de artigos (imagem)", campoDoNome: "nome" },
   { colecao: "produtos", campo: "imagens", emLista: "midiaId", rotulo: "Produtos (galeria)", campoDoNome: "nome" },
   { colecao: "categoriasDeProdutos", campo: "imagemMidiaId", rotulo: "Categorias de produtos (imagem)", campoDoNome: "nome" },
+  { colecao: "configuracoes", campo: "banners", emLista: "midiaId", rotulo: "Home (banners)", campoDoNome: "nome", nomeFixo: "Home" },
+  { colecao: "configuracoes", campo: "imagens", emMapa: "midiaId", rotulo: "Home (imagens das seções)", campoDoNome: "nome", nomeFixo: "Home" },
 ];
+
+// Ids de imagem guardados num campo, conforme o jeito da referência.
+function idsNoCampo(valor: unknown, { emLista, emMarkdown, emMapa }: ReferenciaDeMidia): string[] {
+  if (emMarkdown) return idsDasImagensNoTexto(String(valor ?? ""));
+  if (emLista) return (Array.isArray(valor) ? valor : []).map((item) => item?.[emLista]).filter((id): id is string => typeof id === "string");
+  if (emMapa) return Object.values(valor && typeof valor === "object" ? valor : {}).map((item) => (item as Record<string, unknown> | null)?.[emMapa]).filter((id): id is string => typeof id === "string");
+  return typeof valor === "string" ? [valor] : [];
+}
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };
 
@@ -380,14 +393,12 @@ export async function mapaDeUsos(db: Firestore): Promise<Map<string, UsoNoItem[]
     if (!lista.some((existente) => existente.rotulo === uso.rotulo && existente.nome === uso.nome)) lista.push(uso);
     mapa.set(id, lista);
   };
-  for (const { colecao, campo, rotulo, campoDoNome, emLista, emMarkdown } of REFERENCIAS_DE_MIDIA) {
+  for (const referenciaDeMidia of REFERENCIAS_DE_MIDIA) {
+    const { colecao, campo, rotulo, campoDoNome, nomeFixo } = referenciaDeMidia;
     const encontrados = await db.collection(colecao).select(campoDoNome, "excluidoEm", campo).get();
     for (const documento of encontrados.docs) {
-      const uso = { rotulo, nome: String(documento.get(campoDoNome) ?? "").trim() || "Sem nome", naLixeira: Boolean(documento.get("excluidoEm")) };
-      const valor = documento.get(campo);
-      if (emMarkdown) for (const id of idsDasImagensNoTexto(String(valor ?? ""))) anotar(id, uso);
-      else if (emLista) for (const item of Array.isArray(valor) ? valor : []) anotar(item?.[emLista], uso);
-      else anotar(valor, uso);
+      const uso = { rotulo, nome: nomeFixo ?? (String(documento.get(campoDoNome) ?? "").trim() || "Sem nome"), naLixeira: Boolean(documento.get("excluidoEm")) };
+      for (const id of idsNoCampo(documento.get(campo), referenciaDeMidia)) anotar(id, uso);
     }
   }
   return mapa;
@@ -398,18 +409,14 @@ export async function mapaDeUsos(db: Firestore): Promise<Map<string, UsoNoItem[]
 // lixeira daquela coleção aparecem marcados, porque voltam se restaurados).
 export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[]> {
   const usos = await Promise.all(
-    REFERENCIAS_DE_MIDIA.map(async ({ colecao, campo, rotulo, campoDoNome, emLista, emMarkdown }) => {
-      const consulta = emLista || emMarkdown ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
+    REFERENCIAS_DE_MIDIA.map(async (referenciaDeMidia) => {
+      const { colecao, campo, rotulo, campoDoNome, emLista, emMarkdown, emMapa, nomeFixo } = referenciaDeMidia;
+      const consulta = emLista || emMarkdown || emMapa ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
       const encontrados = await consulta.select(campoDoNome, "excluidoEm", campo).get();
       const registros = encontrados.docs
-        .filter((documento) => {
-          if (emMarkdown) return String(documento.get(campo) ?? "").includes(`](midia:${id})`);
-          if (!emLista) return true;
-          const lista = documento.get(campo);
-          return Array.isArray(lista) && lista.some((item) => item?.[emLista] === id);
-        })
+        .filter((documento) => idsNoCampo(documento.get(campo), referenciaDeMidia).includes(id))
         .map((documento) => {
-          const nome = String(documento.get(campoDoNome) ?? "").trim() || "Sem nome";
+          const nome = nomeFixo ?? (String(documento.get(campoDoNome) ?? "").trim() || "Sem nome");
           return documento.get("excluidoEm") ? `${nome} (na lixeira)` : nome;
         })
         .sort((a, b) => a.localeCompare(b, "pt-BR"));

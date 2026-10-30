@@ -125,7 +125,10 @@
 
 /* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
    para valer sobre as regras anteriores, como o estilo inline valia. */
-.imagem {
+/* Mais específico que o .imagem do ImagemDaMidia (altura automática):
+   o slide preenche o banner, com a imagem recortada */
+.slide .imagem {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;

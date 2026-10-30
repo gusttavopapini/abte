@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
 import estilos from "./Hero.module.css";
 
@@ -78,8 +79,17 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
         {slides.map((slide, index) => {
           const ativo = index === slideAtual;
           const link = linkDoSlide(slide);
-          // Com link, o nome vem do link e a imagem fica decorativa.
-          const imagem = <img src={slide.imagem} alt={link ? "" : slide.alt} className={estilos.imagem} />;
+          // Com link, o nome vem do link e a imagem fica decorativa. Imagem
+          // da biblioteca (banner do painel, 29/10/2026) ou o endereço fixo
+          // dos slides padrão.
+          const alt = link ? "" : slide.alt;
+          const imagem = slide.midia ? (
+            <ImagemDaMidia variantes={slide.midia.variantes} alt={alt} largura={slide.midia.largura} altura={slide.midia.altura} sizes="100vw" prioridade={index === 0} className={estilos.imagem} />
+          ) : (
+            <img src={slide.imagem} alt={alt} className={estilos.imagem} />
+          );
+          // Link externo (https) abre em nova aba, com o aviso no nome.
+          const externo = link?.href.startsWith("https://") ?? false;
           return (
             <div
               key={index}
@@ -87,7 +97,11 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
               style={{ opacity: ativo ? 1 : 0, transition: "opacity 0.5s ease-in-out" }}
               inert={!ativo}
             >
-              {link ? (
+              {link && externo ? (
+                <a href={link.href} target="_blank" rel="noopener noreferrer" className={estilos.linkDoSlide} aria-label={`${link.nome} (abre em nova aba)`}>
+                  {imagem}
+                </a>
+              ) : link ? (
                 <Link href={link.href} className={estilos.linkDoSlide} aria-label={link.nome}>
                   {imagem}
                 </Link>

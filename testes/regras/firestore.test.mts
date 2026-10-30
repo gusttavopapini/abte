@@ -108,3 +108,28 @@ describe("Diretoria (modelo mínimo)", () => {
     });
   }
 });
+
+// Imagens da home (29/10/2026): o documento configuracoes/home só é lido e
+// gravado pelo servidor; nem administrador nem editor o leem ou gravam pelo
+// navegador.
+describe("Configurações da home", () => {
+  const home = { banners: [{ chave: "banner-teste0001", ordem: 1, midiaId: "m1", alt: "Teste", href: "/loja", ativo: true }], imagens: { "secao-mutiroes": { midiaId: "m1", alt: "Teste" } } };
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["logado sem papel", () => ambiente.authenticatedContext("usuario-sem-papel")],
+    ["administrador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem} não lê nem grava configuracoes/home`, async () => {
+      await ambiente.withSecurityRulesDisabled(async (contexto) => {
+        await setDoc(doc(contexto.firestore(), "configuracoes", "home"), home);
+      });
+      const db = obterContexto().firestore();
+      await assertFails(getDoc(doc(db, "configuracoes", "home")));
+      await assertFails(setDoc(doc(db, "configuracoes", "home"), home));
+      await assertFails(updateDoc(doc(db, "configuracoes", "home"), { banners: [] }));
+      await assertFails(deleteDoc(doc(db, "configuracoes", "home")));
+    });
+  }
+});

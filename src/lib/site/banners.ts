@@ -3,8 +3,13 @@
 // inventar). Com "href", o slide inteiro vira link, com "rotulo" como nome
 // para leitores de tela (sem rótulo, vale o "alt"). Aceita caminho interno
 // ("/loja") ou endereço https.
+import type { ImagemNaTela } from "../midia/tela.ts";
+
 export type SlideDoBanner = {
   imagem: string;
+  // Imagem da biblioteca escolhida no painel (29/10/2026, lib/site/home.ts);
+  // sem ela, vale o endereço em "imagem" (slides padrão).
+  midia?: ImagemNaTela;
   alt: string;
   href: string;
   rotulo: string;
