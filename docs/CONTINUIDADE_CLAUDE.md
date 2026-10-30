@@ -289,7 +289,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: `c96e6e0` (promoção de 30/10 do banner em tela cheia e do ponto de foco, fast-forward de `5b3a8e2`, deployment de Produção `7446451745`, home conferida em 390x844 e 1280x720). Antes: `0b362f7` (duas versões das imagens da home) e `5b3a8e2` ("Produtos em destaque" centralizado).
+- `origin/main`: `dfe8d8d` (promoção de 30/10 do lote de nove itens, fast-forward de `c96e6e0`, deployment de Produção `7449312744`, conferido em 390 e 1280 px). Antes: `c96e6e0` (banner em tela cheia).
 - Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` mais o commit que registra essa promoção (só documentação).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
