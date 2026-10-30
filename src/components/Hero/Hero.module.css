@@ -231,7 +231,7 @@
   flex-direction: column;
   gap: var(--space-24);
   width: 100%;
-  max-width: max(calc(100% * var(--fracao)), min(100%, calc(var(--space-96) * 6)));
+  max-width: calc(100% * var(--fracao));
   color: var(--color-text);
 }
 
@@ -244,7 +244,7 @@
    globals.css aplica overflow-wrap: break-word aos títulos). */
 .tituloDoBanner {
   color: var(--color-text);
-  font-size: min(calc(var(--font-size-h1) * 0.75), 7svh);
+  font-size: max(var(--space-24), min(calc(var(--font-size-h1) * 0.75), 7svh));
   font-weight: var(--font-weight-light);
   line-height: var(--leading-snug);
   overflow-wrap: normal;
@@ -323,4 +323,25 @@
 .formatoComputador,
 .formatoTablet {
   position: relative;
+}
+
+/* A prévia mede a tela virtual do painel, não a janela que a contém. */
+.formatoComputador, .formatoTablet, .formatoCelular {
+  container-type: size;
+}
+
+:is(.formatoComputador, .formatoTablet, .formatoCelular) .conteudo {
+  padding-top: calc(var(--space-96) + var(--space-24));
+}
+
+:is(.formatoComputador, .formatoTablet, .formatoCelular) .linhaDoTexto {
+  padding-inline: var(--page-margin-previa);
+}
+
+:is(.formatoComputador, .formatoTablet, .formatoCelular) .tituloDoBanner {
+  font-size: max(var(--space-24), min(calc(var(--font-size-h1-previa) * 0.75), 7cqh));
+}
+
+:is(.formatoComputador, .formatoTablet, .formatoCelular) .subtituloDoBanner {
+  font-size: var(--font-size-text-lg-previa);
 }

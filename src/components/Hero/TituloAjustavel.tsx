@@ -33,6 +33,7 @@ export function TituloAjustavel({ className, children }: { className?: string; c
       if (maior > disponivel) elemento.style.fontSize = `${Math.max(piso, Math.floor(tamanho * (disponivel / maior) * 0.98))}px`;
     }
 
+    window.addEventListener("resize", ajustar);
     ajustar();
     document.fonts?.ready.then(ajustar);
     const observador = new ResizeObserver(() => ajustar());
@@ -40,6 +41,7 @@ export function TituloAjustavel({ className, children }: { className?: string; c
     return () => {
       cancelado = true;
       observador.disconnect();
+      window.removeEventListener("resize", ajustar);
     };
   });
 

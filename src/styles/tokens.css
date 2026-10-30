@@ -51,6 +51,9 @@
   --font-weight-bold: 400; /* Atualizado para 400 para manter a delicadeza geral */
   --font-size-display: clamp(3.5rem, 0.878rem + 10.758vw, 12.375rem); /* max medido em 1710px; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h1: clamp(2.5rem, 1.521rem + 4.015vw, 5.8125rem); /* max medido; min AJUSTE APROVADO PELA DESIGNER */
+  --font-size-h1-previa: clamp(2.5rem, 1.521rem + 4.015cqw, 5.8125rem);
+  --font-size-text-lg-previa: clamp(1.125rem, 1.014rem + 0.455cqw, 1.5rem);
+  --page-margin-previa: clamp(16px, 1.87cqw, 32px);
   --font-size-h2: clamp(2rem, 1.705rem + 1.212vw, 3rem); /* max medido 47.5; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h3: clamp(1.5rem, 1.278rem + 0.909vw, 2.25rem); /* max medido 36.5; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-text-xl: clamp(1.5rem, 1.389rem + 0.455vw, 1.875rem); /* max medido 29.5; min AJUSTE APROVADO PELA DESIGNER */
