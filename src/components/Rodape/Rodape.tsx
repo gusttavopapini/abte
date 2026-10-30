@@ -22,13 +22,15 @@ function Coluna({ titulo, links }: { titulo: string; links: LinkDeNavegacao[] })
 }
 
 // Rodapé (design-system.md seção 8.9 e ABTE_design_redesign.md seção 4.3).
-export function Rodape() {
+// Desde 30/10/2026, as listas chegam filtradas pelo layout público (sem
+// "Artigos" quando eles estão fora do site; só as páginas legais publicadas).
+export function Rodape({ menu = RODAPE_MENU, legal = RODAPE_LEGAL }: { menu?: LinkDeNavegacao[]; legal?: LinkDeNavegacao[] }) {
   const ano = new Date().getFullYear();
   return (
     <footer className={estilos.rodape}>
       <div className={estilos.colunas}>
-        <Coluna titulo="Menu" links={RODAPE_MENU} />
-        <Coluna titulo="Legal" links={RODAPE_LEGAL} />
+        <Coluna titulo="Menu" links={menu} />
+        {legal.length > 0 && <Coluna titulo="Legal" links={legal} />}
         <div className={estilos.coluna}>
           <h2 className={estilos.tituloColuna}>Contato</h2>
           <a href={`mailto:${EMAIL_CONTATO}`} className={`realce ${estilos.link}`}>

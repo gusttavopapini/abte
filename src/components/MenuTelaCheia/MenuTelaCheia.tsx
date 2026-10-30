@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { CHAMADA_DOACAO, MENU_PRINCIPAL, itemEstaAtivo, linkEstaAtivo } from "@/config/navegacao";
+import { CHAMADA_DOACAO, MENU_PRINCIPAL, itemEstaAtivo, linkEstaAtivo, type ItemDoMenu } from "@/config/navegacao";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeFechar, IconeSeta } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
@@ -17,10 +17,13 @@ export function MenuTelaCheia({
   id,
   rotulo,
   aoFechar,
+  itens = MENU_PRINCIPAL,
 }: {
   id: string;
   rotulo: string;
   aoFechar: (devolverFoco?: boolean) => void;
+  // Itens filtrados pelas configurações do site (30/10/2026).
+  itens?: ItemDoMenu[];
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const fecharRef = useRef<HTMLButtonElement>(null);
@@ -91,7 +94,7 @@ export function MenuTelaCheia({
       <div className={`container ${estilos.corpo}`}>
         <nav aria-label="Menu principal">
           <ul role="list" className={estilos.lista}>
-            {MENU_PRINCIPAL.map((item, indice) => {
+            {itens.map((item, indice) => {
               const ativo = itemEstaAtivo(pathname, item);
               const classesDoLink = `realce ${estilos.link} ${ativo ? estilos.linkAtivo : ""}`;
 

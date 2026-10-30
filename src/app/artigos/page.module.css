@@ -19,11 +19,14 @@
   padding-bottom: 0;
 }
 
+/* Cabeçalhos dos blocos centralizados (30/10/2026), como o da abertura */
 .blocoCabecalho {
   margin-bottom: var(--space-64);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  align-items: center;
+  text-align: center;
 }
 
 .blocoMarcador {
@@ -48,7 +51,8 @@
   font-weight: var(--font-weight-light);
 }
 
-/* Aviso de lista vazia ocupando a linha toda da grade */
+/* Aviso de lista vazia ocupando a linha toda da grade, centralizado */
 .vazio {
   grid-column: 1 / -1;
+  text-align: center;
 }

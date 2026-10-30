@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { CHAMADA_DOACAO, MENU_PRINCIPAL } from "@/config/navegacao";
+import { CHAMADA_DOACAO, MENU_PRINCIPAL, type ItemDoMenu } from "@/config/navegacao";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
@@ -16,6 +16,9 @@ type PropsHeader = {
   variante?: VarianteHeader;
   // Na página /componentes o header aparece como exemplo, sem ficar fixo.
   demonstracao?: boolean;
+  // Itens do menu já filtrados pelas configurações do site (30/10/2026:
+  // sem "Artigos" quando eles estão fora do site). Padrão: o menu inteiro.
+  menu?: ItemDoMenu[];
 };
 
 // Rolagem (em px) a partir da qual o header pode se esconder e ganha fundo
@@ -31,7 +34,7 @@ const TOLERANCIA_DE_ROLAGEM_PX = 8;
 // ficar transparente sobre o conteúdo (exceção de design pendente). Nunca se
 // esconde com o menu em tela cheia ou um submenu aberto (algum
 // aria-expanded="true" dentro dele) nem com o foco de teclado dentro dele.
-export function Header({ variante = "solida", demonstracao = false }: PropsHeader) {
+export function Header({ variante = "solida", demonstracao = false, menu = MENU_PRINCIPAL }: PropsHeader) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [rolado, setRolado] = useState(false);
   const [escondido, setEscondido] = useState(false);
@@ -121,7 +124,7 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
         <Logo className={estilos.logo} />
         <div className={estilos.colunaDireita}>
           <div className={`${estilos.menuFundoBranco} ${estilos.somenteDesktop}`}>
-            <MenuDesktop itens={MENU_PRINCIPAL} rotulo={`Menu principal${sufixo}`} />
+            <MenuDesktop itens={menu} rotulo={`Menu principal${sufixo}`} />
           </div>
           <Botao href={CHAMADA_DOACAO.href} className={`${estilos.somenteDesktop} ${estilos.doe}`}>
             {CHAMADA_DOACAO.rotulo}
@@ -139,7 +142,7 @@ export function Header({ variante = "solida", demonstracao = false }: PropsHeade
           </button>
         </div>
       </div>
-      {menuAberto && <MenuTelaCheia id={idMenu} rotulo={`Menu${sufixo}`} aoFechar={fecharMenu} />}
+      {menuAberto && <MenuTelaCheia id={idMenu} rotulo={`Menu${sufixo}`} aoFechar={fecharMenu} itens={menu} />}
     </header>
   );
 }

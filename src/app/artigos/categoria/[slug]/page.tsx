@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import { Botao } from "@/components/Botao/Botao";
 import { CabecalhoDePagina } from "@/components/CabecalhoDePagina/CabecalhoDePagina";
@@ -22,11 +23,14 @@ const lerCategoria = cache(async (slug: string) => {
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  if (!(await lerConfiguracaoDoSiteEmCache()).artigosAtivo) return { title: "Página não encontrada" };
   const categoria = await lerCategoria((await params).slug);
   return { title: categoria ? `Artigos sobre ${categoria.nome}` : "Categoria não encontrada" };
 }
 
 export default async function PaginaCategoriaArtigos({ params }: { params: Promise<{ slug: string }> }) {
+  // Artigos fora do site (configuracoes/site, 30/10/2026): 404.
+  if (!(await lerConfiguracaoDoSiteEmCache()).artigosAtivo) notFound();
   const { slug } = await params;
   const categoria = await lerCategoria(slug);
 

@@ -16,6 +16,7 @@ import { VideoVertical } from "@/components/VideoVertical/VideoVertical";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { lerImagensDaHome } from "@/lib/dados/home";
 import { imagemDoEspaco, midiasDaHome, slidesDaHome } from "@/lib/site/home";
+import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
 import type { ProdutoDoCard } from "@/components/CardProduto/CardProduto";
 import estilos from "./page.module.css";
 
@@ -75,7 +76,7 @@ async function lerImagensEditadas() {
   try {
     const imagens = await imagensAtivasPorId(midiasDaHome(configuracao));
     return {
-      slides: slidesDaHome(configuracao, imagens),
+      slides: slidesDaHome(configuracao, imagens, (await lerConfiguracaoDoSiteEmCache()).artigosAtivo),
       mutiroes: imagemDoEspaco(configuracao, "secao-mutiroes", imagens),
       chamada: imagemDoEspaco(configuracao, "secao-faca-parte", imagens),
     };

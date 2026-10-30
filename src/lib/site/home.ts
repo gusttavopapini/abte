@@ -6,6 +6,7 @@
 import type { ImagemNaTela } from "../midia/tela.ts";
 import { ehIdDeDocumentoValido } from "../validacao.ts";
 import { SLIDES_DO_BANNER, type SlideDoBanner } from "./banners.ts";
+import { ehCaminhoDosArtigos } from "./configuracoes.ts";
 
 export const COLECAO_DA_HOME = "configuracoes";
 export const DOCUMENTO_DA_HOME = "home";
@@ -211,7 +212,9 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
 
 // Slides do carrossel para o site: só os banners ativos com imagem
 // disponível, na ordem. Sem nenhum, o carrossel padrão de antes.
-export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: Map<string, ImagemNaTela>): SlideDoBanner[] {
+// Com os Artigos fora do site (configuracoes/site, 30/10/2026), o banner
+// com link para /artigos aparece sem link.
+export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: Map<string, ImagemNaTela>, artigosAtivo = true): SlideDoBanner[] {
   const slides = ordenarBanners(configuracao?.banners ?? [])
     .filter((banner) => banner.ativo && banner.midiaId && imagens.has(banner.midiaId))
     .map((banner) => {
@@ -219,7 +222,8 @@ export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: M
       const alt = banner.alt || midia.alt;
       // Versão celular na lixeira ou excluída: fica só a de computador.
       const celular = banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null;
-      return { imagem: "", midia: { ...midia, alt, celular }, alt, href: banner.href, rotulo: "", pontoDeFoco: banner.pontoDeFoco };
+      const href = !artigosAtivo && ehCaminhoDosArtigos(banner.href) ? "" : banner.href;
+      return { imagem: "", midia: { ...midia, alt, celular }, alt, href, rotulo: "", pontoDeFoco: banner.pontoDeFoco };
     });
   return slides.length > 0 ? slides : SLIDES_DO_BANNER;
 }

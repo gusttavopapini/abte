@@ -112,6 +112,28 @@ describe("Diretoria (modelo mínimo)", () => {
 // Imagens da home (29/10/2026): o documento configuracoes/home só é lido e
 // gravado pelo servidor; nem administrador nem editor o leem ou gravam pelo
 // navegador.
+describe("Configurações do site (30/10/2026)", () => {
+  const site = { artigosAtivo: false };
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["logado sem papel", () => ambiente.authenticatedContext("usuario-sem-papel")],
+    ["administrador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem} não lê nem grava configuracoes/site`, async () => {
+      await ambiente.withSecurityRulesDisabled(async (contexto) => {
+        await setDoc(doc(contexto.firestore(), "configuracoes", "site"), site);
+      });
+      const db = obterContexto().firestore();
+      await assertFails(getDoc(doc(db, "configuracoes", "site")));
+      await assertFails(setDoc(doc(db, "configuracoes", "site"), site));
+      await assertFails(updateDoc(doc(db, "configuracoes", "site"), { artigosAtivo: true }));
+      await assertFails(deleteDoc(doc(db, "configuracoes", "site")));
+    });
+  }
+});
+
 describe("Configurações da home", () => {
   const home = { banners: [{ chave: "banner-teste0001", ordem: 1, midiaId: "m1", alt: "Teste", href: "/loja", ativo: true }], imagens: { "secao-mutiroes": { midiaId: "m1", alt: "Teste" } } };
   const contextos: [string, () => RulesTestContext][] = [

@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
 import { CardCategoriaArtigo } from "@/components/CardCategoriaArtigo/CardCategoriaArtigo";
 import { CardArtigo } from "@/components/CardArtigo/CardArtigo";
 import estilos from "./page.module.css";
@@ -12,6 +14,8 @@ export const metadata = { title: "Artigos Científicos" };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaArtigos() {
+  // Artigos fora do site (configuracoes/site, 30/10/2026): 404.
+  if (!(await lerConfiguracaoDoSiteEmCache()).artigosAtivo) notFound();
   // Categorias cadastradas no painel ("Tópicos dos artigos"): só as ativas,
   // fora da lixeira e com pelo menos um artigo publicado (desde 25/10/2026),
   // com a imagem da biblioteca; sem imagem, o card usa o placeholder.

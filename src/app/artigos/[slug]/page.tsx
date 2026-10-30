@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
+import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
 import { Botao } from "@/components/Botao/Botao";
 import estilos from "./page.module.css";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
@@ -25,12 +26,15 @@ const lerArtigoPublicado = cache(async (slug: string) => {
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  if (!(await lerConfiguracaoDoSiteEmCache()).artigosAtivo) return { title: "Página não encontrada" };
   const artigo = await lerArtigoPublicado((await params).slug);
   if (!artigo) return { title: "Página não encontrada" };
   return { title: artigo.titulo };
 }
 
 export default async function PaginaLeituraArtigo({ params }: { params: Promise<{ slug: string }> }) {
+  // Artigos fora do site (configuracoes/site, 30/10/2026): 404.
+  if (!(await lerConfiguracaoDoSiteEmCache()).artigosAtivo) notFound();
   const artigo = await lerArtigoPublicado((await params).slug);
   if (!artigo) notFound();
 

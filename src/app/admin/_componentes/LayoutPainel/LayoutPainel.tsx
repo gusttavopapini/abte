@@ -9,13 +9,15 @@ import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
   children: ReactNode;
-  usuario?: { nome?: string | null; email: string };
+  usuario?: { nome?: string | null; email: string; papel?: string };
   // Botão "Sair" (formulário com ação de servidor), montado no servidor.
   sair: ReactNode;
 };
 
 // Itens do menu, na ordem do trabalho (29/10/2026).
-const ITENS = [
+type ItemDoPainel = { href: string; rotulo: string; exato?: boolean; fora?: string[]; soAdministrador?: boolean };
+
+const ITENS: ItemDoPainel[] = [
   { href: "/admin", rotulo: "Visão geral", exato: true },
   { href: "/admin/home", rotulo: "Home" },
   { href: "/admin/blog", rotulo: "Blog", fora: ["/admin/blog/topicos"] },
@@ -26,9 +28,11 @@ const ITENS = [
   { href: "/admin/loja", rotulo: "Loja", fora: ["/admin/loja/categorias"] },
   { href: "/admin/loja/categorias", rotulo: "Loja: categorias" },
   { href: "/admin/midia", rotulo: "Mídia" },
+  // Só administrador (30/10/2026); para o editor, o item não aparece.
+  { href: "/admin/configuracoes", rotulo: "Configurações", soAdministrador: true },
 ];
 
-function itemAtual(caminho: string, item: (typeof ITENS)[number]): boolean {
+function itemAtual(caminho: string, item: ItemDoPainel): boolean {
   if (item.exato) return caminho === item.href;
   if (item.fora?.some((outro) => caminho.startsWith(outro))) return false;
   return caminho === item.href || caminho.startsWith(`${item.href}/`);
@@ -89,7 +93,7 @@ export function LayoutPainel({ children, usuario, sair }: PropsLayoutPainel) {
   const menu = (
     <nav aria-label="Menu do painel" className={estilos.menu}>
       <ul role="list" className={estilos.listaMenu}>
-        {ITENS.map((item) => {
+        {ITENS.filter((item) => !item.soAdministrador || usuario?.papel === "administrador").map((item) => {
           const atual = itemAtual(caminho, item);
           return (
             <li key={item.href}>
