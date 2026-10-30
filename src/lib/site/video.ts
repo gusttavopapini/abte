@@ -19,7 +19,7 @@ function idDoYoutube(url: URL): string | null {
   if (url.hostname === "youtu.be") id = partes[0] ?? null;
   else if (HOSTS_DO_YOUTUBE.has(url.hostname)) {
     if (partes[0] === "watch") id = url.searchParams.get("v");
-    else if (partes[0] === "shorts" || partes[0] === "embed") id = partes[1] ?? null;
+    else if (partes[0] === "shorts" || partes[0] === "embed" || partes[0] === "live") id = partes[1] ?? null;
   }
   return id && ID_DO_YOUTUBE.test(id) ? id : null;
 }

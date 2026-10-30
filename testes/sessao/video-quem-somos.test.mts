@@ -10,7 +10,8 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { decidirAcessoAoPainel } from "../../src/lib/auth/papeis.ts";
 import { verificarCookieDeSessao } from "../../src/lib/auth/verificacao.ts";
-import { MENSAGEM_CAPA_DO_VIDEO_INDISPONIVEL, conferirEnvioDoVideo, prepararEnvioDoVideo, salvarVideoQuemSomos, type Assinador } from "../../src/lib/gravacao/videoQuemSomos.ts";
+import sharp from "sharp";
+import { MENSAGEM_CAPA_DO_VIDEO_INDISPONIVEL, conferirEnvioDoVideo, gerarCapaDoYoutube, prepararEnvioDoVideo, prepararEnvioRetomavel, salvarVideoQuemSomos, type Assinador, type Buscador } from "../../src/lib/gravacao/videoQuemSomos.ts";
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
 import { COLECAO_MIDIAS } from "../../src/lib/midia/biblioteca.ts";
 import { lerConfiguracaoDaHome } from "../../src/lib/site/home.ts";
@@ -113,6 +114,59 @@ describe("Vídeo de Quem Somos: gravação", () => {
     for (const linha of linhas) {
       assert.deepEqual(linha.campos, ["videoQuemSomos"]);
       assert.doesNotMatch(JSON.stringify(linha), /dQw4w9WgXcQ|fictício|publico\/videos/, "o registro não guarda valores");
+    }
+  });
+});
+
+describe("Vídeo de Quem Somos: envio retomável e capa automática (30/10/2026)", () => {
+  test("sessão retomável: caminho próprio, tipo, origem e limite de 1 GB", async () => {
+    const pedidos: unknown[] = [];
+    const preparado = await prepararEnvioRetomavel(bucket, { contentType: "video/webm", tamanho: 500 * 1024 * 1024 }, ID, "http://localhost:3000", async (_bucket, caminho, contentType, origem) => {
+      pedidos.push({ caminho, contentType, origem });
+      return "https://exemplo.invalid/sessao";
+    });
+    assert.deepEqual(preparado, { ok: true, caminho: `publico/videos/${ID}/video.webm`, sessao: "https://exemplo.invalid/sessao" });
+    assert.deepEqual(pedidos, [{ caminho: `publico/videos/${ID}/video.webm`, contentType: "video/webm", origem: "http://localhost:3000" }]);
+    assert.equal((await prepararEnvioRetomavel(bucket, { contentType: "video/mp4", tamanho: 1073741825 }, ID, "x", async () => "nunca")).ok, false);
+  });
+
+  // Miniatura fictícia 16:9 com barras pretas dos lados (vídeo vertical).
+  async function miniatura(largura: number, altura: number): Promise<Buffer> {
+    const meio = Math.round(altura * 9 / 16);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${largura}" height="${altura}"><rect width="100%" height="100%" fill="#000"/><rect x="${(largura - meio) / 2}" width="${meio}" height="${altura}" fill="#1f5fbf"/></svg>`;
+    return sharp(Buffer.from(svg)).jpeg({ quality: 90 }).toBuffer();
+  }
+  const resposta = (corpo: Buffer | null, status = 200, tipo = "image/jpeg") =>
+    new Response(corpo ? new Uint8Array(corpo) : null, { status, headers: corpo ? { "content-type": tipo, "content-length": String(corpo.length) } : {} });
+
+  test("capa a partir do YouTube: só i.ytimg.com com o id; maxres 404 cai para hq; barras cortadas; dono e alt provisório", async () => {
+    const pedidos: string[] = [];
+    const buscar: Buscador = async (url) => {
+      pedidos.push(url);
+      return url.endsWith("/maxresdefault.jpg") ? resposta(null, 404) : resposta(await miniatura(480, 360));
+    };
+    const servicos = { db, bucket };
+    const gerada = await gerarCapaDoYoutube(servicos, { youtubeId: "dQw4w9WgXcQ", descricao: "Vídeo fictício de teste" }, EDITOR, buscar);
+    assert.ok(gerada.ok);
+    assert.deepEqual(pedidos, ["https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"]);
+    assert.ok(gerada.proporcao < 0.7, `barras cortadas (proporção ${gerada.proporcao.toFixed(2)})`);
+    const midia = (await db.collection(COLECAO_MIDIAS).doc(gerada.capaMidiaId).get()).data();
+    assert.deepEqual(midia?.dono, { tipo: "home", id: "quem-somos-video", campo: "videoCapa" });
+    assert.equal(midia?.alt, "Vídeo fictício de teste");
+    assert.equal(midia?.altProvisorio, true);
+    assert.equal(midia?.conferenciaDeMenor, "pendente");
+  });
+
+  test("miniatura recusada (tipo errado, minúscula, grande demais ou falha): sem capa, com mensagem", async () => {
+    const servicos = { db, bucket };
+    for (const buscar of [
+      (async () => resposta(Buffer.from("<html>"), 200, "text/html")) as Buscador,
+      (async () => resposta(await miniatura(120, 90))) as Buscador,
+      (async () => resposta(Buffer.alloc(3 * 1024 * 1024), 200)) as Buscador,
+      (async () => { throw new Error("tempo esgotado"); }) as Buscador,
+    ]) {
+      const gerada = await gerarCapaDoYoutube(servicos, { youtubeId: "dQw4w9WgXcQ", descricao: "x" }, EDITOR, buscar);
+      assert.deepEqual(gerada, { ok: false, mensagem: "Não foi possível baixar a miniatura do YouTube. Envie uma imagem de capa." });
     }
   });
 });

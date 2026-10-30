@@ -4,9 +4,9 @@ import { useActionState, useEffect, useId, useRef, useState, type CSSProperties 
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { TEXTO_AUTORIZACAO } from "@/app/admin/_componentes/EnviarMidia/EnviarMidia";
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
-import { confirmarEnvioDoVideoDaHome, prepararEnvioDoVideoDaHome, salvarVideoDaHome } from "@/app/admin/acoes-home";
+import { confirmarEnvioDoVideoDaHome, gerarCapaDoYoutubeDaHome, prepararEnvioDoVideoDaHome, prepararEnvioRetomavelDaHome, salvarVideoDaHome } from "@/app/admin/acoes-home";
+import { CapaDoVideo } from "@/components/VideoVertical/VideoVertical";
 import { Botao } from "@/components/Botao/Botao";
-import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
 import type { ImagemNaTela } from "@/lib/midia/tela";
@@ -17,6 +17,8 @@ import {
   LIMITE_DA_LEGENDA_EM_BYTES,
   LIMITE_DO_VIDEO_EM_BYTES,
   PROPORCAO_DO_VIDEO,
+  TAMANHO_DA_PARTE_DO_ENVIO,
+  TEXTO_DO_LIMITE_DO_VIDEO,
   TIPOS_DE_VIDEO,
   TIPO_DA_LEGENDA,
   type ArquivoDoVideo,
@@ -59,6 +61,77 @@ async function enviarDireto(arquivo: File, tipo: ArquivoDoVideo, aoProgresso: (f
   return { ok: true, envio: { caminho: conferido.caminho, contentType: conferido.contentType, tamanho: conferido.tamanho } };
 }
 
+type Controle = { cancelado: boolean; pedido: XMLHttpRequest | null };
+type Pendente = { sessao: string; caminho: string };
+
+// Uma parte do envio retomável: PUT com Content-Range; 308 (falta o resto,
+// com o cabeçalho Range), 200 ou 201 (terminou), 0 (rede ou bloqueio).
+function enviarParte(sessao: string, parte: Blob, inicio: number, total: number, aoProgresso: (bytes: number) => void, controle: Controle): Promise<{ status: number; range: string | null }> {
+  return new Promise((resolver) => {
+    const pedido = new XMLHttpRequest();
+    controle.pedido = pedido;
+    pedido.open("PUT", sessao);
+    pedido.setRequestHeader("Content-Range", parte.size > 0 ? `bytes ${inicio}-${inicio + parte.size - 1}/${total}` : `bytes */${total}`);
+    pedido.upload.onprogress = (evento) => aoProgresso(evento.loaded);
+    pedido.onload = () => resolver({ status: pedido.status, range: pedido.getResponseHeader("Range") });
+    pedido.onerror = () => resolver({ status: 0, range: null });
+    pedido.onabort = () => resolver({ status: -1, range: null });
+    pedido.send(parte.size > 0 ? parte : null);
+  });
+}
+
+// Quanto já chegou (consulta da sessão): o próximo byte a enviar.
+function proximoByte(range: string | null): number {
+  const fim = range?.match(/bytes=0-(\d+)/)?.[1];
+  return fim ? Number(fim) + 1 : 0;
+}
+
+// Envio retomável do vídeo (30/10/2026, até 1 GB): sessão aberta pelo
+// servidor, partes de 8 MB, progresso, cancelar e tentar de novo (retoma de
+// onde parou). O arquivo não passa pela função da Vercel.
+async function enviarRetomavel(
+  arquivo: File,
+  aoProgresso: (fracao: number) => void,
+  controle: Controle,
+  retomar: Pendente | null,
+  aoAbrir: (pendente: Pendente) => void,
+): Promise<{ ok: true; envio: Envio } | { ok: false; mensagem: string; podeTentar?: boolean }> {
+  let pendente = retomar;
+  if (!pendente) {
+    const sessao = await prepararEnvioRetomavelDaHome({ contentType: arquivo.type, tamanho: arquivo.size });
+    if (!sessao.ok) return sessao;
+    pendente = { sessao: sessao.sessao, caminho: sessao.caminho };
+    aoAbrir(pendente);
+  }
+  const total = arquivo.size;
+  // Retomada: pergunta quanto já chegou.
+  let enviado = 0;
+  if (retomar) {
+    const consulta = await enviarParte(pendente.sessao, new Blob([]), 0, total, () => {}, controle);
+    if (consulta.status === 200 || consulta.status === 201) enviado = total;
+    else if (consulta.status === 308) enviado = proximoByte(consulta.range);
+    else return { ok: false, mensagem: MENSAGEM_DE_BLOQUEIO, podeTentar: true };
+  }
+  while (enviado < total) {
+    if (controle.cancelado) break;
+    const parte = arquivo.slice(enviado, Math.min(enviado + TAMANHO_DA_PARTE_DO_ENVIO, total));
+    const inicio = enviado;
+    const resposta = await enviarParte(pendente.sessao, parte, inicio, total, (bytes) => aoProgresso((inicio + bytes) / total), controle);
+    if (resposta.status === 200 || resposta.status === 201) enviado = total;
+    else if (resposta.status === 308) enviado = proximoByte(resposta.range);
+    else if (resposta.status === -1) break;
+    else return { ok: false, mensagem: "O envio parou no meio (conexão ou bloqueio do armazenamento). Use \"Tentar de novo\" para continuar de onde parou.", podeTentar: true };
+  }
+  if (controle.cancelado || enviado < total) {
+    // Cancela a sessão no armazenamento (o que chegou é descartado).
+    fetch(pendente.sessao, { method: "DELETE" }).catch(() => {});
+    return { ok: false, mensagem: "Envio cancelado." };
+  }
+  const conferido = await confirmarEnvioDoVideoDaHome({ arquivo: "video", caminho: pendente.caminho });
+  if (!conferido.ok) return conferido;
+  return { ok: true, envio: { caminho: conferido.caminho, contentType: conferido.contentType, tamanho: conferido.tamanho } };
+}
+
 function megabytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`;
 }
@@ -67,14 +140,47 @@ function megabytes(bytes: number): string {
 function EnvioDeArquivo({ id, tipo, rotulo, ajuda, aceitar, enviado, aoEnviar, aoRemover, erro }: { id: string; tipo: ArquivoDoVideo; rotulo: string; ajuda: string; aceitar: string; enviado: string | null; aoEnviar: (envio: Envio) => void; aoRemover: () => void; erro?: string }) {
   const [progresso, setProgresso] = useState<number | null>(null);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [retomavel, setRetomavel] = useState<{ arquivo: File; pendente: Pendente | null } | null>(null);
   const entrada = useRef<HTMLInputElement>(null);
+  const controle = useRef<Controle>({ cancelado: false, pedido: null });
+
+  async function enviarVideo(arquivo: File, retomar: Pendente | null) {
+    controle.current = { cancelado: false, pedido: null };
+    setMensagem(null);
+    setProgresso(0);
+    let aberta = retomar;
+    try {
+      const resultado = await enviarRetomavel(arquivo, setProgresso, controle.current, retomar, (pendente) => {
+        aberta = pendente;
+      });
+      if (resultado.ok) {
+        setRetomavel(null);
+        aoEnviar(resultado.envio);
+      } else {
+        setMensagem(resultado.mensagem);
+        setRetomavel("podeTentar" in resultado && resultado.podeTentar ? { arquivo, pendente: aberta } : null);
+      }
+    } catch {
+      setMensagem(MENSAGEM_DE_BLOQUEIO);
+      setRetomavel({ arquivo, pendente: aberta });
+    } finally {
+      setProgresso(null);
+      if (entrada.current) entrada.current.value = "";
+    }
+  }
+
+  function cancelar() {
+    controle.current.cancelado = true;
+    controle.current.pedido?.abort();
+  }
 
   async function escolher(arquivo: File | undefined) {
     if (!arquivo) return;
     setMensagem(null);
     const legendaPeloNome = tipo === "legenda" && /\.vtt$/i.test(arquivo.name);
     if (tipo === "video" && !Object.hasOwn(TIPOS_DE_VIDEO, arquivo.type)) return setMensagem("Envie o vídeo em MP4 (H.264) ou WebM.");
-    if (tipo === "video" && arquivo.size > LIMITE_DO_VIDEO_EM_BYTES) return setMensagem(`O vídeo tem ${megabytes(arquivo.size)} e passa de 60 MB. Envie um arquivo menor ou use um link do YouTube.`);
+    if (tipo === "video" && arquivo.size > LIMITE_DO_VIDEO_EM_BYTES) return setMensagem(`O vídeo tem ${megabytes(arquivo.size)} e passa de 1 GB. Envie um arquivo menor ou use um link do YouTube.`);
+    if (tipo === "video") return void enviarVideo(arquivo, null);
     if (tipo === "legenda" && !legendaPeloNome && arquivo.type !== TIPO_DA_LEGENDA) return setMensagem("A legenda precisa ser um arquivo .vtt (WebVTT).");
     if (tipo === "legenda" && arquivo.size > LIMITE_DA_LEGENDA_EM_BYTES) return setMensagem("A legenda passa de 200 KB.");
     setProgresso(0);
@@ -109,6 +215,18 @@ function EnvioDeArquivo({ id, tipo, rotulo, ajuda, aceitar, enviado, aoEnviar, a
         <div className={estilos.posicao}>
           <progress value={progresso} max={1} aria-label={`Enviando ${tipo === "video" ? "o vídeo" : "a legenda"}`} />
           <span className={estilos.ajuda} aria-live="polite">{Math.round(progresso * 100)}% enviado</span>
+          {tipo === "video" && (
+            <Botao type="button" variante="secundario" onClick={cancelar}>
+              Cancelar o envio
+            </Botao>
+          )}
+        </div>
+      )}
+      {retomavel && progresso === null && (
+        <div className={estilos.posicao}>
+          <Botao type="button" variante="secundario" onClick={() => void enviarVideo(retomavel.arquivo, retomavel.pendente)}>
+            Tentar de novo
+          </Botao>
         </div>
       )}
       {(mensagem || erro) && <p id={`${id}-erro`} className={estilos.erro}>{mensagem ?? erro}</p>}
@@ -127,10 +245,31 @@ function FormularioDoVideo({ video, capa, aoTerminar, aoCancelar }: { video: Vid
   const [indicaMenor, setIndicaMenor] = useState(video?.indicaMenor ?? false);
   const [autorizacao, setAutorizacao] = useState(video?.indicaMenor ?? false);
   const [remover, setRemover] = useState(false);
+  const [capaAtual, setCapaAtual] = useState<{ id: string; imagem: ImagemNaTela | null } | null>(video?.capaMidiaId ? { id: video.capaMidiaId, imagem: capa } : null);
+  const [versaoDaCapa, setVersaoDaCapa] = useState(0);
+  const [gerando, setGerando] = useState(false);
+  const [mensagemDaCapa, setMensagemDaCapa] = useState<string | null>(null);
   const resumo = useRef<HTMLDivElement>(null);
 
+  // "Gerar capa de novo a partir do YouTube": a miniatura do link do
+  // formulário vira a capa (o campo é remontado com ela).
+  async function gerarCapa() {
+    setGerando(true);
+    setMensagemDaCapa(null);
+    try {
+      const gerada = await gerarCapaDoYoutubeDaHome({ youtube, descricao });
+      if (gerada.ok) {
+        setCapaAtual({ id: gerada.capaMidiaId, imagem: gerada.imagem });
+        setVersaoDaCapa((versao) => versao + 1);
+        setMensagemDaCapa("Capa gerada a partir do YouTube. Ela vai para o site quando você salvar.");
+      } else setMensagemDaCapa(gerada.mensagem);
+    } finally {
+      setGerando(false);
+    }
+  }
+
   useEffect(() => {
-    if (resposta?.ok) aoTerminar(resposta.mensagem);
+    if (resposta?.ok) aoTerminar(resposta.aviso ? `${resposta.mensagem} ${resposta.aviso}` : resposta.mensagem);
     else if (resposta) resumo.current?.focus();
   }, [resposta, aoTerminar]);
 
@@ -176,7 +315,7 @@ function FormularioDoVideo({ video, capa, aoTerminar, aoCancelar }: { video: Vid
           id={`${id}-arquivo`}
           tipo="video"
           rotulo="Arquivo de vídeo"
-          ajuda="MP4 (H.264) ou WebM, até 60 MB. O arquivo vai direto para o armazenamento, com o progresso aqui."
+          ajuda={`MP4 (H.264) ou WebM, ${TEXTO_DO_LIMITE_DO_VIDEO}. O arquivo vai direto para o armazenamento, em partes, com o progresso aqui; dá para cancelar e tentar de novo de onde parou.`}
           aceitar="video/mp4,video/webm"
           enviado={arquivo?.caminho ?? null}
           aoEnviar={setArquivo}
@@ -202,10 +341,28 @@ function FormularioDoVideo({ video, capa, aoTerminar, aoCancelar }: { video: Vid
         {erros.descricao && <p id={`${id}-descricao-erro`} className={estilos.erro}>{erros.descricao}</p>}
       </div>
 
+      <div className={estilos.grupo}>
+        <p className={estilos.rotulo}>Prévia no site</p>
+        <div className={estilos.previaDoVideo}>
+          <CapaDoVideo capa={capaAtual?.imagem ?? null} descricao={descricao} />
+        </div>
+        {forma === "youtube" && (
+          <div className={estilos.posicao}>
+            <Botao type="button" variante="secundario" onClick={() => void gerarCapa()} disabled={gerando}>
+              {gerando ? "Gerando a capa..." : "Gerar capa de novo a partir do YouTube"}
+            </Botao>
+          </div>
+        )}
+        {mensagemDaCapa && <p className={estilos.ajuda} role="status">{mensagemDaCapa}</p>}
+        {!capaAtual && <CaixaDoPainel tipo="atencao">Sem capa. {forma === "youtube" ? "Ao salvar, o site tenta usar a miniatura do próprio YouTube; se não der, envie uma imagem de capa." : "Envie uma imagem de capa para o vídeo."}</CaixaDoPainel>}
+      </div>
+
       <ImagemDoItem
+        key={`capa-${versaoDaCapa}`}
         nome="capaMidiaId"
         rotulo="Imagem de capa (opcional)"
-        inicial={video?.capaMidiaId ? { id: video.capaMidiaId, imagem: capa } : null}
+        inicial={capaAtual}
+        aoMudar={(escolha) => setCapaAtual(escolha)}
         dono={{ tipo: "home", id: IDENTIFICADOR_DO_VIDEO, campo: "videoCapa" }}
         proporcao={PROPORCAO_DO_VIDEO.texto}
         tamanho={PROPORCAO_DO_VIDEO.tamanho}
@@ -284,9 +441,15 @@ export function VideoQuemSomosAdmin({ video, capa, aoTerminar }: { video: VideoQ
       <h2 id="titulo-video" className="tipo-texto-lg">{titulo}</h2>
       <ul role="list" className={estilos.grade}>
         <li className={estilos.cartao}>
-          <div className={estilos.miniatura} style={{ "--razao": PROPORCAO_DO_VIDEO.razao } as CSSProperties}>
-            {capa ? <ImagemDaMidia variantes={capa.variantes} alt="" largura={capa.largura} altura={capa.altura} sizes="160px" className={estilos.imagem} /> : <span className={estilos.semImagem}>{video ? "Sem capa" : "Padrão do site"}</span>}
-          </div>
+          {video ? (
+            <div className={estilos.previaDoVideo}>
+              <CapaDoVideo capa={capa} descricao={video.descricao} />
+            </div>
+          ) : (
+            <div className={estilos.miniatura} style={{ "--razao": PROPORCAO_DO_VIDEO.razao } as CSSProperties}>
+              <span className={estilos.semImagem}>Padrão do site</span>
+            </div>
+          )}
           <div className={estilos.texto}>
             <h3 className={estilos.nome}>{titulo}</h3>
             <p className={estilos.etiquetas}>
@@ -295,6 +458,7 @@ export function VideoQuemSomosAdmin({ video, capa, aoTerminar }: { video: VideoQ
               {video && !video.legendaCaminho && <span className={estilos.etiqueta}>Sem legenda</span>}
             </p>
             <p className={estilos.detalhe}>{video ? `Descrição: ${video.descricao}` : "Onde aparece: ao lado de Missão, Visão e Valores. Sem vídeo, a home mostra \"Vídeo em breve\"."}</p>
+            {video && !video.capaMidiaId && <CaixaDoPainel tipo="atencao">Vídeo sem capa: envie uma imagem de capa (ou gere a partir do YouTube) para a prévia no site.</CaixaDoPainel>}
           </div>
           <div className={estilos.acoes}>
             <Botao variante="secundario" onClick={() => setAberto(true)} aria-label={`Editar o ${titulo.toLowerCase()}`}>

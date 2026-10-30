@@ -15,8 +15,14 @@ import { ehIdDeDocumentoValido } from "../validacao.ts";
 
 export const IDENTIFICADOR_DO_VIDEO = "quem-somos-video";
 export const PROPORCAO_DO_VIDEO = { texto: "9:16, em pé (a coluna ao lado de Missão, Visão e Valores)", tamanho: "1080 x 1920 px", razao: 9 / 16 };
-// Limite do arquivo de vídeo (decidido em 30/10/2026): 60 MB.
-export const LIMITE_DO_VIDEO_EM_BYTES = 60 * 1024 * 1024;
+// Limite do arquivo de vídeo: 1 GB (pedido de 30/10/2026; antes, 60 MB),
+// uma constante só, usada na sessão de envio, na confirmação pelos
+// metadados, na validação do navegador e nos textos do painel.
+export const LIMITE_DO_VIDEO_EM_BYTES = 1073741824;
+export const TEXTO_DO_LIMITE_DO_VIDEO = "até 1 GB; recomendamos até 100 MB para carregar rápido no celular";
+// Envio retomável em partes de 8 MB (múltiplo de 256 KB, exigido pelo
+// Cloud Storage).
+export const TAMANHO_DA_PARTE_DO_ENVIO = 8 * 1024 * 1024;
 export const LIMITE_DA_LEGENDA_EM_BYTES = 200 * 1024;
 export const LIMITE_DA_DESCRICAO_DO_VIDEO = 300;
 export const DURACAO_RECOMENDADA = "até 2 minutos";
@@ -56,7 +62,7 @@ export function validarPedidoDeEnvio(pedido: { arquivo: unknown; contentType: un
   if (pedido.arquivo === "video") {
     if (!ehTipoDeVideo(pedido.contentType)) return { ok: false, mensagem: "Envie o vídeo em MP4 (H.264) ou WebM." };
     if (!Number.isFinite(tamanho) || tamanho <= 0) return { ok: false, mensagem: "O arquivo de vídeo está vazio." };
-    if (tamanho > LIMITE_DO_VIDEO_EM_BYTES) return { ok: false, mensagem: "O vídeo passa de 60 MB. Envie um arquivo menor ou use um link do YouTube." };
+    if (tamanho > LIMITE_DO_VIDEO_EM_BYTES) return { ok: false, mensagem: "O vídeo passa de 1 GB. Envie um arquivo menor ou use um link do YouTube." };
     return { ok: true, arquivo: "video", contentType: pedido.contentType, limite: LIMITE_DO_VIDEO_EM_BYTES };
   }
   if (pedido.arquivo === "legenda") {
@@ -84,7 +90,7 @@ export function condicoesDoEnvio(contentType: string, limite: number): (string |
 // Objeto enviado: confere os metadados reais do bucket.
 export function conferirMetadados(arquivo: ArquivoDoVideo, metadados: { tamanho: number; contentType: string | undefined }): { ok: true } | { ok: false; mensagem: string } {
   const limite = arquivo === "video" ? LIMITE_DO_VIDEO_EM_BYTES : LIMITE_DA_LEGENDA_EM_BYTES;
-  if (!(metadados.tamanho > 0) || metadados.tamanho > limite) return { ok: false, mensagem: arquivo === "video" ? "O vídeo enviado passa do limite de 60 MB ou está vazio." : "A legenda enviada passa de 200 KB ou está vazia." };
+  if (!(metadados.tamanho > 0) || metadados.tamanho > limite) return { ok: false, mensagem: arquivo === "video" ? "O vídeo enviado passa do limite de 1 GB ou está vazio." : "A legenda enviada passa de 200 KB ou está vazia." };
   const tipoCerto = arquivo === "video" ? ehTipoDeVideo(metadados.contentType) : metadados.contentType === TIPO_DA_LEGENDA;
   if (!tipoCerto) return { ok: false, mensagem: arquivo === "video" ? "O arquivo enviado não é um vídeo MP4 ou WebM." : "O arquivo enviado não é uma legenda .vtt." };
   return { ok: true };
@@ -170,4 +176,17 @@ export function camposAlteradosDoVideo(antes: VideoQuemSomos | null, depois: Vid
   if ((antes?.legendaCaminho ?? null) !== depois.legendaCaminho) alterados.push("legenda");
   if ((antes?.indicaMenor ?? false) !== depois.indicaMenor) alterados.push("aviso de menores");
   return alterados;
+}
+
+// Miniatura do YouTube para a capa automática (30/10/2026): só com o id já
+// validado (11 caracteres) e o host fixo i.ytimg.com; nunca uma URL vinda de
+// fora. Primeiro a maior (maxresdefault) e, sem ela, a hqdefault.
+export const QUALIDADES_DA_MINIATURA = ["maxresdefault", "hqdefault"] as const;
+export const LIMITE_DA_MINIATURA_EM_BYTES = 2 * 1024 * 1024;
+// Menor que isto (em largura) é a imagem de "sem miniatura" do YouTube.
+export const LARGURA_MINIMA_DA_MINIATURA = 400;
+
+export function urlDaMiniatura(youtubeId: string, qualidade: (typeof QUALIDADES_DA_MINIATURA)[number]): string | null {
+  if (!ID_DO_YOUTUBE.test(youtubeId) || !QUALIDADES_DA_MINIATURA.includes(qualidade)) return null;
+  return `https://i.ytimg.com/vi/${youtubeId}/${qualidade}.jpg`;
 }

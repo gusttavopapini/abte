@@ -167,6 +167,10 @@ export type DadosDoEnvio = {
   // Envio pelo formulário de um item (29/10/2026, lib/midia/dono.ts); sem
   // dono, o envio direto na biblioteca.
   dono?: DonoDaMidia | null;
+  // Imagem gerada pelo sistema (capa automática do YouTube, 30/10/2026): alt
+  // provisório (a descrição do vídeo) e conferência de menores pendente,
+  // como as imagens importadas.
+  gerada?: boolean;
 };
 
 // Grava as variantes em publico/ e cria o documento em midias junto com o
@@ -244,6 +248,7 @@ export async function enviarImagem(
       autorizacaoConfirmadaPor: dados.indicaMenor ? autor.uid : null,
       autorizacaoConfirmadaEm: dados.indicaMenor ? FieldValue.serverTimestamp() : null,
       ...(dados.dono ? { dono: dados.dono } : {}),
+      ...(dados.gerada ? { altProvisorio: true, conferenciaDeMenor: "pendente" } : {}),
     }),
     autor,
     dados.dono

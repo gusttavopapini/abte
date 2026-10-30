@@ -7,11 +7,16 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Storage } from "firebase-admin/storage";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
-import { midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
+import sharp from "sharp";
+import { enviarImagem, midiaPodeSerEscolhida, type ServicosDeMidia } from "../midia/biblioteca.ts";
 import { COLECAO_DA_HOME, DOCUMENTO_DA_HOME } from "../site/home.ts";
 import {
   IDENTIFICADOR_DO_VIDEO,
+  LARGURA_MINIMA_DA_MINIATURA,
+  LIMITE_DA_MINIATURA_EM_BYTES,
+  QUALIDADES_DA_MINIATURA,
   VALIDADE_DO_ENVIO_EM_MS,
+  urlDaMiniatura,
   camposAlteradosDoVideo,
   caminhoDoEnvio,
   condicoesDoEnvio,
@@ -106,4 +111,89 @@ export async function salvarVideoQuemSomos(db: Firestore, video: VideoQuemSomos 
     });
     return { ok: true, alterados };
   });
+}
+
+// ---------- Envio retomável do vídeo (30/10/2026) ----------
+// Para arquivos grandes (até 1 GB): o servidor abre uma sessão retomável no
+// bucket (só aquele caminho e tipo, presa à origem do painel) e o navegador
+// envia em partes, com progresso, cancelar e tentar de novo. O tamanho é
+// conferido depois, pelos metadados (conferirEnvioDoVideo).
+export type CriadorDeSessao = (bucket: Bucket, caminho: string, contentType: string, origem: string) => Promise<string>;
+
+export const criarSessaoRetomavel: CriadorDeSessao = async (bucket, caminho, contentType, origem) => {
+  const [uri] = await bucket.file(caminho).createResumableUpload({ metadata: { contentType }, origin: origem });
+  return uri;
+};
+
+export async function prepararEnvioRetomavel(
+  bucket: Bucket,
+  pedido: { contentType: unknown; tamanho: unknown },
+  novoId: string,
+  origem: string,
+  criar: CriadorDeSessao = criarSessaoRetomavel,
+): Promise<{ ok: true; caminho: string; sessao: string } | { ok: false; mensagem: string }> {
+  const lido = validarPedidoDeEnvio({ arquivo: "video", ...pedido });
+  if (!lido.ok) return lido;
+  const caminho = caminhoDoEnvio("video", novoId, lido.contentType);
+  return { ok: true, caminho, sessao: await criar(bucket, caminho, lido.contentType, origem) };
+}
+
+// ---------- Capa automática a partir do YouTube (30/10/2026) ----------
+export type Buscador = (url: string, opcoes: { signal: AbortSignal; redirect: "error" }) => Promise<Response>;
+
+// Baixa a miniatura do próprio YouTube: só i.ytimg.com com o id validado,
+// tempo limite curto, só image/jpeg e no máximo 2 MB. A maxresdefault que não
+// existe vem como 404 ou como uma imagem minúscula: aí vale a hqdefault.
+export async function baixarMiniaturaDoYoutube(youtubeId: string, buscar: Buscador = fetch): Promise<{ ok: true; bytes: Uint8Array } | { ok: false; mensagem: string }> {
+  for (const qualidade of QUALIDADES_DA_MINIATURA) {
+    const url = urlDaMiniatura(youtubeId, qualidade);
+    if (!url) return { ok: false, mensagem: "Vídeo do YouTube inválido." };
+    try {
+      const resposta = await buscar(url, { signal: AbortSignal.timeout(5000), redirect: "error" });
+      if (!resposta.ok) continue;
+      if (!(resposta.headers.get("content-type") ?? "").startsWith("image/jpeg")) continue;
+      if (Number(resposta.headers.get("content-length") ?? 0) > LIMITE_DA_MINIATURA_EM_BYTES) continue;
+      const bytes = new Uint8Array(await resposta.arrayBuffer());
+      if (bytes.length === 0 || bytes.length > LIMITE_DA_MINIATURA_EM_BYTES) continue;
+      const { width } = await sharp(bytes).metadata();
+      if (!width || width < LARGURA_MINIMA_DA_MINIATURA) continue;
+      return { ok: true, bytes };
+    } catch {
+      continue;
+    }
+  }
+  return { ok: false, mensagem: "Não foi possível baixar a miniatura do YouTube. Envie uma imagem de capa." };
+}
+
+// Corta as bordas de cor uniforme (as barras pretas das miniaturas de
+// vídeos verticais). Sem borda, a imagem fica como está.
+export async function recortarBordas(bytes: Uint8Array): Promise<{ bytes: Uint8Array; largura: number; altura: number }> {
+  try {
+    const { data, info } = await sharp(bytes).trim({ threshold: 20 }).jpeg({ quality: 90 }).toBuffer({ resolveWithObject: true });
+    return { bytes: new Uint8Array(data), largura: info.width, altura: info.height };
+  } catch {
+    const { width = 0, height = 0 } = await sharp(bytes).metadata();
+    return { bytes, largura: width, altura: height };
+  }
+}
+
+// Grava a miniatura como capa, pelo mesmo caminho das imagens (sharp, WebP,
+// variantes, sem EXIF), com alt provisório igual à descrição, conferência
+// de menores pendente e o dono home / quem-somos-video / videoCapa.
+export async function gerarCapaDoYoutube(
+  servicos: ServicosDeMidia,
+  video: { youtubeId: string; descricao: string },
+  autor: AutorDaAlteracao,
+  buscar: Buscador = fetch,
+): Promise<{ ok: true; capaMidiaId: string; proporcao: number } | { ok: false; mensagem: string }> {
+  const baixada = await baixarMiniaturaDoYoutube(video.youtubeId, buscar);
+  if (!baixada.ok) return baixada;
+  const recortada = await recortarBordas(baixada.bytes);
+  const enviada = await enviarImagem(
+    servicos,
+    { bytes: recortada.bytes, alt: video.descricao, indicaMenor: false, autorizacaoConfirmada: false, dono: { tipo: "home", id: IDENTIFICADOR_DO_VIDEO, campo: "videoCapa" }, gerada: true },
+    autor,
+  );
+  if (!enviada.ok) return { ok: false, mensagem: "Não foi possível gravar a capa a partir do YouTube. Envie uma imagem de capa." };
+  return { ok: true, capaMidiaId: enviada.id, proporcao: recortada.altura ? recortada.largura / recortada.altura : 0 };
 }

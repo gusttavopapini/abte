@@ -1,8 +1,21 @@
 [
   {
-    "origin": ["https://abte-lovat.vercel.app", "http://localhost:3000"],
-    "method": ["POST"],
-    "responseHeader": ["Content-Type"],
+    "origin": [
+      "https://abte-lovat.vercel.app",
+      "http://localhost:3000"
+    ],
+    "method": [
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Range",
+      "Range",
+      "X-Goog-Resumable",
+      "Location"
+    ],
     "maxAgeSeconds": 3600
   }
 ]

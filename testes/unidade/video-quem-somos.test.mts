@@ -14,6 +14,7 @@ import {
   lerVideoDoFormulario,
   lerVideoQuemSomos,
   validarPedidoDeEnvio,
+  urlDaMiniatura,
 } from "../../src/lib/site/videoQuemSomos.ts";
 
 const ID = "abcdefghij0123456789";
@@ -27,6 +28,44 @@ describe("Link do YouTube", () => {
     for (const link of ["http://youtu.be/dQw4w9WgXcQ", "https://vimeo.com/123", "https://youtube.com.exemplo.invalid/watch?v=dQw4w9WgXcQ", "https://youtu.be/curto", "nada"]) {
       assert.equal(idDoYoutubeDoLink(link), null, link);
     }
+  });
+});
+
+describe("Todas as formas de link do YouTube (30/10/2026)", () => {
+  test("watch, youtu.be, shorts, embed, live, m., com ?si= e &t=", () => {
+    for (const link of [
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://youtube.com/watch?v=dQw4w9WgXcQ&t=42s",
+      "https://youtu.be/dQw4w9WgXcQ?si=AbCdEf123",
+      "https://youtu.be/dQw4w9WgXcQ?t=10",
+      "https://www.youtube.com/shorts/dQw4w9WgXcQ?si=xyz",
+      "https://youtube.com/shorts/dQw4w9WgXcQ",
+      "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0",
+      "https://www.youtube.com/live/dQw4w9WgXcQ?si=abc",
+      "https://m.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+    ]) {
+      assert.equal(idDoYoutubeDoLink(link), "dQw4w9WgXcQ", link);
+    }
+  });
+
+  test("links que não são do YouTube ou sem id válido são recusados", () => {
+    for (const link of ["https://vimeo.com/123456", "https://www.youtube.com/channel/abc", "https://www.youtube.com/watch?v=curto", "https://youtube.com.exemplo.invalid/watch?v=dQw4w9WgXcQ", "javascript:alert(1)", "https://www.youtube.com/@canal"]) {
+      assert.equal(idDoYoutubeDoLink(link), null, link);
+    }
+  });
+
+  test("limite de 1 GB, numa constante só", () => {
+    assert.equal(LIMITE_DO_VIDEO_EM_BYTES, 1073741824);
+    assert.ok(validarPedidoDeEnvio({ arquivo: "video", contentType: "video/mp4", tamanho: 900 * 1024 * 1024 }).ok);
+    assert.equal(validarPedidoDeEnvio({ arquivo: "video", contentType: "video/mp4", tamanho: 1073741825 }).ok, false);
+  });
+
+  test("miniatura: só com id válido e host fixo i.ytimg.com", () => {
+    assert.equal(urlDaMiniatura("dQw4w9WgXcQ", "maxresdefault"), "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg");
+    assert.equal(urlDaMiniatura("dQw4w9WgXcQ", "hqdefault"), "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg");
+    assert.equal(urlDaMiniatura("../../x", "hqdefault"), null);
+    assert.equal(urlDaMiniatura("dQw4w9WgXcQ", "outra" as never), null);
   });
 });
 

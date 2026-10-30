@@ -83,6 +83,7 @@ function fonteDoVideo(video: VideoQuemSomos | null, imagens: Map<string, ImagemN
     src: urlPublicaDoArquivo(video.caminho),
     contentType: video.contentType,
     descricao: video.descricao,
+    capa,
     poster: capa ? escolherVariante(capa.variantes, 960)?.url ?? null : null,
     legenda: video.legendaCaminho ? urlPublicaDoArquivo(video.legendaCaminho) : null,
   };

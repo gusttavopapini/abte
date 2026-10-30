@@ -274,7 +274,7 @@ describe("Ações da home: sessão e papel", () => {
     const { readFileSync } = await import("node:fs");
     const codigo = readFileSync("src/app/admin/acoes-home.ts", "utf8");
     const acoes = [...codigo.matchAll(/export async function (\w+)\([^)]*(?:\{[^}]*\})?[^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => ({ nome, primeira }));
-    assert.deepEqual(acoes.map((acao) => acao.nome), ["salvarBannerDaHome", "excluirBannerDaHome", "salvarImagemDaSecao", "prepararEnvioDoVideoDaHome", "confirmarEnvioDoVideoDaHome", "salvarVideoDaHome"]);
+    assert.deepEqual(acoes.map((acao) => acao.nome), ["salvarBannerDaHome", "excluirBannerDaHome", "salvarImagemDaSecao", "prepararEnvioDoVideoDaHome", "confirmarEnvioDoVideoDaHome", "salvarVideoDaHome", "prepararEnvioRetomavelDaHome", "gerarCapaDoYoutubeDaHome"]);
     for (const acao of acoes) assert.match(acao.primeira, /^(?:const usuario = )?await exigirPapelDoPainel\("home\.editar"\);$/, acao.nome);
   });
 });
