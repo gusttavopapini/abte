@@ -1,6 +1,7 @@
 "use client";
 
-import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import estilos from "./Modal.module.css";
 
 type PropsModal = {
@@ -15,7 +16,8 @@ type PropsModal = {
   focoInicial?: "conteudo" | "fechar";
 };
 
-const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+// Campos escondidos (type="hidden") não recebem foco: ficam de fora (30/10/2026).
+const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // Janelas abertas, da mais antiga para a mais nova (30/10/2026): com uma
 // janela aberta dentro de outra (ex.: a confirmação dentro das Configurações
@@ -51,7 +53,11 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
     (focoInicialRef.current === "fechar" ? focaveis?.[0] : focaveis?.[1] ?? focaveis?.[0])?.focus();
 
     function aoTeclar(evento: globalThis.KeyboardEvent) {
-      if (evento.key === "Escape" && pilha[pilha.length - 1] === eu) aoFecharRef.current();
+      // Esc já tratado por uma janela (a de dentro): não fecha outra.
+      if (evento.key === "Escape" && !evento.defaultPrevented && pilha[pilha.length - 1] === eu) {
+        evento.preventDefault();
+        aoFecharRef.current();
+      }
     }
     document.addEventListener("keydown", aoTeclar);
     return () => {
@@ -67,6 +73,7 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
     // Esc dentro da janela: fecha só esta e não chega a quem está por fora
     // (ex.: a gaveta do menu do painel).
     if (evento.key === "Escape") {
+      evento.preventDefault();
       evento.stopPropagation();
       aoFecharRef.current();
       return;
@@ -87,9 +94,17 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
     }
   }
 
-  if (!aberto) return null;
+  // No navegador, a janela vai direto para o <body> (portal, 30/10/2026):
+  // aberta de dentro de um elemento com transform (a gaveta do painel), ela
+  // ficaria presa a ele. No servidor, nada.
+  const noNavegador = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  if (!aberto || !noNavegador) return null;
 
-  return (
+  return createPortal(
     <div className={estilos.overlay} onClick={aoFechar}>
       <div
         ref={janelaRef}
@@ -110,6 +125,7 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
