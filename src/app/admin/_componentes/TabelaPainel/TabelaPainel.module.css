@@ -1,9 +1,133 @@
-.tabela {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
+/* Tabelas das listas do painel (29/10/2026): caixa branca, linhas
+   separadas por um fio na cor do texto a 10%, só tokens. */
+.moldura,
+.vazio {
+  border-radius: var(--radius);
+  padding: var(--panel-padding);
+  background: var(--color-bg);
 }
 
-.celula {
-  padding: var(--space-16) 0;
+.vazio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: flex-start;
+  color: var(--color-text);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.legenda {
+  padding-bottom: var(--space-16);
+  font-size: var(--font-size-small);
+  text-align: left;
+}
+
+.tabela th {
+  padding: 0 var(--space-16) var(--space-16) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.tabela td {
+  padding: var(--space-16) var(--space-16) var(--space-16) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.tabela tr[hidden] {
+  display: none;
+}
+
+.destaque {
+  font-weight: var(--font-weight-bold);
+}
+
+.botoesDaLinha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+}
+
+/* Celular: cada linha é um cartão, cada célula com o nome da coluna. */
+@media (max-width: 767px) {
+  .moldura {
+    padding: var(--space-16);
+  }
+
+  .legenda {
+    display: block;
+    width: 100%;
+  }
+
+  .tabela thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .tabela,
+  .tabela tbody,
+  .tabela tr,
+  .tabela td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabela tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .tabela tr {
+    border-radius: var(--radius);
+    padding: var(--space-16);
+    background: var(--color-bg-alt);
+  }
+
+  .tabela tr[hidden] {
+    display: none;
+  }
+
+  .tabela td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--space-8);
+    padding: var(--space-8) 0;
+    border-bottom: 0;
+  }
+
+  .tabela td::before {
+    content: attr(data-rotulo);
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .tabela td.acoes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tabela td.acoes::before {
+    content: none;
+  }
+}
+
+/* Celular: as ações da linha com a altura mínima de toque */
+@media (max-width: 767px) {
+  .botoesDaLinha > * {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
 }

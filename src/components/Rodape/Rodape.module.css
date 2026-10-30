@@ -119,6 +119,9 @@
 .rodape {
   /* Duração e curva da troca de cor dos links e dos ícones */
   --rodape-transicao: 150ms ease-out;
+  /* O fundo do rodapé já é --color-surface-soft: a pílula do hover
+     (globals.css) usa o branco a 70%, para aparecer (29/10/2026) */
+  --realce-fundo: color-mix(in srgb, var(--color-bg) 70%, transparent);
 }
 
 .link {

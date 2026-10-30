@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
+import { AvisoDeAlteracoes } from "@/app/admin/_componentes/AvisoDeAlteracoes/AvisoDeAlteracoes";
+import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
+import { ContadorDeCaracteres } from "@/app/admin/_componentes/ContadorDeCaracteres/ContadorDeCaracteres";
+import { SecaoDoFormulario } from "@/app/admin/_componentes/SecaoDoFormulario/SecaoDoFormulario";
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import type { RespostaDoPost } from "@/app/admin/acoes-conteudo";
 import type { Post } from "@/lib/dados/tipos";
-import {
-  estiloAreaDeTexto,
-  estiloEntrada,
-  estiloFormulario,
-  estiloRotulo,
-  estiloSelecao,
-} from "../estilosDoFormulario";
 import classes from "../estilosDoFormulario.module.css";
 
 type OpcaoDeTopico = { id: string; nome: string };
+
+// Mesmo limite da ação (acoes-conteudo.ts).
+const LIMITE_DO_TITULO = 200;
 
 type PropsFormularioPost = {
   acao: (anterior: RespostaDoPost, dados: FormData) => Promise<RespostaDoPost>;
@@ -44,6 +44,8 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
   const [inserindo, setInserindo] = useState(false);
   const [anuncioDoTexto, setAnuncioDoTexto] = useState("");
   const conteudoRef = useRef<HTMLTextAreaElement>(null);
+  // Alterações não salvas: avisa antes de sair da página.
+  const [alterado, setAlterado] = useState(false);
 
   // A imagem enviada entra no ponto do cursor, numa linha só dela.
   function inserirNoTexto(escolha: EscolhaDeImagem) {
@@ -57,6 +59,7 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
     setEmMarkdown(true);
     setInserindo(false);
     setAnuncioDoTexto("Imagem inserida no texto do post.");
+    setAlterado(true);
     campo.focus();
   }
 
@@ -70,68 +73,84 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
     evento.preventDefault();
     const botao = (evento.nativeEvent as SubmitEvent).submitter;
     const dados = new FormData(evento.currentTarget, botao instanceof HTMLButtonElement ? botao : null);
+    setAlterado(false);
     startTransition(() => enviar(dados));
   }
 
   return (
-    <form onSubmit={aoEnviar} style={estiloFormulario}>
+    <form onSubmit={aoEnviar} onInput={() => setAlterado(true)} className={classes.formulario}>
       {post && <input type="hidden" name="id" value={post.id} />}
+      <AvisoDeAlteracoes alterado={alterado && !salvando} />
 
-      {resposta && <Mensagem tipo="erro" ref={resumoRef}>{resposta.mensagem}</Mensagem>}
+      {resposta && (
+        <Mensagem tipo="erro" ref={resumoRef}>
+          {resposta.mensagem}
+        </Mensagem>
+      )}
 
-      <div className={classes.grupo}>
-        <label htmlFor="titulo" style={estiloRotulo}>Título do Post</label>
-        <input
-          type="text"
-          id="titulo"
-          name="titulo"
-          defaultValue={post?.titulo}
-          placeholder="Ex: Novo tratamento para escoliose..."
-          style={estiloEntrada}
-          required
-        />
-      </div>
+      <SecaoDoFormulario titulo="Texto do post" descricao="O título aparece no card do blog e no alto da página do post.">
+        <div className={classes.grupo}>
+          <label htmlFor="titulo" className={classes.rotulo}>
+            Título <span aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="titulo"
+            name="titulo"
+            defaultValue={post?.titulo}
+            maxLength={LIMITE_DO_TITULO}
+            className={classes.entrada}
+            required
+            aria-describedby="titulo-contador"
+          />
+          <ContadorDeCaracteres alvo="titulo" limite={LIMITE_DO_TITULO} />
+        </div>
 
-      <div className={classes.grupo}>
-        <label htmlFor="categoria" style={estiloRotulo}>Categoria (opcional)</label>
-        <select id="categoria" name="categoria" defaultValue={post?.categoria ?? ""} style={estiloSelecao} aria-describedby="categoria-ajuda">
-          <option value="">Sem categoria</option>
-          {categorias.map(({ id, nome }) => (
-            <option key={id} value={id}>{nome}</option>
-          ))}
-        </select>
-        <p id="categoria-ajuda" className={classes.ajuda}>
-          {resposta?.erros?.categoria && <>{resposta.erros.categoria} </>}
-          {categorias.length === 0 ? "Nenhuma categoria cadastrada ainda. " : "Para criar ou renomear categorias, use "}
-          <Link href="/admin/blog/topicos">{categorias.length === 0 ? "Cadastre em Tópicos do blog" : "Tópicos do blog"}</Link>.
-        </p>
-      </div>
-
-      <fieldset className={`${classes.grupo} ${classes.semMoldura}`}>
-        <legend style={estiloRotulo}>Tags (opcional)</legend>
-        {tags.length === 0 ? (
-          <p className={classes.ajuda}>Nenhuma tag cadastrada ainda.</p>
-        ) : (
-          <div className={classes.opcoes}>
-            {tags.map(({ id, nome }) => (
-              <label key={id} className={classes.opcao}>
-                <input type="checkbox" name="tags" value={id} defaultChecked={post?.tags.includes(id)} />
-                {nome}
-              </label>
-            ))}
+        <div className={classes.grupo}>
+          <label htmlFor="conteudo" className={classes.rotulo}>
+            Conteúdo <span aria-hidden="true">*</span>
+          </label>
+          {emMarkdown && <input type="hidden" name="formatoConteudo" value="markdown" />}
+          <p id="conteudo-ajuda" className={classes.ajuda}>
+            {emMarkdown
+              ? "Texto em Markdown restrito: parágrafos separados por uma linha em branco, ## para subtítulo, **negrito**, *itálico*, listas com - e imagens como ![descrição](midia:id), que o botão abaixo insere."
+              : "Parágrafos separados por uma linha em branco. Ao inserir uma imagem no texto, o post passa a usar Markdown restrito (**negrito**, *itálico*, ## para subtítulo)."}
+          </p>
+          <textarea ref={conteudoRef} id="conteudo" name="conteudo" defaultValue={post?.conteudo} rows={15} className={classes.areaDeTexto} required aria-describedby="conteudo-ajuda" />
+          <div className={classes.botoes}>
+            <Botao type="button" variante="secundario" onClick={() => setInserindo(!inserindo)} aria-expanded={inserindo} aria-controls="inserir-imagem-no-texto">
+              {inserindo ? "Fechar envio de imagem" : "Inserir imagem no texto"}
+            </Botao>
           </div>
-        )}
-      </fieldset>
+          {inserindo && (
+            <div id="inserir-imagem-no-texto">
+              <ImagemDoItem
+                rotulo="Imagem no texto do post"
+                inicial={null}
+                dono={{ tipo: "post", id: post?.id ?? null, campo: "corpo" }}
+                proporcao="livre (aparece na largura do texto, com a proporção da própria imagem)"
+                textoDoEnvio="Inserir no texto"
+                soEnvio
+                aoMudar={inserirNoTexto}
+              />
+            </div>
+          )}
+          <p className="somente-leitor" aria-live="polite">{anuncioDoTexto}</p>
+        </div>
+      </SecaoDoFormulario>
 
-      <div className={classes.grupo}>
+      <SecaoDoFormulario titulo="Capa">
         <ImagemDoItem
           nome="capaMidiaId"
-          rotulo="Imagem de capa"
+          rotulo="Imagem de capa (opcional)"
           inicial={capa}
           dono={{ tipo: "post", id: post?.id ?? null, campo: "capa" }}
           proporcao="16:9 (a capa aparece assim na lista do blog)"
           erro={resposta?.erros?.capaMidiaId}
-          aoMudar={(escolha) => setTemCapa(escolha !== null)}
+          aoMudar={(escolha) => {
+            setTemCapa(escolha !== null);
+            setAlterado(true);
+          }}
         />
         {/* Capa antiga (endereço digitado antes da biblioteca): continua no site
             até haver uma capa da biblioteca. Só informada, não editável. */}
@@ -141,52 +160,45 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
             <span className={classes.enderecoAntigo}>{post.imagem}</span>
           </p>
         )}
-      </div>
+      </SecaoDoFormulario>
 
-      <div className={classes.grupo}>
-        <label htmlFor="conteudo" style={estiloRotulo}>Conteúdo</label>
-        {emMarkdown && <input type="hidden" name="formatoConteudo" value="markdown" />}
-        <textarea
-          ref={conteudoRef}
-          id="conteudo"
-          name="conteudo"
-          defaultValue={post?.conteudo}
-          rows={15}
-          placeholder="Escreva o conteúdo do post aqui..."
-          style={estiloAreaDeTexto}
-          required
-          aria-describedby="conteudo-ajuda"
-        />
-        <p id="conteudo-ajuda" className={classes.ajuda}>
-          {emMarkdown
-            ? "Texto em Markdown restrito: parágrafos separados por uma linha em branco, ## para subtítulo, **negrito**, *itálico*, listas com - e imagens como ![descrição](midia:id), que o botão abaixo insere."
-            : "Parágrafos separados por uma linha em branco. Ao inserir uma imagem no texto, o post passa a usar Markdown restrito (**negrito**, *itálico*, ## para subtítulo)."}
-        </p>
-        <div className={classes.botoes}>
-          <Botao type="button" variante="secundario" onClick={() => setInserindo(!inserindo)} aria-expanded={inserindo} aria-controls="inserir-imagem-no-texto">
-            {inserindo ? "Fechar envio de imagem" : "Inserir imagem no texto"}
-          </Botao>
+      <SecaoDoFormulario titulo="Classificação" descricao="Categoria e tags ajudam a filtrar o blog. As duas são opcionais.">
+        <div className={classes.grupo}>
+          <label htmlFor="categoria" className={classes.rotulo}>Categoria</label>
+          <select id="categoria" name="categoria" defaultValue={post?.categoria ?? ""} className={classes.selecao} aria-describedby="categoria-ajuda" aria-invalid={resposta?.erros?.categoria ? true : undefined}>
+            <option value="">Sem categoria</option>
+            {categorias.map(({ id, nome }) => (
+              <option key={id} value={id}>{nome}</option>
+            ))}
+          </select>
+          <p id="categoria-ajuda" className={`${classes.ajuda} texto-corrido`}>
+            {resposta?.erros?.categoria && <>{resposta.erros.categoria} </>}
+            {categorias.length === 0 ? "Nenhuma categoria cadastrada ainda. " : "Para criar ou renomear categorias, use "}
+            <Link href="/admin/blog/topicos">{categorias.length === 0 ? "Cadastre em Blog: categorias e tags" : "Blog: categorias e tags"}</Link>.
+          </p>
         </div>
-        {inserindo && (
-          <div id="inserir-imagem-no-texto">
-            <ImagemDoItem
-              rotulo="Imagem no texto do post"
-              inicial={null}
-              dono={{ tipo: "post", id: post?.id ?? null, campo: "corpo" }}
-              proporcao="livre (aparece na largura do texto, com a proporção da própria imagem)"
-              textoDoEnvio="Inserir no texto"
-              soEnvio
-              aoMudar={inserirNoTexto}
-            />
-          </div>
-        )}
-        <p className="somente-leitor" aria-live="polite">{anuncioDoTexto}</p>
-      </div>
 
-      <div className={classes.botoes}>
-        <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando}>{rotuloPublicar}</Botao>
+        <fieldset className={`${classes.grupo} ${classes.semMoldura}`}>
+          <legend className={classes.rotulo}>Tags</legend>
+          {tags.length === 0 ? (
+            <p className={classes.ajuda}>Nenhuma tag cadastrada ainda.</p>
+          ) : (
+            <div className={classes.opcoes}>
+              {tags.map(({ id, nome }) => (
+                <label key={id} className={classes.opcao}>
+                  <input type="checkbox" name="tags" value={id} defaultChecked={post?.tags.includes(id)} />
+                  {nome}
+                </label>
+              ))}
+            </div>
+          )}
+        </fieldset>
+      </SecaoDoFormulario>
+
+      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : "Publicar mostra o post no blog; rascunho o deixa só no painel."}>
         <Botao type="submit" name="acao" value="rascunho" variante="secundario" disabled={salvando}>{rotuloRascunho}</Botao>
-      </div>
+        <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando}>{salvando ? "Salvando..." : rotuloPublicar}</Botao>
+      </BarraDeSalvar>
     </form>
   );
 }

@@ -13,7 +13,7 @@ export default async function PaginaCategoriasDaLoja() {
 
   return (
     <div>
-      <CabecalhoDoPainel titulo="Loja: categorias" descricao="Categorias que organizam os produtos na loja." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Loja", href: "/admin/loja" }, { rotulo: "Categorias" }]} titulo="Loja: categorias" descricao="Categorias que organizam os produtos na loja. Criar, renomear, mudar a ordem e excluir (com confirmação)." />
       <GerenciadorDeTopicos
         tipo="categoriaDeProduto"
         comOrdem

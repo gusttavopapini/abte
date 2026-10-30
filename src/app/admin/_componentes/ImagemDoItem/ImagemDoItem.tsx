@@ -200,7 +200,7 @@ export function ImagemDoItem({ nome, rotulo, inicial, dono, proporcao, erro, aoM
   const descrito = (campo: keyof Erros) => (erros[campo] ? `${id}-${campo}-erro` : undefined);
 
   return (
-    <fieldset className={estilos.campo} aria-describedby={[idAjuda, erro ? `${id}-erro` : undefined].filter(Boolean).join(" ")}>
+    <fieldset className={estilos.campo} data-caixa-clara="" aria-describedby={[idAjuda, erro ? `${id}-erro` : undefined].filter(Boolean).join(" ")}>
       <legend className={estilos.rotulo}>{rotulo}</legend>
       {nome && <input type="hidden" name={nome} value={escolha?.id ?? ""} />}
       <p id={idAjuda} className={estilos.ajuda}>

@@ -100,7 +100,7 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro, dono, prop
   const noLimite = itens.length >= limite;
 
   return (
-    <fieldset className={estilos.galeria} aria-describedby={erro ? idErro : `${id}-ajuda`}>
+    <fieldset className={estilos.galeria} data-caixa-clara="" aria-describedby={erro ? idErro : `${id}-ajuda`}>
       <legend className={estilos.rotulo}>{rotulo}</legend>
       <p id={`${id}-ajuda`} className={estilos.texto}>
         A primeira imagem é a principal (aparece no card da loja). Até {limite} imagens. Para mudar a ordem, arraste a imagem ou use &ldquo;Subir&rdquo; e &ldquo;Descer&rdquo;.

@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BuscaNaTabela } from "@/app/admin/_componentes/BuscaNaTabela/BuscaNaTabela";
+import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
+import { CelulaDoPainel, LinhaDoPainel, TabelaPainel } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { Botao } from "@/components/Botao/Botao";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerPosts } from "@/lib/dados/colecoes";
-import { Botao } from "@/components/Botao/Botao";
-import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
-import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
-import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 
 export const metadata: Metadata = { title: "Blog" };
+
+const SITUACOES_DE_PUBLICACAO = [
+  { valor: "publicado", rotulo: "Publicados" },
+  { valor: "rascunho", rotulo: "Rascunhos" },
+];
 
 export default async function PaginaAdminBlog() {
   await exigirPapelDoPainel();
@@ -17,27 +23,38 @@ export default async function PaginaAdminBlog() {
   return (
     <div>
       <CabecalhoDoPainel
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Blog" }]}
         titulo="Blog"
-        descricao="Gerencie os posts publicados e rascunhos."
-        acao={<Botao href="/admin/blog/novo">Adicionar Novo Post</Botao>}
+        descricao="Posts do blog, publicados e rascunhos. Só os publicados aparecem no site; categorias e tags ficam em Blog: categorias e tags."
+        acao={<Botao href="/admin/blog/novo">Adicionar post</Botao>}
       />
-      
-      <TabelaPainel colunas={["Título", "Status", "Data", "Ações"]} vazia={posts.length === 0} mensagemVazia="Nenhum post encontrado.">
+
+      {posts.length > 0 && (
+        <BuscaNaTabela tabela="tabela-posts" rotuloDaBusca="Buscar pelo título" situacoes={SITUACOES_DE_PUBLICACAO} total={posts.length} nomeNoSingular="post" nomeNoPlural="posts" />
+      )}
+      <TabelaPainel
+        id="tabela-posts"
+        legenda="Mais recentes primeiro (pela data de criação)."
+        colunas={["Título", "Situação", "Criado em", "Ações"]}
+        vazia={posts.length === 0}
+        estadoVazio={
+          <>
+            <p className="tipo-texto">Nenhum post ainda. O primeiro post publicado aparece em /blog.</p>
+            <Botao href="/admin/blog/novo" variante="secundario">Adicionar o primeiro post</Botao>
+          </>
+        }
+      >
         {posts.map((post) => (
-          <tr key={post.id} style={estiloLinha}>
-            <td className={classeDaCelula} style={{ fontWeight: 500 }}>{post.titulo}</td>
-            <td className={classeDaCelula}>
-              <SeloStatus status={post.status} />
-            </td>
-            <td className={classeDaCelula} style={{ opacity: 0.8 }}>
-              {post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "N/A"}
-            </td>
-            <td className={classeDaCelula}>
-              <Link href={`/admin/blog/editar/${post.id}`} className="realce">
+          <LinhaDoPainel key={post.id} busca={post.titulo} situacao={post.status}>
+            <CelulaDoPainel rotulo="Título" destaque>{post.titulo}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Situação"><SeloStatus status={post.status} /></CelulaDoPainel>
+            <CelulaDoPainel rotulo="Criado em">{post.criadoEm ? post.criadoEm.toLocaleDateString("pt-BR") : "Sem data"}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Ações" acoes>
+              <Link href={`/admin/blog/editar/${post.id}`} className="realce" aria-label={`Editar o post ${post.titulo}`}>
                 Editar
               </Link>
-            </td>
-          </tr>
+            </CelulaDoPainel>
+          </LinhaDoPainel>
         ))}
       </TabelaPainel>
     </div>

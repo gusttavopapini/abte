@@ -14,15 +14,15 @@ export default async function PaginaNovoArtigo() {
 
   return (
     <div>
-      <CabecalhoDoPainel titulo="Adicionar Novo Artigo" descricao="Preencha os campos abaixo para catalogar um artigo científico." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Novo artigo" }]} titulo="Novo artigo" descricao="Preencha os dados do artigo científico. Os campos com * são obrigatórios." />
       
       <FormularioArtigo
         imagem={null}
         acao={salvarArtigo}
         categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
-        rotuloPublicar="Publicar Artigo"
-        rotuloRascunho="Salvar como Rascunho"
+        rotuloPublicar="Publicar"
+        rotuloRascunho="Salvar como rascunho"
       />
     </div>
   );

@@ -1,0 +1,55 @@
+/* Caixa de texto do painel (29/10/2026). O tipo vem escrito (Informação,
+   Atenção, Erro) e na borda da esquerda; a cor nunca é o único sinal. */
+.caixa {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--panel-padding);
+  border-left: calc(var(--space-8) / 2) solid var(--color-primary);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.atencao {
+  border-left-color: var(--color-surface-strong);
+}
+
+.erro {
+  border-left-color: var(--color-error);
+}
+
+.sucesso {
+  border-left-color: var(--color-success);
+}
+
+.titulo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: baseline;
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.tipo {
+  font-size: var(--font-size-small);
+  text-transform: uppercase;
+}
+
+.erro .tipo {
+  color: var(--color-error);
+}
+
+.sucesso .tipo {
+  color: var(--color-success);
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+}

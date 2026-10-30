@@ -16,5 +16,9 @@ export default async function LayoutAdminProtegido({ children }: { children: Rea
   }
 
   // Sem sessão, exigirSessaoDoPainel já redirecionou para /admin/entrar.
-  return <LayoutPainel usuario={resultado.usuario}>{children}</LayoutPainel>;
+  return (
+    <LayoutPainel usuario={resultado.usuario} sair={<BotaoSair />}>
+      {children}
+    </LayoutPainel>
+  );
 }

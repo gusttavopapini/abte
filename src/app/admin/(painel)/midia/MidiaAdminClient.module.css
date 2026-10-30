@@ -4,10 +4,14 @@
   gap: var(--space-24);
 }
 
+/* Caixas brancas sobre o fundo claro do painel (29/10/2026) */
 .busca {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  padding: var(--space-16) var(--panel-padding);
+  background: var(--color-bg);
 }
 
 .rotulo {
@@ -41,7 +45,7 @@
   flex-direction: column;
   gap: var(--space-16);
   padding: var(--space-16);
-  background: var(--color-bg-alt);
+  background: var(--color-bg);
   min-width: 0;
 }
 
@@ -124,6 +128,9 @@
 }
 
 .lixeira {
+  border-radius: var(--radius);
+  padding: var(--panel-padding);
+  background: var(--color-bg);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);

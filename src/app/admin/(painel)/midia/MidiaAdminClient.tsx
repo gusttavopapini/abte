@@ -174,12 +174,13 @@ export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Mídia" }]}
         titulo="Mídia"
-        descricao="Imagens do site. Cada imagem precisa de um texto alternativo."
+        descricao="Todas as imagens do site, com onde cada uma é usada. As imagens de cada item são enviadas no próprio formulário dele; aqui dá para enviar direto, editar o texto alternativo e excluir (vai para a lixeira)."
         acao={<Botao onClick={() => abrir({ tipo: "enviar" })}>Enviar imagem</Botao>}
       />
 
-      {aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}
+      <div aria-live="polite">{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
 
       <div className={estilos.busca}>
         <label htmlFor={idBusca} className={estilos.rotulo}>Buscar pelo texto alternativo</label>

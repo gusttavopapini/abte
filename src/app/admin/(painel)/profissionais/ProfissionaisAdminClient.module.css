@@ -36,6 +36,9 @@
 }
 
 .excluidos {
+  border-radius: var(--radius);
+  padding: var(--panel-padding);
+  background: var(--color-bg);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);

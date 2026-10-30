@@ -285,6 +285,7 @@ export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[];
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Home" }]}
         titulo="Home"
         descricao="Imagens da página inicial do site: os banners do carrossel e as imagens fixas das seções."
         acao={

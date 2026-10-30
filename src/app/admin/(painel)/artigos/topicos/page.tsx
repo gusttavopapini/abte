@@ -20,7 +20,8 @@ export default async function PaginaTopicosDeArtigos() {
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
-        titulo="Tópicos dos artigos"
+        trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Categorias e tags" }]}
+        titulo="Artigos: categorias e tags"
         descricao="Categorias e tags usadas para organizar os artigos científicos no site."
       />
       <GerenciadorDeTopicos

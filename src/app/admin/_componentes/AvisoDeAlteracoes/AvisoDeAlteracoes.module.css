@@ -1,0 +1,7 @@
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  justify-content: flex-end;
+  margin-top: var(--space-24);
+}

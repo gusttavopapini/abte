@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useState } from "react";
-import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { BuscaNaTabela } from "@/app/admin/_componentes/BuscaNaTabela/BuscaNaTabela";
+import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
+import { CelulaDoPainel, LinhaDoPainel, TabelaPainel } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { FormularioProfissional, type ProfissionalNaTela } from "@/app/admin/_componentes/FormularioProfissional/FormularioProfissional";
 import { excluirProfissional, restaurarProfissional } from "@/app/admin/acoes-profissionais";
@@ -58,29 +60,51 @@ export function ProfissionaisAdminClient({ ativos, excluidos }: Props) {
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Profissionais" }]}
         titulo="Profissionais"
-        descricao="Gerencie o diretório de profissionais da ABTE."
-        acao={<Botao onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional: null }); }}>Adicionar Novo</Botao>}
+        descricao="Diretório de profissionais da ABTE. Só os marcados como visíveis aparecem em /profissionais. Excluídos ficam no fim da página e podem ser restaurados."
+        acao={<Botao onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional: null }); }}>Adicionar profissional</Botao>}
       />
 
-      {aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}
+      <div aria-live="polite">{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
 
-      <TabelaPainel colunas={["Nome", "Tipo", "Local", "No site", "Ações"]} vazia={ativos.length === 0} mensagemVazia="Nenhum profissional cadastrado.">
+      {ativos.length > 0 && (
+        <BuscaNaTabela
+          tabela="tabela-profissionais"
+          rotuloDaBusca="Buscar pelo nome, tipo ou local"
+          situacoes={[{ valor: "ativo", rotulo: "Visíveis no site" }, { valor: "oculto", rotulo: "Ocultos" }]}
+          total={ativos.length}
+          nomeNoSingular="profissional"
+          nomeNoPlural="profissionais"
+        />
+      )}
+      <TabelaPainel
+        id="tabela-profissionais"
+        legenda="Pelo campo Ordem e, no empate, pelo nome."
+        colunas={["Nome", "Tipo", "Local", "No site", "Ações"]}
+        vazia={ativos.length === 0}
+        estadoVazio={
+          <>
+            <p className="tipo-texto">Nenhum profissional cadastrado. Os visíveis aparecem em /profissionais.</p>
+            <Botao variante="secundario" onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional: null }); }}>Adicionar o primeiro profissional</Botao>
+          </>
+        }
+      >
         {ativos.map((profissional) => (
-          <tr key={profissional.id} style={estiloLinha}>
-            <td className={classeDaCelula}>{[profissional.tratamento, profissional.nome].filter(Boolean).join(" ")}</td>
-            <td className={classeDaCelula}>{profissional.tipo}</td>
-            <td className={classeDaCelula}>{local(profissional)}</td>
-            <td className={classeDaCelula}>{profissional.ativo ? "Sim" : "Não (oculto)"}</td>
-            <td className={`${classeDaCelula} ${estilos.acoes}`}>
+          <LinhaDoPainel key={profissional.id} busca={`${profissional.nome} ${profissional.tipo} ${local(profissional)}`} situacao={profissional.ativo ? "ativo" : "oculto"}>
+            <CelulaDoPainel rotulo="Nome" destaque>{[profissional.tratamento, profissional.nome].filter(Boolean).join(" ")}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Tipo">{profissional.tipo}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Local">{local(profissional) || "Sem local"}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="No site"><SeloStatus status={profissional.ativo ? "ativo" : "oculto"} /></CelulaDoPainel>
+            <CelulaDoPainel rotulo="Ações" acoes>
               <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setJanela({ tipo: "formulario", profissional }); }} aria-label={`Editar ${profissional.nome}`}>
                 Editar
               </button>
               <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setJanela({ tipo: "excluir", profissional }); }} aria-label={`Excluir ${profissional.nome}`}>
                 Excluir
               </button>
-            </td>
-          </tr>
+            </CelulaDoPainel>
+          </LinhaDoPainel>
         ))}
       </TabelaPainel>
 
@@ -114,7 +138,7 @@ export function ProfissionaisAdminClient({ ativos, excluidos }: Props) {
         )}
       </Modal>
 
-      <Modal aberto={janela?.tipo === "excluir"} aoFechar={fechar} titulo="Excluir profissional">
+      <Modal aberto={janela?.tipo === "excluir"} aoFechar={fechar} titulo={janela?.tipo === "excluir" ? `Excluir "${janela.profissional.nome}"` : "Excluir profissional"}>
         {janela?.tipo === "excluir" && <ConfirmarExclusao profissional={janela.profissional} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
     </div>

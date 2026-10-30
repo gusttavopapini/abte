@@ -22,7 +22,8 @@ export default async function PaginaTopicosDoBlog() {
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
-        titulo="Tópicos do blog"
+        trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Categorias e tags" }]}
+        titulo="Blog: categorias e tags"
         descricao="Categorias e tags usadas para organizar os posts do blog no site."
       />
       <GerenciadorDeTopicos

@@ -1,32 +1,62 @@
-/* Classes comuns aos formulários de post e de artigo. Os estilos com valores
-   sem token continuam em estilosDoFormulario.ts (exceções no CLAUDE.md). */
+/* Campos comuns aos formulários de página inteira do painel (post e
+   artigo), só tokens (29/10/2026; antes havia estilos inline com valores
+   sem token, em estilosDoFormulario.ts, que saiu). */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: calc(var(--content-max) / 2 + var(--space-96) * 2);
+}
+
 .grupo {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  min-width: 0;
 }
 
-.botoes {
-  display: flex;
-  gap: var(--space-16);
-  margin-top: var(--space-16);
-}
-
-/* Grupo sem moldura do navegador (tags do artigo) */
 .semMoldura {
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-.ajuda {
+.rotulo {
+  color: var(--color-text);
   font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.entrada,
+.selecao,
+.areaDeTexto {
+  border-radius: var(--radius);
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: var(--space-8);
+  border: 0;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.areaDeTexto {
+  min-height: calc(var(--space-96) * 3);
+  resize: vertical;
+}
+
+.ajuda {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
 }
 
 .opcoes {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-16);
+  gap: var(--space-8) var(--space-16);
 }
 
 .opcao {
@@ -34,9 +64,25 @@
   gap: var(--space-8);
   align-items: center;
   min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
 }
 
 /* Endereço longo (capa antiga do post) quebra em qualquer ponto */
 .enderecoAntigo {
   overflow-wrap: anywhere;
+}
+
+/* Celular: links dentro da ajuda com a altura mínima de toque */
+@media (max-width: 767px) {
+  .ajuda a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
 }

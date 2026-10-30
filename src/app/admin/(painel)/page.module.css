@@ -1,3 +1,44 @@
-.titulo {
-  margin-bottom: var(--space-24);
+/* Atalhos da visão geral (29/10/2026): cartões brancos com a seta que
+   desliza no hover, como os links do site. */
+.areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--space-96) * 3)), 1fr));
+  gap: var(--space-24);
+}
+
+.area {
+  border-radius: var(--radius);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  height: 100%;
+  padding: var(--panel-padding);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color var(--realce-duracao) ease-out;
+}
+
+.tituloDaArea {
+  font-size: var(--font-size-text-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.textoDaArea {
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .area:hover {
+    background: var(--realce-fundo);
+  }
+
+  .area:hover .seta-para-frente {
+    transform: translateX(calc(var(--space-8) / 2));
+  }
+}
+
+.area:focus-visible .seta-para-frente {
+  transform: translateX(calc(var(--space-8) / 2));
 }

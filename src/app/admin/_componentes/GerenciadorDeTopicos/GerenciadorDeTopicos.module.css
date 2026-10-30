@@ -1,7 +1,13 @@
+/* Caixa branca sobre o fundo claro do painel; os itens ficam em caixas
+   claras com os campos brancos (29/10/2026) */
 .secao {
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
+  margin-bottom: var(--space-24);
+  padding: var(--panel-padding);
+  background: var(--color-bg);
 }
 
 .lista {
@@ -59,4 +65,10 @@
 /* Seletor de imagem das categorias, abaixo do nome e da ordem */
 .imagem {
   margin-top: var(--space-16);
+}
+
+.confirmacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
 }

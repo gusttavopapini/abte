@@ -23,7 +23,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <CabecalhoDoPainel titulo="Editar Post" descricao="Atualize os dados da publicação." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Editar post" }]} titulo="Editar post" descricao={`"${post.titulo}". Os campos com * são obrigatórios; o endereço do post não muda ao trocar o título.`} />
       
       <FormularioPost
         acao={atualizarPost}
@@ -31,8 +31,8 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
         capa={capa}
         categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
-        rotuloPublicar="Atualizar e Publicar"
-        rotuloRascunho="Reverter para Rascunho"
+        rotuloPublicar="Salvar e publicar"
+        rotuloRascunho="Salvar como rascunho"
       />
     </div>
   );

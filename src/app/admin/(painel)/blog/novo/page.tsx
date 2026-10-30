@@ -14,15 +14,15 @@ export default async function PaginaNovoPost() {
 
   return (
     <div>
-      <CabecalhoDoPainel titulo="Adicionar Novo Post" descricao="Preencha os campos abaixo para criar uma publicação no blog." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Novo post" }]} titulo="Novo post" descricao="Preencha o texto e, se quiser, a capa e a classificação. Os campos com * são obrigatórios." />
       
       <FormularioPost
         acao={salvarPost}
         capa={null}
         categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
-        rotuloPublicar="Publicar Post"
-        rotuloRascunho="Salvar como Rascunho"
+        rotuloPublicar="Publicar"
+        rotuloRascunho="Salvar como rascunho"
       />
     </div>
   );

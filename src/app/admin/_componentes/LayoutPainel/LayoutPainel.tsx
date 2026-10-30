@@ -1,98 +1,161 @@
+"use client";
+
 import Link from "next/link";
-import { type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { IconeFechar, IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
-import { BotaoSair } from "../BotaoSair/BotaoSair";
 import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
   children: ReactNode;
   usuario?: { nome?: string | null; email: string };
+  // Botão "Sair" (formulário com ação de servidor), montado no servidor.
+  sair: ReactNode;
 };
 
-export function LayoutPainel({ children, usuario }: PropsLayoutPainel) {
+// Itens do menu, na ordem do trabalho (29/10/2026).
+const ITENS = [
+  { href: "/admin", rotulo: "Visão geral", exato: true },
+  { href: "/admin/home", rotulo: "Home" },
+  { href: "/admin/blog", rotulo: "Blog", fora: ["/admin/blog/topicos"] },
+  { href: "/admin/blog/topicos", rotulo: "Blog: categorias e tags" },
+  { href: "/admin/artigos", rotulo: "Artigos", fora: ["/admin/artigos/topicos"] },
+  { href: "/admin/artigos/topicos", rotulo: "Artigos: categorias e tags" },
+  { href: "/admin/profissionais", rotulo: "Profissionais" },
+  { href: "/admin/loja", rotulo: "Loja", fora: ["/admin/loja/categorias"] },
+  { href: "/admin/loja/categorias", rotulo: "Loja: categorias" },
+  { href: "/admin/midia", rotulo: "Mídia" },
+];
+
+function itemAtual(caminho: string, item: (typeof ITENS)[number]): boolean {
+  if (item.exato) return caminho === item.href;
+  if (item.fora?.some((outro) => caminho.startsWith(outro))) return false;
+  return caminho === item.href || caminho.startsWith(`${item.href}/`);
+}
+
+const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Estrutura do painel (29/10/2026). A partir de 1024px, barra lateral fixa
+// com o menu. Até 1023px, um cabeçalho com o botão "Menu" que abre o menu
+// numa gaveta (foco preso, Esc fecha e devolve o foco ao botão, página sem
+// rolar, animação curta; com movimento reduzido, sem animação).
+export function LayoutPainel({ children, usuario, sair }: PropsLayoutPainel) {
+  const caminho = usePathname();
+  const idGaveta = useId();
+  const [aberta, setAberta] = useState(false);
+  const gavetaRef = useRef<HTMLDivElement>(null);
+  const botaoRef = useRef<HTMLButtonElement>(null);
+
+  // Trocar de página fecha a gaveta.
+  const [caminhoVisto, setCaminhoVisto] = useState(caminho);
+  if (caminhoVisto !== caminho) {
+    setCaminhoVisto(caminho);
+    setAberta(false);
+  }
+
+  useEffect(() => {
+    if (!aberta) return;
+    const corpo = document.body;
+    corpo.style.overflow = "hidden";
+    const botao = botaoRef.current;
+    gavetaRef.current?.querySelector<HTMLElement>(FOCAVEIS)?.focus();
+    return () => {
+      corpo.style.overflow = "";
+      botao?.focus();
+    };
+  }, [aberta]);
+
+  function aoTeclarNaGaveta(evento: KeyboardEvent<HTMLDivElement>) {
+    if (evento.key === "Escape") {
+      evento.preventDefault();
+      setAberta(false);
+      return;
+    }
+    if (evento.key !== "Tab" || !gavetaRef.current) return;
+    const focaveis = [...gavetaRef.current.querySelectorAll<HTMLElement>(FOCAVEIS)];
+    const primeiro = focaveis[0];
+    const ultimo = focaveis[focaveis.length - 1];
+    if (evento.shiftKey && document.activeElement === primeiro) {
+      evento.preventDefault();
+      ultimo?.focus();
+    } else if (!evento.shiftKey && document.activeElement === ultimo) {
+      evento.preventDefault();
+      primeiro?.focus();
+    }
+  }
+
+  const nomeDoUsuario = usuario ? usuario.nome || usuario.email : null;
+  const menu = (
+    <nav aria-label="Menu do painel" className={estilos.menu}>
+      <ul role="list" className={estilos.listaMenu}>
+        {ITENS.map((item) => {
+          const atual = itemAtual(caminho, item);
+          return (
+            <li key={item.href}>
+              <Link href={item.href} className={`${estilos.linkMenu} ${atual ? estilos.atual : ""}`} aria-current={atual ? "page" : undefined}>
+                {item.rotulo}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+  const rodapeDoMenu = (
+    <div className={estilos.usuario}>
+      {nomeDoUsuario && <p className={estilos.nomeDoUsuario}>{nomeDoUsuario}</p>}
+      {sair}
+    </div>
+  );
+
   return (
     <div className={estilos.layout}>
-      {/* Sidebar */}
-      <aside className={estilos.sidebar}>
-        <div className={estilos.cabecalhoSidebar}>
+      {/* A partir de 1024px */}
+      <aside className={estilos.lateral} aria-label="Painel da ABTE">
+        <div className={estilos.marca}>
           <Logo />
+          <p className={estilos.nomeDoPainel}>Painel</p>
         </div>
-        
-        <nav className={estilos.menu}>
-          <div className={estilos.grupoMenu}>
-            <ul className={estilos.listaMenu}>
-              <li>
-                <Link href="/admin" className={estilos.linkMenu}>
-                  Visão Geral
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/blog" className={estilos.linkMenu}>
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/blog/topicos" className={estilos.linkMenu}>
-                  Tópicos do blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/artigos" className={estilos.linkMenu}>
-                  Artigos
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/artigos/topicos" className={estilos.linkMenu}>
-                  Tópicos dos artigos
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/profissionais" className={estilos.linkMenu}>
-                  Profissionais
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/loja" className={estilos.linkMenu}>
-                  Loja: produtos
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/loja/categorias" className={estilos.linkMenu}>
-                  Loja: categorias
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/home" className={estilos.linkMenu}>
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/midia" className={estilos.linkMenu}>
-                  Mídia
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        {menu}
+        {rodapeDoMenu}
       </aside>
 
-      {/* Conteúdo Principal */}
-      <div className={estilos.conteudoPrincipal}>
-        <header className={estilos.topoPainel}>
-          <div className={estilos.areaDoUsuario}>
-            {usuario && (
-              <span style={{ fontSize: "var(--font-size-small)", opacity: 0.8 }}>
-                {usuario.nome || usuario.email}
-              </span>
-            )}
-            <BotaoSair />
-          </div>
-        </header>
-
-        <main className={estilos.areaPrincipal}>
-          {children}
-        </main>
+      {/* Até 1023px */}
+      <header className={estilos.topo}>
+        <div className={estilos.marca}>
+          <Logo />
+          <p className={estilos.nomeDoPainel}>Painel</p>
+        </div>
+        <button ref={botaoRef} type="button" className={estilos.botaoMenu} aria-expanded={aberta} aria-controls={idGaveta} onClick={() => setAberta(true)}>
+          <IconeMenu className={estilos.icone} />
+          Menu
+        </button>
+      </header>
+      <div className={`${estilos.fundo} ${aberta ? estilos.fundoVisivel : ""}`} onClick={() => setAberta(false)} aria-hidden="true" />
+      <div
+        ref={gavetaRef}
+        id={idGaveta}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu do painel"
+        className={`${estilos.gaveta} ${aberta ? estilos.gavetaAberta : ""}`}
+        inert={!aberta}
+        onKeyDown={aoTeclarNaGaveta}
+      >
+        <div className={estilos.cabecalhoDaGaveta}>
+          <p className={estilos.nomeDoPainel}>Menu do painel</p>
+          <button type="button" className={estilos.botaoFechar} onClick={() => setAberta(false)} aria-label="Fechar o menu">
+            <IconeFechar className={estilos.icone} />
+          </button>
+        </div>
+        {menu}
+        {rodapeDoMenu}
       </div>
+
+      <main id="conteudo-do-painel" className={estilos.principal}>
+        {children}
+      </main>
     </div>
   );
 }

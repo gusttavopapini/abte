@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useId, useState } from "react";
 import { Botao } from "@/components/Botao/Botao";
+import { Modal } from "@/components/Modal/Modal";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
@@ -80,6 +81,8 @@ type PropsDoItem = {
 function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeAparece, prefixoDoEndereco }: PropsDoItem) {
   const [respostaSalvar, salvar, salvando] = useActionState(atualizarTopico, null);
   const id = useId();
+  // Excluir pede confirmação num modal, com o nome do item (29/10/2026).
+  const [confirmando, setConfirmando] = useState(false);
   return (
     <li className={estilos.caixa}>
       <form id={`${id}-salvar`} action={salvar}>
@@ -119,14 +122,21 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeA
       {/* Salvar pertence ao formulário acima (atributo form); Excluir tem o próprio formulário. */}
       <div className={estilos.botoes}>
         <Botao type="submit" form={`${id}-salvar`} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
-        <form action={excluir.acao}>
+        <Botao type="button" variante="secundario" disabled={excluir.pendente} onClick={() => setConfirmando(true)} aria-label={`Excluir ${topico.nome}`}>
+          Excluir
+        </Botao>
+      </div>
+      <Modal aberto={confirmando} aoFechar={() => setConfirmando(false)} titulo={`Excluir "${topico.nome}"`}>
+        <form action={excluir.acao} onSubmit={() => setConfirmando(false)} className={estilos.confirmacao}>
           <input type="hidden" name="tipo" value={tipo} />
           <input type="hidden" name="id" value={topico.id} />
-          <Botao type="submit" variante="secundario" disabled={excluir.pendente} aria-label={`Excluir ${topico.nome}`}>
-            Excluir
-          </Botao>
+          <p className="tipo-texto">&ldquo;{topico.nome}&rdquo; vai para os excluídos e sai do site. Os itens que usam continuam salvos, e dá para restaurar depois.</p>
+          <div className={estilos.botoes}>
+            <Botao type="button" variante="secundario" onClick={() => setConfirmando(false)}>Cancelar</Botao>
+            <Botao type="submit" disabled={excluir.pendente}>Excluir</Botao>
+          </div>
         </form>
-      </div>
+      </Modal>
       <Resposta resposta={respostaSalvar} />
     </li>
   );

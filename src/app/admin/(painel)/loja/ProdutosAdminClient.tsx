@@ -2,7 +2,9 @@
 
 import { useActionState, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { TabelaPainel, classeDaCelula, estiloLinha } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { BuscaNaTabela } from "@/app/admin/_componentes/BuscaNaTabela/BuscaNaTabela";
+import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
+import { CelulaDoPainel, LinhaDoPainel, TabelaPainel } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { excluirProduto, restaurarProduto } from "@/app/admin/acoes-produtos";
 import { Botao } from "@/components/Botao/Botao";
@@ -45,25 +47,47 @@ export function ProdutosAdminClient({ ativos, excluidos, salvo }: { ativos: Linh
   return (
     <div className={estilos.pagina}>
       <CabecalhoDoPainel
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Loja" }]}
         titulo="Loja: produtos"
-        descricao="Cadastro dos produtos da loja. Não há pagamento online: a finalização da compra aparece como “em breve”."
-        acao={<Botao href="/admin/loja/novo">Adicionar Produto</Botao>}
+        descricao="Cadastro dos produtos da loja. Só os publicados aparecem em /loja. Não há pagamento online: a finalização da compra aparece como “em breve”."
+        acao={<Botao href="/admin/loja/novo">Adicionar produto</Botao>}
       />
-      {aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}
+      <div aria-live="polite">{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
+      {ativos.length > 0 && (
+        <BuscaNaTabela
+          tabela="tabela-produtos"
+          rotuloDaBusca="Buscar pelo nome ou categoria"
+          situacoes={[{ valor: "publicado", rotulo: "Na loja" }, { valor: "rascunho", rotulo: "Fora da loja (rascunho)" }]}
+          total={ativos.length}
+          nomeNoSingular="produto"
+          nomeNoPlural="produtos"
+        />
+      )}
 
-      <TabelaPainel colunas={["Nome", "Categoria", "Preço", "Situação", "Na loja", "Ações"]} vazia={ativos.length === 0} mensagemVazia="Nenhum produto cadastrado.">
+      <TabelaPainel
+        id="tabela-produtos"
+        legenda="Na ordem da loja (campo Ordem; no empate, pelo nome)."
+        colunas={["Nome", "Categoria", "Preço", "Estoque", "Na loja", "Ações"]}
+        vazia={ativos.length === 0}
+        estadoVazio={
+          <>
+            <p className="tipo-texto">Nenhum produto cadastrado. Cada produto precisa de uma categoria: cadastre antes em Loja: categorias.</p>
+            <Botao href="/admin/loja/novo" variante="secundario">Adicionar o primeiro produto</Botao>
+          </>
+        }
+      >
         {ativos.map((produto) => (
-          <tr key={produto.id} style={estiloLinha}>
-            <td className={classeDaCelula}>{produto.nome}</td>
-            <td className={classeDaCelula}>{produto.categoria}</td>
-            <td className={classeDaCelula}>{produto.preco}</td>
-            <td className={classeDaCelula}>{produto.situacao}</td>
-            <td className={classeDaCelula}>{produto.publicado ? "Sim" : "Não (rascunho)"}</td>
-            <td className={`${classeDaCelula} ${estilos.acoes}`}>
+          <LinhaDoPainel key={produto.id} busca={`${produto.nome} ${produto.categoria}`} situacao={produto.publicado ? "publicado" : "rascunho"}>
+            <CelulaDoPainel rotulo="Nome" destaque>{produto.nome}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Categoria">{produto.categoria}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Preço">{produto.preco}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Estoque">{produto.situacao}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Na loja"><SeloStatus status={produto.publicado ? "publicado" : "rascunho"} /></CelulaDoPainel>
+            <CelulaDoPainel rotulo="Ações" acoes>
               <Link href={`/admin/loja/editar/${produto.id}`} className={`realce ${estilos.acao}`} aria-label={`Editar ${produto.nome}`}>Editar</Link>
               <button type="button" className={`realce ${estilos.acao}`} onClick={() => { setAviso(null); setExcluindo(produto); }} aria-label={`Excluir ${produto.nome}`}>Excluir</button>
-            </td>
-          </tr>
+            </CelulaDoPainel>
+          </LinhaDoPainel>
         ))}
       </TabelaPainel>
 
@@ -87,7 +111,7 @@ export function ProdutosAdminClient({ ativos, excluidos, salvo }: { ativos: Linh
         )}
       </section>
 
-      <Modal aberto={excluindo !== null} aoFechar={fechar} titulo="Excluir produto">
+      <Modal aberto={excluindo !== null} aoFechar={fechar} titulo={excluindo ? `Excluir "${excluindo.nome}"` : "Excluir produto"}>
         {excluindo && <ConfirmarExclusao produto={excluindo} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
     </div>

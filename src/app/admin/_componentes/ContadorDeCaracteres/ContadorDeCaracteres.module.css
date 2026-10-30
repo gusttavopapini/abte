@@ -1,0 +1,9 @@
+.contador {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  text-align: right;
+}
+
+.noLimite {
+  font-weight: var(--font-weight-bold);
+}

@@ -19,7 +19,7 @@
   gap: var(--space-16);
   align-items: flex-start;
   padding: var(--panel-padding);
-  background: var(--color-bg-alt);
+  background: var(--color-bg);
 }
 
 .grade {
@@ -35,7 +35,7 @@
   gap: var(--space-16);
   min-width: 0;
   padding: var(--space-16);
-  background: var(--color-bg-alt);
+  background: var(--color-bg);
 }
 
 .miniatura {
@@ -44,7 +44,7 @@
   place-items: center;
   overflow: hidden;
   aspect-ratio: 12 / 5;
-  background: var(--color-bg);
+  background: var(--color-bg-alt);
 }
 
 .imagem {

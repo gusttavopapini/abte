@@ -1,82 +1,218 @@
+/* Estrutura do painel (29/10/2026, só tokens). Fundo claro da página com
+   caixas brancas; barra lateral de 288px a partir de 1024px; até 1023px,
+   cabeçalho com o botão "Menu" e a gaveta. */
 .layout {
-  display: flex;
-  min-height: 100vh;
-  background: var(--color-bg);
+  --largura-do-menu: calc(var(--space-96) * 3);
+  --gaveta-duracao: 250ms;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--color-bg-alt);
 }
 
-.sidebar {
-  width: 280px;
-  background: var(--color-surface-soft);
-  border-right: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
-  display: flex;
-  flex-direction: column;
+.principal {
+  min-width: 0;
+  padding: var(--space-32) var(--page-margin) var(--space-64);
 }
 
-.cabecalhoSidebar {
-  padding: var(--space-32) var(--space-24);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
+.principal:focus {
+  box-shadow: none;
+}
+
+.marca {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+}
+
+.nomeDoPainel {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .menu {
   flex: 1;
-  padding: var(--space-24) 0;
+  min-height: 0;
   overflow-y: auto;
 }
 
-.grupoMenu {
-  margin-bottom: var(--space-32);
-}
-
 .listaMenu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(var(--space-8) / 2);
 }
 
 .linkMenu {
   border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  padding: var(--space-8) var(--space-24);
-  color: var(--color-text);
   text-decoration: none;
-  transition: background-color 0.2s, color 0.2s;
-  font-weight: var(--font-weight-light);
-}
-
-.linkMenu:hover {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
-  color: var(--color-primary);
-}
-
-.conteudoPrincipal {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: calc(100vw - 280px);
-}
-
-.topoPainel {
-  height: 70px;
-  background: var(--color-bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0 var(--space-32);
+  min-height: var(--control-min-height-mobile);
+  padding: var(--space-8) var(--space-16);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
 }
 
-.areaPrincipal {
-  padding: var(--space-32);
-  flex: 1;
-  overflow-y: auto;
+@media (hover: hover) and (pointer: fine) {
+  .linkMenu:not(.atual):hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
 }
 
-.areaDoUsuario {
+.linkMenu:not(.atual):focus-visible {
+  background: var(--realce-fundo);
+}
+
+.atual {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.usuario {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
   align-items: center;
-  gap: var(--space-24);
+  justify-content: space-between;
+  padding-top: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+
+.nomeDoUsuario {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  overflow-wrap: anywhere;
+}
+
+.icone {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+/* ---------- A partir de 1024px: barra lateral ---------- */
+.lateral {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: var(--largura-do-menu) minmax(0, 1fr);
+  }
+
+  .lateral {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    height: 100dvh;
+    padding: var(--space-24) var(--space-16);
+    background: var(--color-bg);
+  }
+
+  .topo,
+  .fundo,
+  .gaveta {
+    display: none;
+  }
+
+  .principal {
+    padding: var(--space-32) var(--space-32) var(--space-64);
+  }
+}
+
+/* ---------- Até 1023px: cabeçalho e gaveta ---------- */
+@media (max-width: 1023px) {
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    gap: var(--space-16);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-8) var(--page-margin);
+    background: var(--color-bg);
+  }
+
+  .botaoMenu,
+  .botaoFechar {
+    border-radius: var(--radius);
+    display: inline-flex;
+    gap: var(--space-8);
+    align-items: center;
+    justify-content: center;
+    min-width: var(--control-min-height-mobile);
+    min-height: var(--control-min-height-mobile);
+    padding: 0 var(--space-16);
+    border: 0;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font: inherit;
+    font-size: var(--font-size-text);
+    cursor: pointer;
+  }
+
+  .botaoFechar {
+    padding: 0;
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+  }
+
+  .fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: color-mix(in srgb, var(--color-primary-hover) 55%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--gaveta-duracao) ease-out, visibility 0s linear var(--gaveta-duracao);
+  }
+
+  .fundoVisivel {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--gaveta-duracao) ease-out, visibility 0s;
+  }
+
+  .gaveta {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 91;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    width: min(100%, var(--largura-do-menu));
+    padding: var(--space-16);
+    background: var(--color-bg);
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform var(--gaveta-duracao) ease-out, visibility 0s linear var(--gaveta-duracao);
+  }
+
+  .gavetaAberta {
+    visibility: visible;
+    transform: none;
+    transition: transform var(--gaveta-duracao) ease-out, visibility 0s;
+  }
+
+  .cabecalhoDaGaveta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Movimento reduzido: a gaveta aparece sem deslizar (a regra global do
+   globals.css já tira as transições). */
+@media (prefers-reduced-motion: reduce) {
+  .gaveta {
+    transform: none;
+  }
 }

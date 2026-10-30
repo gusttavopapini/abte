@@ -1,52 +1,53 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import estilos from "./TabelaPainel.module.css";
 
-// Estilo da linha e classe da célula, para as páginas que montam as linhas da tabela.
-// A borda de 1px fica inline por não ter token (exceção registrada no CLAUDE.md).
-export const estiloLinha: CSSProperties = { borderBottom: "1px solid color-mix(in srgb, var(--color-text) 5%, transparent)" };
-
-export const classeDaCelula = estilos.celula;
-
-const estiloMoldura: CSSProperties = { background: "var(--color-surface-soft)", padding: "var(--space-24)", borderRadius: "var(--radius)" };
-
-const estiloLinhaDoCabecalho: CSSProperties = { borderBottom: "1px solid color-mix(in srgb, var(--color-text) 10%, transparent)" };
-
-const estiloTituloDaColuna: CSSProperties = { paddingBottom: "var(--space-16)", fontWeight: 500 };
-
-const estiloMensagemVazia: CSSProperties = { paddingTop: "var(--space-24)", textAlign: "center", opacity: 0.7 };
-
 type PropsTabelaPainel = {
+  // Id da tabela (a busca da lista a encontra por ele).
+  id?: string;
+  // Frase curta sobre a lista, lida antes dela (ex.: a ordem).
+  legenda: string;
   colunas: string[];
-  // Sem linhas: mostra a mensagem no lugar delas.
+  // Sem linhas: o estado vazio (explicação e botão) no lugar da tabela.
   vazia: boolean;
-  mensagemVazia: string;
+  estadoVazio: ReactNode;
   children: ReactNode;
 };
 
-// Tabela das listas do painel (blog, artigos e profissionais).
-export function TabelaPainel({ colunas, vazia, mensagemVazia, children }: PropsTabelaPainel) {
+// Tabela das listas do painel (29/10/2026, só tokens): caixa branca; até
+// 767px, cada linha vira um cartão e cada célula mostra o nome da coluna
+// (data-rotulo, posto por CelulaDoPainel), sem esconder nada.
+export function TabelaPainel({ id, legenda, colunas, vazia, estadoVazio, children }: PropsTabelaPainel) {
+  if (vazia) return <div className={estilos.vazio}>{estadoVazio}</div>;
   return (
-    <div style={estiloMoldura}>
-      <table className={estilos.tabela}>
+    <div className={estilos.moldura}>
+      <table id={id} className={estilos.tabela}>
+        <caption className={estilos.legenda}>{legenda}</caption>
         <thead>
-          <tr style={estiloLinhaDoCabecalho}>
+          <tr>
             {colunas.map((coluna) => (
-              <th key={coluna} style={estiloTituloDaColuna}>{coluna}</th>
+              <th key={coluna} scope="col">{coluna}</th>
             ))}
           </tr>
         </thead>
-        <tbody>
-          {vazia ? (
-            <tr>
-              <td colSpan={colunas.length} style={estiloMensagemVazia}>
-                {mensagemVazia}
-              </td>
-            </tr>
-          ) : (
-            children
-          )}
-        </tbody>
+        <tbody>{children}</tbody>
       </table>
     </div>
+  );
+}
+
+// Linha da tabela; "busca" e "situacao" alimentam a busca da lista (BuscaNaTabela).
+export function LinhaDoPainel({ busca, situacao, children }: { busca: string; situacao?: string; children: ReactNode }) {
+  return (
+    <tr data-busca={busca} data-situacao={situacao}>
+      {children}
+    </tr>
+  );
+}
+
+export function CelulaDoPainel({ rotulo, destaque, acoes, children }: { rotulo: string; destaque?: boolean; acoes?: boolean; children: ReactNode }) {
+  return (
+    <td data-rotulo={rotulo} className={`${destaque ? estilos.destaque : ""} ${acoes ? estilos.acoes : ""}`}>
+      {acoes ? <div className={estilos.botoesDaLinha}>{children}</div> : children}
+    </td>
   );
 }

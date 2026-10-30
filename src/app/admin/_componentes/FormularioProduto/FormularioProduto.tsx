@@ -1,13 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { startTransition, useActionState, useEffect, useId, useRef, type FormEvent } from "react";
+import { startTransition, useActionState, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { salvarProduto, type RespostaDoProduto } from "@/app/admin/acoes-produtos";
+import { AvisoDeAlteracoes } from "@/app/admin/_componentes/AvisoDeAlteracoes/AvisoDeAlteracoes";
+import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
 import { GaleriaDeMidia, type ItemDaGaleria } from "@/app/admin/_componentes/GaleriaDeMidia/GaleriaDeMidia";
+import { SecaoDoFormulario } from "@/app/admin/_componentes/SecaoDoFormulario/SecaoDoFormulario";
 import type { Produto } from "@/lib/dados/tipos";
 import { LIMITE_DE_IMAGENS_DO_PRODUTO, precoParaCampo } from "@/lib/produtos";
 import estilos from "./FormularioProduto.module.css";
@@ -35,6 +38,8 @@ export function FormularioProduto({ produto, categorias }: Props) {
   const resumoRef = useRef<HTMLDivElement>(null);
   const erros = resposta?.ok === false ? resposta.erros ?? {} : {};
   const p = produto;
+  // Alterações não salvas: avisa antes de sair da página.
+  const [alterado, setAlterado] = useState(false);
 
   useEffect(() => {
     if (!resposta) return;
@@ -46,15 +51,18 @@ export function FormularioProduto({ produto, categorias }: Props) {
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     const dados = new FormData(evento.currentTarget);
+    setAlterado(false);
     startTransition(() => acao(dados));
   }
 
   const descrito = (campo: string, temErro: boolean) => (temErro ? `${id}-${campo}-erro` : undefined);
 
   return (
-    <form onSubmit={enviar} className={estilos.formulario} noValidate>
+    <form onSubmit={enviar} onInput={() => setAlterado(true)} className={estilos.formulario} noValidate>
       {p && <input type="hidden" name="id" value={p.id} />}
+      <AvisoDeAlteracoes alterado={alterado && !salvando} />
       {resposta?.ok === false && <Mensagem tipo="erro" ref={resumoRef}>{resposta.mensagem}</Mensagem>}
+      <SecaoDoFormulario titulo="Dados do produto" descricao="Nome, descrição, preço e categoria aparecem no card e na página do produto.">
 
       <Campo id={`${id}-nome`} name="nome" rotulo="Nome" obrigatorio maxLength={120} defaultValue={p?.nome} erro={erros.nome} />
       {p && <p className={estilos.nota}>Endereço: /loja/produto/{p.slug} (não muda ao renomear)</p>}
@@ -72,13 +80,15 @@ export function FormularioProduto({ produto, categorias }: Props) {
           <option value="">Selecione uma categoria...</option>
           {categorias.map(({ id: idCategoria, nome }) => <option key={idCategoria} value={idCategoria}>{nome}</option>)}
         </select>
-        <p id={`${id}-categoria-ajuda`} className={estilos.nota}>
+        <p id={`${id}-categoria-ajuda`} className={`${estilos.nota} texto-corrido`}>
           {categorias.length === 0 ? "Nenhuma categoria cadastrada ainda. " : "Para criar ou renomear categorias, use "}
           <Link href="/admin/loja/categorias">{categorias.length === 0 ? "Cadastre em Loja: categorias" : "Loja: categorias"}</Link>.
         </p>
         <ErroDoCampo id={`${id}-categoria-erro`} erro={erros.categoria} />
       </div>
 
+      </SecaoDoFormulario>
+      <SecaoDoFormulario titulo="Venda e exibição" descricao="Situação do estoque, selo e posição na loja. Só os publicados aparecem em /loja.">
       <div className={estilos.linha}>
         <fieldset className={estilos.grupoSemMoldura} aria-describedby={descrito("tipo", !!erros.tipo)}>
           <legend className={estilos.rotulo}>Tipo</legend>
@@ -103,6 +113,8 @@ export function FormularioProduto({ produto, categorias }: Props) {
         <input type="checkbox" name="publicado" value="sim" defaultChecked={p ? p.publicado : false} />
         Publicado (aparece na loja)
       </label>
+      </SecaoDoFormulario>
+      <SecaoDoFormulario titulo="Imagens" descricao="Envie cada imagem com o texto alternativo dela. A primeira é a principal.">
 
       <GaleriaDeMidia
         nome="imagens"
@@ -113,11 +125,12 @@ export function FormularioProduto({ produto, categorias }: Props) {
         dono={{ tipo: "produto", id: p?.id ?? null, campo: "galeria" }}
         proporcao="3:4, em pé (a primeira aparece assim no card da loja)"
       />
+      </SecaoDoFormulario>
 
-      <div className={estilos.botoes}>
+      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : undefined}>
         <Botao href="/admin/loja" variante="secundario">Cancelar</Botao>
         <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
-      </div>
+      </BarraDeSalvar>
     </form>
   );
 }

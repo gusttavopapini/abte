@@ -23,7 +23,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
 
   return (
     <div>
-      <CabecalhoDoPainel titulo="Editar Artigo" descricao="Atualize os dados do artigo científico." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Editar artigo" }]} titulo="Editar artigo" descricao="Atualize os dados do artigo científico. Os campos com * são obrigatórios." />
       
       <FormularioArtigo
         acao={atualizarArtigo}
@@ -31,8 +31,8 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
         imagem={imagem}
         categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
-        rotuloPublicar="Atualizar e Publicar"
-        rotuloRascunho="Reverter para Rascunho"
+        rotuloPublicar="Salvar e publicar"
+        rotuloRascunho="Salvar como rascunho"
       />
     </div>
   );

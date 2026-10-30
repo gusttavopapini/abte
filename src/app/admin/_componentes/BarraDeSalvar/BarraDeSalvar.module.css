@@ -1,0 +1,36 @@
+.barra {
+  border-radius: var(--radius);
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--panel-padding);
+  border-top: 2px solid var(--color-primary);
+  background: var(--color-bg);
+}
+
+.aviso {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .botoes {
+    width: 100%;
+  }
+
+  .botoes > * {
+    flex: 1 1 auto;
+  }
+}

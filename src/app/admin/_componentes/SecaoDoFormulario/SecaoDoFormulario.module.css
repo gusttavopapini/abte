@@ -1,0 +1,38 @@
+.secao {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  min-width: 0;
+  padding: var(--panel-padding);
+  background: var(--color-bg);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.titulo {
+  color: var(--color-text);
+  font-size: var(--font-size-text-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-snug);
+}
+
+.descricao {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* Dentro da caixa branca, os campos (inclusive os do componente Campo, que
+   são brancos para o fundo claro do site) ganham o fundo claro. Os campos
+   de dentro de uma caixa que já é clara (envio de imagem, galeria) ficam
+   como estão: elas marcam a raiz com data-caixa-clara. */
+.secao :global(input:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"]):not([data-caixa-clara] *)),
+.secao :global(select:not([data-caixa-clara] *)),
+.secao :global(textarea:not([data-caixa-clara] *)) {
+  background: var(--color-bg-alt);
+}
