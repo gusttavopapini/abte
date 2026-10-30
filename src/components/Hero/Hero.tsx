@@ -13,6 +13,9 @@ type PropsHero = {
   sobHeaderFixo?: boolean;
 };
 
+// Ponto de foco do banner (30/10/2026): a classe com o object-position.
+const CLASSE_DO_FOCO = { esquerda: estilos.focoEsquerda, centro: estilos.focoCentro, direita: estilos.focoDireita };
+
 // Intervalo entre os slides na passagem automática, em milissegundos.
 const INTERVALO_DO_CARROSSEL_MS = 6000;
 
@@ -92,7 +95,7 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
               sizes="100vw"
               celular={slide.midia.celular}
               prioridade={index === 0}
-              className={estilos.imagem}
+              className={`${estilos.imagem} ${CLASSE_DO_FOCO[slide.pontoDeFoco ?? "centro"]}`}
             />
           ) : (
             <img src={slide.imagem} alt={alt} className={estilos.imagem} />
