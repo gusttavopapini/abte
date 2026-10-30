@@ -4,7 +4,7 @@ import { startTransition, useActionState, useEffect, useId, useRef, type FormEve
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { SeletorDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
+import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS } from "@/config/profissionais";
 import type { Profissional } from "@/lib/dados/tipos";
@@ -136,10 +136,12 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
         </label>
       </div>
 
-      <SeletorDeMidia
+      <ImagemDoItem
         nome="fotoMidiaId"
         rotulo="Foto (aparece no card do site)"
         inicial={p?.fotoMidiaId ? { id: p.fotoMidiaId, imagem: p.foto } : null}
+        dono={{ tipo: "profissional", id: p?.id ?? null, campo: "foto" }}
+        proporcao="1:1, quadrada (o card mostra a foto alinhada ao alto)"
         erro={erros.fotoMidiaId}
       />
 

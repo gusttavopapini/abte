@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { EscolhaDaBiblioteca } from "@/app/admin/_componentes/EscolhaDaBiblioteca/EscolhaDaBiblioteca";
+import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
+import type { DonoDaMidia } from "@/lib/midia/dono";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import type { ImagemNaTela, MidiaNaTela } from "@/lib/midia/tela";
 import estilos from "./GaleriaDeMidia.module.css";
@@ -17,15 +19,19 @@ type Props = {
   inicial: ItemDaGaleria[];
   limite: number;
   erro?: string;
+  // A que item as imagens enviadas aqui pertencem (29/10/2026).
+  dono: DonoDaMidia;
+  proporcao: string;
 };
 
 type Acao = "subir" | "descer" | "remover";
 
-// Galeria de imagens dos formulários do painel (produtos): adicionar da
-// biblioteca ou enviando uma nova, mudar a ordem com "Subir" e "Descer"
-// (teclado, sem arrastar) e remover. A primeira é a principal. O formulário
-// recebe um campo escondido por imagem, na ordem da tela.
-export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
+// Galeria de imagens dos formulários do painel (produtos): enviar cada
+// imagem pelo próprio campo (com o texto alternativo dela, 29/10/2026) ou
+// reutilizar uma da biblioteca, mudar a ordem com "Subir" e "Descer" (teclado)
+// ou arrastando, e remover. A primeira é a principal. O formulário recebe um
+// campo escondido por imagem, na ordem da tela.
+export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro, dono, proporcao }: Props) {
   const id = useId();
   const [itens, setItens] = useState<ItemDaGaleria[]>(inicial);
   const [anuncio, setAnuncio] = useState("");
@@ -45,17 +51,27 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
     return item.imagem?.alt ?? "imagem indisponível";
   }
 
+  // Leva o item de uma posição para outra (botões ou arrastar).
+  function levar(de: number, para: number, focarEm?: Acao) {
+    if (de === para || para < 0 || para >= itens.length) return;
+    const novos = [...itens];
+    const [item] = novos.splice(de, 1);
+    novos.splice(para, 0, item);
+    setItens(novos);
+    if (focarEm) focoPendente.current = `${item.id}:${focarEm}`;
+    setAnuncio(`${descrever(item)}: agora na posição ${para + 1} de ${novos.length}${para === 0 ? ", imagem principal" : ""}.`);
+  }
+
   function mover(posicao: number, delta: -1 | 1) {
     const destino = posicao + delta;
-    const novos = [...itens];
-    [novos[posicao], novos[destino]] = [novos[destino], novos[posicao]];
-    setItens(novos);
-    const item = novos[destino];
     // Na ponta, o botão usado fica desativado: o foco vai para o outro.
-    const acao: Acao = destino === 0 ? "descer" : destino === novos.length - 1 ? "subir" : delta < 0 ? "subir" : "descer";
-    focoPendente.current = `${item.id}:${acao}`;
-    setAnuncio(`${descrever(item)}: agora na posição ${destino + 1} de ${novos.length}${destino === 0 ? ", imagem principal" : ""}.`);
+    const acao: Acao = destino === 0 ? "descer" : destino === itens.length - 1 ? "subir" : delta < 0 ? "subir" : "descer";
+    levar(posicao, destino, acao);
   }
+
+  // Arrastar com o mouse (os botões continuam valendo para o teclado).
+  const arrastado = useRef<number | null>(null);
+  const [alvoDoArraste, setAlvoDoArraste] = useState<number | null>(null);
 
   function remover(posicao: number) {
     const item = itens[posicao];
@@ -64,6 +80,10 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
     const vizinho = novos[Math.min(posicao, novos.length - 1)];
     if (vizinho) focoPendente.current = `${vizinho.id}:remover`;
     setAnuncio(`${descrever(item)}: removida da galeria.`);
+  }
+
+  function aoEnviar(escolha: EscolhaDeImagem) {
+    if (escolha) adicionar(escolha.id, escolha.imagem ? { ...escolha.imagem, id: escolha.id, indicaMenor: false, enviadaEm: "" } : null);
   }
 
   function adicionar(novoId: string, midia: MidiaNaTela | null) {
@@ -83,7 +103,7 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
     <fieldset className={estilos.galeria} aria-describedby={erro ? idErro : `${id}-ajuda`}>
       <legend className={estilos.rotulo}>{rotulo}</legend>
       <p id={`${id}-ajuda`} className={estilos.texto}>
-        A primeira imagem é a principal (aparece no card da loja). Até {limite} imagens. Use &ldquo;Subir&rdquo; e &ldquo;Descer&rdquo; para mudar a ordem.
+        A primeira imagem é a principal (aparece no card da loja). Até {limite} imagens. Para mudar a ordem, arraste a imagem ou use &ldquo;Subir&rdquo; e &ldquo;Descer&rdquo;.
       </p>
       {itens.map((item) => (
         <input key={item.id} type="hidden" name={nome} value={item.id} />
@@ -96,7 +116,31 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
           {itens.map((item, posicao) => {
             const descricao = descrever(item);
             return (
-              <li key={item.id} className={estilos.item}>
+              <li
+                key={item.id}
+                className={`${estilos.item} ${alvoDoArraste === posicao ? estilos.alvo : ""}`}
+                draggable
+                onDragStart={(evento) => {
+                  arrastado.current = posicao;
+                  evento.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(evento) => {
+                  if (arrastado.current === null) return;
+                  evento.preventDefault();
+                  setAlvoDoArraste(posicao);
+                }}
+                onDragLeave={() => setAlvoDoArraste(null)}
+                onDrop={(evento) => {
+                  evento.preventDefault();
+                  if (arrastado.current !== null) levar(arrastado.current, posicao);
+                  arrastado.current = null;
+                  setAlvoDoArraste(null);
+                }}
+                onDragEnd={() => {
+                  arrastado.current = null;
+                  setAlvoDoArraste(null);
+                }}
+              >
                 <div className={estilos.miniatura}>
                   {item.imagem ? (
                     <ImagemDaMidia variantes={item.imagem.variantes} alt="" largura={item.imagem.largura} altura={item.imagem.altura} sizes="96px" className={estilos.imagem} />
@@ -150,14 +194,20 @@ export function GaleriaDeMidia({ nome, rotulo, inicial, limite, erro }: Props) {
         </ol>
       )}
 
-      {noLimite && <p className={estilos.texto}>A galeria chegou ao limite de {limite} imagens. Remova uma para adicionar outra.</p>}
-      <EscolhaDaBiblioteca
-        rotuloDaBiblioteca="Adicionar da biblioteca"
-        jaEscolhidas={itens.map((item) => item.id)}
-        bloquearEscolhidas
-        desativado={noLimite}
-        aoEscolher={adicionar}
-      />
+      {noLimite ? (
+        <p className={estilos.texto}>A galeria chegou ao limite de {limite} imagens. Remova uma para adicionar outra.</p>
+      ) : (
+        <>
+          <ImagemDoItem rotulo="Adicionar imagem à galeria" inicial={null} dono={dono} proporcao={proporcao} textoDoEnvio="Adicionar à galeria" soEnvio aoMudar={aoEnviar} />
+          <EscolhaDaBiblioteca
+            soBiblioteca
+            rotuloDaBiblioteca="Reutilizar imagem já enviada"
+            jaEscolhidas={itens.map((item) => item.id)}
+            bloquearEscolhidas
+            aoEscolher={adicionar}
+          />
+        </>
+      )}
 
       {erro && <p id={idErro} className={estilos.erro}>{erro}</p>}
       <p className="somente-leitor" aria-live="polite">{anuncio}</p>

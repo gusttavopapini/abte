@@ -4,7 +4,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { SeletorDeMidia, type EscolhaDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
+import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import type { RespostaDoPost } from "@/app/admin/acoes-conteudo";
 import type { Post } from "@/lib/dados/tipos";
 import {
@@ -21,12 +21,12 @@ type OpcaoDeTopico = { id: string; nome: string };
 type PropsFormularioPost = {
   acao: (anterior: RespostaDoPost, dados: FormData) => Promise<RespostaDoPost>;
   // Sem post: formulário de criação. Com post: edição, com os valores atuais.
-  post?: Pick<Post, "id" | "titulo" | "imagem" | "conteudo" | "categoria" | "tags">;
+  post?: Pick<Post, "id" | "titulo" | "imagem" | "conteudo" | "categoria" | "tags" | "formatoConteudo">;
   // Categorias (a inativa vem com "(inativa)" no nome) e tags fora da lixeira.
   categorias: OpcaoDeTopico[];
   tags: OpcaoDeTopico[];
   // Capa atual da biblioteca de mídia (imagem null: foi para a lixeira).
-  capa: EscolhaDeMidia;
+  capa: EscolhaDeImagem;
   rotuloPublicar: string;
   rotuloRascunho: string;
 };
@@ -38,6 +38,27 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
   const resumoRef = useRef<HTMLDivElement>(null);
   // Com uma capa da biblioteca escolhida, o aviso da capa antiga sai da tela.
   const [temCapa, setTemCapa] = useState(Boolean(capa));
+  // Imagem no texto (29/10/2026): com uma imagem inserida, o texto passa a
+  // ser lido como Markdown restrito (os posts importados já são).
+  const [emMarkdown, setEmMarkdown] = useState(post?.formatoConteudo === "markdown");
+  const [inserindo, setInserindo] = useState(false);
+  const [anuncioDoTexto, setAnuncioDoTexto] = useState("");
+  const conteudoRef = useRef<HTMLTextAreaElement>(null);
+
+  // A imagem enviada entra no ponto do cursor, numa linha só dela.
+  function inserirNoTexto(escolha: EscolhaDeImagem) {
+    const campo = conteudoRef.current;
+    if (!escolha || !campo) return;
+    const alt = (escolha.imagem?.alt ?? "Imagem").replace(/[[\]]/g, "");
+    const inicio = campo.selectionStart ?? campo.value.length;
+    const antes = campo.value.slice(0, inicio);
+    const separadorAntes = antes === "" || antes.endsWith("\n\n") ? "" : antes.endsWith("\n") ? "\n" : "\n\n";
+    campo.setRangeText(`${separadorAntes}![${alt}](midia:${escolha.id})\n\n`, inicio, campo.selectionEnd ?? inicio, "end");
+    setEmMarkdown(true);
+    setInserindo(false);
+    setAnuncioDoTexto("Imagem inserida no texto do post.");
+    campo.focus();
+  }
 
   useEffect(() => {
     if (resposta) resumoRef.current?.focus();
@@ -103,7 +124,15 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
       </fieldset>
 
       <div className={classes.grupo}>
-        <SeletorDeMidia nome="capaMidiaId" rotulo="Imagem de capa" inicial={capa} erro={resposta?.erros?.capaMidiaId} aoMudar={(id) => setTemCapa(id !== null)} />
+        <ImagemDoItem
+          nome="capaMidiaId"
+          rotulo="Imagem de capa"
+          inicial={capa}
+          dono={{ tipo: "post", id: post?.id ?? null, campo: "capa" }}
+          proporcao="16:9 (a capa aparece assim na lista do blog)"
+          erro={resposta?.erros?.capaMidiaId}
+          aoMudar={(escolha) => setTemCapa(escolha !== null)}
+        />
         {/* Capa antiga (endereço digitado antes da biblioteca): continua no site
             até haver uma capa da biblioteca. Só informada, não editável. */}
         {post?.imagem && !temCapa && (
@@ -116,7 +145,9 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
 
       <div className={classes.grupo}>
         <label htmlFor="conteudo" style={estiloRotulo}>Conteúdo</label>
+        {emMarkdown && <input type="hidden" name="formatoConteudo" value="markdown" />}
         <textarea
+          ref={conteudoRef}
           id="conteudo"
           name="conteudo"
           defaultValue={post?.conteudo}
@@ -124,7 +155,32 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
           placeholder="Escreva o conteúdo do post aqui..."
           style={estiloAreaDeTexto}
           required
+          aria-describedby="conteudo-ajuda"
         />
+        <p id="conteudo-ajuda" className={classes.ajuda}>
+          {emMarkdown
+            ? "Texto em Markdown restrito: parágrafos separados por uma linha em branco, ## para subtítulo, **negrito**, *itálico*, listas com - e imagens como ![descrição](midia:id), que o botão abaixo insere."
+            : "Parágrafos separados por uma linha em branco. Ao inserir uma imagem no texto, o post passa a usar Markdown restrito (**negrito**, *itálico*, ## para subtítulo)."}
+        </p>
+        <div className={classes.botoes}>
+          <Botao type="button" variante="secundario" onClick={() => setInserindo(!inserindo)} aria-expanded={inserindo} aria-controls="inserir-imagem-no-texto">
+            {inserindo ? "Fechar envio de imagem" : "Inserir imagem no texto"}
+          </Botao>
+        </div>
+        {inserindo && (
+          <div id="inserir-imagem-no-texto">
+            <ImagemDoItem
+              rotulo="Imagem no texto do post"
+              inicial={null}
+              dono={{ tipo: "post", id: post?.id ?? null, campo: "corpo" }}
+              proporcao="livre (aparece na largura do texto, com a proporção da própria imagem)"
+              textoDoEnvio="Inserir no texto"
+              soEnvio
+              aoMudar={inserirNoTexto}
+            />
+          </div>
+        )}
+        <p className="somente-leitor" aria-live="polite">{anuncioDoTexto}</p>
       </div>
 
       <div className={classes.botoes}>

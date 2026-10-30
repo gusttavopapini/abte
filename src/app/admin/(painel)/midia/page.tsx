@@ -3,10 +3,11 @@ import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { lerMidias } from "@/lib/dados/colecoes";
 import type { Midia } from "@/lib/dados/tipos";
+import { mapaDeUsos } from "@/lib/midia/biblioteca";
 import { midiaNaTela } from "@/lib/midia/exibicao";
 import { servicosDeMidia } from "@/lib/midia/servicos";
 import type { MidiaNaTela } from "@/lib/midia/tela";
-import { MidiaAdminClient } from "./MidiaAdminClient";
+import { MidiaAdminClient, type DetalhesDaMidia } from "./MidiaAdminClient";
 
 export const metadata: Metadata = { title: "Mídia" };
 
@@ -38,7 +39,23 @@ export default async function PaginaAdminMidia() {
     .filter((midia) => !midia.excluidoEm)
     .map((midia) => midiaNaTela(midia));
 
+  // "Usada em" e o filtro por dono (29/10/2026): uma leitura de cada coleção
+  // que aponta para imagens; se falhar, a tela abre sem essas informações.
+  const usos = await mapaDeUsos(servicosDeMidia().db).catch((erro: unknown) => {
+    console.error("Falha ao ler onde as imagens estão em uso:", erro);
+    return null;
+  });
+  const detalhes: Record<string, DetalhesDaMidia> = Object.fromEntries(
+    todas.map((midia) => [
+      midia.id,
+      {
+        dono: midia.dono,
+        usos: usos === null ? null : (usos.get(midia.id) ?? []).map((uso) => `${uso.rotulo}: ${uso.nome}${uso.naLixeira ? " (na lixeira)" : ""}`),
+      },
+    ]),
+  );
+
   const excluidas = await Promise.all(todas.filter((midia) => midia.excluidoEm).map(previaDaLixeira));
 
-  return <MidiaAdminClient ativas={ativas} excluidas={excluidas} podeExcluirDeVez={papelPodeExecutar(usuario.papel, "midia.excluirDeVez")} />;
+  return <MidiaAdminClient ativas={ativas} excluidas={excluidas} detalhes={detalhes} podeExcluirDeVez={papelPodeExecutar(usuario.papel, "midia.excluirDeVez")} />;
 }

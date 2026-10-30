@@ -6,9 +6,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import { exigirPapelDoPainel } from "@/lib/auth/sessao";
+import { autorDaAlteracao, exigirPapelDoPainel, type UsuarioDoPainel } from "@/lib/auth/sessao";
 import { gravarArtigo, type DadosDoArtigo } from "@/lib/gravacao/artigos";
 import { gravarPost, type DadosDoPost } from "@/lib/gravacao/posts";
+import { completarDonoDasMidias } from "@/lib/midia/biblioteca";
+import { idsDasImagensNoTexto } from "@/lib/midia/dono";
 import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
 import { ehIdDeDocumentoValido, lerListaDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
@@ -50,7 +52,21 @@ function lerDadosDoPost(dados: FormData, capaMidiaId: string | null): DadosDoPos
     capaMidiaId,
     categoria: typeof categoria === "string" && categoria ? categoria : null,
     tags,
+    // Imagem inserida no texto (29/10/2026): o texto passa a ser lido como
+    // Markdown restrito. Sem o campo, o formato gravado não muda.
+    ...(dados.get("formatoConteudo") === "markdown" ? { formatoConteudo: "markdown" as const } : {}),
   };
+}
+
+// Imagens enviadas pelo formulário de um item novo têm o dono sem id: ao
+// salvar, recebem o id (lib/midia/biblioteca.ts). Falha aqui não desfaz o
+// que foi salvo: fica no log do servidor, e a imagem continua no item.
+async function completarDonos(usuario: UsuarioDoPainel, executar: (autor: ReturnType<typeof autorDaAlteracao>) => Promise<unknown>) {
+  try {
+    await executar(autorDaAlteracao(usuario));
+  } catch (erro) {
+    console.error("Falha ao ligar as imagens ao item salvo:", erro);
+  }
 }
 
 // Campos do artigo vindos do formulário. A existência da categoria, das tags
@@ -78,7 +94,7 @@ export type RespostaDoPost = { ok: false; mensagem: string; erros?: { capaMidiaI
 
 // Cria (sem id) ou atualiza (com id) um post. Erros voltam para a tela em
 // português, sem perder o que foi digitado.
-async function gravarPostDoFormulario(id: string | null, formData: FormData): Promise<RespostaDoPost> {
+async function gravarPostDoFormulario(usuario: UsuarioDoPainel, id: string | null, formData: FormData): Promise<RespostaDoPost> {
   const capa = lerIdDaMidiaEscolhida(formData.get("capaMidiaId"));
   if (!capa.ok) return { ok: false, mensagem: "Confira os campos marcados.", erros: { capaMidiaId: "Capa inválida. Escolha a capa de novo." } };
 
@@ -95,6 +111,10 @@ async function gravarPostDoFormulario(id: string | null, formData: FormData): Pr
     if (!gravado.ok) {
       return gravado.campo ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } } : { ok: false, mensagem: gravado.mensagem };
     }
+    await completarDonos(usuario, async (autor) => {
+      await completarDonoDasMidias(firestoreAdmin(), [dados.capaMidiaId], "post", "capa", gravado.id, autor);
+      await completarDonoDasMidias(firestoreAdmin(), idsDasImagensNoTexto(dados.conteudo), "post", "corpo", gravado.id, autor);
+    });
   } catch (erro) {
     console.error("Falha ao salvar post:", erro);
     return { ok: false, mensagem: "Não foi possível salvar agora. Tente de novo em instantes." };
@@ -107,15 +127,15 @@ async function gravarPostDoFormulario(id: string | null, formData: FormData): Pr
 }
 
 export async function salvarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
-  await exigirPapelDoPainel();
-  return gravarPostDoFormulario(null, formData);
+  const usuario = await exigirPapelDoPainel();
+  return gravarPostDoFormulario(usuario, null, formData);
 }
 
 export async function atualizarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
   const id = formData.get("id");
   if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Post não encontrado." };
-  return gravarPostDoFormulario(id, formData);
+  return gravarPostDoFormulario(usuario, id, formData);
 }
 
 // Resposta do formulário de artigo (useActionState): só existe quando algo dá
@@ -124,7 +144,7 @@ export type RespostaDoArtigo = { ok: false; mensagem: string; erros?: { imagemMi
 
 // Cria (sem id) ou atualiza (com id) um artigo. Erros voltam para a tela em
 // português, sem perder o que foi digitado.
-async function gravarArtigoDoFormulario(id: string | null, formData: FormData): Promise<RespostaDoArtigo> {
+async function gravarArtigoDoFormulario(usuario: UsuarioDoPainel, id: string | null, formData: FormData): Promise<RespostaDoArtigo> {
   const imagem = lerIdDaMidiaEscolhida(formData.get("imagemMidiaId"));
   if (!imagem.ok) return { ok: false, mensagem: "Confira os campos marcados.", erros: { imagemMidiaId: "Imagem inválida. Escolha a imagem de novo." } };
 
@@ -141,6 +161,7 @@ async function gravarArtigoDoFormulario(id: string | null, formData: FormData): 
     if (!gravado.ok) {
       return gravado.campo ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } } : { ok: false, mensagem: gravado.mensagem };
     }
+    await completarDonos(usuario, (autor) => completarDonoDasMidias(firestoreAdmin(), [dados.imagemMidiaId], "artigo", "imagem", gravado.id, autor));
   } catch (erro) {
     console.error("Falha ao salvar artigo:", erro);
     return { ok: false, mensagem: "Não foi possível salvar agora. Tente de novo em instantes." };
@@ -154,13 +175,13 @@ async function gravarArtigoDoFormulario(id: string | null, formData: FormData): 
 }
 
 export async function salvarArtigo(_anterior: RespostaDoArtigo, formData: FormData): Promise<RespostaDoArtigo> {
-  await exigirPapelDoPainel();
-  return gravarArtigoDoFormulario(null, formData);
+  const usuario = await exigirPapelDoPainel();
+  return gravarArtigoDoFormulario(usuario, null, formData);
 }
 
 export async function atualizarArtigo(_anterior: RespostaDoArtigo, formData: FormData): Promise<RespostaDoArtigo> {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
   const id = formData.get("id");
   if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Artigo não encontrado." };
-  return gravarArtigoDoFormulario(id, formData);
+  return gravarArtigoDoFormulario(usuario, id, formData);
 }

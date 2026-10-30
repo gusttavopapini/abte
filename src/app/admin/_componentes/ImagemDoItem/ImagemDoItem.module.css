@@ -1,0 +1,221 @@
+/* Campo de imagem de cada item (29/10/2026). Caixa clara com a área de
+   envio, a prévia e as ações. Foco: o anel global de :focus-visible. */
+.campo {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-16);
+  border: 0;
+  background: var(--color-bg-alt);
+}
+
+/* A legenda fica dentro da caixa (o padrão do navegador a põe na borda) */
+.campo > legend {
+  float: left;
+  width: 100%;
+}
+
+.campo > legend + * {
+  clear: both;
+}
+
+.rotulo {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-normal);
+}
+
+.ajuda,
+.texto,
+.contador {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+}
+
+.contador {
+  text-align: right;
+}
+
+.legenda {
+  display: block;
+  font-weight: var(--font-weight-bold);
+}
+
+.escolhida {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: flex-start;
+}
+
+.previa {
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: calc(var(--space-96) * 2);
+  max-width: 100%;
+  background: var(--color-bg);
+}
+
+.imagem {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.indisponivel {
+  padding: var(--space-16);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.ladoDaPrevia {
+  display: flex;
+  flex: 1 1 calc(var(--space-96) * 2);
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.envio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+/* Área de envio: aceita soltar um arquivo; o botão é o rótulo do campo de
+   arquivo (o campo em si fica escondido, mas focável) */
+.zona {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--space-96) + var(--space-32));
+  padding: var(--space-16);
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: var(--color-bg);
+  text-align: center;
+  transition: background-color var(--realce-duracao) ease-out, border-color var(--realce-duracao) ease-out;
+}
+
+.arrastando {
+  border-color: var(--color-primary);
+  background: var(--realce-fundo);
+}
+
+.zonaComErro {
+  border-color: var(--color-error);
+}
+
+.previaLocal {
+  border-radius: var(--radius);
+  max-width: 100%;
+  max-height: calc(var(--space-96) * 2);
+  object-fit: contain;
+}
+
+.entradaArquivo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.botaoArquivo {
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-min-height-mobile);
+  padding: var(--space-8) var(--space-24);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: background-color var(--realce-duracao) ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .botaoArquivo:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+/* O campo escondido recebe o foco; o anel aparece no botão visível */
+.entradaArquivo:focus-visible + .botaoArquivo,
+.zona:has(.entradaArquivo:focus-visible) .botaoArquivo {
+  box-shadow: var(--focus-ring);
+}
+
+.grupo,
+.grupoSemMoldura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.entrada {
+  border-radius: var(--radius);
+  width: 100%;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 var(--space-8);
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-text);
+}
+
+.entradaComErro {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.progresso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.progresso progress {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.erro {
+  border-radius: var(--radius);
+  padding: var(--space-8);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+}

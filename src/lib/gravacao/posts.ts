@@ -26,6 +26,9 @@ export type DadosDoPost = {
   // categoria) e ids em tagsDePosts.
   categoria: string | null;
   tags: string[];
+  // Só quando o formulário pede (imagem inserida no texto, 29/10/2026);
+  // ausente, o formato gravado não muda.
+  formatoConteudo?: "markdown";
 };
 
 // regerarSlug: só quando alguém pede explicitamente um endereço novo a partir

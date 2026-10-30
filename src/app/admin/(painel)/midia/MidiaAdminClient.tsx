@@ -9,11 +9,18 @@ import { Campo } from "@/components/Campo/Campo";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
+import { ROTULOS_DOS_DONOS, TIPOS_DE_DONO, descreverDono, type DonoDaMidia, type TipoDeDono } from "@/lib/midia/dono";
 import { LIMITE_DO_ALT } from "@/lib/midia/regras";
 import type { MidiaNaTela } from "@/lib/midia/tela";
 import estilos from "./MidiaAdminClient.module.css";
 
-type Props = { ativas: MidiaNaTela[]; excluidas: MidiaNaTela[]; podeExcluirDeVez: boolean };
+// Por imagem: o item que a enviou (sem dono: antiga ou enviada aqui) e onde
+// ela aparece (null: não foi possível ler agora).
+export type DetalhesDaMidia = { dono: DonoDaMidia | null; usos: string[] | null };
+
+type Props = { ativas: MidiaNaTela[]; excluidas: MidiaNaTela[]; detalhes: Record<string, DetalhesDaMidia>; podeExcluirDeVez: boolean };
+
+type FiltroDoDono = "todos" | TipoDeDono | "semDono";
 
 type Janela =
   | { tipo: "enviar" }
@@ -56,6 +63,28 @@ function EditarAlt({ midia, aoTerminar, aoCancelar }: { midia: MidiaNaTela; aoTe
         <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
       </div>
     </form>
+  );
+}
+
+// "Enviada por" e "Usada em" de cada imagem (29/10/2026).
+function UsosDaMidia({ detalhes }: { detalhes: DetalhesDaMidia | undefined }) {
+  if (!detalhes) return null;
+  return (
+    <>
+      {detalhes.dono && <p className={estilos.detalhes}>Enviada por: {descreverDono(detalhes.dono)}</p>}
+      {detalhes.usos === null ? null : detalhes.usos.length === 0 ? (
+        <p className={estilos.detalhes}>Sem uso</p>
+      ) : (
+        <div className={estilos.detalhes}>
+          Usada em:
+          <ul className={estilos.usos}>
+            {detalhes.usos.map((uso) => (
+              <li key={uso}>{uso}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -114,10 +143,12 @@ function ConfirmarExclusaoDeVez({ midia, aoTerminar, aoCancelar }: { midia: Midi
   );
 }
 
-export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props) {
+export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez }: Props) {
   const [janela, setJanela] = useState<Janela>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const [filtroDoDono, setFiltroDoDono] = useState<FiltroDoDono>("todos");
+  const idFiltro = useId();
   const [respostaRestaurar, restaurar, restaurando] = useActionState(restaurarMidia, null);
   const idBusca = useId();
 
@@ -132,7 +163,13 @@ export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props)
   };
 
   const termo = normalizar(busca.trim());
-  const visiveis = termo ? ativas.filter((midia) => normalizar(midia.alt).includes(termo)) : ativas;
+  const donoDe = (midia: MidiaNaTela) => detalhes[midia.id]?.dono ?? null;
+  const visiveis = ativas.filter((midia) => {
+    if (termo && !normalizar(midia.alt).includes(termo)) return false;
+    if (filtroDoDono === "todos") return true;
+    return filtroDoDono === "semDono" ? donoDe(midia) === null : donoDe(midia)?.tipo === filtroDoDono;
+  });
+  const filtrando = Boolean(termo) || filtroDoDono !== "todos";
 
   return (
     <div className={estilos.pagina}>
@@ -149,8 +186,19 @@ export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props)
         <input id={idBusca} type="search" value={busca} onChange={(evento) => setBusca(evento.target.value)} className={estilos.campoBusca} autoComplete="off" />
       </div>
 
+      <div className={estilos.busca}>
+        <label htmlFor={idFiltro} className={estilos.rotulo}>Enviada por</label>
+        <select id={idFiltro} value={filtroDoDono} onChange={(evento) => setFiltroDoDono(evento.target.value as FiltroDoDono)} className={estilos.campoBusca}>
+          <option value="todos">Todos os itens</option>
+          {TIPOS_DE_DONO.map((tipo) => (
+            <option key={tipo} value={tipo}>{ROTULOS_DOS_DONOS[tipo]}</option>
+          ))}
+          <option value="semDono">Biblioteca ou site antigo (sem item)</option>
+        </select>
+      </div>
+
       <p className="tipo-pequeno" aria-live="polite">
-        {termo ? `${visiveis.length} de ${ativas.length} imagens` : `${ativas.length} ${ativas.length === 1 ? "imagem" : "imagens"}`}
+        {filtrando ? `${visiveis.length} de ${ativas.length} imagens` : `${ativas.length} ${ativas.length === 1 ? "imagem" : "imagens"}`}
       </p>
 
       {visiveis.length === 0 ? (
@@ -166,6 +214,7 @@ export function MidiaAdminClient({ ativas, excluidas, podeExcluirDeVez }: Props)
                   {midia.largura} x {midia.altura} px{midia.enviadaEm && `, enviada em ${midia.enviadaEm}`}
                 </p>
                 {midia.indicaMenor && <p className={estilos.selo}>Criança ou adolescente, com autorização confirmada</p>}
+                <UsosDaMidia detalhes={detalhes[midia.id]} />
               </div>
               <div className={estilos.acoes}>
                 <button type="button" className={`realce ${estilos.acao}`} onClick={() => abrir({ tipo: "editar", midia })} aria-label={`Editar o texto alternativo de ${midia.alt}`}>

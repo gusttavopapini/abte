@@ -2,6 +2,7 @@
 // Sem dependências: o servidor usa os valores e o navegador importa só os tipos.
 // Campos de texto ausentes no banco chegam como texto vazio; datas ausentes,
 // como null (ver os conversores em colecoes.ts).
+import type { DonoDaMidia } from "../midia/dono.ts";
 
 export type Post = {
   id: string;
@@ -182,6 +183,9 @@ export type Midia = {
   altProvisorio: boolean;
   conferenciaDeMenor: ConferenciaDeMenor | null;
   origem: OrigemDaMidia | null;
+  // Item que enviou a imagem pelo próprio formulário (29/10/2026,
+  // lib/midia/dono.ts); null nas antigas e nas enviadas na biblioteca.
+  dono: DonoDaMidia | null;
   criadoEm: Date | null;
   excluidoEm: Date | null;
 };

@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { gravarProfissional, marcarExclusaoDoProfissional } from "@/lib/gravacao/profissionais";
+import { completarDonoDasMidias } from "@/lib/midia/biblioteca";
 import { validarProfissional, type CampoDoProfissional } from "@/lib/profissionais";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 
@@ -42,6 +43,11 @@ export async function salvarProfissional(_anterior: RespostaDoProfissional | nul
         ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } }
         : { ok: false, mensagem: gravado.mensagem };
     }
+    // Foto enviada pelo formulário de um cadastro novo: recebe o id agora
+    // (lib/midia/dono.ts). Falha aqui não desfaz o cadastro.
+    await completarDonoDasMidias(firestoreAdmin(), [resultado.dados.fotoMidiaId], "profissional", "foto", gravado.id, autorDaAlteracao(usuario)).catch((erro: unknown) =>
+      console.error("Falha ao ligar a foto ao profissional salvo:", erro),
+    );
   } catch (erro) {
     console.error("Falha ao salvar profissional:", erro);
     return { ok: false, mensagem: ERRO_GENERICO };

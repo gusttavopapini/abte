@@ -104,7 +104,15 @@ export function FormularioProduto({ produto, categorias }: Props) {
         Publicado (aparece na loja)
       </label>
 
-      <GaleriaDeMidia nome="imagens" rotulo="Imagens do produto" inicial={p?.galeria ?? []} limite={LIMITE_DE_IMAGENS_DO_PRODUTO} erro={erros.imagens} />
+      <GaleriaDeMidia
+        nome="imagens"
+        rotulo="Imagens do produto"
+        inicial={p?.galeria ?? []}
+        limite={LIMITE_DE_IMAGENS_DO_PRODUTO}
+        erro={erros.imagens}
+        dono={{ tipo: "produto", id: p?.id ?? null, campo: "galeria" }}
+        proporcao="3:4, em pé (a primeira aparece assim no card da loja)"
+      />
 
       <div className={estilos.botoes}>
         <Botao href="/admin/loja" variante="secundario">Cancelar</Botao>

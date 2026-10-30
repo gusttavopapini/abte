@@ -46,6 +46,14 @@ before(async () => {
   for (const caminho of Object.values(ARQUIVOS)) await bucket.file(caminho).save(Buffer.from("teste"), { resumable: false });
   await db.collection("midias").doc("comDocumento").set({ variantes: [{ largura: 480, caminho: ARQUIVOS.comDocumento, tamanho: 5 }] });
   await db.collection("midias").doc("semArquivo").set({ variantes: [{ largura: 480, caminho: "publico/midias/semArquivo/480.webp", tamanho: 5 }] });
+  // Dono da imagem (29/10/2026): uma de cadastro não salvo, uma que o item
+  // não usa e uma que o item usa (só as duas primeiras são listadas).
+  const antes = new Date(Date.now() - 60_000);
+  await db.collection("midias").doc("donoSemId").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "post", id: null, campo: "capa" } });
+  await db.collection("midias").doc("donoSemUso").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "artigo", id: "artigoTeste", campo: "imagem" } });
+  await db.collection("midias").doc("donoComUso").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "produto", id: "produtoTeste", campo: "galeria" } });
+  await db.collection("artigos").doc("artigoTeste").set({ imagemMidiaId: null });
+  await db.collection("produtos").doc("produtoTeste").set({ imagens: [{ midiaId: "donoComUso", ordem: 0 }] });
 });
 
 after(async () => {
@@ -65,6 +73,16 @@ describe("Script de mídia órfã", () => {
     assert.doesNotMatch(saida, /publico\/midias\/comDocumento/);
     assert.match(saida, /semArquivo: 1 de 1 arquivo\(s\) faltando/);
     for (const caminho of Object.values(ARQUIVOS)) assert.equal(await existe(caminho), true);
+  });
+
+  test("lista as imagens enviadas por um item e não usadas por ele, sem apagar", async () => {
+    const { codigo, saida } = await rodar("--minutos=0");
+    assert.equal(codigo, 0, saida);
+    assert.match(saida, /Enviadas por um item e não usadas por ele: 2/);
+    assert.match(saida, /donoSemId: post \(capa\), cadastro não salvo/);
+    assert.match(saida, /donoSemUso: artigo \(imagem\), não usada pelo item/);
+    assert.doesNotMatch(saida, /donoComUso/);
+    assert.equal((await db.collection("midias").doc("donoSemId").get()).exists, true);
   });
 
   test("--apagar sem a confirmação certa não apaga nada", async () => {

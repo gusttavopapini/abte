@@ -6,9 +6,10 @@
 import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import { exigirPapelDoPainel } from "@/lib/auth/sessao";
+import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { COLECAO_DE_TOPICOS } from "@/lib/dados/colecoes";
 import { MENSAGEM_IMAGEM_DO_PRODUTO_INDISPONIVEL, imagensDoProdutoValidas } from "@/lib/gravacao/produtos";
+import { completarDonoDasMidias } from "@/lib/midia/biblioteca";
 import { validarProduto, type CampoDoProduto } from "@/lib/produtos";
 import { escolherSlugUnico, gerarSlug } from "@/lib/slug";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
@@ -30,7 +31,7 @@ function atualizarPaginas() {
 // Cria (sem id) ou atualiza (com id). O slug é criado com o nome, único entre
 // todos os produtos (inclusive os da lixeira), e não muda ao renomear.
 export async function salvarProduto(_anterior: RespostaDoProduto | null, dados: FormData): Promise<RespostaDoProduto> {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
   const id = dados.get("id");
   if (id !== null && id !== "" && !ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Produto não encontrado." };
 
@@ -51,19 +52,25 @@ export async function salvarProduto(_anterior: RespostaDoProduto | null, dados: 
       return { ok: false, mensagem: "Confira os campos marcados.", erros: { imagens: MENSAGEM_IMAGEM_DO_PRODUTO_INDISPONIVEL } };
     }
     const agora = new Date();
+    const referencia = typeof id === "string" && id ? colecao.doc(id) : colecao.doc();
     await db.runTransaction(async (transacao) => {
       if (typeof id === "string" && id) {
-        const atual = await transacao.get(colecao.doc(id));
+        const atual = await transacao.get(referencia);
         if (!atual.exists) throw new ErroDeValidacao("Produto não encontrado.");
-        transacao.update(colecao.doc(id), { ...produto, atualizadoEm: agora });
+        transacao.update(referencia, { ...produto, atualizadoEm: agora });
         return;
       }
       // Coleção pequena: lida inteira na transação, o que garante o slug único.
       const existentes = await transacao.get(colecao);
       const emUso = new Set(existentes.docs.map((documento) => String(documento.get("slug") ?? "")));
       const slug = escolherSlugUnico(gerarSlug(produto.nome) || "produto", emUso);
-      transacao.create(colecao.doc(), { ...produto, slug, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
+      transacao.create(referencia, { ...produto, slug, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
     });
+    // Imagens enviadas pelo formulário de um produto novo: recebem o id agora
+    // (lib/midia/dono.ts). Falha aqui não desfaz o cadastro.
+    await completarDonoDasMidias(db, produto.imagens.map((imagem) => imagem.midiaId), "produto", "galeria", referencia.id, autorDaAlteracao(usuario)).catch((erro: unknown) =>
+      console.error("Falha ao ligar as imagens ao produto salvo:", erro),
+    );
   } catch (erro) {
     if (erro instanceof ErroDeValidacao) return { ok: false, mensagem: erro.message };
     console.error("Falha ao salvar produto:", erro);

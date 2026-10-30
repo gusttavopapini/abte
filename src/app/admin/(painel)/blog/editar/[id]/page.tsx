@@ -27,7 +27,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
       
       <FormularioPost
         acao={atualizarPost}
-        post={{ id: post.id, titulo: post.titulo, imagem: post.imagem, conteudo: post.conteudo, categoria: post.categoria, tags: post.tags }}
+        post={{ id: post.id, titulo: post.titulo, imagem: post.imagem, conteudo: post.conteudo, categoria: post.categoria, tags: post.tags, formatoConteudo: post.formatoConteudo }}
         capa={capa}
         categorias={opcoesDeCategoriaNoPainel(categorias)}
         tags={tags.map(({ id, nome }) => ({ id, nome }))}

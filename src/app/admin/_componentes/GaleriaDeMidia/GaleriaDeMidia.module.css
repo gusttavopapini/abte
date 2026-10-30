@@ -111,3 +111,13 @@
   color: var(--color-error);
   font-size: var(--font-size-small);
 }
+
+/* Arrastar para mudar a ordem (29/10/2026): o item sob o cursor ganha a
+   borda da marca */
+.item[draggable="true"] {
+  cursor: grab;
+}
+
+.alvo {
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}

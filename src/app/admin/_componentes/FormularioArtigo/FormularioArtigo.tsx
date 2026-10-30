@@ -4,7 +4,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, type FormEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { SeletorDeMidia, type EscolhaDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
+import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import type { RespostaDoArtigo } from "@/app/admin/acoes-conteudo";
 import type { Artigo } from "@/lib/dados/tipos";
 import {
@@ -27,7 +27,7 @@ type PropsFormularioArtigo = {
   categorias: OpcaoDeTopico[];
   tags: OpcaoDeTopico[];
   // Imagem atual da biblioteca de mídia (imagem null: foi para a lixeira).
-  imagem: EscolhaDeMidia;
+  imagem: EscolhaDeImagem;
   rotuloPublicar: string;
   rotuloRascunho: string;
 };
@@ -132,7 +132,14 @@ export function FormularioArtigo({ acao, artigo, categorias, tags, imagem, rotul
       </div>
 
       <div className={classes.grupo}>
-        <SeletorDeMidia nome="imagemMidiaId" rotulo="Imagem do artigo (opcional, aparece na página do artigo)" inicial={imagem} erro={resposta?.erros?.imagemMidiaId} />
+        <ImagemDoItem
+          nome="imagemMidiaId"
+          rotulo="Imagem do artigo (opcional)"
+          inicial={imagem}
+          dono={{ tipo: "artigo", id: artigo?.id ?? null, campo: "imagem" }}
+          proporcao="16:9 (aparece assim no card e no alto da página do artigo)"
+          erro={resposta?.erros?.imagemMidiaId}
+        />
       </div>
 
       <div className={classes.grupo}>

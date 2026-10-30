@@ -4,17 +4,18 @@ import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { enviarMidia, type RespostaDaMidia } from "@/app/admin/acoes-midia";
+import type { RespostaDaMidia } from "@/app/admin/acoes-midia";
 import { LIMITE_DO_ALT, MENSAGENS, validarAlt, validarAvisoDeMenor } from "@/lib/midia/regras";
-import { reduzirImagem } from "./reduzirImagem";
+import { enviarArquivo } from "./enviarArquivo";
 import estilos from "./EnviarMidia.module.css";
 
 type Erros = NonNullable<RespostaDaMidia["erros"]>;
 
 // Textos do aviso de menores: PROVISÓRIOS. A redação final é da ABTE e da
-// assessoria jurídica (pendência no CLAUDE.md).
-const TEXTO_INDICA_MENOR = "A imagem mostra criança ou adolescente";
-const TEXTO_AUTORIZACAO = "A ABTE tem autorização por escrito dos responsáveis";
+// assessoria jurídica (pendência no CLAUDE.md). Também usados pelo campo de
+// imagem de cada item (ImagemDoItem).
+export const TEXTO_INDICA_MENOR = "A imagem mostra criança ou adolescente";
+export const TEXTO_AUTORIZACAO = "A ABTE tem autorização por escrito dos responsáveis";
 
 type Props = {
   aoEnviar: (mensagem: string, id: string) => void;
@@ -57,14 +58,7 @@ export function EnviarMidia({ aoEnviar, aoCancelar, rotulo }: Props) {
 
     setEnviando(true);
     try {
-      const reduzida = await reduzirImagem(arquivo);
-      if (!reduzida.ok) return mostrarErros({ arquivo: reduzida.mensagem }, reduzida.mensagem);
-      const dados = new FormData();
-      dados.set("arquivo", reduzida.arquivo);
-      dados.set("alt", alt.alt);
-      if (indicaMenor) dados.set("indicaMenor", "sim");
-      if (indicaMenor && autorizacao) dados.set("autorizacao", "sim");
-      const resposta = await enviarMidia(dados);
+      const resposta = await enviarArquivo({ arquivo, alt: alt.alt, indicaMenor, autorizacao });
       if (resposta.ok && resposta.id) aoEnviar(resposta.mensagem, resposta.id);
       else mostrarErros(resposta.erros ?? {}, resposta.mensagem);
     } catch {

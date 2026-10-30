@@ -11,6 +11,11 @@
 // menos de 60 minutos ficam de fora (podem ser um envio em andamento); para
 // mudar, --minutos=N.
 //
+// Desde 29/10/2026 também lista (só lista, nunca apaga) as imagens enviadas
+// pelo formulário de um item (campo "dono", src/lib/midia/dono.ts) que o
+// item não chegou a usar: cadastro novo que não foi salvo (dono sem id) ou
+// item salvo sem a imagem. Para tirá-las, use a lixeira em /admin/midia.
+//
 // Lê as credenciais do .env e do .env.local (o .env.local prevalece) e nunca
 // as exibe. Com FIRESTORE_EMULATOR_HOST e FIREBASE_STORAGE_EMULATOR_HOST
 // definidas, usa os emuladores (testes).
@@ -25,6 +30,35 @@ const PASTAS = ["publico", "lixeira"] as const;
 const MINUTOS_PADRAO = 60;
 
 type Pasta = { caminho: string; id: string; arquivos: string[]; maisRecente: number };
+
+// Onde o item dono guarda a imagem (mesmas referências de
+// REFERENCIAS_DE_MIDIA em src/lib/midia/biblioteca.ts e da home).
+const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "id" | "lista" | "texto" | "home" }> = {
+  "post:capa": { colecao: "posts", campo: "capaMidiaId", jeito: "id" },
+  "post:corpo": { colecao: "posts", campo: "conteudo", jeito: "texto" },
+  "artigo:imagem": { colecao: "artigos", campo: "imagemMidiaId", jeito: "id" },
+  "produto:galeria": { colecao: "produtos", campo: "imagens", jeito: "lista" },
+  "profissional:foto": { colecao: "profissionais", campo: "fotoMidiaId", jeito: "id" },
+  "categoriaDeArtigo:imagem": { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", jeito: "id" },
+  "categoriaDeProduto:imagem": { colecao: "categoriasDeProdutos", campo: "imagemMidiaId", jeito: "id" },
+  "diretoria:foto": { colecao: "diretoria", campo: "fotoMidiaId", jeito: "id" },
+  "home:banner": { colecao: "configuracoes", campo: "banners", jeito: "home" },
+  "home:secao": { colecao: "configuracoes", campo: "imagens", jeito: "home" },
+};
+
+// O item dono usa a imagem? Na home, o documento é configuracoes/home.
+async function donoUsa(db: ReturnType<typeof getFirestore>, midiaId: string, dono: { tipo: string; id: string; campo: string }): Promise<boolean> {
+  const onde = ONDE_O_DONO_USA[`${dono.tipo}:${dono.campo}`];
+  if (!onde) return false;
+  const documento = await db.collection(onde.colecao).doc(onde.jeito === "home" ? "home" : dono.id).get();
+  if (!documento.exists) return false;
+  const valor = documento.get(onde.campo);
+  if (onde.jeito === "id") return valor === midiaId;
+  if (onde.jeito === "texto") return String(valor ?? "").includes(`](midia:${midiaId})`);
+  if (onde.jeito === "lista") return Array.isArray(valor) && valor.some((item) => item?.midiaId === midiaId);
+  const lista = Array.isArray(valor) ? valor : Object.values(valor ?? {});
+  return lista.some((item) => (item as { midiaId?: unknown } | null)?.midiaId === midiaId);
+}
 
 function argumento(nome: string): string | null {
   const encontrado = process.argv.slice(2).find((arg) => arg === nome || arg.startsWith(`${nome}=`));
@@ -114,6 +148,23 @@ async function principal() {
   console.log(`\nDocumentos com arquivo faltando: ${semArquivo.length}`);
   for (const linha of semArquivo) console.log(linha);
   if (semArquivo.length > 0) console.log("  (documentos nunca são apagados por este script; confira no painel)");
+
+  // Enviadas pelo formulário de um item e não usadas por ele (só as fora da
+  // lixeira e criadas antes do limite de minutos).
+  const naoSalvas: string[] = [];
+  for (const documento of documentos.docs) {
+    const dono = documento.get("dono");
+    if (!dono || typeof dono !== "object" || documento.get("excluidoEm")) continue;
+    const criadoEm = documento.get("criadoEm")?.toMillis?.() ?? 0;
+    if (criadoEm > limite) continue;
+    const { tipo, id, campo } = dono as Record<string, unknown>;
+    if (typeof tipo !== "string" || typeof campo !== "string") continue;
+    if (typeof id !== "string" || !id) naoSalvas.push(`  ${documento.id}: ${tipo} (${campo}), cadastro não salvo`);
+    else if (!(await donoUsa(db, documento.id, { tipo, id, campo }))) naoSalvas.push(`  ${documento.id}: ${tipo} (${campo}), não usada pelo item`);
+  }
+  console.log(`\nEnviadas por um item e não usadas por ele: ${naoSalvas.length}`);
+  for (const linha of naoSalvas) console.log(linha);
+  if (naoSalvas.length > 0) console.log("  (só listadas; para tirá-las, use a lixeira em /admin/midia)");
 
   if (!apagar) return;
   if (confirmacao !== projectId) {

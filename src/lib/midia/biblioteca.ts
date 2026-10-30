@@ -9,6 +9,7 @@ import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Storage } from "firebase-admin/storage";
 import sharp from "sharp";
 import type { OrigemDaMidia } from "../dados/tipos.ts";
+import { donoDoDocumento, idsDasImagensNoTexto, precisaCompletarDono, type CampoDoDono, type DonoDaMidia, type TipoDeDono } from "./dono.ts";
 import { registrarNoLote, type Alteracao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import {
   CACHE_DAS_IMAGENS,
@@ -110,6 +111,9 @@ export type DadosDoEnvio = {
   alt: unknown;
   indicaMenor: boolean;
   autorizacaoConfirmada: boolean;
+  // Envio pelo formulário de um item (29/10/2026, lib/midia/dono.ts); sem
+  // dono, o envio direto na biblioteca.
+  dono?: DonoDaMidia | null;
 };
 
 // Grava as variantes em publico/ e cria o documento em midias junto com o
@@ -186,9 +190,12 @@ export async function enviarImagem(
       indicaMenor: dados.indicaMenor,
       autorizacaoConfirmadaPor: dados.indicaMenor ? autor.uid : null,
       autorizacaoConfirmadaEm: dados.indicaMenor ? FieldValue.serverTimestamp() : null,
+      ...(dados.dono ? { dono: dados.dono } : {}),
     }),
     autor,
-    { campos: ["alt", "variantes", "indicaMenor"], resumo: "Imagem enviada para a biblioteca." },
+    dados.dono
+      ? { campos: ["alt", "variantes", "indicaMenor", "dono"], resumo: "Imagem enviada pelo formulário de um item." }
+      : { campos: ["alt", "variantes", "indicaMenor"], resumo: "Imagem enviada para a biblioteca." },
   );
   return { ok: true, id };
 }
@@ -331,6 +338,59 @@ export async function escolhasDeMidiaValidas(db: Firestore, escolhidas: string[]
   const novas = escolhidas.filter((id) => !anteriores.includes(id));
   const resultados = await Promise.all(novas.map((id) => midiaPodeSerEscolhida(db, id)));
   return resultados.every(Boolean);
+}
+
+// Item novo salvo (29/10/2026): as imagens enviadas pelo formulário dele
+// ainda têm o dono sem id. Recebem o id do item só as que têm o mesmo tipo e
+// campo e o id vazio; imagem sem dono (antiga ou da biblioteca) ou de outro
+// item fica como está. Cada imagem ligada ganha uma linha no registro.
+// Devolve quantas foram ligadas.
+export async function completarDonoDasMidias(
+  db: Firestore,
+  ids: (string | null | undefined)[],
+  tipo: TipoDeDono,
+  campo: CampoDoDono,
+  idDoItem: string,
+  autor: AutorDaAlteracao,
+): Promise<number> {
+  const unicos = [...new Set(ids.filter((id): id is string => typeof id === "string" && id.length > 0))];
+  if (unicos.length === 0) return 0;
+  const documentos = await db.getAll(...unicos.map((id) => db.collection(COLECAO_MIDIAS).doc(id)));
+  const lote = db.batch();
+  let ligadas = 0;
+  for (const documento of documentos) {
+    if (!documento.exists || !precisaCompletarDono(donoDoDocumento(documento.get("dono")), tipo, campo)) continue;
+    lote.update(documento.ref, { "dono.id": idDoItem });
+    registrarNoLote(db, lote, autor, { colecao: COLECAO_MIDIAS, documentoId: documento.id, acao: "editar", campos: ["dono"], resumo: "Imagem ligada ao item salvo." });
+    ligadas++;
+  }
+  if (ligadas > 0) await lote.commit();
+  return ligadas;
+}
+
+export type UsoNoItem = { rotulo: string; nome: string; naLixeira: boolean };
+
+// Onde cada imagem está em uso, numa leitura só de cada coleção (tela
+// /admin/midia: "Usada em"). Mesmas referências de REFERENCIAS_DE_MIDIA.
+export async function mapaDeUsos(db: Firestore): Promise<Map<string, UsoNoItem[]>> {
+  const mapa = new Map<string, UsoNoItem[]>();
+  const anotar = (id: unknown, uso: UsoNoItem) => {
+    if (typeof id !== "string" || !id) return;
+    const lista = mapa.get(id) ?? [];
+    if (!lista.some((existente) => existente.rotulo === uso.rotulo && existente.nome === uso.nome)) lista.push(uso);
+    mapa.set(id, lista);
+  };
+  for (const { colecao, campo, rotulo, campoDoNome, emLista, emMarkdown } of REFERENCIAS_DE_MIDIA) {
+    const encontrados = await db.collection(colecao).select(campoDoNome, "excluidoEm", campo).get();
+    for (const documento of encontrados.docs) {
+      const uso = { rotulo, nome: String(documento.get(campoDoNome) ?? "").trim() || "Sem nome", naLixeira: Boolean(documento.get("excluidoEm")) };
+      const valor = documento.get(campo);
+      if (emMarkdown) for (const id of idsDasImagensNoTexto(String(valor ?? ""))) anotar(id, uso);
+      else if (emLista) for (const item of Array.isArray(valor) ? valor : []) anotar(item?.[emLista], uso);
+      else anotar(valor, uso);
+    }
+  }
+  return mapa;
 }
 
 // Onde a imagem está em uso: para cada referência cadastrada em

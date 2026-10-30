@@ -4,7 +4,7 @@ import { useActionState, useId } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { SeletorDeMidia, type EscolhaDeMidia } from "@/app/admin/_componentes/SeletorDeMidia/SeletorDeMidia";
+import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import {
   atualizarTopico,
   criarTopico,
@@ -17,7 +17,7 @@ import estilos from "./GerenciadorDeTopicos.module.css";
 
 // imagem: só nas categorias (null sem imagem; imagem null dentro: foi para a lixeira).
 // ativa: só usada nas categorias de artigo e de post (ausente no documento vale true).
-export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeMidia; ativa: boolean };
+export type TopicoNaTela = { id: string; nome: string; slug: string; ordem: number; imagem: EscolhaDeImagem; ativa: boolean };
 
 type Props = {
   tipo: TipoDeTopico;
@@ -106,7 +106,13 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeA
         )}
         {comImagem && (
           <div className={estilos.imagem}>
-            <SeletorDeMidia nome="imagemMidiaId" rotulo={`Imagem${ondeAparece ? ` (${ondeAparece})` : ""}`} inicial={topico.imagem} />
+            <ImagemDoItem
+              nome="imagemMidiaId"
+              rotulo={`Imagem${ondeAparece ? ` (${ondeAparece})` : ""}`}
+              inicial={topico.imagem}
+              dono={{ tipo: tipo === "categoriaDeProduto" ? "categoriaDeProduto" : "categoriaDeArtigo", id: topico.id, campo: "imagem" }}
+              proporcao={tipo === "categoriaDeProduto" ? "1:1, quadrada" : "16:9 (aparece assim no card da categoria)"}
+            />
           </div>
         )}
       </form>

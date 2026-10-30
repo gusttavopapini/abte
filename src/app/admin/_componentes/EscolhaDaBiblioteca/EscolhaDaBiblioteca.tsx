@@ -25,6 +25,10 @@ type Props = {
   // Botões a mais na mesma linha (ex.: "Remover imagem").
   extra?: ReactNode;
   controle?: Ref<ControleDaEscolha>;
+  // Campo de imagem de um item (ImagemDoItem e galeria, 29/10/2026): o envio
+  // fica no próprio campo, então aqui só a biblioteca, aberta por um link
+  // secundário ("Reutilizar imagem já enviada").
+  soBiblioteca?: boolean;
 };
 
 type Painel = "biblioteca" | "enviar" | null;
@@ -37,7 +41,7 @@ function normalizar(texto: string): string {
 // Escolher uma imagem da biblioteca (busca pelo texto alternativo, miniaturas
 // operáveis por teclado) ou enviar uma nova sem sair do formulário. Usada pelo
 // seletor de mídia (uma imagem) e pela galeria de mídia (várias).
-export function EscolhaDaBiblioteca({ rotuloDaBiblioteca, jaEscolhidas, bloquearEscolhidas, desativado, aoEscolher, extra, controle }: Props) {
+export function EscolhaDaBiblioteca({ rotuloDaBiblioteca, jaEscolhidas, bloquearEscolhidas, desativado, aoEscolher, extra, controle, soBiblioteca }: Props) {
   const id = useId();
   const [painel, setPainel] = useState<Painel>(null);
   const [midias, setMidias] = useState<MidiaNaTela[] | null>(null);
@@ -117,22 +121,24 @@ export function EscolhaDaBiblioteca({ rotuloDaBiblioteca, jaEscolhidas, bloquear
             <Botao
               ref={botaoBibliotecaRef}
               type="button"
-              variante="secundario"
+              variante={soBiblioteca ? "link" : "secundario"}
               onClick={abrirBiblioteca}
               aria-expanded={painel === "biblioteca"}
               aria-controls={painel === "biblioteca" ? idPainel : undefined}
             >
               {rotuloDaBiblioteca}
             </Botao>
-            <Botao
-              type="button"
-              variante="secundario"
-              onClick={() => setPainel(painel === "enviar" ? null : "enviar")}
-              aria-expanded={painel === "enviar"}
-              aria-controls={painel === "enviar" ? idPainel : undefined}
-            >
-              Enviar nova imagem
-            </Botao>
+            {!soBiblioteca && (
+              <Botao
+                type="button"
+                variante="secundario"
+                onClick={() => setPainel(painel === "enviar" ? null : "enviar")}
+                aria-expanded={painel === "enviar"}
+                aria-controls={painel === "enviar" ? idPainel : undefined}
+              >
+                Enviar nova imagem
+              </Botao>
+            )}
           </>
         )}
         {extra}
@@ -158,7 +164,7 @@ export function EscolhaDaBiblioteca({ rotuloDaBiblioteca, jaEscolhidas, bloquear
             {carregando ? "Carregando a biblioteca..." : midias && `${visiveis.length} ${visiveis.length === 1 ? "imagem" : "imagens"}`}
           </p>
           {!carregando && midias && visiveis.length === 0 && (
-            <p className={estilos.texto}>{midias.length === 0 ? "A biblioteca ainda não tem imagens. Use \"Enviar nova imagem\"." : "Nenhuma imagem encontrada."}</p>
+            <p className={estilos.texto}>{midias.length === 0 ? (soBiblioteca ? "A biblioteca ainda não tem imagens. Envie uma imagem pelo campo acima." : "A biblioteca ainda não tem imagens. Use \"Enviar nova imagem\".") : "Nenhuma imagem encontrada."}</p>
           )}
           {visiveis.length > 0 && (
             <ul role="list" className={estilos.grade}>

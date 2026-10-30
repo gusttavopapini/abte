@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { autorDaAlteracao as autorDe, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { editarAlt, enviarImagem, excluirDeVez, listarUsos, moverParaLixeiraOuRestaurar, type UsoDaMidia } from "@/lib/midia/biblioteca";
 import { listarMidiasAtivas } from "@/lib/midia/exibicao";
+import { lerDono } from "@/lib/midia/dono";
 import { LIMITE_DO_ARQUIVO_EM_BYTES, MENSAGENS } from "@/lib/midia/regras";
 import { servicosDeMidia } from "@/lib/midia/servicos";
 import type { MidiaNaTela } from "@/lib/midia/tela";
@@ -55,12 +56,17 @@ async function comErroAmigavel(executar: () => Promise<RespostaDaMidia>, mensage
 }
 
 // Chamada direto pelo formulário de envio (não por useActionState), depois da
-// redução da imagem no navegador.
+// redução da imagem no navegador. Com donoTipo, donoId e donoCampo, a imagem
+// foi enviada pelo formulário de um item (ImagemDoItem, galeria, texto do
+// post, home) e grava o dono (lib/midia/dono.ts); sem eles, é um envio
+// direto na biblioteca. O processamento é o mesmo nos dois casos.
 export async function enviarMidia(dados: FormData): Promise<RespostaDaMidia> {
   const usuario = await exigirPapelDoPainel("midia.enviar");
   const arquivo = dados.get("arquivo");
   if (!(arquivo instanceof File) || arquivo.size === 0) return falha(MENSAGENS.semArquivo, "arquivo");
   if (arquivo.size > LIMITE_DO_ARQUIVO_EM_BYTES) return falha(MENSAGENS.grande, "arquivo");
+  const dono = lerDono(dados.get("donoTipo"), dados.get("donoId"), dados.get("donoCampo"));
+  if (!dono.ok) return falha(dono.mensagem);
 
   return comErroAmigavel(async () => {
     const resultado = await enviarImagem(
@@ -70,12 +76,13 @@ export async function enviarMidia(dados: FormData): Promise<RespostaDaMidia> {
         alt: dados.get("alt"),
         indicaMenor: dados.get("indicaMenor") === "sim",
         autorizacaoConfirmada: dados.get("autorizacao") === "sim",
+        dono: dono.dono,
       },
       autorDe(usuario),
     );
     if (!resultado.ok) return falha(resultado.mensagem, resultado.campo);
     revalidatePath("/admin/midia");
-    return { ok: true, mensagem: "Imagem enviada para a biblioteca.", id: resultado.id };
+    return { ok: true, mensagem: dono.dono ? "Imagem enviada." : "Imagem enviada para a biblioteca.", id: resultado.id };
   }, "Não foi possível enviar a imagem agora. Tente de novo em instantes.");
 }
 

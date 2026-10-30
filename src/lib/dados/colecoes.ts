@@ -3,6 +3,7 @@ import "server-only";
 
 import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { donoDoDocumento } from "@/lib/midia/dono";
 import { lerAtiva } from "@/lib/topicos";
 import type { Artigo, ConferenciaDeMenor, MembroDaDiretoria, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
@@ -201,6 +202,7 @@ const conversorMidia = conversorDeLeitura<Midia>((id, campos) => ({
   altProvisorio: campos.altProvisorio === true,
   conferenciaDeMenor: conferenciaDeMenor(campos.conferenciaDeMenor),
   origem: origemDaMidia(campos.origem),
+  dono: donoDoDocumento(campos.dono),
   criadoEm: data(campos.criadoEm),
   excluidoEm: data(campos.excluidoEm),
 }));
