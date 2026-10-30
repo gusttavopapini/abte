@@ -214,6 +214,14 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Promovido** em 30/10 (`e6544fd`, deployment `7437411662`, produção conferida).
 - **Pendências:** tela da diretoria no painel; textos do aviso de menores; registro de alterações de posts, artigos e produtos.
 
+### Duas versões das imagens da home (30/10)
+
+- **Pedido:** cada banner e cada imagem de seção da home com a versão para computador e a opcional para celular. Commits `d9f891c` (dados), `fcd7ab1` (painel), `e43add3` (site) e `292584c` (ajuste).
+- **Dados:** `midiaMobileId` opcional em `configuracoes/home`; documentos antigos continuam valendo. Dono por versão (`bannerCelular` e `secaoCelular`); "Usada em" com o banner e a versão.
+- **Painel:** duas áreas no Modal, prévia em moldura, aviso "Sem versão para celular", botão "Usar a mesma imagem nas duas versões" e miniaturas "Computador" e "Celular" nos cartões.
+- **Site:** `<picture>` no Hero e nas seções; cada largura baixa um arquivo por espaço (conferido em 6 larguras). Sem versão celular, como antes.
+- **Validação:** 609 testes (373, 141, 95), lint (4 avisos), lint:css (5) e build. Navegador: 36 de 36 no painel, 8 de 8 nos links do banner, 6 larguras na home. Capturas em `tmp-migracao/capturas/home-duas-versoes/`.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
