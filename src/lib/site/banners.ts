@@ -9,7 +9,7 @@ export type SlideDoBanner = {
   imagem: string;
   // Imagem da biblioteca escolhida no painel (29/10/2026, lib/site/home.ts);
   // sem ela, vale o endereço em "imagem" (slides padrão).
-  midia?: ImagemNaTela;
+  midia?: ImagemNaTela & { celular?: ImagemNaTela | null };
   alt: string;
   href: string;
   rotulo: string;

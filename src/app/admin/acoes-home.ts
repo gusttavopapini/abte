@@ -11,7 +11,7 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { excluirBanner, salvarBanner, salvarImagemDoEspaco } from "@/lib/gravacao/home";
 import { ehChaveDeBanner, lerBannerDoFormulario, lerImagemDoEspacoDoFormulario } from "@/lib/site/home";
 
-export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<"midiaId" | "alt" | "href" | "posicao" | "ativo", string>> } | null;
+export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<"midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo", string>> } | null;
 
 const ERRO_GENERICO = "Não foi possível salvar agora. Tente de novo em instantes.";
 
@@ -26,6 +26,7 @@ export async function salvarBannerDaHome(_anterior: RespostaDaHome, dados: FormD
   const lido = lerBannerDoFormulario({
     chave: dados.get("chave"),
     midiaId: dados.get("midiaId"),
+    midiaMobileId: dados.get("midiaMobileId"),
     alt: dados.get("alt"),
     href: dados.get("href"),
     ativo: dados.get("ativo"),
@@ -60,7 +61,12 @@ export async function excluirBannerDaHome(_anterior: RespostaDaHome, dados: Form
 
 export async function salvarImagemDaSecao(_anterior: RespostaDaHome, dados: FormData): Promise<RespostaDaHome> {
   const usuario = await exigirPapelDoPainel("home.editar");
-  const lido = lerImagemDoEspacoDoFormulario({ identificador: dados.get("identificador"), midiaId: dados.get("midiaId"), alt: dados.get("alt") });
+  const lido = lerImagemDoEspacoDoFormulario({
+    identificador: dados.get("identificador"),
+    midiaId: dados.get("midiaId"),
+    midiaMobileId: dados.get("midiaMobileId"),
+    alt: dados.get("alt"),
+  });
   if (!lido.ok) return { ok: false, mensagem: lido.mensagem, erros: lido.erros };
   try {
     const gravado = await salvarImagemDoEspaco(firestoreAdmin(), lido.identificador, lido.imagem, autorDaAlteracao(usuario));

@@ -26,7 +26,7 @@ export default async function PaginaAdminHome() {
       identificador: espaco.identificador,
       nome: espaco.nome,
       onde: espaco.onde,
-      proporcao: espaco.proporcao,
+      proporcao: espaco.proporcoes.computador.texto,
       midiaId: escolhida?.midiaId ?? null,
       alt: escolhida?.alt ?? "",
       imagem: escolhida?.midiaId ? imagens.get(escolhida.midiaId) ?? null : null,

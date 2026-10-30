@@ -33,7 +33,9 @@ type Pasta = { caminho: string; id: string; arquivos: string[]; maisRecente: num
 
 // Onde o item dono guarda a imagem (mesmas referências de
 // REFERENCIAS_DE_MIDIA em src/lib/midia/biblioteca.ts e da home).
-const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "id" | "lista" | "texto" | "home" }> = {
+// Na home, chaveDaImagem diz qual versão (30/10/2026): midiaId (computador)
+// ou midiaMobileId (celular).
+const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "id" | "lista" | "texto" | "home"; chaveDaImagem?: "midiaId" | "midiaMobileId" }> = {
   "post:capa": { colecao: "posts", campo: "capaMidiaId", jeito: "id" },
   "post:corpo": { colecao: "posts", campo: "conteudo", jeito: "texto" },
   "artigo:imagem": { colecao: "artigos", campo: "imagemMidiaId", jeito: "id" },
@@ -42,8 +44,10 @@ const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "
   "categoriaDeArtigo:imagem": { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", jeito: "id" },
   "categoriaDeProduto:imagem": { colecao: "categoriasDeProdutos", campo: "imagemMidiaId", jeito: "id" },
   "diretoria:foto": { colecao: "diretoria", campo: "fotoMidiaId", jeito: "id" },
-  "home:banner": { colecao: "configuracoes", campo: "banners", jeito: "home" },
-  "home:secao": { colecao: "configuracoes", campo: "imagens", jeito: "home" },
+  "home:banner": { colecao: "configuracoes", campo: "banners", jeito: "home", chaveDaImagem: "midiaId" },
+  "home:bannerCelular": { colecao: "configuracoes", campo: "banners", jeito: "home", chaveDaImagem: "midiaMobileId" },
+  "home:secao": { colecao: "configuracoes", campo: "imagens", jeito: "home", chaveDaImagem: "midiaId" },
+  "home:secaoCelular": { colecao: "configuracoes", campo: "imagens", jeito: "home", chaveDaImagem: "midiaMobileId" },
 };
 
 // O item dono usa a imagem? Na home, o documento é configuracoes/home.
@@ -57,7 +61,8 @@ async function donoUsa(db: ReturnType<typeof getFirestore>, midiaId: string, don
   if (onde.jeito === "texto") return String(valor ?? "").includes(`](midia:${midiaId})`);
   if (onde.jeito === "lista") return Array.isArray(valor) && valor.some((item) => item?.midiaId === midiaId);
   const lista = Array.isArray(valor) ? valor : Object.values(valor ?? {});
-  return lista.some((item) => (item as { midiaId?: unknown } | null)?.midiaId === midiaId);
+  const chave = onde.chaveDaImagem ?? "midiaId";
+  return lista.some((item) => (item as Record<string, unknown> | null)?.[chave] === midiaId);
 }
 
 function argumento(nome: string): string | null {

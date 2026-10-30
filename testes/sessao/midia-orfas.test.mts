@@ -54,6 +54,14 @@ before(async () => {
   await db.collection("midias").doc("donoComUso").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "produto", id: "produtoTeste", campo: "galeria" } });
   await db.collection("artigos").doc("artigoTeste").set({ imagemMidiaId: null });
   await db.collection("produtos").doc("produtoTeste").set({ imagens: [{ midiaId: "donoComUso", ordem: 0 }] });
+  // Duas versões da home (30/10/2026): a de celular usada pelo banner não é
+  // listada; a de celular da seção que ficou sem uso, sim.
+  await db.collection("midias").doc("celularComUso").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "home", id: "banner-teste0001", campo: "bannerCelular" } });
+  await db.collection("midias").doc("celularSemUso").set({ variantes: [], criadoEm: antes, excluidoEm: null, dono: { tipo: "home", id: "secao-mutiroes", campo: "secaoCelular" } });
+  await db.collection("configuracoes").doc("home").set({
+    banners: [{ chave: "banner-teste0001", ordem: 1, midiaId: "comDocumento", midiaMobileId: "celularComUso", alt: "x", href: "", ativo: true }],
+    imagens: { "secao-mutiroes": { midiaId: "celularSemUso", midiaMobileId: null, alt: "x" } },
+  });
 });
 
 after(async () => {
@@ -78,10 +86,13 @@ describe("Script de mídia órfã", () => {
   test("lista as imagens enviadas por um item e não usadas por ele, sem apagar", async () => {
     const { codigo, saida } = await rodar("--minutos=0");
     assert.equal(codigo, 0, saida);
-    assert.match(saida, /Enviadas por um item e não usadas por ele: 2/);
+    assert.match(saida, /Enviadas por um item e não usadas por ele: 3/);
     assert.match(saida, /donoSemId: post \(capa\), cadastro não salvo/);
     assert.match(saida, /donoSemUso: artigo \(imagem\), não usada pelo item/);
     assert.doesNotMatch(saida, /donoComUso/);
+    // Usada na seção, mas como versão para computador: não é o uso do dono.
+    assert.match(saida, /celularSemUso: home \(secaoCelular\), não usada pelo item/);
+    assert.doesNotMatch(saida, /celularComUso/);
     assert.equal((await db.collection("midias").doc("donoSemId").get()).exists, true);
   });
 

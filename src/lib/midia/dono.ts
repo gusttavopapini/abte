@@ -14,7 +14,10 @@ export const CAMPOS_POR_TIPO_DE_DONO = {
   categoriaDeArtigo: ["imagem"],
   categoriaDeProduto: ["imagem"],
   diretoria: ["foto"],
-  home: ["banner", "secao"],
+  // Uma versão por campo (30/10/2026): "banner" e "secao" são as de
+  // computador (o nome de antes, para as imagens já enviadas continuarem
+  // valendo) e "bannerCelular" e "secaoCelular", as de celular.
+  home: ["banner", "bannerCelular", "secao", "secaoCelular"],
 } as const;
 
 export type TipoDeDono = keyof typeof CAMPOS_POR_TIPO_DE_DONO;
@@ -41,8 +44,10 @@ export const ROTULOS_DOS_CAMPOS: Record<CampoDoDono, string> = {
   imagem: "imagem",
   galeria: "galeria",
   foto: "foto",
-  banner: "banner",
-  secao: "imagem de seção",
+  banner: "banner, versão para computador",
+  bannerCelular: "banner, versão para celular",
+  secao: "imagem de seção, versão para computador",
+  secaoCelular: "imagem de seção, versão para celular",
 };
 
 // Na home, o id é o identificador do espaço (ex.: "secao-mutiroes") ou a

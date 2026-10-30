@@ -9,6 +9,7 @@ import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Storage } from "firebase-admin/storage";
 import sharp from "sharp";
 import type { OrigemDaMidia } from "../dados/tipos.ts";
+import { ESPACOS_DA_HOME, nomeDoBanner } from "../site/home.ts";
 import { donoDoDocumento, idsDasImagensNoTexto, precisaCompletarDono, type CampoDoDono, type DonoDaMidia, type TipoDeDono } from "./dono.ts";
 import { registrarNoLote, type Alteracao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import {
@@ -59,7 +60,25 @@ type Falha = { ok: false; mensagem: string; campo?: "arquivo" | "alt" | "autoriz
 // emMapa: o campo é um mapa de objetos e a imagem fica numa chave de cada um
 // (imagens das seções da home); nomeFixo: nome mostrado no lugar de um campo
 // (o documento da home não tem nome). Desde 29/10/2026.
-export type ReferenciaDeMidia = { colecao: string; campo: string; rotulo: string; campoDoNome: string; emLista?: string; emMarkdown?: boolean; emMapa?: string; nomeFixo?: string };
+// descreverItem: nome de cada item da lista ou do mapa, no lugar do nome do
+// documento ("Primeiro banner, versão para celular"), desde 30/10/2026.
+export type ReferenciaDeMidia = {
+  colecao: string;
+  campo: string;
+  rotulo: string;
+  campoDoNome: string;
+  emLista?: string;
+  emMarkdown?: boolean;
+  emMapa?: string;
+  nomeFixo?: string;
+  descreverItem?: (item: Record<string, unknown>, chave: string) => string;
+};
+
+// Itens da home: o banner pela posição e a seção pelo nome, com a versão.
+function nomeDaSecao(chave: string): string {
+  return ESPACOS_DA_HOME.find((espaco) => espaco.identificador === chave)?.nome ?? chave;
+}
+const posicaoDoBanner = (item: Record<string, unknown>) => (typeof item.ordem === "number" ? nomeDoBanner(item.ordem) : "Banner");
 
 export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "profissionais", campo: "fotoMidiaId", rotulo: "Profissionais (foto)", campoDoNome: "nome" },
@@ -70,16 +89,32 @@ export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "categoriasDeArtigos", campo: "imagemMidiaId", rotulo: "Categorias de artigos (imagem)", campoDoNome: "nome" },
   { colecao: "produtos", campo: "imagens", emLista: "midiaId", rotulo: "Produtos (galeria)", campoDoNome: "nome" },
   { colecao: "categoriasDeProdutos", campo: "imagemMidiaId", rotulo: "Categorias de produtos (imagem)", campoDoNome: "nome" },
-  { colecao: "configuracoes", campo: "banners", emLista: "midiaId", rotulo: "Home (banners)", campoDoNome: "nome", nomeFixo: "Home" },
-  { colecao: "configuracoes", campo: "imagens", emMapa: "midiaId", rotulo: "Home (imagens das seções)", campoDoNome: "nome", nomeFixo: "Home" },
+  // Home: as duas versões de cada imagem (30/10/2026).
+  { colecao: "configuracoes", campo: "banners", emLista: "midiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para computador` },
+  { colecao: "configuracoes", campo: "banners", emLista: "midiaMobileId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para celular` },
+  { colecao: "configuracoes", campo: "imagens", emMapa: "midiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para computador` },
+  { colecao: "configuracoes", campo: "imagens", emMapa: "midiaMobileId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para celular` },
 ];
 
+// Imagens guardadas num campo, conforme o jeito da referência, com o nome do
+// item quando a referência sabe descrevê-lo (null: vale o nome do documento).
+function usosNoCampo(valor: unknown, { emLista, emMarkdown, emMapa, descreverItem }: ReferenciaDeMidia): { id: string; item: string | null }[] {
+  if (emMarkdown) return idsDasImagensNoTexto(String(valor ?? "")).map((id) => ({ id, item: null }));
+  const chaveDaImagem = emLista ?? emMapa;
+  if (chaveDaImagem) {
+    const itens: [string, unknown][] = emLista ? (Array.isArray(valor) ? valor : []).map((item, indice) => [String(indice), item]) : Object.entries(valor && typeof valor === "object" ? valor : {});
+    return itens.flatMap(([chave, item]) => {
+      const campos = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+      const id = campos[chaveDaImagem];
+      return typeof id === "string" ? [{ id, item: descreverItem ? descreverItem(campos, chave) : null }] : [];
+    });
+  }
+  return typeof valor === "string" ? [{ id: valor, item: null }] : [];
+}
+
 // Ids de imagem guardados num campo, conforme o jeito da referência.
-function idsNoCampo(valor: unknown, { emLista, emMarkdown, emMapa }: ReferenciaDeMidia): string[] {
-  if (emMarkdown) return idsDasImagensNoTexto(String(valor ?? ""));
-  if (emLista) return (Array.isArray(valor) ? valor : []).map((item) => item?.[emLista]).filter((id): id is string => typeof id === "string");
-  if (emMapa) return Object.values(valor && typeof valor === "object" ? valor : {}).map((item) => (item as Record<string, unknown> | null)?.[emMapa]).filter((id): id is string => typeof id === "string");
-  return typeof valor === "string" ? [valor] : [];
+function idsNoCampo(valor: unknown, referenciaDeMidia: ReferenciaDeMidia): string[] {
+  return usosNoCampo(valor, referenciaDeMidia).map((uso) => uso.id);
 }
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };
@@ -397,8 +432,9 @@ export async function mapaDeUsos(db: Firestore): Promise<Map<string, UsoNoItem[]
     const { colecao, campo, rotulo, campoDoNome, nomeFixo } = referenciaDeMidia;
     const encontrados = await db.collection(colecao).select(campoDoNome, "excluidoEm", campo).get();
     for (const documento of encontrados.docs) {
-      const uso = { rotulo, nome: nomeFixo ?? (String(documento.get(campoDoNome) ?? "").trim() || "Sem nome"), naLixeira: Boolean(documento.get("excluidoEm")) };
-      for (const id of idsNoCampo(documento.get(campo), referenciaDeMidia)) anotar(id, uso);
+      const nome = nomeFixo ?? (String(documento.get(campoDoNome) ?? "").trim() || "Sem nome");
+      const naLixeira = Boolean(documento.get("excluidoEm"));
+      for (const { id, item } of usosNoCampo(documento.get(campo), referenciaDeMidia)) anotar(id, { rotulo, nome: item ?? nome, naLixeira });
     }
   }
   return mapa;
@@ -414,16 +450,21 @@ export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[
       const consulta = emLista || emMarkdown || emMapa ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
       const encontrados = await consulta.select(campoDoNome, "excluidoEm", campo).get();
       const registros = encontrados.docs
-        .filter((documento) => idsNoCampo(documento.get(campo), referenciaDeMidia).includes(id))
-        .map((documento) => {
+        .flatMap((documento) => {
           const nome = nomeFixo ?? (String(documento.get(campoDoNome) ?? "").trim() || "Sem nome");
-          return documento.get("excluidoEm") ? `${nome} (na lixeira)` : nome;
+          const usos = usosNoCampo(documento.get(campo), referenciaDeMidia).filter((uso) => uso.id === id);
+          // Sem descrição por item, o documento conta uma vez só.
+          const nomes = [...new Set(usos.map((uso) => uso.item ?? nome))];
+          return nomes.map((nomeDoUso) => (documento.get("excluidoEm") ? `${nomeDoUso} (na lixeira)` : nomeDoUso));
         })
         .sort((a, b) => a.localeCompare(b, "pt-BR"));
       return { rotulo, registros };
     }),
   );
-  return usos.filter((uso) => uso.registros.length > 0);
+  // Referências com o mesmo rótulo (as versões da home) viram um grupo só.
+  const grupos = new Map<string, string[]>();
+  for (const uso of usos) grupos.set(uso.rotulo, [...(grupos.get(uso.rotulo) ?? []), ...uso.registros]);
+  return [...grupos].map(([rotulo, registros]) => ({ rotulo, registros: registros.sort((a, b) => a.localeCompare(b, "pt-BR")) })).filter((uso) => uso.registros.length > 0);
 }
 
 // Move um arquivo, sem travar quando já foi movido: se a origem não existe e

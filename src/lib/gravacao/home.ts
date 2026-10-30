@@ -5,17 +5,19 @@
 // nomes do que mudou e o nome do espaço, nunca os valores.
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
-import { escolhaDeMidiaValida } from "../midia/biblioteca.ts";
+import { midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
 import {
   COLECAO_DA_HOME,
   DOCUMENTO_DA_HOME,
   ESPACOS_DA_HOME,
   LIMITE_DE_BANNERS,
   camposAlteradosDoBanner,
+  camposAlteradosDoEspaco,
   lerConfiguracaoDaHome,
   nomeDoBanner,
   ordenarBanners,
   posicionarBanner,
+  versaoRecusada,
   type BannerDaHome,
   type DadosDoBanner,
   type IdentificadorDoEspaco,
@@ -23,11 +25,30 @@ import {
 } from "../site/home.ts";
 
 export const MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL = "A imagem escolhida não está mais na biblioteca (foi para a lixeira ou excluída). Envie ou escolha outra.";
+export const MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL = "A imagem da versão para celular não está mais na biblioteca (foi para a lixeira ou excluída). Envie ou escolha outra.";
 
-type Falha = { ok: false; mensagem: string; campo?: "midiaId" };
+type Falha = { ok: false; mensagem: string; campo?: "midiaId" | "midiaMobileId" };
+
+// As duas versões: a nova (ou trocada) precisa existir e estar fora da
+// lixeira; a já gravada pode ficar.
+async function conferirVersoes(
+  db: Firestore,
+  escolhidas: { midiaId: string | null; midiaMobileId: string | null },
+  anteriores: { midiaId: string | null; midiaMobileId: string | null } | null,
+): Promise<Falha | null> {
+  const campo = await versaoRecusada(escolhidas, anteriores, (id) => midiaPodeSerEscolhida(db, id));
+  if (!campo) return null;
+  return { ok: false, mensagem: campo === "midiaId" ? MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL : MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, campo };
+}
 
 function referencia(db: Firestore) {
   return db.collection(COLECAO_DA_HOME).doc(DOCUMENTO_DA_HOME);
+}
+
+// A lista de banners é regravada inteira (ordem renumerada); sem versão
+// celular, o campo fica de fora, como nos documentos anteriores a ele.
+function paraGravar(banners: BannerDaHome[]): Record<string, unknown>[] {
+  return banners.map(({ midiaMobileId, ...banner }) => (midiaMobileId ? { ...banner, midiaMobileId } : banner));
 }
 
 // Cria ou altera um banner (chave nova: cria) e o leva à posição pedida.
@@ -37,16 +58,25 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
     const configuracao = lerConfiguracaoDaHome(documento.data());
     const antes = configuracao.banners.find((banner) => banner.chave === dados.chave) ?? null;
     if (!antes && configuracao.banners.length >= LIMITE_DE_BANNERS) return { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners.` };
-    if (!(await escolhaDeMidiaValida(db, dados.midiaId, antes?.midiaId ?? null))) return { ok: false, mensagem: MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, campo: "midiaId" };
+    const recusa = await conferirVersoes(db, dados, antes);
+    if (recusa) return recusa;
 
-    const novo: BannerDaHome = { chave: dados.chave, ordem: antes?.ordem ?? Number.MAX_SAFE_INTEGER, midiaId: dados.midiaId, alt: dados.midiaId ? dados.alt : "", href: dados.href, ativo: dados.ativo };
+    const novo: BannerDaHome = {
+      chave: dados.chave,
+      ordem: antes?.ordem ?? Number.MAX_SAFE_INTEGER,
+      midiaId: dados.midiaId,
+      midiaMobileId: dados.midiaId ? dados.midiaMobileId : null,
+      alt: dados.midiaId ? dados.alt : "",
+      href: dados.href,
+      ativo: dados.ativo,
+    };
     const outros = configuracao.banners.filter((banner) => banner.chave !== dados.chave);
     const banners = posicionarBanner([...outros, novo], dados.chave, dados.posicao);
     const depois = banners.find((banner) => banner.chave === dados.chave) as BannerDaHome;
     const nome = nomeDoBanner(depois.ordem);
     const alterados = camposAlteradosDoBanner(antes, depois);
 
-    transacao.set(referencia(db), { banners, atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
+    transacao.set(referencia(db), { banners: paraGravar(banners), atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
     registrarNaTransacao(db, transacao, autor, {
       colecao: COLECAO_DA_HOME,
       documentoId: DOCUMENTO_DA_HOME,
@@ -66,7 +96,7 @@ export async function excluirBanner(db: Firestore, chave: string, autor: AutorDa
     if (posicao < 0) return { ok: false, mensagem: "Banner não encontrado. Recarregue a página." };
     const banners = ordenados.filter((banner) => banner.chave !== chave).map((banner, indice) => ({ ...banner, ordem: indice + 1 }));
     const nome = nomeDoBanner(posicao + 1);
-    transacao.set(referencia(db), { banners, atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
+    transacao.set(referencia(db), { banners: paraGravar(banners), atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
     registrarNaTransacao(db, transacao, autor, { colecao: COLECAO_DA_HOME, documentoId: DOCUMENTO_DA_HOME, acao: "excluir", campos: ["banners"], resumo: `${nome} excluído.` });
     return { ok: true, nome };
   });
@@ -79,9 +109,13 @@ export async function salvarImagemDoEspaco(db: Firestore, identificador: Identif
   return db.runTransaction(async (transacao) => {
     const documento = await transacao.get(referencia(db));
     const antes = lerConfiguracaoDaHome(documento.data()).imagens[identificador] ?? null;
-    if (!(await escolhaDeMidiaValida(db, imagem.midiaId, antes?.midiaId ?? null))) return { ok: false, mensagem: MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, campo: "midiaId" };
-    const alterados = [...((antes?.midiaId ?? null) !== imagem.midiaId ? ["imagem"] : []), ...((antes?.alt ?? "") !== imagem.alt ? ["texto alternativo"] : [])];
-    transacao.set(referencia(db), { imagens: { [identificador]: imagem }, atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
+    const recusa = await conferirVersoes(db, imagem, antes);
+    if (recusa) return recusa;
+    // midiaMobileId sempre gravado (null sem versão celular): com merge, um
+    // campo ausente manteria a versão celular anterior.
+    const gravada: ImagemDoEspaco = { midiaId: imagem.midiaId, midiaMobileId: imagem.midiaId ? imagem.midiaMobileId : null, alt: imagem.alt };
+    const alterados = camposAlteradosDoEspaco(antes, gravada);
+    transacao.set(referencia(db), { imagens: { [identificador]: gravada }, atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
     registrarNaTransacao(db, transacao, autor, {
       colecao: COLECAO_DA_HOME,
       documentoId: DOCUMENTO_DA_HOME,

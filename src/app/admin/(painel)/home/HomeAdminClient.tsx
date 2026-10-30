@@ -9,7 +9,7 @@ import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
 import type { ImagemNaTela } from "@/lib/midia/tela";
-import { LIMITE_DE_BANNERS, LIMITE_DO_ALT_DA_HOME, LIMITE_DO_LINK, PROPORCAO_DO_BANNER, linkEhExterno, nomeDoBanner, type BannerDaHome, type IdentificadorDoEspaco } from "@/lib/site/home";
+import { LIMITE_DE_BANNERS, LIMITE_DO_ALT_DA_HOME, LIMITE_DO_LINK, PROPORCOES_DO_BANNER, linkEhExterno, nomeDoBanner, type BannerDaHome, type IdentificadorDoEspaco } from "@/lib/site/home";
 import estilos from "./HomeAdminClient.module.css";
 
 export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null };
@@ -116,7 +116,7 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
         rotulo="Imagem do banner"
         inicial={banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null}
         dono={{ tipo: "home", id: chave, campo: "banner" }}
-        proporcao={PROPORCAO_DO_BANNER}
+        proporcao={PROPORCOES_DO_BANNER.computador.texto}
         erro={erros.midiaId}
         aoMudar={aoMudarImagem}
       />

@@ -5,7 +5,9 @@ import { describe, test } from "node:test";
 import { decidirAcessoAoPainel, papelPodeExecutar } from "../../src/lib/auth/papeis.ts";
 import { SLIDES_DO_BANNER } from "../../src/lib/site/banners.ts";
 import {
+  MENSAGEM_CELULAR_SEM_COMPUTADOR,
   camposAlteradosDoBanner,
+  camposAlteradosDoEspaco,
   imagemDoEspaco,
   lerBannerDoFormulario,
   lerConfiguracaoDaHome,
@@ -15,12 +17,13 @@ import {
   posicionarBanner,
   slidesDaHome,
   validarLinkDoBanner,
+  versaoRecusada,
   type BannerDaHome,
 } from "../../src/lib/site/home.ts";
 import type { ImagemNaTela } from "../../src/lib/midia/tela.ts";
 
 const IMAGEM: ImagemNaTela = { alt: "Alt da biblioteca", largura: 1920, altura: 800, variantes: [{ largura: 1600, url: "https://exemplo.invalid/a.webp" }] };
-const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, alt: "", href: "", ativo: true, ...extra });
+const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, ...extra });
 
 describe("Link do banner", () => {
   test("vazio, caminho interno e https valem", () => {
@@ -80,7 +83,7 @@ describe("Leitura do documento e o site", () => {
       imagens: { "secao-mutiroes": { midiaId: "m9", alt: "Mutirão" }, outra: { midiaId: "m8", alt: "x" } },
     });
     assert.deepEqual(lida.banners.map((item) => [item.chave, item.ordem, item.href, item.alt]), [["banner-aaaa", 1, "/loja", "A"], ["banner-bbbb", 2, "", "B"]]);
-    assert.deepEqual(lida.imagens, { "secao-mutiroes": { midiaId: "m9", alt: "Mutirão" } });
+    assert.deepEqual(lida.imagens, { "secao-mutiroes": { midiaId: "m9", midiaMobileId: null, alt: "Mutirão" } });
     assert.deepEqual(midiasDaHome(lida).sort(), ["m1", "m2", "m9"]);
   });
 
@@ -112,7 +115,7 @@ describe("Formulários da home", () => {
   const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "/loja", ativo: "sim", posicao: "1" };
 
   test("banner válido", () => {
-    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "/loja", ativo: true, posicao: 1 } });
+    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1 } });
   });
 
   test("erros por campo, em português", () => {
@@ -126,8 +129,8 @@ describe("Formulários da home", () => {
   });
 
   test("imagem do espaço: alt obrigatório com imagem; sem imagem, volta ao padrão", () => {
-    assert.deepEqual(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "m1", alt: "Mutirão" }), { ok: true, identificador: "secao-mutiroes", imagem: { midiaId: "m1", alt: "Mutirão" } });
-    assert.deepEqual(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "", alt: "sobra" }), { ok: true, identificador: "secao-mutiroes", imagem: { midiaId: null, alt: "" } });
+    assert.deepEqual(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "m1", alt: "Mutirão" }), { ok: true, identificador: "secao-mutiroes", imagem: { midiaId: "m1", midiaMobileId: null, alt: "Mutirão" } });
+    assert.deepEqual(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "", alt: "sobra" }), { ok: true, identificador: "secao-mutiroes", imagem: { midiaId: null, midiaMobileId: null, alt: "" } });
     assert.equal(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "m1", alt: "" }).ok, false);
     assert.equal(lerImagemDoEspacoDoFormulario({ identificador: "outra", midiaId: "m1", alt: "x" }).ok, false);
   });
@@ -137,6 +140,80 @@ describe("Formulários da home", () => {
     assert.equal(papelPodeExecutar("editor", "home.editar"), true);
     assert.deepEqual(decidirAcessoAoPainel(null, "home.editar"), { permitido: false, motivo: "sem-sessao" });
     assert.deepEqual(decidirAcessoAoPainel({}, "home.editar"), { permitido: false, motivo: "sem-papel" });
+  });
+});
+
+describe("Versão para celular (30/10/2026)", () => {
+  const CELULAR: ImagemNaTela = { ...IMAGEM, largura: 1080, altura: 1350 };
+  const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "", ativo: "sim", posicao: "1" };
+
+  test("documento sem midiaMobileId continua valendo (sem versão celular)", () => {
+    const lida = lerConfiguracaoDaHome({
+      banners: [{ chave: "banner-aaaa", ordem: 1, midiaId: "m1", alt: "A", href: "", ativo: true }],
+      imagens: { "secao-mutiroes": { midiaId: "m2", alt: "Mutirão" } },
+    });
+    assert.equal(lida.banners[0].midiaMobileId, null);
+    assert.equal(lida.imagens["secao-mutiroes"]?.midiaMobileId, null);
+    const [slide] = slidesDaHome(lida, new Map([["m1", IMAGEM]]));
+    assert.equal(slide.midia?.celular, null);
+    assert.equal(imagemDoEspaco(lida, "secao-mutiroes", new Map([["m2", IMAGEM]]))?.celular, null);
+  });
+
+  test("com midiaMobileId: o site recebe as duas; celular fora da biblioteca, só a de computador", () => {
+    const lida = lerConfiguracaoDaHome({
+      banners: [{ chave: "banner-aaaa", ordem: 1, midiaId: "m1", midiaMobileId: "c1", alt: "A", href: "", ativo: true }],
+      imagens: { "secao-faca-parte": { midiaId: "m2", midiaMobileId: "c2", alt: "Chamada" } },
+    });
+    assert.deepEqual(midiasDaHome(lida).sort(), ["c1", "c2", "m1", "m2"]);
+    const imagens = new Map([["m1", IMAGEM], ["c1", CELULAR], ["m2", IMAGEM]]);
+    assert.equal(slidesDaHome(lida, imagens)[0].midia?.celular?.altura, 1350);
+    const espaco = imagemDoEspaco(lida, "secao-faca-parte", imagens);
+    assert.equal(espaco?.alt, "Chamada");
+    assert.equal(espaco?.celular, null, "c2 não está na biblioteca: fica só a de computador");
+  });
+
+  test("leitura: celular sem computador, ou id inválido, não vale", () => {
+    const lida = lerConfiguracaoDaHome({
+      banners: [
+        { chave: "banner-aaaa", ordem: 1, midiaId: null, midiaMobileId: "c1", alt: "", href: "", ativo: false },
+        { chave: "banner-bbbb", ordem: 2, midiaId: "m1", midiaMobileId: "a/b", alt: "", href: "", ativo: false },
+      ],
+    });
+    assert.deepEqual(lida.banners.map((item) => item.midiaMobileId), [null, null]);
+  });
+
+  test("formulário: com e sem versão celular; celular sozinho e id inválido recusados", () => {
+    const comCelular = lerBannerDoFormulario({ ...base, midiaMobileId: "c1" });
+    assert.ok(comCelular.ok && comCelular.dados.midiaMobileId === "c1");
+    const semCelular = lerBannerDoFormulario({ ...base, midiaMobileId: "" });
+    assert.ok(semCelular.ok && semCelular.dados.midiaMobileId === null);
+    const sozinho = lerBannerDoFormulario({ ...base, midiaId: "", ativo: null, alt: "", midiaMobileId: "c1" });
+    assert.ok(!sozinho.ok);
+    assert.equal(sozinho.erros.midiaMobileId, MENSAGEM_CELULAR_SEM_COMPUTADOR);
+    const invalido = lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "m1", midiaMobileId: "a/b", alt: "x" });
+    assert.ok(!invalido.ok && invalido.erros.midiaMobileId);
+    assert.deepEqual(lerImagemDoEspacoDoFormulario({ identificador: "secao-mutiroes", midiaId: "m1", midiaMobileId: "c1", alt: "x" }), {
+      ok: true,
+      identificador: "secao-mutiroes",
+      imagem: { midiaId: "m1", midiaMobileId: "c1", alt: "x" },
+    });
+  });
+
+  test("validador do servidor: mídia inexistente ou inativa recusada, pelo campo; a já gravada pode ficar", async () => {
+    const ativas = new Set(["m1", "c1"]);
+    const disponivel = async (id: string) => ativas.has(id);
+    assert.equal(await versaoRecusada({ midiaId: "m1", midiaMobileId: null }, null, disponivel), null);
+    assert.equal(await versaoRecusada({ midiaId: "m1", midiaMobileId: "c1" }, null, disponivel), null);
+    assert.equal(await versaoRecusada({ midiaId: "m1", midiaMobileId: "inexistente" }, null, disponivel), "midiaMobileId");
+    assert.equal(await versaoRecusada({ midiaId: "naLixeira", midiaMobileId: "c1" }, null, disponivel), "midiaId");
+    assert.equal(await versaoRecusada({ midiaId: "m1", midiaMobileId: "naLixeira" }, { midiaId: "m1", midiaMobileId: "naLixeira" }, disponivel), null);
+  });
+
+  test("campos alterados citam a versão celular, sem valores", () => {
+    const antes = banner("banner-aaaa", 1);
+    assert.deepEqual(camposAlteradosDoBanner(antes, { ...antes, midiaMobileId: "c1" }), ["imagem para celular"]);
+    assert.deepEqual(camposAlteradosDoEspaco({ midiaId: "m1", midiaMobileId: "c1", alt: "x" }, { midiaId: "m1", midiaMobileId: null, alt: "x" }), ["imagem para celular"]);
+    assert.deepEqual(camposAlteradosDoEspaco(null, { midiaId: "m1", midiaMobileId: null, alt: "x" }), ["imagem", "texto alternativo"]);
   });
 });
 

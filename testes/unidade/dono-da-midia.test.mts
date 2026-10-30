@@ -30,6 +30,10 @@ describe("Dono da imagem: leitura do formulário", () => {
   test("home: o id é o identificador do espaço", () => {
     assert.deepEqual(lerDono("home", "secao-mutiroes", "secao"), { ok: true, dono: { tipo: "home", id: "secao-mutiroes", campo: "secao" } });
     assert.equal(lerDono("home", "Seção Mutirões", "secao").ok, false);
+    // Uma versão por campo (30/10/2026).
+    assert.deepEqual(lerDono("home", "banner-abcd1234", "bannerCelular"), { ok: true, dono: { tipo: "home", id: "banner-abcd1234", campo: "bannerCelular" } });
+    assert.deepEqual(lerDono("home", "secao-mutiroes", "secaoCelular"), { ok: true, dono: { tipo: "home", id: "secao-mutiroes", campo: "secaoCelular" } });
+    assert.equal(lerDono("home", "secao-mutiroes", "secao-mobile").ok, false);
   });
 
   test("tipo, campo ou id estranhos recusam o envio", () => {
