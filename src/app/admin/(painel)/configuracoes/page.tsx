@@ -24,5 +24,5 @@ export default async function PaginaConfiguracoes() {
     );
   }
   const configuracao = await lerConfiguracaoDoSiteAgora();
-  return <ConfiguracoesClient trilha={TRILHA} descricao={DESCRICAO} artigosAtivo={configuracao.artigosAtivo} />;
+  return <ConfiguracoesClient trilha={TRILHA} descricao={DESCRICAO} artigosAtivo={configuracao.artigosAtivo} pix={configuracao.pix} />;
 }

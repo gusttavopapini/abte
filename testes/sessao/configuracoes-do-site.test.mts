@@ -8,7 +8,7 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { decidirAcessoAoPainel } from "../../src/lib/auth/papeis.ts";
 import { verificarCookieDeSessao } from "../../src/lib/auth/verificacao.ts";
-import { salvarArtigosAtivo } from "../../src/lib/gravacao/site.ts";
+import { salvarArtigosAtivo, salvarPix } from "../../src/lib/gravacao/site.ts";
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
 import { lerConfiguracaoDoSite } from "../../src/lib/site/configuracoes.ts";
 
@@ -74,5 +74,22 @@ describe("Configurações do site: Artigos no site", () => {
         ["configuracoes", ["artigosAtivo"], "Artigos exibidos no site.", ADMINISTRADOR.uid],
       ],
     );
+  });
+});
+
+describe("Configurações do site: Pix", () => {
+  test("salvar, alterar e remover a chave, com registro sem o valor", async () => {
+    const pix = { tipo: "email" as const, chave: "doacoes@exemplo.invalid", favorecido: "", orientacao: "" };
+    assert.deepEqual(await salvarPix(db, pix, ADMINISTRADOR), { ok: true, alterados: ["chave Pix alterada"] });
+    assert.deepEqual(lerConfiguracaoDoSite((await db.collection("configuracoes").doc("site").get()).data()).pix, pix);
+    assert.deepEqual(await salvarPix(db, { ...pix, orientacao: "Obrigado pelo apoio." }, ADMINISTRADOR), { ok: true, alterados: ["orientação"] });
+    assert.deepEqual(await salvarPix(db, null, ADMINISTRADOR), { ok: true, alterados: ["chave Pix removida"] });
+    assert.equal(lerConfiguracaoDoSite((await db.collection("configuracoes").doc("site").get()).data()).pix, null);
+    const linhas = (await db.collection(COLECAO_LOG).where("documentoId", "==", "site").get()).docs.map((d) => d.data()).filter((linha) => String(linha.resumo).startsWith("Doações por Pix"));
+    assert.equal(linhas.length, 3);
+    for (const linha of linhas) {
+      assert.deepEqual(linha.campos, ["pix"]);
+      assert.doesNotMatch(JSON.stringify(linha), /doacoes@exemplo|Obrigado/, "o registro não guarda a chave nem os textos");
+    }
   });
 });

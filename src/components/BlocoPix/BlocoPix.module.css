@@ -1,0 +1,74 @@
+/* Pix estático da /doe (30/10/2026): caixa branca, texto à esquerda. */
+.bloco {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: calc(var(--content-max) / 2);
+  margin-inline: auto;
+  padding: var(--card-padding);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: left;
+}
+
+.dados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+}
+
+.dados dt {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.dados dd {
+  margin: 0;
+  font-size: var(--font-size-text);
+}
+
+/* A chave pode ser selecionada e quebrada em qualquer ponto no celular */
+.chave {
+  font-size: var(--font-size-text-lg);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.orientacao {
+  font-size: var(--font-size-text);
+}
+
+.acao {
+  display: flex;
+}
+
+@media (max-width: 767px) {
+  .acao > * {
+    width: 100%;
+  }
+}
+
+.retorno:empty {
+  display: none;
+}
+
+/* Feedback em caixa branca (fica dentro da caixa, com borda) */
+.aviso {
+  border-radius: var(--radius);
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: var(--color-bg);
+  font-size: var(--font-size-text);
+}
+
+/* Área temporária da cópia sem Clipboard API: fora da tela */
+.areaDeCopia {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
