@@ -1,26 +1,41 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useId, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { excluirBannerDaHome, salvarBannerDaHome, salvarImagemDaSecao, type RespostaDaHome } from "@/app/admin/acoes-home";
 import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
+import type { CampoDoDono } from "@/lib/midia/dono";
 import type { ImagemNaTela } from "@/lib/midia/tela";
-import { LIMITE_DE_BANNERS, LIMITE_DO_ALT_DA_HOME, LIMITE_DO_LINK, PROPORCOES_DO_BANNER, linkEhExterno, nomeDoBanner, type BannerDaHome, type IdentificadorDoEspaco } from "@/lib/site/home";
+import {
+  AVISO_SEM_VERSAO_CELULAR,
+  LIMITE_DE_BANNERS,
+  LIMITE_DO_ALT_DA_HOME,
+  LIMITE_DO_LINK,
+  PROPORCOES_DO_BANNER,
+  linkEhExterno,
+  nomeDoBanner,
+  type BannerDaHome,
+  type IdentificadorDoEspaco,
+  type ProporcoesDoEspaco,
+} from "@/lib/site/home";
 import estilos from "./HomeAdminClient.module.css";
 
-export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null };
+export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null };
 export type EspacoNaTela = {
   identificador: IdentificadorDoEspaco;
   nome: string;
   onde: string;
-  proporcao: string;
+  proporcoes: ProporcoesDoEspaco;
   midiaId: string | null;
+  midiaMobileId: string | null;
   alt: string;
   imagem: ImagemNaTela | null;
+  imagemCelular: ImagemNaTela | null;
 };
 
 type Janela = { tipo: "banner"; banner: BannerNaTela | null } | { tipo: "excluir"; banner: BannerNaTela } | { tipo: "espaco"; espaco: EspacoNaTela } | null;
@@ -30,14 +45,183 @@ function novaChave(): string {
   return `banner-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
 }
 
-function Miniatura({ imagem, vazio }: { imagem: ImagemNaTela | null; vazio: string }) {
+function Miniatura({ imagem, vazio, razao }: { imagem: ImagemNaTela | null; vazio: string; razao: number }) {
   return (
-    <div className={estilos.miniatura}>
+    <div className={estilos.miniatura} style={{ "--razao": razao } as CSSProperties}>
       {imagem ? (
-        <ImagemDaMidia variantes={imagem.variantes} alt="" largura={imagem.largura} altura={imagem.altura} sizes="(max-width: 767px) 90vw, 320px" className={estilos.imagem} />
+        <ImagemDaMidia variantes={imagem.variantes} alt="" largura={imagem.largura} altura={imagem.altura} sizes="(max-width: 767px) 45vw, 160px" className={estilos.imagem} />
       ) : (
         <span className={estilos.semImagem}>{vazio}</span>
       )}
+    </div>
+  );
+}
+
+// As duas miniaturas do cartão (30/10/2026), rotuladas, cada uma na proporção
+// do espaço no site.
+function Miniaturas({
+  proporcoes,
+  midiaId,
+  imagem,
+  midiaMobileId,
+  imagemCelular,
+  vazio,
+}: {
+  proporcoes: ProporcoesDoEspaco;
+  midiaId: string | null;
+  imagem: ImagemNaTela | null;
+  midiaMobileId: string | null;
+  imagemCelular: ImagemNaTela | null;
+  vazio: string;
+}) {
+  const foraDaBiblioteca = "Imagem fora da biblioteca";
+  return (
+    <div className={estilos.miniaturas}>
+      <figure className={estilos.versaoNoCartao}>
+        <Miniatura imagem={imagem} vazio={midiaId ? foraDaBiblioteca : vazio} razao={proporcoes.computador.razao} />
+        <figcaption className={estilos.legendaDaVersao}>Computador</figcaption>
+      </figure>
+      <figure className={`${estilos.versaoNoCartao} ${estilos.versaoCelular}`}>
+        <Miniatura imagem={imagemCelular} vazio={midiaMobileId ? foraDaBiblioteca : midiaId ? "Usa a de computador" : vazio} razao={proporcoes.celular.razao} />
+        <figcaption className={estilos.legendaDaVersao}>Celular</figcaption>
+      </figure>
+    </div>
+  );
+}
+
+type EstadoDasVersoes = { computador: EscolhaDeImagem; celular: EscolhaDeImagem };
+
+// Envio das duas versões no Modal (30/10/2026): "Versão para computador"
+// (obrigatória para o espaço ter imagem) e "Versão para celular" (opcional),
+// lado a lado (empilhadas até 767px), cada uma com o envio da Frente 2 e a
+// prévia numa moldura com a proporção do site. Os ids vão nos campos
+// escondidos midiaId e midiaMobileId.
+function VersoesDaImagem({
+  idDoDono,
+  campos,
+  proporcoes,
+  inicial,
+  erros,
+  rotulo,
+  aoMudarComputador,
+  aoMudarCelular,
+}: {
+  idDoDono: string;
+  campos: { computador: CampoDoDono; celular: CampoDoDono };
+  proporcoes: ProporcoesDoEspaco;
+  inicial: EstadoDasVersoes;
+  erros: { midiaId?: string; midiaMobileId?: string };
+  rotulo: string;
+  aoMudarComputador: (escolha: EscolhaDeImagem) => void;
+  aoMudarCelular?: (escolha: EscolhaDeImagem) => void;
+}) {
+  const [computador, setComputador] = useState<EscolhaDeImagem>(inicial.computador);
+  const [celular, setCelular] = useState<EscolhaDeImagem>(inicial.celular);
+  // A versão celular é remontada com a imagem copiada (o campo de envio
+  // guarda a escolha dentro dele).
+  const [copia, setCopia] = useState<{ chave: number; inicial: EscolhaDeImagem }>({ chave: 0, inicial: inicial.celular });
+  const [confirmarCopia, setConfirmarCopia] = useState(false);
+  const [anuncio, setAnuncio] = useState("");
+  const confirmarRef = useRef<HTMLButtonElement>(null);
+  const copiarRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirmarCopia) confirmarRef.current?.focus();
+  }, [confirmarCopia]);
+
+  function mudarComputador(escolha: EscolhaDeImagem) {
+    setComputador(escolha);
+    setConfirmarCopia(false);
+    aoMudarComputador(escolha);
+  }
+
+  function mudarCelular(escolha: EscolhaDeImagem) {
+    setCelular(escolha);
+    setConfirmarCopia(false);
+    aoMudarCelular?.(escolha);
+  }
+
+  function copiar() {
+    if (!computador) return;
+    setCopia((atual) => ({ chave: atual.chave + 1, inicial: computador }));
+    setCelular(computador);
+    aoMudarCelular?.(computador);
+    setConfirmarCopia(false);
+    setAnuncio("A versão para celular usa agora a mesma imagem da versão para computador. Ela vai para o site quando você salvar.");
+    copiarRef.current?.focus();
+  }
+
+  function pedirCopia() {
+    // Com outra imagem já na versão celular, pede confirmação antes.
+    if (celular && celular.id !== computador?.id) setConfirmarCopia(true);
+    else copiar();
+  }
+
+  const mesmaImagem = Boolean(computador && celular && computador.id === celular.id);
+  return (
+    <div className={estilos.versoes}>
+      <div className={estilos.areasDasVersoes}>
+        <ImagemDoItem
+          nome="midiaId"
+          rotulo={`Versão para computador (${rotulo})`}
+          inicial={inicial.computador}
+          dono={{ tipo: "home", id: idDoDono, campo: campos.computador }}
+          proporcao={proporcoes.computador.texto}
+          tamanho={proporcoes.computador.tamanho}
+          moldura={{ razao: proporcoes.computador.razao, rotulo: "Prévia no computador" }}
+          erro={erros.midiaId}
+          aoMudar={mudarComputador}
+        />
+        <ImagemDoItem
+          key={copia.chave}
+          nome="midiaMobileId"
+          rotulo={`Versão para celular, opcional (${rotulo})`}
+          inicial={copia.inicial}
+          dono={{ tipo: "home", id: idDoDono, campo: campos.celular }}
+          proporcao={proporcoes.celular.texto}
+          tamanho={proporcoes.celular.tamanho}
+          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular" }}
+          erro={erros.midiaMobileId}
+          aoMudar={mudarCelular}
+        />
+      </div>
+
+      {computador && !celular && <CaixaDoPainel tipo="informacao">{AVISO_SEM_VERSAO_CELULAR}</CaixaDoPainel>}
+
+      <div className={estilos.copiar}>
+        <Botao ref={copiarRef} type="button" variante="secundario" onClick={pedirCopia} disabled={!computador || mesmaImagem}>
+          Usar a mesma imagem nas duas versões
+        </Botao>
+        <p className={estilos.ajuda}>
+          {!computador
+            ? "Envie primeiro a versão para computador."
+            : mesmaImagem
+              ? "As duas versões usam a mesma imagem."
+              : "Copia a imagem de computador para a versão celular."}
+        </p>
+      </div>
+
+      {confirmarCopia && (
+        <CaixaDoPainel tipo="atencao" titulo="Substituir a versão para celular?">
+          <p>A versão para celular já tem outra imagem. Ela vai ser trocada pela imagem de computador (a outra continua na biblioteca).</p>
+          <div className={estilos.botoes}>
+            <Botao
+              type="button"
+              variante="secundario"
+              onClick={() => {
+                setConfirmarCopia(false);
+                copiarRef.current?.focus();
+              }}
+            >
+              Manter a imagem atual
+            </Botao>
+            <Botao ref={confirmarRef} type="button" onClick={copiar}>
+              Substituir
+            </Botao>
+          </div>
+        </CaixaDoPainel>
+      )}
+      <p className="somente-leitor" aria-live="polite">{anuncio}</p>
     </div>
   );
 }
@@ -111,14 +295,17 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
         </Mensagem>
       )}
 
-      <ImagemDoItem
-        nome="midiaId"
-        rotulo="Imagem do banner"
-        inicial={banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null}
-        dono={{ tipo: "home", id: chave, campo: "banner" }}
-        proporcao={PROPORCOES_DO_BANNER.computador.texto}
-        erro={erros.midiaId}
-        aoMudar={aoMudarImagem}
+      <VersoesDaImagem
+        idDoDono={chave}
+        campos={{ computador: "banner", celular: "bannerCelular" }}
+        proporcoes={PROPORCOES_DO_BANNER}
+        rotulo="banner"
+        inicial={{
+          computador: banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null,
+          celular: banner?.midiaMobileId ? { id: banner.midiaMobileId, imagem: banner.imagemCelular } : null,
+        }}
+        erros={erros}
+        aoMudarComputador={aoMudarImagem}
       />
 
       <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
@@ -219,14 +406,17 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: Espaco
         </Mensagem>
       )}
       <p className={estilos.ajuda}>Sem imagem, a home mostra o espaço de imagem padrão nesta seção.</p>
-      <ImagemDoItem
-        nome="midiaId"
-        rotulo={`Imagem de "${espaco.nome}"`}
-        inicial={espaco.midiaId ? { id: espaco.midiaId, imagem: espaco.imagem } : null}
-        dono={{ tipo: "home", id: espaco.identificador, campo: "secao" }}
-        proporcao={espaco.proporcao}
-        erro={erros.midiaId}
-        aoMudar={aoMudarImagem}
+      <VersoesDaImagem
+        idDoDono={espaco.identificador}
+        campos={{ computador: "secao", celular: "secaoCelular" }}
+        proporcoes={espaco.proporcoes}
+        rotulo={espaco.nome}
+        inicial={{
+          computador: espaco.midiaId ? { id: espaco.midiaId, imagem: espaco.imagem } : null,
+          celular: espaco.midiaMobileId ? { id: espaco.midiaMobileId, imagem: espaco.imagemCelular } : null,
+        }}
+        erros={erros}
+        aoMudarComputador={aoMudarImagem}
       />
       <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
       <div className={estilos.botoes}>
@@ -317,12 +507,13 @@ export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[];
           <ul role="list" className={estilos.grade}>
             {banners.map((banner) => (
               <li key={banner.chave} className={estilos.cartao}>
-                <Miniatura imagem={banner.imagem} vazio={banner.midiaId ? "Imagem fora da biblioteca" : "Sem imagem"} />
+                <Miniaturas proporcoes={PROPORCOES_DO_BANNER} midiaId={banner.midiaId} imagem={banner.imagem} midiaMobileId={banner.midiaMobileId} imagemCelular={banner.imagemCelular} vazio="Sem imagem" />
                 <div className={estilos.texto}>
                   <h3 className={estilos.nome}>{banner.nome}</h3>
                   <p className={estilos.etiquetas}>
                     <span className={estilos.etiqueta}>{banner.chave}</span>
                     <span className={`${estilos.etiqueta} ${banner.ativo ? estilos.ativo : ""}`}>{banner.ativo ? "Ativo" : "Inativo"}</span>
+                    {banner.midiaId && !banner.midiaMobileId && <span className={estilos.etiqueta}>Sem versão celular</span>}
                   </p>
                   <p className={estilos.detalhe}>
                     {banner.href ? `Link: ${banner.href}${linkEhExterno(banner.href) ? " (abre em nova aba)" : ""}` : "Sem link"}
@@ -347,11 +538,12 @@ export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[];
         <ul role="list" className={estilos.grade}>
           {espacos.map((espaco) => (
             <li key={espaco.identificador} className={estilos.cartao}>
-              <Miniatura imagem={espaco.imagem} vazio={espaco.midiaId ? "Imagem fora da biblioteca" : "Padrão do site"} />
+              <Miniaturas proporcoes={espaco.proporcoes} midiaId={espaco.midiaId} imagem={espaco.imagem} midiaMobileId={espaco.midiaMobileId} imagemCelular={espaco.imagemCelular} vazio="Padrão do site" />
               <div className={estilos.texto}>
                 <h3 className={estilos.nome}>{espaco.nome}</h3>
                 <p className={estilos.etiquetas}>
                   <span className={estilos.etiqueta}>{espaco.identificador}</span>
+                  {espaco.midiaId && !espaco.midiaMobileId && <span className={estilos.etiqueta}>Sem versão celular</span>}
                 </p>
                 <p className={estilos.detalhe}>Onde aparece: {espaco.onde}.</p>
               </div>

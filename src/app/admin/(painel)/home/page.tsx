@@ -19,6 +19,7 @@ export default async function PaginaAdminHome() {
     ...banner,
     nome: nomeDoBanner(banner.ordem),
     imagem: banner.midiaId ? imagens.get(banner.midiaId) ?? null : null,
+    imagemCelular: banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null,
   }));
   const espacos: EspacoNaTela[] = ESPACOS_DA_HOME.map((espaco) => {
     const escolhida = configuracao?.imagens[espaco.identificador];
@@ -26,10 +27,12 @@ export default async function PaginaAdminHome() {
       identificador: espaco.identificador,
       nome: espaco.nome,
       onde: espaco.onde,
-      proporcao: espaco.proporcoes.computador.texto,
+      proporcoes: espaco.proporcoes,
       midiaId: escolhida?.midiaId ?? null,
+      midiaMobileId: escolhida?.midiaMobileId ?? null,
       alt: escolhida?.alt ?? "",
       imagem: escolhida?.midiaId ? imagens.get(escolhida.midiaId) ?? null : null,
+      imagemCelular: escolhida?.midiaMobileId ? imagens.get(escolhida.midiaMobileId) ?? null : null,
     };
   });
 

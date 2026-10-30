@@ -75,6 +75,30 @@
   font-size: var(--font-size-small);
 }
 
+/* Prévia em moldura (30/10/2026, imagens da home): a moldura tem a
+   proporção do espaço no site e a imagem é recortada como lá. A de celular é
+   estreita (um celular de 390 px em escala); a de computador ocupa a área. */
+.comMoldura {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.previaEmMoldura {
+  width: 100%;
+  aspect-ratio: var(--razao-da-moldura);
+  outline: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+
+.molduraEstreita {
+  width: calc(var(--space-96) * 2);
+  align-self: center;
+}
+
+.previaEmMoldura .imagem {
+  height: 100%;
+  object-fit: cover;
+}
+
 .ladoDaPrevia {
   display: flex;
   flex: 1 1 calc(var(--space-96) * 2);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent, type KeyboardEvent } from "react";
 import { EscolhaDaBiblioteca, type ControleDaEscolha } from "@/app/admin/_componentes/EscolhaDaBiblioteca/EscolhaDaBiblioteca";
 import { TEXTO_AUTORIZACAO, TEXTO_INDICA_MENOR } from "@/app/admin/_componentes/EnviarMidia/EnviarMidia";
 import { enviarArquivo, type EtapaDoEnvio } from "@/app/admin/_componentes/EnviarMidia/enviarArquivo";
@@ -32,6 +32,11 @@ type Props = {
   dono: DonoDaMidia;
   // Proporção em que a imagem aparece no site (ex.: "16:9, como a capa no blog").
   proporcao: string;
+  // Tamanho recomendado em pixels (ex.: "1920 x 1080 px"), 30/10/2026.
+  tamanho?: string;
+  // Prévia numa moldura com a proporção do espaço no site (largura/altura),
+  // estreita na versão celular e larga na de computador: mostra o corte real.
+  moldura?: { razao: number; estreita?: boolean; rotulo: string };
   erro?: string;
   aoMudar?: (escolha: EscolhaDeImagem) => void;
   // Texto do botão de enviar (ex.: "Inserir no texto").
@@ -54,7 +59,7 @@ function descreverTamanho(bytes: number): string {
 // imagem. "Reutilizar imagem já enviada" abre a biblioteca.
 // Não é um <form> e os campos não têm "name" (só o escondido com o id): fica
 // dentro do formulário do item sem ir junto nem travar o envio dele.
-export function ImagemDoItem({ nome, rotulo, inicial, dono, proporcao, erro, aoMudar, textoDoEnvio = "Enviar imagem", soEnvio }: Props) {
+export function ImagemDoItem({ nome, rotulo, inicial, dono, proporcao, tamanho, moldura, erro, aoMudar, textoDoEnvio = "Enviar imagem", soEnvio }: Props) {
   const id = useId();
   const [escolha, setEscolhaInterna] = useState<EscolhaDeImagem>(inicial);
   const [trocando, setTrocando] = useState(false);
@@ -204,12 +209,17 @@ export function ImagemDoItem({ nome, rotulo, inicial, dono, proporcao, erro, aoM
       <legend className={estilos.rotulo}>{rotulo}</legend>
       {nome && <input type="hidden" name={nome} value={escolha?.id ?? ""} />}
       <p id={idAjuda} className={estilos.ajuda}>
-        Proporção recomendada: {proporcao}. JPEG, PNG ou WebP; a imagem é reduzida para até 2560 px no lado maior antes do envio, e o site guarda só cópias em WebP, sem os dados da câmera e de localização.
+        Proporção recomendada: {proporcao}.{tamanho && ` Tamanho recomendado: ${tamanho}.`} JPEG, PNG ou WebP; a imagem é reduzida para até 2560 px no lado maior antes do envio, e o site guarda só cópias em WebP, sem os dados da câmera e de localização.
       </p>
 
       {mostrandoEscolha ? (
-        <div className={estilos.escolhida}>
-          <div className={estilos.previa}>
+        <div className={`${estilos.escolhida} ${moldura ? estilos.comMoldura : ""}`}>
+          <div
+            className={`${estilos.previa} ${moldura ? estilos.previaEmMoldura : ""} ${moldura?.estreita ? estilos.molduraEstreita : ""}`}
+            style={moldura ? ({ "--razao-da-moldura": moldura.razao } as CSSProperties) : undefined}
+            role={moldura ? "group" : undefined}
+            aria-label={moldura?.rotulo}
+          >
             {escolha.imagem ? (
               <ImagemDaMidia
                 variantes={escolha.imagem.variantes}

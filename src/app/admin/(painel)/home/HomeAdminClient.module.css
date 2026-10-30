@@ -38,13 +38,42 @@
   background: var(--color-bg);
 }
 
+/* Duas miniaturas por cartão (30/10/2026): computador e celular, cada uma
+   na proporção do espaço no site (--razao, largura/altura, vinda do código). */
+.miniaturas {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.versaoNoCartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+}
+
+.legendaDaVersao {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
 .miniatura {
   border-radius: var(--radius);
   display: grid;
   place-items: center;
   overflow: hidden;
-  aspect-ratio: 12 / 5;
+  aspect-ratio: var(--razao);
+  padding: var(--space-8);
   background: var(--color-bg-alt);
+  text-align: center;
+}
+
+.miniatura:has(.imagem) {
+  padding: 0;
 }
 
 .imagem {
@@ -119,6 +148,33 @@
 }
 
 /* ---------- Formulários dos modais ---------- */
+/* Duas áreas de envio lado a lado; empilhadas até 767px (30/10/2026). */
+.versoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.areasDasVersoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.copiar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .areasDasVersoes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .formulario {
   display: flex;
   flex-direction: column;
