@@ -225,6 +225,13 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 
 - **"Produtos em destaque" centralizado (30/10):** título, subtítulo e botão da section da home centralizados, só no CSS; medido a 0px do centro da grade nas 5 larguras.
 
+### Banner da home em tela cheia e ponto de foco (30/10)
+
+- **Hero** na altura da janela (100svh, com 100vh antes), em computador e celular; pontos a `--space-24` da base. Commits `4ad47ab`, `67ae594` e `9450856`.
+- **Ponto de foco** opcional por banner (esquerda, centro, direita; ausente vale o centro), com grupo de rádio no painel, prévias de tela cheia, dica e aviso de imagem mais larga que 2:1.
+- **Validação:** 616 testes (378, 143, 95); navegador em 6 tamanhos com o Hero igual à janela (0px); painel 17 de 17.
+- **Pendência:** os 3 banners atuais não têm versão para celular e, em 390x844, mostram só 25,8% da largura da imagem.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
