@@ -40,6 +40,9 @@
 
 /* Setas de navegação */
 .seta {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   /* Azul da marca no lugar do preto translúcido (29/10/2026); 80% para a
      seta branca manter contraste sobre fotos claras. */
   background: color-mix(in srgb, var(--color-primary) 80%, transparent);
@@ -57,10 +60,17 @@
   background: var(--color-primary-hover);
 }
 
+.setaEsquerda {
+  left: max(var(--space-20), env(safe-area-inset-left, 0px));
+}
+
+.setaDireita {
+  right: max(var(--space-20), env(safe-area-inset-right, 0px));
+}
+
 /* Contadores / Dots: na base, com folga de --space-24 e a área segura do
    celular (30/10/2026). */
-/* Setas e pontos numa linha só, centralizada na base do banner
-   (30/10/2026), acima do link esticado do slide. */
+/* Indicadores centralizados na base, acima do link do slide. */
 .controles {
   position: absolute;
   bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));

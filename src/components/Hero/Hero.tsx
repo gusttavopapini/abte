@@ -90,13 +90,11 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
           );
         })}
 
-        {/* Setas e pontos numa linha só, na base do banner (30/10/2026): o
-            texto alinhado ao logo ficava sob as setas no meio da altura.
-            Fora dos links, acima do link esticado. */}
+        {/* Setas nas laterais; indicadores centralizados na base. */}
+        <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
+          &#10094;
+        </button>
         <div className={estilos.controles}>
-          <button type="button" className={estilos.seta} onClick={anterior} aria-label="Slide anterior">
-            &#10094;
-          </button>
           <div className={estilos.dotsContainer}>
             {slides.map((_, index) => (
               <button
@@ -108,10 +106,10 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
               />
             ))}
           </div>
-          <button type="button" className={estilos.seta} onClick={proximo} aria-label="Próximo slide">
-            &#10095;
-          </button>
         </div>
+        <button type="button" className={`${estilos.seta} ${estilos.setaDireita}`} onClick={proximo} aria-label="Próximo slide">
+          &#10095;
+        </button>
       </div>
     </section>
   );

@@ -280,3 +280,8 @@ Continuidade a partir de `1a19af4`, preservando os cinco commits locais anterior
 Verificações:426 unidade,160 sessão e103 regras aprovados (689); typecheck e buildWebpack aprovados. ESLint sem erros, três avisos de imagens no código e um aviso no roteiro local ignorado. Stylelint mantém os cinco erros conhecidos em Botao/Modal, sem novos. Navegador:42/42 verificações de interação; oito medidas do Hero com dados fictícios. Evidências no workspace da tarefa, pasta `work/retomada-ajustes-2026-10-30/`.
 
 CORS não executado: `gcloud storage buckets update gs://NOME_DO_BUCKET --cors-file=docs/infra/cors.json`. Substituir pelo bucket correto antes de executar. Sem segredos no relatório. Código desta retomada não promovido; produção conferida anteriormente permanece em `dfe8d8d`. A matriz visual foi concluída. A tentativa de promoção foi bloqueada pela revisão automática por exigir autorização humana explícita para a publicação específica. Nenhum push para main foi executado. Correções salvas na branch remota em826d512; o commit posterior registra este resultado.
+
+
+## Ajuste posterior de30/10: setas laterais do banner
+
+A pedido do responsável, as duas setas voltaram às laterais do Hero, centralizadas verticalmente e afastadas20px das bordas, respeitando safe-area. Indicadores continuam no centro inferior. Conferência isolada em390,768,1280 e1710px: diferença vertical0px, margens20px, avançar/voltar funcionando, sem rolagem horizontal e controles com pelo menos44px. ESLint e Stylelint dos dois arquivos passam. Nenhum dado alterado e nenhuma publicação em produção realizada nesta etapa.
