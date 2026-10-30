@@ -7,7 +7,7 @@
 // registra em logAlteracoes. Ao salvar, a etiqueta do cache das
 // configurações e todo o site público são revalidados (menu, rodapé e
 // páginas), sem novo deploy.
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { salvarArtigosAtivo, salvarPix } from "@/lib/gravacao/site";
@@ -17,8 +17,9 @@ export type RespostaDasConfiguracoes = { ok: boolean; mensagem: string; erros?: 
 
 const ERRO_GENERICO = "Não foi possível salvar agora. Tente de novo em instantes.";
 
+// updateTag: quem salva vê a mudança na hora (sem servir a versão antiga).
 function atualizarSite() {
-  revalidateTag(ETIQUETA_DO_SITE, { expire: 0 });
+  updateTag(ETIQUETA_DO_SITE);
   revalidatePath("/", "layout");
 }
 

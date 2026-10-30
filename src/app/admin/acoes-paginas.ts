@@ -5,7 +5,7 @@
 // administrador) e chama a gravação (src/lib/gravacao/paginas.ts), que
 // registra em logAlteracoes. Ao salvar, o cache das páginas e o site público
 // são revalidados (página e rodapé), sem novo deploy.
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { salvarPaginaInstitucional } from "@/lib/gravacao/paginas";
@@ -19,7 +19,8 @@ export async function salvarPagina(_anterior: RespostaDaPagina, dados: FormData)
   if (!lido.ok) return { ok: false, mensagem: lido.mensagem, erros: lido.erros };
   try {
     const gravada = await salvarPaginaInstitucional(firestoreAdmin(), lido.slug, lido.dados, autorDaAlteracao(usuario));
-    revalidateTag(ETIQUETA_DAS_PAGINAS, { expire: 0 });
+    // updateTag: quem salva vê a mudança na hora (sem servir a versão antiga).
+    updateTag(ETIQUETA_DAS_PAGINAS);
     revalidatePath("/", "layout");
     return { ok: true, mensagem: lido.dados.publicada ? `${gravada.nome} salva e publicada. O site e o rodapé já mostram a página.` : `${gravada.nome} salva como rascunho. A página não aparece no site.` };
   } catch (erro) {

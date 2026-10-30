@@ -247,6 +247,7 @@
    acima (z-index 3). */
 .acaoDoBanner a {
   position: static;
+  gap: var(--space-8);
 }
 
 .acaoDoBanner a::after {
