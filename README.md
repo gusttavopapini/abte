@@ -4,14 +4,15 @@ Site e painel da ABTE, Associação Brasileira de Tratamento da Escoliose, em Ne
 
 ## Contexto e continuidade
 
-As entregas mais recentes foram feitas pelo Codex; em 28/10/2026, o responsável pediu continuidade no Claude. Comece pelo resumo atualizado, preservando o trabalho existente.
+Em 30/10/2026, o responsável pediu novo mapeamento e retomada neste chat do Codex. Comece pelo mapa atual, preservando o trabalho existente e considerando as datas dos registros históricos.
 
-- [Resumo de continuidade para o Claude](docs/CONTINUIDADE_CLAUDE.md): visão do projeto, entregas concluídas, estado do Git e pendências reais.
+- [Mapeamento atual](docs/MAPEAMENTO_ATUAL.md): referência de 30/10 para implementação, produção, testes, pendências e continuidade.
+- [Resumo histórico de continuidade para o Claude](docs/CONTINUIDADE_CLAUDE.md): transferência anterior; contém trechos superados pelo mapa atual.
 - [AGENTS.md](AGENTS.md): instruções de trabalho do repositório.
 - [Contexto do projeto para o Codex](docs/CONTEXTO_CODEX.md): objetivo, arquitetura, estado verificado, pendências e próximos passos.
 - [CLAUDE.md](CLAUDE.md): histórico detalhado das etapas e decisões. Considere as datas dos registros; o nome do arquivo não exige outro assistente.
 
-O projeto já tem site público, painel administrativo, biblioteca de mídia, conta de cliente e carrinho. A migração principal foi executada em desenvolvimento. Em 28/10/2026, todos os 71 posts e cinco artigos cadastrados foram publicados; revisão editorial e preparação do lançamento continuam pendentes. Pagamento online permanece fora do escopo registrado.
+O projeto tem site público, painel responsivo, biblioteca de mídia, home e páginas institucionais editáveis, configurações de Artigos/Pix, loja com filtros, conta e carrinho. A migração principal já foi executada. A conferência pública de 30/10 encontrou 71 posts, cinco artigos e nove produtos nas listagens; páginas legais ainda não publicadas retornam 404. Revisão editorial, estabilização e lançamento continuam pendentes. Pagamento online permanece fora do escopo registrado. Há cinco commits de implementação locais após a produção `dfe8d8d`; consulte o mapa antes de promover.
 
 ## Desenvolvimento
 

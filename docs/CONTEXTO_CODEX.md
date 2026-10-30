@@ -1,6 +1,6 @@
 # ABTE: contexto do projeto para o Codex
 
-Registro iniciado em **27/10/2026**, com atualizações de implementação e conferências públicas em **28/10/2026**. O responsável agora pediu continuidade no Claude: leia primeiro [CONTINUIDADE_CLAUDE.md](CONTINUIDADE_CLAUDE.md). A preferência anterior por exclusividade do Codex é histórica. As seções da auditoria e da migração mantêm suas datas; não representam uma nova consulta remota nem autorização para repetir comandos.
+Registro histórico iniciado em **27/10/2026**, com atualizações e conferências em **28/10/2026**. Em **30/10**, o responsável pediu novo mapeamento e retomada neste chat do Codex: leia primeiro [MAPEAMENTO_ATUAL.md](MAPEAMENTO_ATUAL.md). O encaminhamento ao Claude e a exclusividade anterior do Codex são históricos. As seções abaixo mantêm suas datas e podem ter sido superadas pelas entregas de 29 e 30/10; não representam nova consulta remota nem autorização para repetir comandos.
 
 ## Atualização de 28/10/2026: cartões dos profissionais
 

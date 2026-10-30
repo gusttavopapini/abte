@@ -1,6 +1,14 @@
 # ABTE: site e painel em código próprio
 
-## Continuidade atual (28/10/2026)
+## Continuidade atual (30/10/2026)
+
+O responsável pediu novo mapeamento e retomada neste chat do Codex. Leia primeiro [docs/MAPEAMENTO_ATUAL.md](docs/MAPEAMENTO_ATUAL.md), referência atual para implementação, testes e pendências. O nome deste arquivo preserva o histórico e não determina o assistente.
+
+Código local `1a19af4`; GitHub conferido: `main` em `dfe8d8d`, branch remota em `f9b1650`, produção `7449312744` com sucesso. Cinco commits de implementação posteriores ainda são locais; a `main` local continua antiga. Este remapeamento não promoveu código nem alterou dados reais.
+
+A conferência pública de 30/10 encontrou 71 posts, cinco artigos e nove produtos nas listas; páginas legais ainda retornam 404 por falta de publicação. No HEAD foram confirmados uma expectativa antiga de 60 MB no teste de vídeo e perda de autor/data da confirmação de menores ao salvar novamente. Veja resultados atuais e prioridades no mapa. O registro anterior de 674 testes aprovados corresponde ao último lote promovido, não ao HEAD atual.
+
+## Continuidade histórica (28–30/10/2026; superada pela retomada acima)
 
 O responsável pediu para continuar no Claude. Leia primeiro [docs/CONTINUIDADE_CLAUDE.md](docs/CONTINUIDADE_CLAUDE.md): ele reúne o projeto, tudo o que foi feito nesta colaboração, o último código publicado (`dfe8d8d`, lote de nove itens de 30/10/2026, promovido com a autorização do próprio pedido, deployment de Produção `7449312744`) e as pendências reais.
 
@@ -813,3 +821,17 @@ Exceções mantidas, com o motivo:
 | ~~`src/app/loja/page.tsx` e `page.module.css` (`.miniatura`)~~ | ~~Os filtros de categoria de `/loja` ganharam a miniatura da imagem da categoria.~~ | Superado em 29/10/2026: os botões de categoria com miniatura saíram com o filtro novo da loja. |
 | `src/components/Header/Header.module.css` (`.comFundo`) e `Header.tsx` | Depois de rolar a página (mais de 80 px), o header visível ganha fundo `--color-bg`; no topo continua como antes (transparente sobre a foto na home, sem fundo nas internas). Não se esconde com submenu ou menu em tela cheia abertos nem com foco de teclado dentro dele. | Header visível ao rolar é PROPOSTA no design system; sem fundo, o logo e o menu ficavam transparentes sobre o conteúdo. Pedido de 12/10/2026. |
 | `src/components/Rodape/Rodape.module.css` (`.copyright`) | A frase "© ano ABTE, Associação Brasileira de Tratamento da Escoliose. Todos os direitos reservados." ocupa a largura do rodapé e fica centralizada. | Exceção ao lote A (10/10/2026), que alinhou à esquerda todos os textos do rodapé; os demais textos continuam à esquerda. Pedido de 12/10/2026. Os ícones de Instagram e Facebook da coluna Contato, antes centralizados, começam desde 12/10/2026 na mesma borda esquerda do título e do e-mail (o ícone de 24 px fica à esquerda da área de toque de 44 px). |
+
+
+## Retomada no Codex em 30/10/2026: ajustes A a D
+
+Continuidade a partir de `1a19af4`, preservando os cinco commits locais anteriores. Nenhuma migração, gravação no abte-dev, alteração de regras ou configuração do bucket executada nesta etapa.
+
+- A: `/blog` já era aceito; mensagens antigas e campos confusos foram tratados no commit anterior. Nesta retomada, validador compartilhado recusa HTTPS malformado e escapes percentuais inválidos; erro de botão sem destino passa ao campo de link. Testes ampliados.
+- B: mesma `.container` do cabeçalho e Hero, agora com safe-area; coluna respeita metade do espaço no desktop; piso de 24px e atualização ao redimensionar a altura. Prévia usa unidades relativas à tela virtual. Medidas de 390/768/1024/1280/1440/1710: título 30/41,38/49,09/50,4/56/69,74px. Diferença logo/texto 0px também em1536 e1600; nenhuma palavra partida, conjunto dentro do Hero e sem rolagem lateral. Em1024, o título longo conferido ocupa cinco linhas: não foi cortado para impor quatro. O alinhamento central/direito e o segundo título do roteiro ainda não receberam nova medição nesta retomada.
+- C: botão de configurações movido da lateral para barra superior no desktop; gaveta móvel preservada. Cancelar Pix restaura os quatro campos da última gravação bem-sucedida. Ligar/desligar Artigos,404/200, menus, modal aninhado e Escape conferidos em emulador. `/artigos` não tem filtros nem paginação; não foram criados. Sitemap ainda ausente.
+- D: limite único de1GB preservado e teste antigo de60MB atualizado. Gravação conserva autor/data da confirmação de menores em edições da mesma fonte e renova ao trocar a fonte; desmarcar remove os campos. Novo teste de regressão. Capa automática avisa quando o recorte difere de9:16. Play central: diferença inferior a1px nas seis larguras; zero chamadas YouTube/ytimg antes do clique; aviso de1GB e prévias do painel conferidos. Upload real do bucket depende de CORS e não foi executado.
+
+Verificações:426 unidade,160 sessão e103 regras aprovados (689); typecheck e buildWebpack aprovados. ESLint sem erros, três avisos de imagens no código e um aviso no roteiro local ignorado. Stylelint mantém os cinco erros conhecidos em Botao/Modal, sem novos. Navegador:42/42 verificações de interação; oito medidas do Hero com dados fictícios. Evidências no workspace da tarefa, pasta `work/retomada-ajustes-2026-10-30/`.
+
+CORS não executado: `gcloud storage buckets update gs://NOME_DO_BUCKET --cors-file=docs/infra/cors.json`. Substituir pelo bucket correto antes de executar. Sem segredos no relatório. Código desta retomada não promovido; produção conferida anteriormente permanece em `dfe8d8d`. Completar a matriz visual restante antes de promover, sem tratar comandos históricos como execução já realizada.

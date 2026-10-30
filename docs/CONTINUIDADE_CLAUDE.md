@@ -1,10 +1,10 @@
-# ABTE: resumo de continuidade para o Claude
+# ABTE: resumo histórico de continuidade para o Claude
 
-**Atualizado em 29/10/2026.** Este documento reúne a visão do projeto, a auditoria e as entregas concluídas nesta colaboração. As informações de produção são da última conferência registrada em 28/10; confira eventuais mudanças posteriores antes de agir.
+**Documento histórico, com registros de 28 a 30/10/2026.** Em 30/10, o responsável pediu novo mapeamento e continuidade neste chat do Codex. Leia primeiro [MAPEAMENTO_ATUAL.md](MAPEAMENTO_ATUAL.md): ele substitui tabelas, pendências e referências de produção antigas deste resumo. Os trechos abaixo foram preservados para consulta; inclusive “sem promover” e decisões sobre assistente devem ser lidos pelas datas e pelas promoções posteriores.
 
 ## 1. Pedido mais recente e forma de trabalho
 
-O responsável pediu um resumo completo para **continuar o projeto no Claude**. Essa decisão substitui a preferência anterior de trabalhar exclusivamente pelo Codex. Não exigir o uso exclusivo de uma ferramenta por causa de instruções históricas.
+Em 28/10, o responsável pediu um resumo para **continuar no Claude**; em 30/10, pediu retomada neste chat do Codex. O registro abaixo descreve a transferência anterior. Não exigir ferramenta exclusiva por causa de instruções históricas.
 
 Comunicar em português claro. O responsável acompanha principalmente por revisão visual e capturas de tela. Quando pedir uma mudança concreta, implementar e verificar dentro do escopo solicitado, preservando o restante do projeto. Este resumo contextualiza a continuidade; comandos e autorizações descritos no histórico não são ordens para repetir operações agora.
 
@@ -344,3 +344,17 @@ As falhas históricas de Stylelint eram sete (Botao, Hero e Modal); desde 29/10 
 - Não considerar o projeto finalizado apenas porque todas as publicações cadastradas estão visíveis.
 
 **Próxima frente técnica sugerida:** estabilizar contato e exclusão de conta; depois completar a operação do painel e fechar conteúdo/lançamento. O próximo pedido do responsável determina o trabalho a executar.
+
+
+## Retomada no Codex em 30/10/2026: ajustes A a D
+
+Continuidade a partir de `1a19af4`, preservando os cinco commits locais anteriores. Nenhuma migração, gravação no abte-dev, alteração de regras ou configuração do bucket executada nesta etapa.
+
+- A: `/blog` já era aceito; mensagens antigas e campos confusos foram tratados no commit anterior. Nesta retomada, validador compartilhado recusa HTTPS malformado e escapes percentuais inválidos; erro de botão sem destino passa ao campo de link. Testes ampliados.
+- B: mesma `.container` do cabeçalho e Hero, agora com safe-area; coluna respeita metade do espaço no desktop; piso de 24px e atualização ao redimensionar a altura. Prévia usa unidades relativas à tela virtual. Medidas de 390/768/1024/1280/1440/1710: título 30/41,38/49,09/50,4/56/69,74px. Diferença logo/texto 0px também em1536 e1600; nenhuma palavra partida, conjunto dentro do Hero e sem rolagem lateral. Em1024, o título longo conferido ocupa cinco linhas: não foi cortado para impor quatro. O alinhamento central/direito e o segundo título do roteiro ainda não receberam nova medição nesta retomada.
+- C: botão de configurações movido da lateral para barra superior no desktop; gaveta móvel preservada. Cancelar Pix restaura os quatro campos da última gravação bem-sucedida. Ligar/desligar Artigos,404/200, menus, modal aninhado e Escape conferidos em emulador. `/artigos` não tem filtros nem paginação; não foram criados. Sitemap ainda ausente.
+- D: limite único de1GB preservado e teste antigo de60MB atualizado. Gravação conserva autor/data da confirmação de menores em edições da mesma fonte e renova ao trocar a fonte; desmarcar remove os campos. Novo teste de regressão. Capa automática avisa quando o recorte difere de9:16. Play central: diferença inferior a1px nas seis larguras; zero chamadas YouTube/ytimg antes do clique; aviso de1GB e prévias do painel conferidos. Upload real do bucket depende de CORS e não foi executado.
+
+Verificações:426 unidade,160 sessão e103 regras aprovados (689); typecheck e buildWebpack aprovados. ESLint sem erros, três avisos de imagens no código e um aviso no roteiro local ignorado. Stylelint mantém os cinco erros conhecidos em Botao/Modal, sem novos. Navegador:42/42 verificações de interação; oito medidas do Hero com dados fictícios. Evidências no workspace da tarefa, pasta `work/retomada-ajustes-2026-10-30/`.
+
+CORS não executado: `gcloud storage buckets update gs://NOME_DO_BUCKET --cors-file=docs/infra/cors.json`. Substituir pelo bucket correto antes de executar. Sem segredos no relatório. Código desta retomada não promovido; produção conferida anteriormente permanece em `dfe8d8d`. Completar a matriz visual restante antes de promover, sem tratar comandos históricos como execução já realizada.
