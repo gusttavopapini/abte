@@ -76,7 +76,9 @@ function testarAcesso(descricao: string, obterContexto: () => RulesTestContext) 
 
     test("não grava arquivo novo em nenhum caminho", async () => {
       const contexto = obterContexto();
-      for (const caminho of ["publico/midias/novo/960.webp", "lixeira/novo.webp", "privado/novo.webp", "novo.webp"]) {
+      // publico/videos (vídeo de "Quem Somos", 30/10/2026): o navegador só
+      // envia pela política assinada do servidor, nunca pelas regras.
+      for (const caminho of ["publico/midias/novo/960.webp", "publico/videos/abcdefghij0123456789/video.mp4", "lixeira/novo.webp", "privado/novo.webp", "novo.webp"]) {
         await assertFails(enviar(contexto, caminho));
       }
     });

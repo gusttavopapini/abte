@@ -72,6 +72,9 @@ export type ReferenciaDeMidia = {
   emMapa?: string;
   nomeFixo?: string;
   descreverItem?: (item: Record<string, unknown>, chave: string) => string;
+  // emObjeto: o campo é um objeto e a imagem fica numa chave dele (capa do
+  // vídeo de "Quem Somos", 30/10/2026).
+  emObjeto?: string;
 };
 
 // Itens da home: o banner pela posição e a seção pelo nome, com a versão.
@@ -95,12 +98,17 @@ export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   { colecao: "configuracoes", campo: "banners", emLista: "midiaTabletId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para tablet` },
   { colecao: "configuracoes", campo: "imagens", emMapa: "midiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para computador` },
   { colecao: "configuracoes", campo: "imagens", emMapa: "midiaMobileId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para celular` },
+  { colecao: "configuracoes", campo: "videoQuemSomos", emObjeto: "capaMidiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: () => "Vídeo de Quem Somos, capa" },
 ];
 
 // Imagens guardadas num campo, conforme o jeito da referência, com o nome do
 // item quando a referência sabe descrevê-lo (null: vale o nome do documento).
-function usosNoCampo(valor: unknown, { emLista, emMarkdown, emMapa, descreverItem }: ReferenciaDeMidia): { id: string; item: string | null }[] {
+function usosNoCampo(valor: unknown, { emLista, emMarkdown, emMapa, emObjeto, descreverItem }: ReferenciaDeMidia): { id: string; item: string | null }[] {
   if (emMarkdown) return idsDasImagensNoTexto(String(valor ?? "")).map((id) => ({ id, item: null }));
+  if (emObjeto) {
+    const id = valor && typeof valor === "object" ? (valor as Record<string, unknown>)[emObjeto] : null;
+    return typeof id === "string" ? [{ id, item: descreverItem ? descreverItem({}, emObjeto) : null }] : [];
+  }
   const chaveDaImagem = emLista ?? emMapa;
   if (chaveDaImagem) {
     const itens: [string, unknown][] = emLista ? (Array.isArray(valor) ? valor : []).map((item, indice) => [String(indice), item]) : Object.entries(valor && typeof valor === "object" ? valor : {});
@@ -443,8 +451,8 @@ export async function mapaDeUsos(db: Firestore): Promise<Map<string, UsoNoItem[]
 export async function listarUsos(db: Firestore, id: string): Promise<UsoDaMidia[]> {
   const usos = await Promise.all(
     REFERENCIAS_DE_MIDIA.map(async (referenciaDeMidia) => {
-      const { colecao, campo, rotulo, campoDoNome, emLista, emMarkdown, emMapa, nomeFixo } = referenciaDeMidia;
-      const consulta = emLista || emMarkdown || emMapa ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
+      const { colecao, campo, rotulo, campoDoNome, emLista, emMarkdown, emMapa, emObjeto, nomeFixo } = referenciaDeMidia;
+      const consulta = emLista || emMarkdown || emMapa || emObjeto ? db.collection(colecao) : db.collection(colecao).where(campo, "==", id);
       const encontrados = await consulta.select(campoDoNome, "excluidoEm", campo).get();
       const registros = encontrados.docs
         .flatMap((documento) => {

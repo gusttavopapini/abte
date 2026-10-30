@@ -24,6 +24,17 @@ function idDoYoutube(url: URL): string | null {
   return id && ID_DO_YOUTUBE.test(id) ? id : null;
 }
 
+// Id do vídeo a partir de um link do YouTube (youtube.com, youtu.be e
+// youtube-nocookie.com, só https), ou null. Usado pelo painel (30/10/2026).
+export function idDoYoutubeDoLink(texto: string): string | null {
+  try {
+    const url = new URL(texto.trim());
+    return url.protocol === "https:" ? idDoYoutube(url) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Endereço configurado para o que a página exibe; vazio ou não reconhecido
 // dá null (a página mostra o espaço "Vídeo em breve").
 export function videoParaExibir(endereco: string): VideoParaExibir | null {

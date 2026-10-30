@@ -25,3 +25,54 @@
   font-weight: var(--font-weight-light);
   text-align: center;
 }
+
+/* Fachada do YouTube (30/10/2026): a capa e o botão; o iframe só carrega
+   depois do clique. */
+.fachada {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-24);
+  border: 0;
+  background: var(--color-surface-soft);
+  cursor: pointer;
+}
+
+.fachada .capa {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tocar {
+  position: relative;
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--button-height);
+  padding: 0 var(--space-24);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: var(--font-size-text);
+}
+
+.fachada:focus-visible {
+  box-shadow: none;
+}
+
+.fachada:focus-visible .tocar {
+  box-shadow: var(--focus-ring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fachada:hover .tocar {
+    background: var(--color-primary-hover);
+  }
+}

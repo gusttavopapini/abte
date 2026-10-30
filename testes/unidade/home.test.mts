@@ -69,8 +69,8 @@ describe("Ordem e nomes dos banners", () => {
 
 describe("Leitura do documento e o site", () => {
   test("documento estranho ou vazio: nada, e o site usa o padrão", () => {
-    assert.deepEqual(lerConfiguracaoDaHome(undefined), { banners: [], imagens: {} });
-    assert.deepEqual(lerConfiguracaoDaHome({ banners: "x", imagens: 3 }), { banners: [], imagens: {} });
+    assert.deepEqual(lerConfiguracaoDaHome(undefined), { banners: [], imagens: {}, video: null });
+    assert.deepEqual(lerConfiguracaoDaHome({ banners: "x", imagens: 3 }), { banners: [], imagens: {}, video: null });
     assert.equal(slidesDaHome(null, new Map()), SLIDES_DO_BANNER);
     assert.equal(imagemDoEspaco(null, "secao-mutiroes", new Map()), null);
   });
@@ -273,8 +273,8 @@ describe("Ações da home: sessão e papel", () => {
   test("toda ação exportada começa por exigirPapelDoPainel(\"home.editar\")", async () => {
     const { readFileSync } = await import("node:fs");
     const codigo = readFileSync("src/app/admin/acoes-home.ts", "utf8");
-    const acoes = [...codigo.matchAll(/export async function (\w+)\([^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => ({ nome, primeira }));
-    assert.deepEqual(acoes.map((acao) => acao.nome), ["salvarBannerDaHome", "excluirBannerDaHome", "salvarImagemDaSecao"]);
-    for (const acao of acoes) assert.match(acao.primeira, /^const usuario = await exigirPapelDoPainel\("home\.editar"\);$/, acao.nome);
+    const acoes = [...codigo.matchAll(/export async function (\w+)\([^)]*(?:\{[^}]*\})?[^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => ({ nome, primeira }));
+    assert.deepEqual(acoes.map((acao) => acao.nome), ["salvarBannerDaHome", "excluirBannerDaHome", "salvarImagemDaSecao", "prepararEnvioDoVideoDaHome", "confirmarEnvioDoVideoDaHome", "salvarVideoDaHome"]);
+    for (const acao of acoes) assert.match(acao.primeira, /^(?:const usuario = )?await exigirPapelDoPainel\("home\.editar"\);$/, acao.nome);
   });
 });

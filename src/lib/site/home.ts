@@ -8,6 +8,7 @@ import { ehIdDeDocumentoValido } from "../validacao.ts";
 import { SLIDES_DO_BANNER, type SlideDoBanner } from "./banners.ts";
 import { ancoraDoLink } from "./ancoras.ts";
 import { ehCaminhoDosArtigos } from "./configuracoes.ts";
+import { lerVideoQuemSomos, type VideoQuemSomos } from "./videoQuemSomos.ts";
 
 export const COLECAO_DA_HOME = "configuracoes";
 export const DOCUMENTO_DA_HOME = "home";
@@ -155,6 +156,8 @@ export type ImagemDaHomeNaTela = ImagemNaTela & { celular: ImagemNaTela | null; 
 export type ConfiguracaoDaHome = {
   banners: BannerDaHome[];
   imagens: Partial<Record<IdentificadorDoEspaco, ImagemDoEspaco>>;
+  // Vídeo de "Quem Somos" (30/10/2026); null: o padrão da home.
+  video: VideoQuemSomos | null;
 };
 
 const CHAVE_DO_BANNER = /^banner-[a-z0-9]{4,40}$/;
@@ -271,7 +274,7 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
     const { midiaId, midiaMobileId, alt } = valor as Record<string, unknown>;
     if (ehIdDeDocumentoValido(midiaId)) imagens[identificador] = { midiaId, midiaMobileId: ehIdDeDocumentoValido(midiaMobileId) ? midiaMobileId : null, alt: texto(alt, LIMITE_DO_ALT_DA_HOME) };
   }
-  return { banners: renumerarBanners(ordenarBanners(banners)), imagens };
+  return { banners: renumerarBanners(ordenarBanners(banners)), imagens, video: lerVideoQuemSomos(campos.videoQuemSomos) };
 }
 
 // Slides do carrossel para o site: só os banners ativos com imagem
@@ -311,6 +314,7 @@ export function midiasDaHome(configuracao: ConfiguracaoDaHome | null): string[] 
   return [
     ...configuracao.banners.flatMap((banner) => [banner.midiaId, banner.midiaMobileId, banner.midiaTabletId]),
     ...Object.values(configuracao.imagens).flatMap((imagem) => [imagem?.midiaId, imagem?.midiaMobileId]),
+    configuracao.video?.capaMidiaId,
   ].filter((id): id is string => typeof id === "string");
 }
 

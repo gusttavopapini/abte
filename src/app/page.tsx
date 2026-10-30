@@ -12,7 +12,10 @@ import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { escolherProdutosEmDestaque, imagemPrincipal } from "@/lib/produtos";
 import { VIDEO_QUEM_SOMOS } from "@/lib/site/video";
-import { VideoVertical } from "@/components/VideoVertical/VideoVertical";
+import { VideoVertical, type FonteDoVideo } from "@/components/VideoVertical/VideoVertical";
+import { urlPublicaDoArquivo } from "@/lib/midia/servicos";
+import { escolherVariante } from "@/lib/midia/regras";
+import type { VideoQuemSomos } from "@/lib/site/videoQuemSomos";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { lerImagensDaHome } from "@/lib/dados/home";
 import { imagemDoEspaco, midiasDaHome, slidesDaHome } from "@/lib/site/home";
@@ -68,6 +71,23 @@ async function lerProdutosEmDestaque(): Promise<ProdutoDoCard[]> {
   }
 }
 
+// Vídeo de "Quem Somos" editado em /admin/home (30/10/2026): o arquivo e a
+// legenda saem do Storage pelo endereço público (como as imagens); a capa é
+// uma imagem da biblioteca.
+function fonteDoVideo(video: VideoQuemSomos | null, imagens: Map<string, ImagemNaTela>): FonteDoVideo | null {
+  if (!video) return null;
+  const capa = video.capaMidiaId ? imagens.get(video.capaMidiaId) ?? null : null;
+  if (video.tipo === "youtube") return { tipo: "youtube", youtubeId: video.youtubeId, descricao: video.descricao, capa };
+  return {
+    tipo: "arquivo",
+    src: urlPublicaDoArquivo(video.caminho),
+    contentType: video.contentType,
+    descricao: video.descricao,
+    poster: capa ? escolherVariante(capa.variantes, 960)?.url ?? null : null,
+    legenda: video.legendaCaminho ? urlPublicaDoArquivo(video.legendaCaminho) : null,
+  };
+}
+
 // Imagens editadas em /admin/home (29/10/2026). Sem o documento, com um
 // espaço vazio ou se a leitura falhar, vale o padrão de antes: os slides de
 // SLIDES_DO_BANNER e os placeholders das sections.
@@ -79,10 +99,11 @@ async function lerImagensEditadas() {
       slides: slidesDaHome(configuracao, imagens, (await lerConfiguracaoDoSiteEmCache()).artigosAtivo),
       mutiroes: imagemDoEspaco(configuracao, "secao-mutiroes", imagens),
       chamada: imagemDoEspaco(configuracao, "secao-faca-parte", imagens),
+      video: fonteDoVideo(configuracao?.video ?? null, imagens),
     };
   } catch (erro) {
     console.error("Home: falha ao ler as imagens editadas.", erro);
-    return { slides: slidesDaHome(null, new Map()), mutiroes: null, chamada: null };
+    return { slides: slidesDaHome(null, new Map()), mutiroes: null, chamada: null, video: null };
   }
 }
 
@@ -206,7 +227,7 @@ export default async function PaginaInicial() {
               ))}
             </div>
             <div {...revelar(estilos.colunaDoVideo)}>
-              <VideoVertical endereco={VIDEO_QUEM_SOMOS} titulo="Vídeo da ABTE" />
+              <VideoVertical endereco={VIDEO_QUEM_SOMOS} titulo="Vídeo da ABTE" fonte={imagensDaHome.video} />
             </div>
           </div>
         </section>

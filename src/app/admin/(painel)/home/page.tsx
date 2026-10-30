@@ -39,5 +39,7 @@ export default async function PaginaAdminHome() {
   });
 
   const { artigosAtivo } = await lerConfiguracaoDoSiteAgora().catch(() => ({ artigosAtivo: true }));
-  return <HomeAdminClient banners={banners} espacos={espacos} artigosAtivo={artigosAtivo} />;
+  const video = configuracao?.video ?? null;
+  const capaDoVideo = video?.capaMidiaId ? imagens.get(video.capaMidiaId) ?? null : null;
+  return <HomeAdminClient banners={banners} espacos={espacos} artigosAtivo={artigosAtivo} video={video} capaDoVideo={capaDoVideo} />;
 }

@@ -44,7 +44,9 @@ import {
   type PontoDeFoco,
   type ProporcoesDoEspaco,
 } from "@/lib/site/home";
+import type { VideoQuemSomos } from "@/lib/site/videoQuemSomos";
 import estilos from "./HomeAdminClient.module.css";
+import { VideoQuemSomosAdmin } from "./VideoQuemSomosAdmin";
 
 export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null; imagemTablet: ImagemNaTela | null };
 export type EspacoNaTela = {
@@ -757,7 +759,19 @@ function ConfirmarExclusao({ banner, aoTerminar, aoCancelar }: { banner: BannerN
 
 // Tela /admin/home (29/10/2026): banners do carrossel e imagens fixas das
 // sections em cartões; "Editar" abre o Modal com o envio de imagem do item.
-export function HomeAdminClient({ banners, espacos, artigosAtivo = true }: { banners: BannerNaTela[]; espacos: EspacoNaTela[]; artigosAtivo?: boolean }) {
+export function HomeAdminClient({
+  banners,
+  espacos,
+  artigosAtivo = true,
+  video = null,
+  capaDoVideo = null,
+}: {
+  banners: BannerNaTela[];
+  espacos: EspacoNaTela[];
+  artigosAtivo?: boolean;
+  video?: VideoQuemSomos | null;
+  capaDoVideo?: ImagemNaTela | null;
+}) {
   const [janela, setJanela] = useState<Janela>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const fechar = useCallback(() => setJanela(null), []);
@@ -867,6 +881,8 @@ export function HomeAdminClient({ banners, espacos, artigosAtivo = true }: { ban
           ))}
         </ul>
       </section>
+
+      <VideoQuemSomosAdmin video={video} capa={capaDoVideo} aoTerminar={concluir} />
 
       <Modal aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
         {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={banners.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fechar} />}
