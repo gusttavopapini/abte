@@ -221,6 +221,7 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - **Painel:** duas áreas no Modal, prévia em moldura, aviso "Sem versão para celular", botão "Usar a mesma imagem nas duas versões" e miniaturas "Computador" e "Celular" nos cartões.
 - **Site:** `<picture>` no Hero e nas seções; cada largura baixa um arquivo por espaço (conferido em 6 larguras). Sem versão celular, como antes.
 - **Validação:** 609 testes (373, 141, 95), lint (4 avisos), lint:css (5) e build. Navegador: 36 de 36 no painel, 8 de 8 nos links do banner, 6 larguras na home. Capturas em `tmp-migracao/capturas/home-duas-versoes/`.
+- **Promovido** em 30/10 (`0b362f7`, deployment `7442085357`, produção conferida; documentos sem versão celular funcionando).
 
 ## 5. Migração: o que não deve ser refeito
 
@@ -271,7 +272,7 @@ O plano, o resultado, as cópias e as conferências da operação de 28/10 estã
 
 Na conferência de preparação deste resumo:
 
-- `origin/main`: `e6544fd` (promoção de 30/10 das quatro frentes, fast-forward de `2128555`, deployment de Produção `7437411662`, conferido em 390 e 1280 px).
+- `origin/main`: `0b362f7` (promoção de 30/10 das duas versões das imagens da home, fast-forward de `089e763`, deployment de Produção `7442085357`, home conferida em 390 e 1280 px). Antes: `e6544fd` (quatro frentes, deployment `7437411662`).
 - Branch de trabalho: **`feature/midia-upload`**, igual à `origin/main` mais o commit que registra essa promoção (só documentação).
 - `main` **local**: ainda `207c9b1`, bem atrás da referência remota.
 - Nenhum push para a `main` sem o "pode promover" do responsável; nunca forçar histórico.
