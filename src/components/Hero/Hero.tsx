@@ -84,7 +84,16 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
           // dos slides padrão.
           const alt = link ? "" : slide.alt;
           const imagem = slide.midia ? (
-            <ImagemDaMidia variantes={slide.midia.variantes} alt={alt} largura={slide.midia.largura} altura={slide.midia.altura} sizes="100vw" prioridade={index === 0} className={estilos.imagem} />
+            <ImagemDaMidia
+              variantes={slide.midia.variantes}
+              alt={alt}
+              largura={slide.midia.largura}
+              altura={slide.midia.altura}
+              sizes="100vw"
+              celular={slide.midia.celular}
+              prioridade={index === 0}
+              className={estilos.imagem}
+            />
           ) : (
             <img src={slide.imagem} alt={alt} className={estilos.imagem} />
           );

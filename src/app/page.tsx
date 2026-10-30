@@ -148,6 +148,7 @@ export default async function PaginaInicial() {
                     largura={imagensDaHome.mutiroes.largura}
                     altura={imagensDaHome.mutiroes.altura}
                     sizes="(max-width: 1023px) 100vw, 50vw"
+                    celular={imagensDaHome.mutiroes.celular}
                     className={estilos.imagemQuePreenche}
                   />
                 </div>
@@ -221,6 +222,7 @@ export default async function PaginaInicial() {
                 largura={imagensDaHome.chamada.largura}
                 altura={imagensDaHome.chamada.altura}
                 sizes="(max-width: 1710px) 100vw, 1710px"
+                celular={imagensDaHome.chamada.celular}
                 className={estilos.imagemQuePreenche}
               />
             ) : (

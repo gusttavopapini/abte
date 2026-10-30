@@ -112,10 +112,6 @@ function usosNoCampo(valor: unknown, { emLista, emMarkdown, emMapa, descreverIte
   return typeof valor === "string" ? [{ id: valor, item: null }] : [];
 }
 
-// Ids de imagem guardados num campo, conforme o jeito da referência.
-function idsNoCampo(valor: unknown, referenciaDeMidia: ReferenciaDeMidia): string[] {
-  return usosNoCampo(valor, referenciaDeMidia).map((uso) => uso.id);
-}
 
 export type UsoDaMidia = { rotulo: string; registros: string[] };
 

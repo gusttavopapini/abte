@@ -3,3 +3,9 @@
   width: 100%;
   height: auto;
 }
+
+/* O <picture> das duas versões não cria caixa: a imagem continua sob as
+   mesmas regras de antes (preencher o banner ou o espaço). */
+.moldura {
+  display: contents;
+}
