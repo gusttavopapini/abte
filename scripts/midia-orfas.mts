@@ -35,7 +35,7 @@ type Pasta = { caminho: string; id: string; arquivos: string[]; maisRecente: num
 // REFERENCIAS_DE_MIDIA em src/lib/midia/biblioteca.ts e da home).
 // Na home, chaveDaImagem diz qual versão (30/10/2026): midiaId (computador)
 // ou midiaMobileId (celular).
-const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "id" | "lista" | "texto" | "home"; chaveDaImagem?: "midiaId" | "midiaMobileId" }> = {
+const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "id" | "lista" | "texto" | "home"; chaveDaImagem?: "midiaId" | "midiaMobileId" | "midiaTabletId" }> = {
   "post:capa": { colecao: "posts", campo: "capaMidiaId", jeito: "id" },
   "post:corpo": { colecao: "posts", campo: "conteudo", jeito: "texto" },
   "artigo:imagem": { colecao: "artigos", campo: "imagemMidiaId", jeito: "id" },
@@ -46,6 +46,7 @@ const ONDE_O_DONO_USA: Record<string, { colecao: string; campo: string; jeito: "
   "diretoria:foto": { colecao: "diretoria", campo: "fotoMidiaId", jeito: "id" },
   "home:banner": { colecao: "configuracoes", campo: "banners", jeito: "home", chaveDaImagem: "midiaId" },
   "home:bannerCelular": { colecao: "configuracoes", campo: "banners", jeito: "home", chaveDaImagem: "midiaMobileId" },
+  "home:bannerTablet": { colecao: "configuracoes", campo: "banners", jeito: "home", chaveDaImagem: "midiaTabletId" },
   "home:secao": { colecao: "configuracoes", campo: "imagens", jeito: "home", chaveDaImagem: "midiaId" },
   "home:secaoCelular": { colecao: "configuracoes", campo: "imagens", jeito: "home", chaveDaImagem: "midiaMobileId" },
 };

@@ -8,11 +8,24 @@ import { excluirBannerDaHome, salvarBannerDaHome, salvarImagemDaSecao, type Resp
 import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { ConteudoDoSlide, type FormatoDaPrevia } from "@/components/Hero/ConteudoDoSlide";
 import { Modal } from "@/components/Modal/Modal";
+import type { SlideDoBanner } from "@/lib/site/banners";
+import { ehCaminhoDosArtigos } from "@/lib/site/configuracoes";
 import type { CampoDoDono } from "@/lib/midia/dono";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import {
   AVISO_IMAGEM_LARGA,
+  AVISO_IMAGEM_SEM_TEXTO,
+  AVISO_VERSAO_FALTANDO,
+  LIMITE_DO_SUBTITULO_DO_BANNER,
+  LIMITE_DO_TEXTO_DO_BOTAO,
+  LIMITE_DO_TITULO_DO_BANNER,
+  POSICOES_DO_TEXTO,
+  ROTULOS_DAS_POSICOES_DO_TEXTO,
+  temTextoNoBanner,
+  type PosicaoDoTexto,
+  type ProporcaoRecomendada,
   AVISO_SEM_VERSAO_CELULAR,
   DICA_DO_BANNER,
   PONTOS_DE_FOCO,
@@ -32,7 +45,7 @@ import {
 } from "@/lib/site/home";
 import estilos from "./HomeAdminClient.module.css";
 
-export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null };
+export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null; imagemTablet: ImagemNaTela | null };
 export type EspacoNaTela = {
   identificador: IdentificadorDoEspaco;
   nome: string;
@@ -64,45 +77,55 @@ function Miniatura({ imagem, vazio, razao }: { imagem: ImagemNaTela | null; vazi
   );
 }
 
-// As duas miniaturas do cartão (30/10/2026), rotuladas, cada uma na proporção
-// do espaço no site.
+// As miniaturas do cartão (30/10/2026), rotuladas, cada uma na proporção do
+// espaço no site: computador e celular e, nos banners, também tablet.
 function Miniaturas({
   proporcoes,
   midiaId,
   imagem,
   midiaMobileId,
   imagemCelular,
+  tablet,
   vazio,
 }: {
-  proporcoes: ProporcoesDoEspaco;
+  proporcoes: ProporcoesDoEspaco & { tablet?: { razao: number } };
   midiaId: string | null;
   imagem: ImagemNaTela | null;
   midiaMobileId: string | null;
   imagemCelular: ImagemNaTela | null;
+  tablet?: { midiaTabletId: string | null; imagem: ImagemNaTela | null };
   vazio: string;
 }) {
   const foraDaBiblioteca = "Imagem fora da biblioteca";
   return (
-    <div className={estilos.miniaturas}>
+    <div className={`${estilos.miniaturas} ${tablet ? estilos.tresMiniaturas : ""}`}>
       <figure className={estilos.versaoNoCartao}>
         <Miniatura imagem={imagem} vazio={midiaId ? foraDaBiblioteca : vazio} razao={proporcoes.computador.razao} />
         <figcaption className={estilos.legendaDaVersao}>Computador</figcaption>
       </figure>
+      {tablet && proporcoes.tablet && (
+        <figure className={estilos.versaoNoCartao}>
+          <Miniatura imagem={tablet.imagem} vazio={tablet.midiaTabletId ? foraDaBiblioteca : midiaId ? "Usa a de computador" : vazio} razao={proporcoes.tablet.razao} />
+          <figcaption className={estilos.legendaDaVersao}>Tablet</figcaption>
+        </figure>
+      )}
       <figure className={`${estilos.versaoNoCartao} ${estilos.versaoCelular}`}>
-        <Miniatura imagem={imagemCelular} vazio={midiaMobileId ? foraDaBiblioteca : midiaId ? "Usa a de computador" : vazio} razao={proporcoes.celular.razao} />
+        <Miniatura imagem={imagemCelular} vazio={midiaMobileId ? foraDaBiblioteca : midiaId ? (tablet?.midiaTabletId ? "Usa a de tablet" : "Usa a de computador") : vazio} razao={proporcoes.celular.razao} />
         <figcaption className={estilos.legendaDaVersao}>Celular</figcaption>
       </figure>
     </div>
   );
 }
 
-type EstadoDasVersoes = { computador: EscolhaDeImagem; celular: EscolhaDeImagem };
+type Versao = "computador" | "tablet" | "celular";
+type EstadoDasVersoes = { computador: EscolhaDeImagem; celular: EscolhaDeImagem; tablet?: EscolhaDeImagem };
 
-// Envio das duas versões no Modal (30/10/2026): "Versão para computador"
-// (obrigatória para o espaço ter imagem) e "Versão para celular" (opcional),
-// lado a lado (empilhadas até 767px), cada uma com o envio da Frente 2 e a
-// prévia numa moldura com a proporção do site. Os ids vão nos campos
-// escondidos midiaId e midiaMobileId.
+// Envio das versões no Modal (30/10/2026): "Versão para computador"
+// (obrigatória para o espaço ter imagem), "Versão para celular" (opcional)
+// e, nos banners, "Versão para tablet" (opcional), lado a lado (empilhadas
+// até 767px), cada uma com o envio da Frente 2 e a prévia numa moldura com a
+// proporção do site. Os ids vão nos campos escondidos midiaId, midiaTabletId
+// e midiaMobileId.
 function VersoesDaImagem({
   idDoDono,
   campos,
@@ -110,73 +133,69 @@ function VersoesDaImagem({
   inicial,
   erros,
   rotulo,
-  aoMudarComputador,
-  aoMudarCelular,
+  aoMudar,
   pontoDeFoco,
   dica,
   avisarLarga,
 }: {
   idDoDono: string;
-  campos: { computador: CampoDoDono; celular: CampoDoDono };
-  proporcoes: ProporcoesDoEspaco;
+  campos: { computador: CampoDoDono; celular: CampoDoDono; tablet?: CampoDoDono };
+  proporcoes: ProporcoesDoEspaco & { tablet?: ProporcaoRecomendada };
   inicial: EstadoDasVersoes;
-  erros: { midiaId?: string; midiaMobileId?: string };
+  erros: { midiaId?: string; midiaMobileId?: string; midiaTabletId?: string };
   rotulo: string;
-  aoMudarComputador: (escolha: EscolhaDeImagem) => void;
-  aoMudarCelular?: (escolha: EscolhaDeImagem) => void;
+  aoMudar: (versao: Versao, escolha: EscolhaDeImagem) => void;
   // Banners (30/10/2026): ponto de foco aplicado às prévias, dica de
   // composição e aviso de imagem bem mais larga que 16:9.
   pontoDeFoco?: PontoDeFoco;
   dica?: string;
   avisarLarga?: boolean;
 }) {
-  const [computador, setComputador] = useState<EscolhaDeImagem>(inicial.computador);
-  const [celular, setCelular] = useState<EscolhaDeImagem>(inicial.celular);
-  // A versão celular é remontada com a imagem copiada (o campo de envio
+  const comTablet = Boolean(campos.tablet && proporcoes.tablet);
+  const [escolhas, setEscolhas] = useState<EstadoDasVersoes>(inicial);
+  // As versões copiadas são remontadas com a imagem nova (o campo de envio
   // guarda a escolha dentro dele).
-  const [copia, setCopia] = useState<{ chave: number; inicial: EscolhaDeImagem }>({ chave: 0, inicial: inicial.celular });
+  const [copias, setCopias] = useState({ chave: 0, tablet: inicial.tablet ?? null, celular: inicial.celular });
   const [confirmarCopia, setConfirmarCopia] = useState(false);
   const [anuncio, setAnuncio] = useState("");
   const confirmarRef = useRef<HTMLButtonElement>(null);
   const copiarRef = useRef<HTMLButtonElement>(null);
+  const alvos: Versao[] = comTablet ? ["tablet", "celular"] : ["celular"];
 
   useEffect(() => {
     if (confirmarCopia) confirmarRef.current?.focus();
   }, [confirmarCopia]);
 
-  function mudarComputador(escolha: EscolhaDeImagem) {
-    setComputador(escolha);
+  function mudar(versao: Versao, escolha: EscolhaDeImagem) {
+    setEscolhas((atual) => ({ ...atual, [versao]: escolha }));
     setConfirmarCopia(false);
-    aoMudarComputador(escolha);
-  }
-
-  function mudarCelular(escolha: EscolhaDeImagem) {
-    setCelular(escolha);
-    setConfirmarCopia(false);
-    aoMudarCelular?.(escolha);
+    aoMudar(versao, escolha);
   }
 
   function copiar() {
+    const computador = escolhas.computador;
     if (!computador) return;
-    setCopia((atual) => ({ chave: atual.chave + 1, inicial: computador }));
-    setCelular(computador);
-    aoMudarCelular?.(computador);
+    setCopias((atual) => ({ chave: atual.chave + 1, tablet: comTablet ? computador : atual.tablet, celular: computador }));
+    for (const versao of alvos) mudar(versao, computador);
     setConfirmarCopia(false);
-    setAnuncio("A versão para celular usa agora a mesma imagem da versão para computador. Ela vai para o site quando você salvar.");
+    setAnuncio(`${comTablet ? "As versões para tablet e para celular usam" : "A versão para celular usa"} agora a mesma imagem da versão para computador. Ela vai para o site quando você salvar.`);
     copiarRef.current?.focus();
   }
 
   function pedirCopia() {
-    // Com outra imagem já na versão celular, pede confirmação antes.
-    if (celular && celular.id !== computador?.id) setConfirmarCopia(true);
+    // Com outra imagem já numa das versões, pede confirmação antes.
+    if (alvos.some((versao) => escolhas[versao] && escolhas[versao]?.id !== escolhas.computador?.id)) setConfirmarCopia(true);
     else copiar();
   }
 
-  const mesmaImagem = Boolean(computador && celular && computador.id === celular.id);
+  const posicao = pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco];
+  const todasIguais = Boolean(escolhas.computador && alvos.every((versao) => escolhas[versao]?.id === escolhas.computador?.id));
+  const faltaAlguma = Boolean(escolhas.computador && alvos.some((versao) => !escolhas[versao]));
+  const textoDoCopiar = comTablet ? "Usar a mesma imagem em todas as versões" : "Usar a mesma imagem nas duas versões";
   return (
     <div className={estilos.versoes}>
       {dica && <p className={estilos.ajuda}>{dica}</p>}
-      <div className={estilos.areasDasVersoes}>
+      <div className={`${estilos.areasDasVersoes} ${comTablet ? estilos.tresAreas : ""}`}>
         <ImagemDoItem
           nome="midiaId"
           rotulo={`Versão para computador (${rotulo})`}
@@ -184,43 +203,57 @@ function VersoesDaImagem({
           dono={{ tipo: "home", id: idDoDono, campo: campos.computador }}
           proporcao={proporcoes.computador.texto}
           tamanho={proporcoes.computador.tamanho}
-          moldura={{ razao: proporcoes.computador.razao, rotulo: "Prévia no computador", posicao: pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco] }}
+          moldura={{ razao: proporcoes.computador.razao, rotulo: "Prévia no computador", posicao }}
           erro={erros.midiaId}
-          aoMudar={mudarComputador}
+          aoMudar={(escolha) => mudar("computador", escolha)}
         />
+        {comTablet && campos.tablet && proporcoes.tablet && (
+          <ImagemDoItem
+            key={`tablet-${copias.chave}`}
+            nome="midiaTabletId"
+            rotulo={`Versão para tablet, opcional (${rotulo})`}
+            inicial={copias.tablet}
+            dono={{ tipo: "home", id: idDoDono, campo: campos.tablet }}
+            proporcao={proporcoes.tablet.texto}
+            tamanho={proporcoes.tablet.tamanho}
+            moldura={{ razao: proporcoes.tablet.razao, estreita: true, rotulo: "Prévia no tablet", posicao }}
+            erro={erros.midiaTabletId}
+            aoMudar={(escolha) => mudar("tablet", escolha)}
+          />
+        )}
         <ImagemDoItem
-          key={copia.chave}
+          key={`celular-${copias.chave}`}
           nome="midiaMobileId"
           rotulo={`Versão para celular, opcional (${rotulo})`}
-          inicial={copia.inicial}
+          inicial={copias.celular}
           dono={{ tipo: "home", id: idDoDono, campo: campos.celular }}
           proporcao={proporcoes.celular.texto}
           tamanho={proporcoes.celular.tamanho}
-          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular", posicao: pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco] }}
+          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular", posicao }}
           erro={erros.midiaMobileId}
-          aoMudar={mudarCelular}
+          aoMudar={(escolha) => mudar("celular", escolha)}
         />
       </div>
 
-      {avisarLarga && bannerMuitoLargo(computador?.imagem) && <CaixaDoPainel tipo="atencao">{AVISO_IMAGEM_LARGA}</CaixaDoPainel>}
-      {computador && !celular && <CaixaDoPainel tipo="informacao">{AVISO_SEM_VERSAO_CELULAR}</CaixaDoPainel>}
+      {avisarLarga && bannerMuitoLargo(escolhas.computador?.imagem) && <CaixaDoPainel tipo="atencao">{AVISO_IMAGEM_LARGA}</CaixaDoPainel>}
+      {faltaAlguma && (comTablet ? <CaixaDoPainel tipo="atencao">{AVISO_VERSAO_FALTANDO}</CaixaDoPainel> : <CaixaDoPainel tipo="informacao">{AVISO_SEM_VERSAO_CELULAR}</CaixaDoPainel>)}
 
       <div className={estilos.copiar}>
-        <Botao ref={copiarRef} type="button" variante="secundario" onClick={pedirCopia} disabled={!computador || mesmaImagem}>
-          Usar a mesma imagem nas duas versões
+        <Botao ref={copiarRef} type="button" variante="secundario" onClick={pedirCopia} disabled={!escolhas.computador || todasIguais}>
+          {textoDoCopiar}
         </Botao>
         <p className={estilos.ajuda}>
-          {!computador
+          {!escolhas.computador
             ? "Envie primeiro a versão para computador."
-            : mesmaImagem
-              ? "As duas versões usam a mesma imagem."
-              : "Copia a imagem de computador para a versão celular."}
+            : todasIguais
+              ? "Todas as versões usam a mesma imagem."
+              : `Copia a imagem de computador para ${comTablet ? "as versões tablet e celular" : "a versão celular"}.`}
         </p>
       </div>
 
       {confirmarCopia && (
-        <CaixaDoPainel tipo="atencao" titulo="Substituir a versão para celular?">
-          <p>A versão para celular já tem outra imagem. Ela vai ser trocada pela imagem de computador (a outra continua na biblioteca).</p>
+        <CaixaDoPainel tipo="atencao" titulo={comTablet ? "Substituir as outras versões?" : "Substituir a versão para celular?"}>
+          <p>{comTablet ? "Uma das outras versões já tem outra imagem. Elas vão ser trocadas pela imagem de computador (as outras continuam na biblioteca)." : "A versão para celular já tem outra imagem. Ela vai ser trocada pela imagem de computador (a outra continua na biblioteca)."}</p>
           <div className={estilos.botoes}>
             <Botao
               type="button"
@@ -273,7 +306,102 @@ function CampoDoAlt({ id, valor, aoMudar, erro, obrigatorio }: { id: string; val
   );
 }
 
-function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner: BannerNaTela | null; total: number; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
+
+// Tamanho de referência de cada prévia (largura x altura da tela) e a
+// moldura que a mostra em escala, com o mesmo componente do site.
+const TELAS_DA_PREVIA: Record<FormatoDaPrevia, { largura: number; altura: number; rotulo: string }> = {
+  computador: { largura: 1280, altura: 720, rotulo: "Computador" },
+  tablet: { largura: 768, altura: 1024, rotulo: "Tablet" },
+  celular: { largura: 390, altura: 844, rotulo: "Celular" },
+};
+
+function MolduraDaPrevia({ formato, slide }: { formato: FormatoDaPrevia; slide: SlideDoBanner }) {
+  const tela = TELAS_DA_PREVIA[formato];
+  const moldura = useRef<HTMLDivElement>(null);
+  const [escala, setEscala] = useState(0);
+  useEffect(() => {
+    const elemento = moldura.current;
+    if (!elemento) return;
+    const medir = () => setEscala(elemento.clientWidth / tela.largura);
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(elemento);
+    return () => observador.disconnect();
+  }, [tela.largura]);
+  return (
+    <figure className={estilos.previaDoBanner}>
+      <div ref={moldura} className={estilos.telaDaPrevia} style={{ aspectRatio: `${tela.largura} / ${tela.altura}` } as CSSProperties} aria-hidden="true" inert>
+        <div className={estilos.escalaDaPrevia} style={{ width: tela.largura, height: tela.altura, transform: `scale(${escala})` }}>
+          <ConteudoDoSlide slide={slide} formato={formato} />
+        </div>
+      </div>
+      <figcaption className={estilos.legendaDaVersao}>{tela.rotulo}</figcaption>
+    </figure>
+  );
+}
+
+function CampoDeTexto({
+  id,
+  rotulo,
+  nome,
+  valor,
+  aoMudar,
+  limite,
+  erro,
+  ajuda,
+  multilinha,
+}: {
+  id: string;
+  rotulo: string;
+  nome: string;
+  valor: string;
+  aoMudar: (valor: string) => void;
+  limite: number;
+  erro?: string;
+  ajuda?: string;
+  multilinha?: boolean;
+}) {
+  const descricao = [ajuda ? `${id}-ajuda` : "", `${id}-contador`, erro ? `${id}-erro` : ""].filter(Boolean).join(" ");
+  const comum = {
+    id,
+    name: nome,
+    value: valor,
+    maxLength: limite,
+    autoComplete: "off",
+    "aria-invalid": erro ? true : undefined,
+    "aria-describedby": descricao,
+    className: `${estilos.entrada} ${erro ? estilos.entradaComErro : ""}`,
+  } as const;
+  return (
+    <div className={estilos.grupo}>
+      <label htmlFor={id} className={estilos.rotulo}>{rotulo}</label>
+      {ajuda && <p id={`${id}-ajuda`} className={estilos.ajuda}>{ajuda}</p>}
+      {multilinha ? <textarea {...comum} rows={3} onChange={(evento) => aoMudar(evento.target.value)} /> : <input {...comum} type="text" onChange={(evento) => aoMudar(evento.target.value)} />}
+      <p id={`${id}-contador`} className={estilos.contador}>{valor.length} de {limite} caracteres</p>
+      {erro && <p id={`${id}-erro`} className={estilos.erro}>{erro}</p>}
+    </div>
+  );
+}
+
+function GrupoDeOpcoes<T extends string>({ id, legenda, ajuda, nome, opcoes, rotulos, valor, aoMudar, erro }: { id: string; legenda: string; ajuda?: string; nome: string; opcoes: readonly T[]; rotulos: Record<T, string>; valor: T; aoMudar: (valor: T) => void; erro?: string }) {
+  return (
+    <fieldset className={estilos.grupoSemMoldura} aria-describedby={[ajuda ? `${id}-ajuda` : "", erro ? `${id}-erro` : ""].filter(Boolean).join(" ") || undefined}>
+      <legend className={estilos.rotulo}>{legenda}</legend>
+      {ajuda && <p id={`${id}-ajuda`} className={estilos.ajuda}>{ajuda}</p>}
+      <div className={estilos.opcoesDoFoco}>
+        {opcoes.map((opcao) => (
+          <label key={opcao} className={estilos.opcao}>
+            <input type="radio" name={nome} value={opcao} checked={valor === opcao} onChange={() => aoMudar(opcao)} />
+            {rotulos[opcao]}
+          </label>
+        ))}
+      </div>
+      {erro && <p id={`${id}-erro`} className={estilos.erro}>{erro}</p>}
+    </fieldset>
+  );
+}
+
+function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancelar }: { banner: BannerNaTela | null; total: number; artigosAtivo: boolean; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
   const id = useId();
   const [resposta, salvar, salvando] = useActionState(salvarBannerDaHome, null);
   const [chave] = useState(() => banner?.chave ?? novaChave());
@@ -282,7 +410,17 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
   const [href, setHref] = useState(banner?.href ?? "");
   const [ativo, setAtivo] = useState(banner ? banner.ativo : true);
   const [pontoDeFoco, setPontoDeFoco] = useState<PontoDeFoco>(banner?.pontoDeFoco ?? "centro");
-  const [temImagem, setTemImagem] = useState(Boolean(banner?.midiaId));
+  const [titulo, setTitulo] = useState(banner?.titulo ?? "");
+  const [trechoEmDestaque, setTrechoEmDestaque] = useState(banner?.trechoEmDestaque ?? "");
+  const [subtitulo, setSubtitulo] = useState(banner?.subtitulo ?? "");
+  const [textoDoBotao, setTextoDoBotao] = useState(banner?.textoDoBotao ?? "");
+  const [posicaoDoTexto, setPosicaoDoTexto] = useState<PosicaoDoTexto>(banner?.posicaoDoTexto ?? "esquerda");
+  const [imagens, setImagens] = useState<EstadoDasVersoes>({
+    computador: banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null,
+    tablet: banner?.midiaTabletId ? { id: banner.midiaTabletId, imagem: banner.imagemTablet } : null,
+    celular: banner?.midiaMobileId ? { id: banner.midiaMobileId, imagem: banner.imagemCelular } : null,
+  });
+  const [inicial] = useState(imagens);
   const ultimoAltSugerido = useRef(banner?.imagem?.alt ?? "");
   // Posição: o banner novo entra no fim.
   const maximo = banner ? total : total + 1;
@@ -294,8 +432,9 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
     else if (resposta) resumoRef.current?.focus();
   }, [resposta, aoTerminar]);
 
-  function aoMudarImagem(escolha: EscolhaDeImagem) {
-    setTemImagem(escolha !== null);
+  function aoMudarImagem(versao: Versao, escolha: EscolhaDeImagem) {
+    setImagens((atual) => ({ ...atual, [versao]: escolha }));
+    if (versao !== "computador") return;
     const sugerido = escolha?.imagem?.alt ?? "";
     if (sugerido && (!alt || alt === ultimoAltSugerido.current)) setAlt(sugerido);
     ultimoAltSugerido.current = sugerido;
@@ -303,6 +442,16 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
 
   const erros = resposta?.ok === false ? resposta.erros ?? {} : {};
   const limitar = (valor: number) => Math.min(Math.max(valor, 1), maximo);
+  const temImagem = Boolean(imagens.computador);
+  const slideDaPrevia: SlideDoBanner = {
+    imagem: "",
+    midia: imagens.computador?.imagem ? { ...imagens.computador.imagem, alt, tablet: imagens.tablet?.imagem ?? null, celular: imagens.celular?.imagem ?? null } : undefined,
+    alt,
+    href: "",
+    rotulo: "",
+    pontoDeFoco,
+    texto: temTextoNoBanner({ titulo, subtitulo, textoDoBotao }) ? { titulo: titulo.trim(), trechoEmDestaque: trechoEmDestaque.trim(), subtitulo: subtitulo.trim(), textoDoBotao: textoDoBotao.trim(), posicao: posicaoDoTexto } : null,
+  };
 
   return (
     <form action={salvar} className={estilos.formulario}>
@@ -313,91 +462,143 @@ function FormularioDoBanner({ banner, total, aoTerminar, aoCancelar }: { banner:
         </Mensagem>
       )}
 
-      <VersoesDaImagem
-        idDoDono={chave}
-        campos={{ computador: "banner", celular: "bannerCelular" }}
-        proporcoes={PROPORCOES_DO_BANNER}
-        rotulo="banner"
-        pontoDeFoco={pontoDeFoco}
-        dica={DICA_DO_BANNER}
-        avisarLarga
-        inicial={{
-          computador: banner?.midiaId ? { id: banner.midiaId, imagem: banner.imagem } : null,
-          celular: banner?.midiaMobileId ? { id: banner.midiaMobileId, imagem: banner.imagemCelular } : null,
-        }}
-        erros={erros}
-        aoMudarComputador={aoMudarImagem}
-      />
-
-      <fieldset className={estilos.grupoSemMoldura} aria-describedby={[`${id}-foco-ajuda`, erros.pontoDeFoco ? `${id}-foco-erro` : ""].filter(Boolean).join(" ")}>
-        <legend className={estilos.rotulo}>Ponto de foco da imagem</legend>
-        <p id={`${id}-foco-ajuda`} className={estilos.ajuda}>Escolha a parte da imagem que não pode ser cortada em telas mais estreitas ou mais altas.</p>
-        <div className={estilos.opcoesDoFoco}>
-          {PONTOS_DE_FOCO.map((ponto) => (
-            <label key={ponto} className={estilos.opcao}>
-              <input type="radio" name="pontoDeFoco" value={ponto} checked={pontoDeFoco === ponto} onChange={() => setPontoDeFoco(ponto)} />
-              {ROTULOS_DOS_PONTOS_DE_FOCO[ponto]}
-            </label>
-          ))}
-        </div>
-        {erros.pontoDeFoco && <p id={`${id}-foco-erro`} className={estilos.erro}>{erros.pontoDeFoco}</p>}
-      </fieldset>
-
-      <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
-
-      <div className={estilos.grupo}>
-        <label htmlFor={`${id}-href`} className={estilos.rotulo}>Link de destino (opcional)</label>
-        <p id={`${id}-href-ajuda`} className={estilos.ajuda}>
-          Um caminho do site começando com / (ex.: /loja) abre na mesma aba; um endereço completo começando com https:// abre em nova aba. Vazio: o banner não é link.
-        </p>
-        <input
-          id={`${id}-href`}
-          name="href"
-          type="text"
-          inputMode="url"
-          value={href}
-          onChange={(evento) => setHref(evento.target.value)}
-          maxLength={LIMITE_DO_LINK}
-          autoComplete="off"
-          spellCheck={false}
-          aria-invalid={erros.href ? true : undefined}
-          aria-describedby={[`${id}-href-ajuda`, erros.href ? `${id}-href-erro` : ""].filter(Boolean).join(" ")}
-          className={`${estilos.entrada} ${erros.href ? estilos.entradaComErro : ""}`}
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-imagens`}>
+        <h3 id={`${id}-imagens`} className={estilos.tituloDaCaixa}>Imagens</h3>
+        <CaixaDoPainel tipo="informacao">{AVISO_IMAGEM_SEM_TEXTO}</CaixaDoPainel>
+        <VersoesDaImagem
+          idDoDono={chave}
+          campos={{ computador: "banner", tablet: "bannerTablet", celular: "bannerCelular" }}
+          proporcoes={PROPORCOES_DO_BANNER}
+          rotulo="banner"
+          pontoDeFoco={pontoDeFoco}
+          dica={DICA_DO_BANNER}
+          avisarLarga
+          inicial={inicial}
+          erros={erros}
+          aoMudar={aoMudarImagem}
         />
-        {erros.href && <p id={`${id}-href-erro`} className={estilos.erro}>{erros.href}</p>}
-      </div>
+        <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
+      </section>
 
-      <label className={estilos.opcao}>
-        <input type="checkbox" name="ativo" value="sim" checked={ativo} onChange={(evento) => setAtivo(evento.target.checked)} />
-        Ativo (aparece no carrossel da home)
-      </label>
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-texto`}>
+        <h3 id={`${id}-texto`} className={estilos.tituloDaCaixa}>Texto</h3>
+        <p className={estilos.ajuda}>Opcional. Sem título, subtítulo e botão, o banner mostra só a imagem, como antes.</p>
+        <CampoDeTexto id={`${id}-titulo`} rotulo="Título" nome="titulo" valor={titulo} aoMudar={setTitulo} limite={LIMITE_DO_TITULO_DO_BANNER} erro={erros.titulo} />
+        <CampoDeTexto
+          id={`${id}-destaque`}
+          rotulo="Trecho em destaque"
+          nome="trechoEmDestaque"
+          valor={trechoEmDestaque}
+          aoMudar={setTrechoEmDestaque}
+          limite={LIMITE_DO_TITULO_DO_BANNER}
+          erro={erros.trechoEmDestaque}
+          ajuda="Uma parte do título, escrita exatamente igual, que aparece em negrito e na cor de destaque."
+        />
+        <CampoDeTexto id={`${id}-subtitulo`} rotulo="Subtítulo" nome="subtitulo" valor={subtitulo} aoMudar={setSubtitulo} limite={LIMITE_DO_SUBTITULO_DO_BANNER} erro={erros.subtitulo} multilinha />
+      </section>
 
-      <fieldset className={estilos.grupoSemMoldura} aria-describedby={erros.posicao ? `${id}-posicao-erro` : undefined}>
-        <legend className={estilos.rotulo}>Posição no carrossel</legend>
-        <div className={estilos.posicao}>
-          <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao - 1))} disabled={posicao <= 1} aria-label={`Subir uma posição (agora ${posicao} de ${maximo})`}>
-            Subir
-          </Botao>
-          <label htmlFor={`${id}-posicao`} className="somente-leitor">Posição, de 1 a {maximo}</label>
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-link`}>
+        <h3 id={`${id}-link`} className={estilos.tituloDaCaixa}>Botão e link</h3>
+        <CampoDeTexto
+          id={`${id}-botao`}
+          rotulo="Texto do botão"
+          nome="textoDoBotao"
+          valor={textoDoBotao}
+          aoMudar={setTextoDoBotao}
+          limite={LIMITE_DO_TEXTO_DO_BOTAO}
+          erro={erros.textoDoBotao}
+          ajuda="Com texto, o botão é o link do banner (e o banner inteiro continua clicável). Sem texto, o banner inteiro é o link."
+        />
+        <div className={estilos.grupo}>
+          <label htmlFor={`${id}-href`} className={estilos.rotulo}>Link de destino (opcional)</label>
+          <p id={`${id}-href-ajuda`} className={estilos.ajuda}>
+            Um caminho do site começando com / (ex.: /loja) abre na mesma aba; um endereço completo começando com https:// abre em nova aba. Vazio: o banner não é link.
+          </p>
           <input
-            id={`${id}-posicao`}
-            name="posicao"
-            type="number"
-            min={1}
-            max={maximo}
-            value={posicao}
-            onChange={(evento) => setPosicao(limitar(Number(evento.target.value) || 1))}
-            className={`${estilos.entrada} ${estilos.numero}`}
+            id={`${id}-href`}
+            name="href"
+            type="text"
+            inputMode="url"
+            value={href}
+            onChange={(evento) => setHref(evento.target.value)}
+            maxLength={LIMITE_DO_LINK}
+            autoComplete="off"
+            spellCheck={false}
+            aria-invalid={erros.href ? true : undefined}
+            aria-describedby={[`${id}-href-ajuda`, erros.href ? `${id}-href-erro` : ""].filter(Boolean).join(" ")}
+            className={`${estilos.entrada} ${erros.href ? estilos.entradaComErro : ""}`}
           />
-          <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao + 1))} disabled={posicao >= maximo} aria-label={`Descer uma posição (agora ${posicao} de ${maximo})`}>
-            Descer
-          </Botao>
-          <span className={estilos.ajuda} aria-live="polite">
-            {nomeDoBanner(posicao)} de {maximo}
-          </span>
+          {erros.href && <p id={`${id}-href-erro`} className={estilos.erro}>{erros.href}</p>}
         </div>
-        {erros.posicao && <p id={`${id}-posicao-erro`} className={estilos.erro}>{erros.posicao}</p>}
-      </fieldset>
+        {!artigosAtivo && ehCaminhoDosArtigos(href.trim()) && (
+          <CaixaDoPainel tipo="atencao">Os Artigos estão fora do site (em Configurações). Enquanto isso, este banner aparece sem link.</CaixaDoPainel>
+        )}
+      </section>
+
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-posicao-foco`}>
+        <h3 id={`${id}-posicao-foco`} className={estilos.tituloDaCaixa}>Posição e foco</h3>
+        <GrupoDeOpcoes id={`${id}-posicao-texto`} legenda="Posição do texto" nome="posicaoDoTexto" opcoes={POSICOES_DO_TEXTO} rotulos={ROTULOS_DAS_POSICOES_DO_TEXTO} valor={posicaoDoTexto} aoMudar={setPosicaoDoTexto} erro={erros.posicaoDoTexto} ajuda="No celular, o texto fica na parte de baixo do banner." />
+        <GrupoDeOpcoes
+          id={`${id}-foco`}
+          legenda="Ponto de foco da imagem"
+          ajuda="Escolha a parte da imagem que não pode ser cortada em telas mais estreitas ou mais altas."
+          nome="pontoDeFoco"
+          opcoes={PONTOS_DE_FOCO}
+          rotulos={ROTULOS_DOS_PONTOS_DE_FOCO}
+          valor={pontoDeFoco}
+          aoMudar={setPontoDeFoco}
+          erro={erros.pontoDeFoco}
+        />
+      </section>
+
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-previa`}>
+        <h3 id={`${id}-previa`} className={estilos.tituloDaCaixa}>Prévia</h3>
+        <p className={estilos.ajuda}>O banner como aparece no site, com o texto e o botão sobre a imagem de cada versão.</p>
+        {slideDaPrevia.midia ? (
+          <div className={estilos.previas}>
+            {(["computador", "tablet", "celular"] as const).map((formato) => (
+              <MolduraDaPrevia key={formato} formato={formato} slide={slideDaPrevia} />
+            ))}
+          </div>
+        ) : (
+          <p className={estilos.ajuda}>Envie a versão para computador para ver a prévia.</p>
+        )}
+      </section>
+
+      <section className={estilos.caixaDoModal} aria-labelledby={`${id}-publicacao`}>
+        <h3 id={`${id}-publicacao`} className={estilos.tituloDaCaixa}>Publicação</h3>
+        <label className={estilos.opcao}>
+          <input type="checkbox" name="ativo" value="sim" checked={ativo} onChange={(evento) => setAtivo(evento.target.checked)} />
+          Ativo (aparece no carrossel da home)
+        </label>
+
+        <fieldset className={estilos.grupoSemMoldura} aria-describedby={erros.posicao ? `${id}-posicao-erro` : undefined}>
+          <legend className={estilos.rotulo}>Posição no carrossel</legend>
+          <div className={estilos.posicao}>
+            <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao - 1))} disabled={posicao <= 1} aria-label={`Subir uma posição (agora ${posicao} de ${maximo})`}>
+              Subir
+            </Botao>
+            <label htmlFor={`${id}-posicao`} className="somente-leitor">Posição, de 1 a {maximo}</label>
+            <input
+              id={`${id}-posicao`}
+              name="posicao"
+              type="number"
+              min={1}
+              max={maximo}
+              value={posicao}
+              onChange={(evento) => setPosicao(limitar(Number(evento.target.value) || 1))}
+              className={`${estilos.entrada} ${estilos.numero}`}
+            />
+            <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao + 1))} disabled={posicao >= maximo} aria-label={`Descer uma posição (agora ${posicao} de ${maximo})`}>
+              Descer
+            </Botao>
+            <span className={estilos.ajuda} aria-live="polite">
+              {nomeDoBanner(posicao)} de {maximo}
+            </span>
+          </div>
+          {erros.posicao && <p id={`${id}-posicao-erro`} className={estilos.erro}>{erros.posicao}</p>}
+        </fieldset>
+      </section>
 
       <div className={estilos.botoes}>
         <Botao type="button" variante="secundario" onClick={aoCancelar} disabled={salvando}>
@@ -424,7 +625,8 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: Espaco
     else if (resposta) resumoRef.current?.focus();
   }, [resposta, aoTerminar]);
 
-  function aoMudarImagem(escolha: EscolhaDeImagem) {
+  function aoMudarImagem(versao: Versao, escolha: EscolhaDeImagem) {
+    if (versao !== "computador") return;
     setTemImagem(escolha !== null);
     const sugerido = escolha?.imagem?.alt ?? "";
     if (sugerido && (!alt || alt === ultimoAltSugerido.current)) setAlt(sugerido);
@@ -451,7 +653,7 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: Espaco
           celular: espaco.midiaMobileId ? { id: espaco.midiaMobileId, imagem: espaco.imagemCelular } : null,
         }}
         erros={erros}
-        aoMudarComputador={aoMudarImagem}
+        aoMudar={aoMudarImagem}
       />
       <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
       <div className={estilos.botoes}>
@@ -492,7 +694,7 @@ function ConfirmarExclusao({ banner, aoTerminar, aoCancelar }: { banner: BannerN
 
 // Tela /admin/home (29/10/2026): banners do carrossel e imagens fixas das
 // sections em cartões; "Editar" abre o Modal com o envio de imagem do item.
-export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[]; espacos: EspacoNaTela[] }) {
+export function HomeAdminClient({ banners, espacos, artigosAtivo = true }: { banners: BannerNaTela[]; espacos: EspacoNaTela[]; artigosAtivo?: boolean }) {
   const [janela, setJanela] = useState<Janela>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const fechar = useCallback(() => setJanela(null), []);
@@ -542,13 +744,24 @@ export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[];
           <ul role="list" className={estilos.grade}>
             {banners.map((banner) => (
               <li key={banner.chave} className={estilos.cartao}>
-                <Miniaturas proporcoes={PROPORCOES_DO_BANNER} midiaId={banner.midiaId} imagem={banner.imagem} midiaMobileId={banner.midiaMobileId} imagemCelular={banner.imagemCelular} vazio="Sem imagem" />
+                <Miniaturas
+                  proporcoes={PROPORCOES_DO_BANNER}
+                  midiaId={banner.midiaId}
+                  imagem={banner.imagem}
+                  midiaMobileId={banner.midiaMobileId}
+                  imagemCelular={banner.imagemCelular}
+                  tablet={{ midiaTabletId: banner.midiaTabletId, imagem: banner.imagemTablet }}
+                  vazio="Sem imagem"
+                />
                 <div className={estilos.texto}>
                   <h3 className={estilos.nome}>{banner.nome}</h3>
                   <p className={estilos.etiquetas}>
                     <span className={estilos.etiqueta}>{banner.chave}</span>
                     <span className={`${estilos.etiqueta} ${banner.ativo ? estilos.ativo : ""}`}>{banner.ativo ? "Ativo" : "Inativo"}</span>
+                    {banner.midiaId && !banner.midiaTabletId && <span className={estilos.etiqueta}>Sem versão tablet</span>}
                     {banner.midiaId && !banner.midiaMobileId && <span className={estilos.etiqueta}>Sem versão celular</span>}
+                    {temTextoNoBanner(banner) && <span className={estilos.etiqueta}>Com texto</span>}
+                    {banner.href && !artigosAtivo && ehCaminhoDosArtigos(banner.href) && <span className={estilos.etiqueta}>Sem link: Artigos fora do site</span>}
                   </p>
                   <p className={estilos.detalhe}>
                     {banner.href ? `Link: ${banner.href}${linkEhExterno(banner.href) ? " (abre em nova aba)" : ""}` : "Sem link"}
@@ -593,7 +806,7 @@ export function HomeAdminClient({ banners, espacos }: { banners: BannerNaTela[];
       </section>
 
       <Modal aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
-        {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={banners.length} aoTerminar={concluir} aoCancelar={fechar} />}
+        {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={banners.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
       <Modal aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"} largura="larga">
         {janela?.tipo === "espaco" && <FormularioDoEspaco espaco={janela.espaco} aoTerminar={concluir} aoCancelar={fechar} />}

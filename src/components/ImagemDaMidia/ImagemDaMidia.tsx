@@ -2,6 +2,7 @@
 
 import Image, { type ImageLoaderProps } from "next/image";
 import { escolherVariante } from "@/lib/midia/regras";
+import { fontesPorFaixa } from "@/lib/midia/versoes";
 import type { ImagemNaTela, VarianteNaTela } from "@/lib/midia/tela";
 import estilos from "./ImagemDaMidia.module.css";
 
@@ -20,10 +21,15 @@ type Props = {
   // a de celular). Sem ela, tudo como antes.
   celular?: ImagemNaTela | null;
   sizesCelular?: string;
+  // Versão para tablet, de 768 a 1023 px (banners da home, 30/10/2026).
+  // Cadeia de substituição: o celular usa a de tablet e, sem ela, a de
+  // computador; o tablet usa a de computador.
+  tablet?: ImagemNaTela | null;
 };
 
-// Largura que separa as duas versões: o breakpoint literal do site.
+// Larguras que separam as versões: os breakpoints literais do site.
 const MIDIA_DO_CELULAR = "(max-width: 767px)";
+const MIDIA_DO_TABLET = "(max-width: 1023px)";
 // Celular: variantes até 960 px; computador: de 960 px para cima.
 const LIMITE_DAS_VERSOES = 960;
 
@@ -44,16 +50,19 @@ function variantesDoComputador(variantes: VarianteNaTela[]): VarianteNaTela[] {
 // Imagem da biblioteca de mídia. Usa as variantes WebP já geradas (480, 960 e
 // 1600 px): o carregador próprio só escolhe a mais leve que cobre a largura
 // pedida, sem passar pela otimização de imagens da Vercel (sem custo nem cota).
-export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, prioridade, className, celular, sizesCelular = "100vw" }: Props) {
+export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, prioridade, className, celular, sizesCelular = "100vw", tablet }: Props) {
   const maior = escolherVariante(variantes, Number.POSITIVE_INFINITY);
   if (!maior || largura <= 0 || altura <= 0) return null;
-  if (celular && celular.variantes.length > 0 && celular.largura > 0 && celular.altura > 0) {
+  const { celular: paraCelular, tablet: paraTablet } = fontesPorFaixa({ celular, tablet });
+  if (paraCelular || paraTablet) {
     const doComputador = variantesDoComputador(variantes);
-    // O <source> do celular vem primeiro: o navegador escolhe uma fonte só e
-    // baixa um arquivo só. width e height de cada fonte reservam o espaço.
+    // Os <source> vêm do mais estreito para o mais largo: o navegador escolhe
+    // uma fonte só e baixa um arquivo só. width e height de cada fonte
+    // reservam o espaço.
     return (
       <picture className={estilos.moldura}>
-        <source media={MIDIA_DO_CELULAR} srcSet={listaDoSrcset(variantesDoCelular(celular.variantes))} sizes={sizesCelular} width={celular.largura} height={celular.altura} />
+        {paraCelular && <source media={MIDIA_DO_CELULAR} srcSet={listaDoSrcset(variantesDoCelular(paraCelular.variantes))} sizes={sizesCelular} width={paraCelular.largura} height={paraCelular.altura} />}
+        {paraTablet && <source media={MIDIA_DO_TABLET} srcSet={listaDoSrcset(paraTablet.variantes)} sizes={sizesCelular} width={paraTablet.largura} height={paraTablet.altura} />}
         <img
           src={(escolherVariante(doComputador, LIMITE_DAS_VERSOES) ?? maior).url}
           srcSet={listaDoSrcset(doComputador)}

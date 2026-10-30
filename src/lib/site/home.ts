@@ -50,10 +50,47 @@ export const ESPACOS_DA_HOME = [
 export type IdentificadorDoEspaco = (typeof ESPACOS_DA_HOME)[number]["identificador"];
 
 // Banner em tela cheia (30/10/2026): largura e altura da janela.
-export const PROPORCOES_DO_BANNER: ProporcoesDoEspaco = {
-  computador: { texto: "16:9, deitada (a tela inteira do computador; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1920 x 1080 px", razao: 16 / 9 },
-  celular: { texto: "9:16, em pé (a tela inteira do celular; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1080 x 1920 px", razao: 9 / 16 },
+export const PROPORCOES_DO_BANNER: ProporcoesDoEspaco & { tablet: ProporcaoRecomendada } = {
+  computador: { texto: "16:9, deitada (a tela inteira do computador, a partir de 1024 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1920 x 1080 px", razao: 16 / 9 },
+  // Tablet (768 a 1023 px), 30/10/2026.
+  tablet: { texto: "3:4, em pé (a tela inteira do tablet, de 768 a 1023 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1536 x 2048 px", razao: 3 / 4 },
+  celular: { texto: "9:16, em pé (a tela inteira do celular, até 767 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1080 x 1920 px", razao: 9 / 16 },
 };
+
+// Texto e botão em código sobre a imagem do banner (30/10/2026): a arte
+// enviada passa a ser só a imagem. Todos vazios: o banner é só a imagem,
+// como antes (banners antigos com o texto dentro da arte).
+export const LIMITE_DO_TITULO_DO_BANNER = 90;
+export const LIMITE_DO_SUBTITULO_DO_BANNER = 200;
+export const LIMITE_DO_TEXTO_DO_BOTAO = 30;
+export const POSICOES_DO_TEXTO = ["esquerda", "centro", "direita"] as const;
+export type PosicaoDoTexto = (typeof POSICOES_DO_TEXTO)[number];
+export const ROTULOS_DAS_POSICOES_DO_TEXTO: Record<PosicaoDoTexto, string> = { esquerda: "Esquerda", centro: "Centro", direita: "Direita" };
+export const AVISO_IMAGEM_SEM_TEXTO = "Envie a imagem sem texto. Deixe uma área calma onde o texto vai ficar.";
+export const AVISO_VERSAO_FALTANDO = "Sem a versão para tablet ou para celular, será usada a imagem da versão mais próxima (celular usa a de tablet e, sem ela, a de computador; tablet usa a de computador).";
+
+export type TextoDoBanner = { titulo: string; trechoEmDestaque: string; subtitulo: string; textoDoBotao: string; posicao: PosicaoDoTexto };
+
+export function ehPosicaoDoTexto(valor: unknown): valor is PosicaoDoTexto {
+  return typeof valor === "string" && (POSICOES_DO_TEXTO as readonly string[]).includes(valor);
+}
+
+// O banner tem texto em código? (sem nenhum campo, é só a imagem)
+export function temTextoNoBanner(texto: Pick<TextoDoBanner, "titulo" | "subtitulo" | "textoDoBotao">): boolean {
+  return Boolean(texto.titulo || texto.subtitulo || texto.textoDoBotao);
+}
+
+// Título dividido em partes, com o trecho em destaque marcado (a primeira
+// ocorrência). Trecho vazio ou fora do título: o título inteiro, sem destaque.
+export function partesDoTitulo(titulo: string, trecho: string): { texto: string; destaque: boolean }[] {
+  const indice = trecho ? titulo.indexOf(trecho) : -1;
+  if (indice < 0) return titulo ? [{ texto: titulo, destaque: false }] : [];
+  return [
+    { texto: titulo.slice(0, indice), destaque: false },
+    { texto: trecho, destaque: true },
+    { texto: titulo.slice(indice + trecho.length), destaque: false },
+  ].filter((parte) => parte.texto);
+}
 
 export const DICA_DO_BANNER = "Mantenha textos e rostos na parte central da imagem; as bordas podem ser cortadas conforme o tamanho da tela.";
 
@@ -93,10 +130,18 @@ export type BannerDaHome = {
   // antigos sem o campo valem como "sem versão celular").
   midiaId: string | null;
   midiaMobileId: string | null;
+  // Versão para tablet, 768 a 1023 px (30/10/2026; ausente: a de computador).
+  midiaTabletId: string | null;
   alt: string;
   href: string;
   ativo: boolean;
   pontoDeFoco: PontoDeFoco;
+  // Texto e botão em código (30/10/2026); vazios nos banners antigos.
+  titulo: string;
+  trechoEmDestaque: string;
+  subtitulo: string;
+  textoDoBotao: string;
+  posicaoDoTexto: PosicaoDoTexto;
 };
 
 // Um alt só por espaço, usado nas duas versões.
@@ -104,7 +149,7 @@ export type ImagemDoEspaco = { midiaId: string | null; midiaMobileId: string | n
 
 // Imagem da home pronta para o site: a de computador e, se houver, a de
 // celular (ImagemDaMidia monta um <picture> com as duas).
-export type ImagemDaHomeNaTela = ImagemNaTela & { celular: ImagemNaTela | null };
+export type ImagemDaHomeNaTela = ImagemNaTela & { celular: ImagemNaTela | null; tablet?: ImagemNaTela | null };
 
 export type ConfiguracaoDaHome = {
   banners: BannerDaHome[];
@@ -176,6 +221,20 @@ export function posicionarBanner(banners: BannerDaHome[], chave: string, posicao
   return renumerarBanners(ordenados);
 }
 
+// Texto do banner gravado (leitura tolerante): acima dos limites é cortado;
+// trecho em destaque fora do título é descartado.
+function lerTextoDoBanner(banner: Record<string, unknown>): Omit<TextoDoBanner, "posicao"> & { posicaoDoTexto: PosicaoDoTexto } {
+  const titulo = texto(banner.titulo, LIMITE_DO_TITULO_DO_BANNER);
+  const trecho = texto(banner.trechoEmDestaque, LIMITE_DO_TITULO_DO_BANNER);
+  return {
+    titulo,
+    trechoEmDestaque: trecho && titulo.includes(trecho) ? trecho : "",
+    subtitulo: texto(banner.subtitulo, LIMITE_DO_SUBTITULO_DO_BANNER),
+    textoDoBotao: texto(banner.textoDoBotao, LIMITE_DO_TEXTO_DO_BOTAO),
+    posicaoDoTexto: ehPosicaoDoTexto(banner.posicaoDoTexto) ? banner.posicaoDoTexto : "esquerda",
+  };
+}
+
 // Leitura tolerante do documento: o que não tiver a forma esperada fica de
 // fora (vale o padrão da home).
 export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
@@ -190,11 +249,13 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
         midiaId: ehIdDeDocumentoValido(banner.midiaId) ? banner.midiaId : null,
         // Sem a de computador, a de celular não vale.
         midiaMobileId: ehIdDeDocumentoValido(banner.midiaId) && ehIdDeDocumentoValido(banner.midiaMobileId) ? banner.midiaMobileId : null,
+        midiaTabletId: ehIdDeDocumentoValido(banner.midiaId) && ehIdDeDocumentoValido(banner.midiaTabletId) ? banner.midiaTabletId : null,
         alt: texto(banner.alt, LIMITE_DO_ALT_DA_HOME),
         href: link.ok ? link.href : "",
         ativo: banner.ativo === true,
         // Ausente ou estranho: o centro, como antes.
         pontoDeFoco: ehPontoDeFoco(banner.pontoDeFoco) ? banner.pontoDeFoco : "centro",
+        ...lerTextoDoBanner(banner),
       };
     })
     .filter((banner, indice, lista) => lista.findIndex((outro) => outro.chave === banner.chave) === indice)
@@ -222,8 +283,12 @@ export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: M
       const alt = banner.alt || midia.alt;
       // Versão celular na lixeira ou excluída: fica só a de computador.
       const celular = banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null;
+      const tablet = banner.midiaTabletId ? imagens.get(banner.midiaTabletId) ?? null : null;
       const href = !artigosAtivo && ehCaminhoDosArtigos(banner.href) ? "" : banner.href;
-      return { imagem: "", midia: { ...midia, alt, celular }, alt, href, rotulo: "", pontoDeFoco: banner.pontoDeFoco };
+      const textoDoSlide = temTextoNoBanner(banner)
+        ? { titulo: banner.titulo, trechoEmDestaque: banner.trechoEmDestaque, subtitulo: banner.subtitulo, textoDoBotao: href ? banner.textoDoBotao : "", posicao: banner.posicaoDoTexto }
+        : null;
+      return { imagem: "", midia: { ...midia, alt, celular, tablet }, alt, href, rotulo: "", pontoDeFoco: banner.pontoDeFoco, texto: textoDoSlide };
     });
   return slides.length > 0 ? slides : SLIDES_DO_BANNER;
 }
@@ -241,16 +306,45 @@ export function imagemDoEspaco(configuracao: ConfiguracaoDaHome | null, identifi
 export function midiasDaHome(configuracao: ConfiguracaoDaHome | null): string[] {
   if (!configuracao) return [];
   return [
-    ...configuracao.banners.flatMap((banner) => [banner.midiaId, banner.midiaMobileId]),
+    ...configuracao.banners.flatMap((banner) => [banner.midiaId, banner.midiaMobileId, banner.midiaTabletId]),
     ...Object.values(configuracao.imagens).flatMap((imagem) => [imagem?.midiaId, imagem?.midiaMobileId]),
   ].filter((id): id is string => typeof id === "string");
 }
 
-export type CampoDoBanner = "midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo" | "pontoDeFoco";
-export type DadosDoBanner = { chave: string; midiaId: string | null; midiaMobileId: string | null; alt: string; href: string; ativo: boolean; posicao: number; pontoDeFoco: PontoDeFoco };
+export type CampoDoBanner =
+  | "midiaId"
+  | "midiaMobileId"
+  | "midiaTabletId"
+  | "alt"
+  | "href"
+  | "posicao"
+  | "ativo"
+  | "pontoDeFoco"
+  | "titulo"
+  | "trechoEmDestaque"
+  | "subtitulo"
+  | "textoDoBotao"
+  | "posicaoDoTexto";
+export type DadosDoBanner = {
+  chave: string;
+  midiaId: string | null;
+  midiaMobileId: string | null;
+  midiaTabletId: string | null;
+  alt: string;
+  href: string;
+  ativo: boolean;
+  posicao: number;
+  pontoDeFoco: PontoDeFoco;
+  titulo: string;
+  trechoEmDestaque: string;
+  subtitulo: string;
+  textoDoBotao: string;
+  posicaoDoTexto: PosicaoDoTexto;
+};
 
 const MENSAGEM_IMAGEM_INVALIDA = "Imagem inválida. Envie ou escolha a imagem de novo.";
 export const MENSAGEM_CELULAR_SEM_COMPUTADOR = "Envie também a versão para computador: a versão para celular é opcional e só vale junto com ela.";
+export const MENSAGEM_TABLET_SEM_COMPUTADOR = "Envie também a versão para computador: a versão para tablet é opcional e só vale junto com ela.";
 
 function idDoFormulario(valor: unknown): unknown {
   return valor === "" || valor === null || valor === undefined ? null : valor;
@@ -258,14 +352,25 @@ function idDoFormulario(valor: unknown): unknown {
 
 // As duas versões vindas do formulário: ids válidos, e a de celular só junto
 // com a de computador.
-function lerVersoes(campos: { midiaId: unknown; midiaMobileId?: unknown }): { midiaId: string | null; midiaMobileId: string | null; erros: Partial<Record<"midiaId" | "midiaMobileId", string>> } {
-  const erros: Partial<Record<"midiaId" | "midiaMobileId", string>> = {};
+type CampoDeVersao = "midiaId" | "midiaMobileId" | "midiaTabletId";
+function lerVersoes(campos: { midiaId: unknown; midiaMobileId?: unknown; midiaTabletId?: unknown }): {
+  midiaId: string | null;
+  midiaMobileId: string | null;
+  midiaTabletId: string | null;
+  erros: Partial<Record<CampoDeVersao, string>>;
+} {
+  const erros: Partial<Record<CampoDeVersao, string>> = {};
   const midiaId = idDoFormulario(campos.midiaId);
-  const midiaMobileId = idDoFormulario(campos.midiaMobileId);
   if (midiaId !== null && !ehIdDeDocumentoValido(midiaId)) erros.midiaId = MENSAGEM_IMAGEM_INVALIDA;
-  if (midiaMobileId !== null && !ehIdDeDocumentoValido(midiaMobileId)) erros.midiaMobileId = MENSAGEM_IMAGEM_INVALIDA;
-  else if (midiaMobileId !== null && midiaId === null) erros.midiaMobileId = MENSAGEM_CELULAR_SEM_COMPUTADOR;
-  return { midiaId: midiaId as string | null, midiaMobileId: midiaMobileId as string | null, erros };
+  const outra = (campo: "midiaMobileId" | "midiaTabletId", mensagemSemComputador: string) => {
+    const valor = idDoFormulario(campos[campo]);
+    if (valor !== null && !ehIdDeDocumentoValido(valor)) erros[campo] = MENSAGEM_IMAGEM_INVALIDA;
+    else if (valor !== null && midiaId === null) erros[campo] = mensagemSemComputador;
+    return valor as string | null;
+  };
+  const midiaMobileId = outra("midiaMobileId", MENSAGEM_CELULAR_SEM_COMPUTADOR);
+  const midiaTabletId = outra("midiaTabletId", MENSAGEM_TABLET_SEM_COMPUTADOR);
+  return { midiaId: midiaId as string | null, midiaMobileId, midiaTabletId, erros };
 }
 
 // Confere no servidor as duas versões escolhidas (30/10/2026): cada uma,
@@ -274,11 +379,11 @@ function lerVersoes(campos: { midiaId: unknown; midiaMobileId?: unknown }): { mi
 // (midiaPodeSerEscolhida, na gravação), para o teste rodar sem Firebase.
 // Devolve o campo recusado, ou null.
 export async function versaoRecusada(
-  escolhidas: { midiaId: string | null; midiaMobileId: string | null },
-  anteriores: { midiaId: string | null; midiaMobileId: string | null } | null,
+  escolhidas: Partial<Record<CampoDeVersao, string | null>>,
+  anteriores: Partial<Record<CampoDeVersao, string | null>> | null,
   disponivel: (id: string) => Promise<boolean>,
-): Promise<"midiaId" | "midiaMobileId" | null> {
-  for (const campo of ["midiaId", "midiaMobileId"] as const) {
+): Promise<CampoDeVersao | null> {
+  for (const campo of ["midiaId", "midiaMobileId", "midiaTabletId"] as const) {
     const id = escolhidas[campo];
     if (!id || id === anteriores?.[campo]) continue;
     if (!(await disponivel(id))) return campo;
@@ -291,14 +396,20 @@ export function lerBannerDoFormulario(campos: {
   chave: unknown;
   midiaId: unknown;
   midiaMobileId?: unknown;
+  midiaTabletId?: unknown;
   alt: unknown;
   href: unknown;
   ativo: unknown;
   posicao: unknown;
   pontoDeFoco?: unknown;
+  titulo?: unknown;
+  trechoEmDestaque?: unknown;
+  subtitulo?: unknown;
+  textoDoBotao?: unknown;
+  posicaoDoTexto?: unknown;
 }): { ok: true; dados: DadosDoBanner } | { ok: false; erros: Partial<Record<CampoDoBanner, string>>; mensagem: string } {
   if (!ehChaveDeBanner(campos.chave)) return { ok: false, erros: {}, mensagem: "Banner não encontrado. Recarregue a página." };
-  const { midiaId, midiaMobileId, erros: errosDasVersoes } = lerVersoes(campos);
+  const { midiaId, midiaMobileId, midiaTabletId, erros: errosDasVersoes } = lerVersoes(campos);
   const erros: Partial<Record<CampoDoBanner, string>> = { ...errosDasVersoes };
   const alt = typeof campos.alt === "string" ? campos.alt.trim().replace(/\s+/g, " ") : "";
   if (midiaId && !alt) erros.alt = "Descreva a imagem no texto alternativo.";
@@ -312,8 +423,39 @@ export function lerBannerDoFormulario(campos: {
   // Sem o campo (formulário anterior a ele): o centro. Valor estranho: recusa.
   const pontoDeFoco = campos.pontoDeFoco === null || campos.pontoDeFoco === undefined ? "centro" : campos.pontoDeFoco;
   if (!ehPontoDeFoco(pontoDeFoco)) erros.pontoDeFoco = MENSAGEM_PONTO_DE_FOCO_INVALIDO;
+  // Texto e botão (30/10/2026), todos opcionais.
+  const linha = (valor: unknown) => (typeof valor === "string" ? valor.trim().replace(/\s+/g, " ") : "");
+  const titulo = linha(campos.titulo);
+  const trechoEmDestaque = linha(campos.trechoEmDestaque);
+  const subtitulo = linha(campos.subtitulo);
+  const textoDoBotao = linha(campos.textoDoBotao);
+  if (titulo.length > LIMITE_DO_TITULO_DO_BANNER) erros.titulo = `O título aceita no máximo ${LIMITE_DO_TITULO_DO_BANNER} caracteres.`;
+  if (trechoEmDestaque && !titulo.includes(trechoEmDestaque)) erros.trechoEmDestaque = "O trecho em destaque precisa fazer parte do título, escrito exatamente igual.";
+  if (subtitulo.length > LIMITE_DO_SUBTITULO_DO_BANNER) erros.subtitulo = `O subtítulo aceita no máximo ${LIMITE_DO_SUBTITULO_DO_BANNER} caracteres.`;
+  if (textoDoBotao.length > LIMITE_DO_TEXTO_DO_BOTAO) erros.textoDoBotao = `O texto do botão aceita no máximo ${LIMITE_DO_TEXTO_DO_BOTAO} caracteres.`;
+  else if (textoDoBotao && link.ok && !link.href) erros.textoDoBotao = "Preencha o link para o botão aparecer, ou deixe o texto do botão vazio.";
+  const posicaoDoTexto = campos.posicaoDoTexto === null || campos.posicaoDoTexto === undefined ? "esquerda" : campos.posicaoDoTexto;
+  if (!ehPosicaoDoTexto(posicaoDoTexto)) erros.posicaoDoTexto = "Escolha a posição do texto: esquerda, centro ou direita.";
   if (Object.keys(erros).length > 0) return { ok: false, erros, mensagem: "Confira os campos marcados." };
-  return { ok: true, dados: { chave: campos.chave, midiaId, midiaMobileId, alt, href: link.ok ? link.href : "", ativo, posicao, pontoDeFoco: pontoDeFoco as PontoDeFoco } };
+  return {
+    ok: true,
+    dados: {
+      chave: campos.chave,
+      midiaId,
+      midiaMobileId,
+      midiaTabletId,
+      alt,
+      href: link.ok ? link.href : "",
+      ativo,
+      posicao,
+      pontoDeFoco: pontoDeFoco as PontoDeFoco,
+      titulo,
+      trechoEmDestaque,
+      subtitulo,
+      textoDoBotao,
+      posicaoDoTexto: posicaoDoTexto as PosicaoDoTexto,
+    },
+  };
 }
 
 // Imagem de um espaço fixo (modal de /admin/home).
@@ -321,7 +463,9 @@ export function lerImagemDoEspacoDoFormulario(campos: { identificador: unknown; 
   | { ok: true; identificador: IdentificadorDoEspaco; imagem: ImagemDoEspaco }
   | { ok: false; erros: Partial<Record<"midiaId" | "midiaMobileId" | "alt", string>>; mensagem: string } {
   if (!ehEspacoDaHome(campos.identificador)) return { ok: false, erros: {}, mensagem: "Espaço de imagem não encontrado. Recarregue a página." };
-  const { midiaId, midiaMobileId, erros } = lerVersoes(campos);
+  const { midiaId, midiaMobileId, erros: errosDasVersoes } = lerVersoes(campos);
+  // As seções não têm versão para tablet.
+  const erros: Partial<Record<"midiaId" | "midiaMobileId" | "alt", string>> = { ...(errosDasVersoes.midiaId ? { midiaId: errosDasVersoes.midiaId } : {}), ...(errosDasVersoes.midiaMobileId ? { midiaMobileId: errosDasVersoes.midiaMobileId } : {}) };
   if (Object.keys(erros).length > 0) return { ok: false, erros, mensagem: "Confira os campos marcados." };
   const alt = typeof campos.alt === "string" ? campos.alt.trim().replace(/\s+/g, " ") : "";
   if (midiaId && !alt) return { ok: false, erros: { alt: "Descreva a imagem no texto alternativo." }, mensagem: "Confira os campos marcados." };
@@ -331,7 +475,18 @@ export function lerImagemDoEspacoDoFormulario(campos: { identificador: unknown; 
 
 // Nomes (sem valores) do que mudou num banner, para o registro de alterações.
 export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: BannerDaHome): string[] {
-  if (!antes) return ["imagem", ...(depois.midiaMobileId ? ["imagem para celular"] : []), "texto alternativo", "link", "ativo", "posição", ...(depois.pontoDeFoco !== "centro" ? ["ponto de foco"] : [])];
+  if (!antes)
+    return [
+      "imagem",
+      ...(depois.midiaTabletId ? ["imagem para tablet"] : []),
+      ...(depois.midiaMobileId ? ["imagem para celular"] : []),
+      "texto alternativo",
+      "link",
+      "ativo",
+      "posição",
+      ...(depois.pontoDeFoco !== "centro" ? ["ponto de foco"] : []),
+      ...(temTextoNoBanner(depois) ? ["texto do banner"] : []),
+    ];
   const alterados: string[] = [];
   if (antes.midiaId !== depois.midiaId) alterados.push("imagem");
   if (antes.midiaMobileId !== depois.midiaMobileId) alterados.push("imagem para celular");
@@ -340,6 +495,12 @@ export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: Bann
   if (antes.ativo !== depois.ativo) alterados.push("ativo");
   if (antes.ordem !== depois.ordem) alterados.push("posição");
   if (antes.pontoDeFoco !== depois.pontoDeFoco) alterados.push("ponto de foco");
+  if (antes.midiaTabletId !== depois.midiaTabletId) alterados.push("imagem para tablet");
+  if (antes.titulo !== depois.titulo) alterados.push("título");
+  if (antes.trechoEmDestaque !== depois.trechoEmDestaque) alterados.push("trecho em destaque");
+  if (antes.subtitulo !== depois.subtitulo) alterados.push("subtítulo");
+  if (antes.textoDoBotao !== depois.textoDoBotao) alterados.push("texto do botão");
+  if (antes.posicaoDoTexto !== depois.posicaoDoTexto) alterados.push("posição do texto");
   return alterados;
 }
 

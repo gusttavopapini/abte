@@ -179,8 +179,72 @@
   align-items: center;
 }
 
+.tresAreas {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tresMiniaturas {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Caixas do Modal do banner (30/10/2026): Imagens, Texto, Botão e link,
+   Posição e foco, Prévia e Publicação. */
+.caixaDoModal {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+
+.tituloDaCaixa {
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Prévias com o mesmo componente do banner do site, em escala */
+.previas {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.previaDoBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+}
+
+.telaDaPrevia {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  outline: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  background: var(--color-bg-alt);
+}
+
+.escalaDaPrevia {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+@media (max-width: 1023px) {
+  .tresAreas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 767px) {
-  .areasDasVersoes {
+  .areasDasVersoes,
+  .tresAreas,
+  .previas {
     grid-template-columns: minmax(0, 1fr);
   }
 }

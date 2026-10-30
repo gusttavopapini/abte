@@ -129,7 +129,7 @@
    para valer sobre as regras anteriores, como o estilo inline valia. */
 /* Mais específico que o .imagem do ImagemDaMidia (altura automática):
    o slide preenche o banner, com a imagem recortada */
-.slide .imagem {
+.camadas .imagem {
   display: block;
   width: 100%;
   height: 100%;
@@ -138,15 +138,15 @@
 
 /* Ponto de foco do banner (30/10/2026): a parte da imagem que fica à vista
    quando a tela corta as laterais, nas versões computador e celular. */
-.slide .focoEsquerda {
+.camadas .focoEsquerda {
   object-position: 0% 50%;
 }
 
-.slide .focoCentro {
+.camadas .focoCentro {
   object-position: 50% 50%;
 }
 
-.slide .focoDireita {
+.camadas .focoDireita {
   object-position: 100% 50%;
 }
 
@@ -155,9 +155,140 @@
    borda. */
 .linkDoSlide {
   position: relative;
-  display: block;
+}
+
+/* Camadas do slide (30/10/2026): imagem, véu e texto na mesma célula da
+   grade, sem posicionamento, para o ::after do botão (link esticado) cobrir
+   o slide inteiro. */
+.camadas {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   width: 100%;
   height: 100%;
+}
+
+.camadas > .imagem,
+.camadas > picture > .imagem,
+.camadas > .conteudo {
+  grid-area: 1 / 1;
+}
+
+/* Texto em código sobre a imagem (30/10/2026). O véu é um degradê do branco
+   (--color-bg a 85%) para transparente, só com tokens: com 85% sob o texto,
+   o contraste do --color-text fica em pelo menos 6,4:1 e o do trecho em
+   destaque em 3,4:1 (texto grande), mesmo sobre uma imagem preta. A largura
+   da caixa de texto e as paradas do degradê usam os mesmos valores, para o
+   texto ficar sempre sobre a parte cheia do véu. */
+.conteudo {
+  --veu: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  --largura-do-texto: calc(var(--content-max) / 3);
+  --margem-do-texto: calc(var(--space-64) + var(--space-24));
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-96) var(--margem-do-texto);
+}
+
+.textoEsquerda {
+  justify-content: flex-start;
+  background: linear-gradient(to right, var(--veu) 0, var(--veu) calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-24)), transparent calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-96) * 2));
+}
+
+.textoDireita {
+  justify-content: flex-end;
+  background: linear-gradient(to left, var(--veu) 0, var(--veu) calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-24)), transparent calc(var(--margem-do-texto) + var(--largura-do-texto) + var(--space-96) * 2));
+}
+
+.textoCentro {
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(
+    to right,
+    transparent calc(50% - var(--largura-do-texto) / 2 - var(--space-96) * 2),
+    var(--veu) calc(50% - var(--largura-do-texto) / 2 - var(--space-24)),
+    var(--veu) calc(50% + var(--largura-do-texto) / 2 + var(--space-24)),
+    transparent calc(50% + var(--largura-do-texto) / 2 + var(--space-96) * 2)
+  );
+}
+
+.caixaDeTexto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  width: 100%;
+  max-width: var(--largura-do-texto);
+  color: var(--color-text);
+}
+
+.textoCentro .caixaDeTexto {
+  align-items: center;
+}
+
+.tituloDoBanner {
+  color: var(--color-text);
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-light);
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+}
+
+.destaque {
+  color: var(--color-placeholder);
+  font-weight: var(--font-weight-bold);
+}
+
+.subtituloDoBanner {
+  font-size: var(--font-size-text-lg);
+  line-height: var(--leading-normal);
+}
+
+/* O botão é o link real; o ::after dele cobre o slide inteiro (o
+   contêiner posicionado mais próximo é o .slide). Setas e pontos ficam
+   acima (z-index 3). */
+.acaoDoBanner a {
+  position: static;
+}
+
+.acaoDoBanner a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .acaoDoBanner a:hover .seta-para-frente {
+    transform: translateX(calc(var(--space-8) / 2));
+  }
+}
+
+.acaoDoBanner a:focus-visible .seta-para-frente {
+  transform: translateX(calc(var(--space-8) / 2));
+}
+
+/* Celular (e a prévia do celular no painel): texto na parte de baixo, acima
+   dos pontos, com o véu subindo da base; a ordem e o conteúdo são os mesmos. */
+@media (max-width: 767px) {
+  .conteudo {
+    --margem-do-texto: var(--page-margin);
+    align-items: flex-end;
+    padding: var(--space-96) var(--page-margin) calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
+  }
+
+  .caixaDeTexto {
+    max-width: none;
+  }
+}
+
+.formatoCelular .conteudo {
+  --margem-do-texto: var(--page-margin);
+  align-items: flex-end;
+  padding: var(--space-96) var(--page-margin) calc(var(--space-64) + var(--space-24));
+  background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
+}
+
+.formatoCelular .caixaDeTexto {
+  max-width: none;
 }
 
 .linkDoSlide::after {
@@ -174,4 +305,11 @@
 
 .linkDoSlide:focus-visible::after {
   box-shadow: var(--focus-ring);
+}
+
+/* Prévia do painel em formato fixo (30/10/2026): os mesmos estilos do site;
+   computador e tablet seguem as regras de tela larga. */
+.formatoComputador,
+.formatoTablet {
+  position: relative;
 }

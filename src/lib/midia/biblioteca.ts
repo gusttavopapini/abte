@@ -92,6 +92,7 @@ export const REFERENCIAS_DE_MIDIA: ReferenciaDeMidia[] = [
   // Home: as duas versões de cada imagem (30/10/2026).
   { colecao: "configuracoes", campo: "banners", emLista: "midiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para computador` },
   { colecao: "configuracoes", campo: "banners", emLista: "midiaMobileId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para celular` },
+  { colecao: "configuracoes", campo: "banners", emLista: "midiaTabletId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (item) => `${posicaoDoBanner(item)}, versão para tablet` },
   { colecao: "configuracoes", campo: "imagens", emMapa: "midiaId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para computador` },
   { colecao: "configuracoes", campo: "imagens", emMapa: "midiaMobileId", rotulo: "Home", campoDoNome: "nome", nomeFixo: "Home", descreverItem: (_item, chave) => `${nomeDaSecao(chave)}, versão para celular` },
 ];

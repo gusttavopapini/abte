@@ -9,9 +9,9 @@ import { revalidatePath } from "next/cache";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { excluirBanner, salvarBanner, salvarImagemDoEspaco } from "@/lib/gravacao/home";
-import { ehChaveDeBanner, lerBannerDoFormulario, lerImagemDoEspacoDoFormulario } from "@/lib/site/home";
+import { ehChaveDeBanner, lerBannerDoFormulario, lerImagemDoEspacoDoFormulario, type CampoDoBanner } from "@/lib/site/home";
 
-export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<"midiaId" | "midiaMobileId" | "alt" | "href" | "posicao" | "ativo" | "pontoDeFoco", string>> } | null;
+export type RespostaDaHome = { ok: boolean; mensagem: string; erros?: Partial<Record<CampoDoBanner, string>> } | null;
 
 const ERRO_GENERICO = "Não foi possível salvar agora. Tente de novo em instantes.";
 
@@ -32,6 +32,12 @@ export async function salvarBannerDaHome(_anterior: RespostaDaHome, dados: FormD
     ativo: dados.get("ativo"),
     posicao: dados.get("posicao"),
     pontoDeFoco: dados.get("pontoDeFoco"),
+    midiaTabletId: dados.get("midiaTabletId"),
+    titulo: dados.get("titulo"),
+    trechoEmDestaque: dados.get("trechoEmDestaque"),
+    subtitulo: dados.get("subtitulo"),
+    textoDoBotao: dados.get("textoDoBotao"),
+    posicaoDoTexto: dados.get("posicaoDoTexto"),
   });
   if (!lido.ok) return { ok: false, mensagem: lido.mensagem, erros: lido.erros };
   try {

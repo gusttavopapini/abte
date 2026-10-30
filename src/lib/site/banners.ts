@@ -9,13 +9,22 @@ export type SlideDoBanner = {
   imagem: string;
   // Imagem da biblioteca escolhida no painel (29/10/2026, lib/site/home.ts);
   // sem ela, vale o endereço em "imagem" (slides padrão).
-  midia?: ImagemNaTela & { celular?: ImagemNaTela | null };
+  midia?: ImagemNaTela & { celular?: ImagemNaTela | null; tablet?: ImagemNaTela | null };
   // Parte da imagem que fica à vista quando a tela corta as laterais
   // (banner do painel, 30/10/2026); ausente vale o centro.
   pontoDeFoco?: "esquerda" | "centro" | "direita";
   alt: string;
   href: string;
   rotulo: string;
+  // Texto e botão em código sobre a imagem (banner do painel, 30/10/2026);
+  // null ou ausente: só a imagem, como antes.
+  texto?: {
+    titulo: string;
+    trechoEmDestaque: string;
+    subtitulo: string;
+    textoDoBotao: string;
+    posicao: "esquerda" | "centro" | "direita";
+  } | null;
 };
 
 // Imagens provisórias (picsum.photos, ver "Conteúdo de terceiros" no

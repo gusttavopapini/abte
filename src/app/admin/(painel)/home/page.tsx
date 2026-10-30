@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerImagensDaHome } from "@/lib/dados/home";
+import { lerConfiguracaoDoSiteAgora } from "@/lib/dados/site";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ESPACOS_DA_HOME, midiasDaHome, nomeDoBanner, ordenarBanners } from "@/lib/site/home";
 import { HomeAdminClient, type BannerNaTela, type EspacoNaTela } from "./HomeAdminClient";
@@ -20,6 +21,7 @@ export default async function PaginaAdminHome() {
     nome: nomeDoBanner(banner.ordem),
     imagem: banner.midiaId ? imagens.get(banner.midiaId) ?? null : null,
     imagemCelular: banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null,
+    imagemTablet: banner.midiaTabletId ? imagens.get(banner.midiaTabletId) ?? null : null,
   }));
   const espacos: EspacoNaTela[] = ESPACOS_DA_HOME.map((espaco) => {
     const escolhida = configuracao?.imagens[espaco.identificador];
@@ -36,5 +38,6 @@ export default async function PaginaAdminHome() {
     };
   });
 
-  return <HomeAdminClient banners={banners} espacos={espacos} />;
+  const { artigosAtivo } = await lerConfiguracaoDoSiteAgora().catch(() => ({ artigosAtivo: true }));
+  return <HomeAdminClient banners={banners} espacos={espacos} artigosAtivo={artigosAtivo} />;
 }

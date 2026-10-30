@@ -16,8 +16,9 @@ export const CAMPOS_POR_TIPO_DE_DONO = {
   diretoria: ["foto"],
   // Uma versão por campo (30/10/2026): "banner" e "secao" são as de
   // computador (o nome de antes, para as imagens já enviadas continuarem
-  // valendo) e "bannerCelular" e "secaoCelular", as de celular.
-  home: ["banner", "bannerCelular", "secao", "secaoCelular"],
+  // valendo) e "bannerCelular" e "secaoCelular", as de celular; desde
+  // 30/10/2026 também "bannerTablet".
+  home: ["banner", "bannerTablet", "bannerCelular", "secao", "secaoCelular"],
 } as const;
 
 export type TipoDeDono = keyof typeof CAMPOS_POR_TIPO_DE_DONO;
@@ -45,6 +46,7 @@ export const ROTULOS_DOS_CAMPOS: Record<CampoDoDono, string> = {
   galeria: "galeria",
   foto: "foto",
   banner: "banner, versão para computador",
+  bannerTablet: "banner, versão para tablet",
   bannerCelular: "banner, versão para celular",
   secao: "imagem de seção, versão para computador",
   secaoCelular: "imagem de seção, versão para celular",

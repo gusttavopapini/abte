@@ -26,7 +26,7 @@ import {
 import type { ImagemNaTela } from "../../src/lib/midia/tela.ts";
 
 const IMAGEM: ImagemNaTela = { alt: "Alt da biblioteca", largura: 1920, altura: 800, variantes: [{ largura: 1600, url: "https://exemplo.invalid/a.webp" }] };
-const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", ...extra });
+const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda", ...extra });
 
 describe("Link do banner", () => {
   test("vazio, caminho interno e https valem", () => {
@@ -118,7 +118,7 @@ describe("Formulários da home", () => {
   const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "/loja", ativo: "sim", posicao: "1" };
 
   test("banner válido", () => {
-    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro" } });
+    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, midiaTabletId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro", titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" } });
   });
 
   test("erros por campo, em português", () => {

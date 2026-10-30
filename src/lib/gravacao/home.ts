@@ -26,29 +26,37 @@ import {
 
 export const MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL = "A imagem escolhida não está mais na biblioteca (foi para a lixeira ou excluída). Envie ou escolha outra.";
 export const MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL = "A imagem da versão para celular não está mais na biblioteca (foi para a lixeira ou excluída). Envie ou escolha outra.";
+export const MENSAGEM_IMAGEM_TABLET_INDISPONIVEL = "A imagem da versão para tablet não está mais na biblioteca (foi para a lixeira ou excluída). Envie ou escolha outra.";
 
-type Falha = { ok: false; mensagem: string; campo?: "midiaId" | "midiaMobileId" };
+type Falha = { ok: false; mensagem: string; campo?: "midiaId" | "midiaMobileId" | "midiaTabletId" };
 
 // As duas versões: a nova (ou trocada) precisa existir e estar fora da
 // lixeira; a já gravada pode ficar.
-async function conferirVersoes(
-  db: Firestore,
-  escolhidas: { midiaId: string | null; midiaMobileId: string | null },
-  anteriores: { midiaId: string | null; midiaMobileId: string | null } | null,
-): Promise<Falha | null> {
+type Versoes = { midiaId: string | null; midiaMobileId: string | null; midiaTabletId?: string | null };
+const MENSAGENS_DAS_VERSOES = { midiaId: MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, midiaMobileId: MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, midiaTabletId: MENSAGEM_IMAGEM_TABLET_INDISPONIVEL };
+
+async function conferirVersoes(db: Firestore, escolhidas: Versoes, anteriores: Versoes | null): Promise<Falha | null> {
   const campo = await versaoRecusada(escolhidas, anteriores, (id) => midiaPodeSerEscolhida(db, id));
   if (!campo) return null;
-  return { ok: false, mensagem: campo === "midiaId" ? MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL : MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, campo };
+  return { ok: false, mensagem: MENSAGENS_DAS_VERSOES[campo], campo };
 }
 
 function referencia(db: Firestore) {
   return db.collection(COLECAO_DA_HOME).doc(DOCUMENTO_DA_HOME);
 }
 
-// A lista de banners é regravada inteira (ordem renumerada); sem versão
-// celular, o campo fica de fora, como nos documentos anteriores a ele.
+// A lista de banners é regravada inteira (ordem renumerada); campos
+// opcionais vazios (versões celular e tablet, texto e botão) ficam de fora,
+// como nos documentos anteriores a eles.
+const OPCIONAIS_DO_BANNER = ["midiaMobileId", "midiaTabletId", "titulo", "trechoEmDestaque", "subtitulo", "textoDoBotao"] as const;
 function paraGravar(banners: BannerDaHome[]): Record<string, unknown>[] {
-  return banners.map(({ midiaMobileId, ...banner }) => (midiaMobileId ? { ...banner, midiaMobileId } : banner));
+  return banners.map((banner) => {
+    const gravado: Record<string, unknown> = { ...banner };
+    for (const campo of OPCIONAIS_DO_BANNER) if (!gravado[campo]) delete gravado[campo];
+    // Posição do texto só quando há texto.
+    if (!banner.titulo && !banner.subtitulo && !banner.textoDoBotao) delete gravado.posicaoDoTexto;
+    return gravado;
+  });
 }
 
 // Cria ou altera um banner (chave nova: cria) e o leva à posição pedida.
@@ -66,10 +74,16 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
       ordem: antes?.ordem ?? Number.MAX_SAFE_INTEGER,
       midiaId: dados.midiaId,
       midiaMobileId: dados.midiaId ? dados.midiaMobileId : null,
+      midiaTabletId: dados.midiaId ? dados.midiaTabletId : null,
       alt: dados.midiaId ? dados.alt : "",
       href: dados.href,
       ativo: dados.ativo,
       pontoDeFoco: dados.pontoDeFoco,
+      titulo: dados.titulo,
+      trechoEmDestaque: dados.trechoEmDestaque,
+      subtitulo: dados.subtitulo,
+      textoDoBotao: dados.href ? dados.textoDoBotao : "",
+      posicaoDoTexto: dados.posicaoDoTexto,
     };
     const outros = configuracao.banners.filter((banner) => banner.chave !== dados.chave);
     const banners = posicionarBanner([...outros, novo], dados.chave, dados.posicao);

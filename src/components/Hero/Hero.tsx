@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
-import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
+import type { SlideDoBanner } from "@/lib/site/banners";
+import { ConteudoDoSlide } from "./ConteudoDoSlide";
 import estilos from "./Hero.module.css";
 
 type PropsHero = {
@@ -12,9 +11,6 @@ type PropsHero = {
   slides: SlideDoBanner[];
   sobHeaderFixo?: boolean;
 };
-
-// Ponto de foco do banner (30/10/2026): a classe com o object-position.
-const CLASSE_DO_FOCO = { esquerda: estilos.focoEsquerda, centro: estilos.focoCentro, direita: estilos.focoDireita };
 
 // Intervalo entre os slides na passagem automática, em milissegundos.
 const INTERVALO_DO_CARROSSEL_MS = 6000;
@@ -81,45 +77,15 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
             link deles recebe foco). Setas e pontos ficam fora dos links. */}
         {slides.map((slide, index) => {
           const ativo = index === slideAtual;
-          const link = linkDoSlide(slide);
-          // Com link, o nome vem do link e a imagem fica decorativa. Imagem
-          // da biblioteca (banner do painel, 29/10/2026) ou o endereço fixo
-          // dos slides padrão.
-          const alt = link ? "" : slide.alt;
-          const imagem = slide.midia ? (
-            <ImagemDaMidia
-              variantes={slide.midia.variantes}
-              alt={alt}
-              largura={slide.midia.largura}
-              altura={slide.midia.altura}
-              sizes="100vw"
-              celular={slide.midia.celular}
-              prioridade={index === 0}
-              className={`${estilos.imagem} ${CLASSE_DO_FOCO[slide.pontoDeFoco ?? "centro"]}`}
-            />
-          ) : (
-            <img src={slide.imagem} alt={alt} className={estilos.imagem} />
-          );
-          // Link externo (https) abre em nova aba, com o aviso no nome.
-          const externo = link?.href.startsWith("https://") ?? false;
           return (
             <div
               key={index}
               className={`${estilos.slide} ${ativo ? estilos.ativo : ""}`}
               style={{ opacity: ativo ? 1 : 0, transition: "opacity 0.5s ease-in-out" }}
               inert={!ativo}
+              aria-hidden={!ativo || undefined}
             >
-              {link && externo ? (
-                <a href={link.href} target="_blank" rel="noopener noreferrer" className={estilos.linkDoSlide} aria-label={`${link.nome} (abre em nova aba)`}>
-                  {imagem}
-                </a>
-              ) : link ? (
-                <Link href={link.href} className={estilos.linkDoSlide} aria-label={link.nome}>
-                  {imagem}
-                </Link>
-              ) : (
-                imagem
-              )}
+              <ConteudoDoSlide slide={slide} prioridade={index === 0} />
             </div>
           );
         })}
