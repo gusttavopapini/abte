@@ -204,6 +204,15 @@ Documento "ALTERAÇÕES ABTE" (29/10), todos os itens autorizados pelo responsá
 - Antes: 556 testes, typecheck, lint (4 avisos), lint:css (5) e build; varredura de dados pessoais e segredos com 0 achados.
 - Produção conferida em 390, 768, 1280 e 1710 px: 23 páginas com status 200, um H1, 0 erros de console; menu da loja só na loja, no canto da janela; grade da `/loja` com no máximo 4 colunas.
 
+### Quatro frentes (29 e 30/10)
+
+- **Hover sem sublinhado** (`d162f54`): sistema único no `globals.css`. Links soltos com pílula de fundo (`.realce`), setas que deslizam 4px e links de texto corrido sublinhados só em repouso (`.texto-corrido a`), tudo só com mouse e também no foco. Um teste lê todo o CSS.
+- **Imagem de cada item** (`d16dbf4`): campo `ImagemDoItem` nos formulários (post com capa e imagem no texto, artigo, profissional, galeria do produto, categorias). Texto alternativo obrigatório, aviso de menores, "Trocar", "Remover" e "Reutilizar imagem já enviada". A mídia guarda o dono (`src/lib/midia/dono.ts`); `/admin/midia` mostra "Usada em".
+- **Imagens da home** (`ba3797f`): `/admin/home`, documento `configuracoes/home` (banners e as imagens de "Mutirões" e "Faça parte dessa rede"). Sem imagem, a home mostra o padrão de antes.
+- **Painel** (`5f0dd47`): gaveta até 1023px, trilha, caixas de aviso, seções, barra de salvar, aviso de alterações não salvas, busca e filtros nas listas, cartões no celular, exclusões confirmadas em modal.
+- **Validação:** 600 testes (367 de unidade, 138 de sessão, 95 de regras), typecheck, lint (4 avisos), lint:css (5) e build. Navegador: 45 conferências do site público e 84 do painel sem falha, 22 interações. Capturas em `tmp-migracao/capturas/quatro-frentes/`.
+- **Pendências:** tela da diretoria no painel; textos do aviso de menores; registro de alterações de posts, artigos e produtos.
+
 ## 5. Migração: o que não deve ser refeito
 
 A importação principal ocorreu antes desta colaboração, em 23/10, conforme relatórios locais. Os números do conteúdo importado foram 267 mídias, 96 profissionais, nove produtos, 69 posts, quatro artigos e sete membros da diretoria. Algumas coleções também continham exemplos anteriores.
