@@ -74,3 +74,35 @@
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
 }
+
+/* Botão "Configurações do site" (30/10/2026): engrenagem e texto, 44px. */
+.botaoDasConfiguracoes {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+}
+
+.botaoDasConfiguracoes:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .botaoDasConfiguracoes:hover {
+    background: var(--color-surface-soft);
+  }
+}
+
+.icone {
+  width: var(--space-24);
+  height: var(--space-24);
+  flex-shrink: 0;
+}

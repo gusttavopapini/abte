@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { IconeFechar, IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
+import { BotaoDasConfiguracoes, type ConfiguracoesDoSiteNaTela } from "../ConfiguracoesDoSite/ConfiguracoesDoSite";
 import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
@@ -12,6 +13,8 @@ type PropsLayoutPainel = {
   usuario?: { nome?: string | null; email: string; papel?: string };
   // Botão "Sair" (formulário com ação de servidor), montado no servidor.
   sair: ReactNode;
+  // Configurações do site (só para o administrador; null esconde o botão).
+  configuracoes?: ConfiguracoesDoSiteNaTela | null;
 };
 
 // Itens do menu, na ordem do trabalho (29/10/2026).
@@ -45,7 +48,7 @@ const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), [tabin
 // com o menu. Até 1023px, um cabeçalho com o botão "Menu" que abre o menu
 // numa gaveta (foco preso, Esc fecha e devolve o foco ao botão, página sem
 // rolar, animação curta; com movimento reduzido, sem animação).
-export function LayoutPainel({ children, usuario, sair }: PropsLayoutPainel) {
+export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLayoutPainel) {
   const caminho = usePathname();
   const idGaveta = useId();
   const [aberta, setAberta] = useState(false);
@@ -122,6 +125,7 @@ export function LayoutPainel({ children, usuario, sair }: PropsLayoutPainel) {
           <Logo />
           <p className={estilos.nomeDoPainel}>Painel</p>
         </div>
+        {configuracoes && <BotaoDasConfiguracoes configuracoes={configuracoes} className={estilos.botaoDasConfiguracoes} />}
         {menu}
         {rodapeDoMenu}
       </aside>
@@ -150,6 +154,7 @@ export function LayoutPainel({ children, usuario, sair }: PropsLayoutPainel) {
       >
         <div className={estilos.cabecalhoDaGaveta}>
           <p className={estilos.nomeDoPainel}>Menu do painel</p>
+          {configuracoes && <BotaoDasConfiguracoes configuracoes={configuracoes} />}
           <button type="button" className={estilos.botaoFechar} onClick={() => setAberta(false)} aria-label="Fechar o menu">
             <IconeFechar className={estilos.icone} />
           </button>

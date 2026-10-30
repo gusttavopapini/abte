@@ -216,3 +216,8 @@
     transform: none;
   }
 }
+
+/* Botão "Configurações do site" na barra lateral (30/10/2026) */
+.botaoDasConfiguracoes {
+  align-self: flex-start;
+}

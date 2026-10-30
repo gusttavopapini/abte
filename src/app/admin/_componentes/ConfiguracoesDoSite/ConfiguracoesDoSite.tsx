@@ -1,7 +1,6 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { CabecalhoDoPainel, type PassoDaTrilha } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { salvarDoacoesPorPix, salvarExibicaoDosArtigos } from "@/app/admin/acoes-configuracoes";
 import {
@@ -16,7 +15,8 @@ import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { Modal } from "@/components/Modal/Modal";
 import { Interruptor } from "@/app/admin/_componentes/Interruptor/Interruptor";
-import estilos from "./ConfiguracoesClient.module.css";
+import { IconeEngrenagem } from "@/components/Icones/Icones";
+import estilos from "./ConfiguracoesDoSite.module.css";
 
 // Caixa "Menu e rodapé": exibir ou não os Artigos no site. Desativar pede
 // confirmação num Modal.
@@ -61,16 +61,19 @@ function CaixaDosArtigos({ inicial }: { inicial: boolean }) {
       <h2 id={`${id}-titulo`} className="tipo-texto-lg">Menu e rodapé</h2>
       <form ref={formulario} onSubmit={aoEnviar} className={estilos.formulario}>
         <input type="hidden" name="artigosAtivo" value={ativo ? "sim" : "nao"} />
-        <Interruptor id={`${id}-artigos`} rotulo="Exibir Artigos no site" ligado={ativo} aoMudar={setAtivo} descricao={`${id}-efeitos`} />
+        <Interruptor id={`${id}-artigos`} rotulo="Exibir a página Artigos no site" ligado={ativo} aoMudar={setAtivo} descricao={`${id}-efeitos`} />
         <div id={`${id}-efeitos`}>
           <CaixaDoPainel tipo="informacao">
-            Desativado, o item &quot;Artigos&quot; sai do menu e do rodapé, as páginas /artigos respondem &quot;Página não encontrada&quot; e os banners com link para os Artigos ficam sem link. O painel de Artigos continua funcionando, e nada é apagado.
+            Ativo: Artigos aparece no menu do cabeçalho, no menu de tela cheia e no rodapé. Inativo: some de todos os menus e a página deixa de existir para o público. O painel de Artigos continua funcionando, e nada é apagado.
           </CaixaDoPainel>
         </div>
         <div tabIndex={-1} ref={resultadoRef} aria-live="polite">
           {resposta && <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>}
         </div>
         <div className={estilos.botoes}>
+          <Botao type="button" variante="secundario" onClick={() => setAtivo(gravado)} disabled={salvando || ativo === gravado}>
+            Cancelar
+          </Botao>
           <Botao type="submit" disabled={salvando || ativo === gravado}>
             {salvando ? "Salvando..." : "Salvar"}
           </Botao>
@@ -133,6 +136,14 @@ function CaixaDoPix({ inicial }: { inicial: ChavePix | null }) {
     startTransition(() => salvar(dados));
   }
 
+  // Cancelar: volta ao que está gravado.
+  function descartar() {
+    setTipo(inicial?.tipo ?? "cnpj");
+    setChave(inicial?.chave ?? "");
+    setFavorecido(inicial?.favorecido ?? "");
+    setOrientacao(inicial?.orientacao ?? "");
+  }
+
   function aoEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     const chaveNova = chave.trim() !== "" && (chave.trim() !== gravada.chave || tipo !== gravada.tipo);
@@ -181,6 +192,9 @@ function CaixaDoPix({ inicial }: { inicial: ChavePix | null }) {
           {resposta && <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>}
         </div>
         <div className={estilos.botoes}>
+          <Botao type="button" variante="secundario" onClick={descartar} disabled={salvando}>
+            Cancelar
+          </Botao>
           <Botao type="submit" disabled={salvando}>
             {salvando ? "Salvando..." : "Salvar"}
           </Botao>
@@ -203,13 +217,33 @@ function CaixaDoPix({ inicial }: { inicial: ChavePix | null }) {
   );
 }
 
-// Tela /admin/configuracoes (30/10/2026): caixas por assunto.
-export function ConfiguracoesClient({ trilha, descricao, artigosAtivo, pix }: { trilha: PassoDaTrilha[]; descricao: string; artigosAtivo: boolean; pix: ChavePix | null }) {
+export type ConfiguracoesDoSiteNaTela = { artigosAtivo: boolean; pix: ChavePix | null };
+
+// Formulário único das configurações do site (30/10/2026): as caixas "Menu e
+// rodapé" e "Doações por Pix". Só administrador ("configuracoes.editar").
+export function FormularioDasConfiguracoes({ configuracoes }: { configuracoes: ConfiguracoesDoSiteNaTela }) {
   return (
     <div className={estilos.pagina}>
-      <CabecalhoDoPainel trilha={trilha} titulo="Configurações" descricao={descricao} />
-      <CaixaDosArtigos inicial={artigosAtivo} />
-      <CaixaDoPix inicial={pix} />
+      <CaixaDosArtigos inicial={configuracoes.artigosAtivo} />
+      <CaixaDoPix inicial={configuracoes.pix} />
     </div>
+  );
+}
+
+// Botão "Configurações do site" (engrenagem e texto) e o Modal com o
+// formulário, em qualquer tela do painel (barra lateral e cabeçalho da
+// gaveta). Fechar o Modal (x, Esc ou fundo) descarta o que não foi salvo.
+export function BotaoDasConfiguracoes({ configuracoes, abrirAoCarregar = false, className }: { configuracoes: ConfiguracoesDoSiteNaTela; abrirAoCarregar?: boolean; className?: string }) {
+  const [aberto, setAberto] = useState(abrirAoCarregar);
+  return (
+    <>
+      <button type="button" className={`${estilos.botaoDasConfiguracoes} ${className ?? ""}`} onClick={() => setAberto(true)} aria-haspopup="dialog">
+        <IconeEngrenagem className={estilos.icone} />
+        Configurações do site
+      </button>
+      <Modal aberto={aberto} aoFechar={() => setAberto(false)} titulo="Configurações do site" largura="larga">
+        {aberto && <FormularioDasConfiguracoes configuracoes={configuracoes} />}
+      </Modal>
+    </>
   );
 }

@@ -158,3 +158,28 @@ export function IconePontos({ className }: PropsIcone) {
     </svg>
   );
 }
+
+// Engrenagem (botão "Configurações do site" do painel, 30/10/2026).
+export function IconeEngrenagem({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Play (vídeo de Quem Somos, 30/10/2026).
+export function IconePlay({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+    </svg>
+  );
+}

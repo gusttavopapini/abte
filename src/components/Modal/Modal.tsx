@@ -17,6 +17,12 @@ type PropsModal = {
 
 const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+// Janelas abertas, da mais antiga para a mais nova (30/10/2026): com uma
+// janela aberta dentro de outra (ex.: a confirmação dentro das Configurações
+// do site), só a de cima responde ao Esc, e a página volta a rolar só quando
+// a última fecha.
+const pilha: symbol[] = [];
+
 // Janela sobre a página. Acessível por teclado: Esc fecha, o foco entra no
 // primeiro campo ao abrir, fica preso dentro da janela e volta para quem a
 // abriu ao fechar. A página de fundo não rola.
@@ -35,6 +41,8 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
   useEffect(() => {
     if (!aberto) return;
     const quemAbriu = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const eu = Symbol("janela");
+    pilha.push(eu);
     document.body.style.overflow = "hidden";
 
     const focaveis = janelaRef.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
@@ -43,11 +51,12 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
     (focoInicialRef.current === "fechar" ? focaveis?.[0] : focaveis?.[1] ?? focaveis?.[0])?.focus();
 
     function aoTeclar(evento: globalThis.KeyboardEvent) {
-      if (evento.key === "Escape") aoFecharRef.current();
+      if (evento.key === "Escape" && pilha[pilha.length - 1] === eu) aoFecharRef.current();
     }
     document.addEventListener("keydown", aoTeclar);
     return () => {
-      document.body.style.overflow = "";
+      pilha.splice(pilha.indexOf(eu), 1);
+      if (pilha.length === 0) document.body.style.overflow = "";
       document.removeEventListener("keydown", aoTeclar);
       quemAbriu?.focus();
     };
@@ -55,7 +64,16 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
 
   // Mantém o Tab circulando só entre os elementos da janela.
   function prenderFoco(evento: KeyboardEvent<HTMLDivElement>) {
+    // Esc dentro da janela: fecha só esta e não chega a quem está por fora
+    // (ex.: a gaveta do menu do painel).
+    if (evento.key === "Escape") {
+      evento.stopPropagation();
+      aoFecharRef.current();
+      return;
+    }
     if (evento.key !== "Tab" || !janelaRef.current) return;
+    // A janela de dentro cuida do próprio Tab; a de fora não o trata de novo.
+    evento.stopPropagation();
     const focaveis = Array.from(janelaRef.current.querySelectorAll<HTMLElement>(FOCAVEIS));
     if (focaveis.length === 0) return;
     const primeiro = focaveis[0];
