@@ -159,7 +159,10 @@ export async function salvarVideoDaHome(_anterior: RespostaDoVideo, dados: FormD
     let aviso: string | undefined;
     if (lido.video?.tipo === "youtube" && !lido.video.capaMidiaId) {
       const capa = await gerarCapaDoYoutube(bucketEDb(), { youtubeId: lido.video.youtubeId, descricao: lido.video.descricao }, autorDaAlteracao(usuario));
-      if (capa.ok) lido.video = { ...lido.video, capaMidiaId: capa.capaMidiaId };
+      if (capa.ok) {
+        lido.video = { ...lido.video, capaMidiaId: capa.capaMidiaId };
+        if (Math.abs(capa.proporcao - 9 / 16) > 0.1) aviso = "A capa gerada tem uma proporção diferente de 9:16. Confira o recorte na prévia ou envie outra imagem.";
+      }
       else aviso = "Não foi possível gerar a capa a partir do YouTube. Envie uma imagem de capa para o vídeo.";
     }
     if (lido.video?.legendaCaminho) {

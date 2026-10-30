@@ -72,7 +72,7 @@ describe("Vídeo de Quem Somos: assinatura e confirmação", () => {
     const preparado = await prepararEnvioDoVideo(bucket, { arquivo: "video", contentType: "video/mp4", tamanho: 1000 }, ID, assinar);
     assert.ok(preparado.ok);
     assert.equal(preparado.caminho, `publico/videos/${ID}/video.mp4`);
-    assert.deepEqual(pedidos, [{ caminho: `publico/videos/${ID}/video.mp4`, contentType: "video/mp4", condicoes: [["content-length-range", 1, 60 * 1024 * 1024], ["eq", "$Content-Type", "video/mp4"]] }]);
+    assert.deepEqual(pedidos, [{ caminho: `publico/videos/${ID}/video.mp4`, contentType: "video/mp4", condicoes: [["content-length-range", 1, 1073741824], ["eq", "$Content-Type", "video/mp4"]] }]);
     assert.equal((await prepararEnvioDoVideo(bucket, { arquivo: "video", contentType: "video/quicktime", tamanho: 1000 }, ID, assinar)).ok, false);
     assert.equal(pedidos.length, 1, "pedido recusado não chega a ser assinado");
   });
@@ -168,5 +168,25 @@ describe("Vídeo de Quem Somos: envio retomável e capa automática (30/10/2026)
       const gerada = await gerarCapaDoYoutube(servicos, { youtubeId: "dQw4w9WgXcQ", descricao: "x" }, EDITOR, buscar);
       assert.deepEqual(gerada, { ok: false, mensagem: "Não foi possível baixar a miniatura do YouTube. Envie uma imagem de capa." });
     }
+  });
+});
+
+
+describe("Confirmação de menores do vídeo", () => {
+  test("preserva confirmação em edição e renova ao trocar a fonte; desmarcar remove", async () => {
+    const video = { descricao: "Vídeo fictício", capaMidiaId: null, legendaCaminho: null, indicaMenor: true, tipo: "youtube" as const, youtubeId: "dQw4w9WgXcQ" };
+    const ref = db.collection("configuracoes").doc("home");
+    await salvarVideoQuemSomos(db, video, EDITOR);
+    const inicial = (await ref.get()).get("videoQuemSomos");
+    const outro = { ...EDITOR, uid: "teste-outro-editor" };
+    await salvarVideoQuemSomos(db, { ...video, descricao: "Descrição revisada" }, outro);
+    const revisado = (await ref.get()).get("videoQuemSomos");
+    assert.equal(revisado.autorizacaoConfirmadaPor, EDITOR.uid);
+    assert.equal(revisado.autorizacaoConfirmadaEm.toMillis(), inicial.autorizacaoConfirmadaEm.toMillis());
+    await salvarVideoQuemSomos(db, { ...video, youtubeId: "abcdefghijk" }, outro);
+    assert.equal((await ref.get()).get("videoQuemSomos.autorizacaoConfirmadaPor"), outro.uid);
+    await salvarVideoQuemSomos(db, { ...video, indicaMenor: false }, outro);
+    assert.equal((await ref.get()).get("videoQuemSomos.autorizacaoConfirmadaPor"), undefined);
+    assert.equal((await ref.get()).get("videoQuemSomos.autorizacaoConfirmadaEm"), undefined);
   });
 });

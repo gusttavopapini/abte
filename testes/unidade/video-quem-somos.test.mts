@@ -70,7 +70,7 @@ describe("Todas as formas de link do YouTube (30/10/2026)", () => {
 });
 
 describe("Envio do arquivo", () => {
-  test("vídeo: MP4 ou WebM até 60 MB; legenda .vtt até 200 KB", () => {
+  test("vídeo: MP4 ou WebM até 1 GB; legenda .vtt até 200 KB", () => {
     assert.ok(validarPedidoDeEnvio({ arquivo: "video", contentType: "video/mp4", tamanho: 1024 }).ok);
     assert.ok(validarPedidoDeEnvio({ arquivo: "video", contentType: "video/webm", tamanho: LIMITE_DO_VIDEO_EM_BYTES }).ok);
     assert.equal(validarPedidoDeEnvio({ arquivo: "video", contentType: "video/quicktime", tamanho: 10 }).ok, false);

@@ -87,14 +87,23 @@ export async function salvarVideoQuemSomos(db: Firestore, video: VideoQuemSomos 
   const referencia = db.collection(COLECAO_DA_HOME).doc(DOCUMENTO_DA_HOME);
   return db.runTransaction(async (transacao) => {
     const documento = await transacao.get(referencia);
-    const antes = lerVideoQuemSomos(documento.get("videoQuemSomos"));
+    const bruto = documento.get("videoQuemSomos");
+    const antes = lerVideoQuemSomos(bruto);
+    const mesmaFonte = antes?.tipo === video?.tipo && (video?.tipo === "youtube"
+      ? antes?.tipo === "youtube" && antes.youtubeId === video.youtubeId
+      : video?.tipo === "arquivo" && antes?.tipo === "arquivo" && antes.caminho === video.caminho);
+    const confirmacao = video?.indicaMenor ? (
+      antes?.indicaMenor && mesmaFonte && bruto?.autorizacaoConfirmadaPor && bruto?.autorizacaoConfirmadaEm
+        ? { autorizacaoConfirmadaPor: bruto.autorizacaoConfirmadaPor, autorizacaoConfirmadaEm: bruto.autorizacaoConfirmadaEm }
+        : { autorizacaoConfirmadaPor: autor.uid, autorizacaoConfirmadaEm: FieldValue.serverTimestamp() }
+    ) : {};
     if (video?.capaMidiaId && video.capaMidiaId !== antes?.capaMidiaId && !(await midiaPodeSerEscolhida(db, video.capaMidiaId))) return { ok: false, mensagem: MENSAGEM_CAPA_DO_VIDEO_INDISPONIVEL, campo: "capaMidiaId" };
     const alterados = camposAlteradosDoVideo(antes, video);
     const gravado = video
       ? {
           ...video,
           dono: { tipo: "home", id: IDENTIFICADOR_DO_VIDEO, campo: "video" },
-          ...(video.indicaMenor && !antes?.indicaMenor ? { autorizacaoConfirmadaPor: autor.uid, autorizacaoConfirmadaEm: FieldValue.serverTimestamp() } : {}),
+          ...confirmacao,
           atualizadoEm: FieldValue.serverTimestamp(),
         }
       : null;
