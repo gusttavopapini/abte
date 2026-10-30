@@ -80,8 +80,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
 
   const conteudo = texto ? (
     <div className={`${estilos.conteudo} ${CLASSE_DA_POSICAO[texto.posicao]}`}>
-      {/* O mesmo .container do cabeçalho: a borda do texto coincide com a do
-          logo (e, à direita, com a do botão "Doe para a ABTE"). */}
+      {/* Container compartilhado com uma faixa livre para as setas laterais. */}
       <div className={`container ${estilos.linhaDoTexto}`}>
       <div className={estilos.caixaDeTexto}>
         {texto.titulo && (

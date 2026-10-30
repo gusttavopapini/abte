@@ -285,3 +285,8 @@ CORS não executado: `gcloud storage buckets update gs://NOME_DO_BUCKET --cors-f
 ## Ajuste posterior de30/10: setas laterais do banner
 
 A pedido do responsável, as duas setas voltaram às laterais do Hero, centralizadas verticalmente e afastadas20px das bordas, respeitando safe-area. Indicadores continuam no centro inferior. Conferência isolada em390,768,1280 e1710px: diferença vertical0px, margens20px, avançar/voltar funcionando, sem rolagem horizontal e controles com pelo menos44px. ESLint e Stylelint dos dois arquivos passam. Nenhum dado alterado e nenhuma publicação em produção realizada nesta etapa.
+
+
+## Correção de sobreposição das setas em30/10
+
+O pedido posterior substitui o alinhamento exato do texto ao logo quando necessário para separar controles e conteúdo. Desktop/tablet: botões laterais de64px e faixa livre de100px por lado (recuo20, botão64, folga16), com safe-area. Celular: botões laterais de44px na faixa inferior, separada do conteúdo. Indicadores continuam centralizados na base. Conferência com título longo, descrição e botão:18/18 cenários (três alinhamentos, larguras320/390/768/1024/1280/1710), sem interseções entre setas e conteúdo, sem rolagem horizontal e com controles dentro do banner. Stylelint do arquivo aprovado. O primeiro teste anterior tinha slides sem texto e não cobria esta colisão; a conferência atual inclui conteúdo. Sem alteração de dados ou publicação nesta etapa.

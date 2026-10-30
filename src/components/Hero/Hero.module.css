@@ -4,6 +4,8 @@
    navegadores sem svh; 100svh (a menor altura da janela, com a barra de
    endereço à vista) para a barra do celular não esconder a base do banner. */
 .hero {
+  --hero-seta-tamanho: var(--space-64);
+  --hero-reserva-seta: calc(var(--space-20) + var(--hero-seta-tamanho) + var(--space-16));
   position: relative;
   display: flex;
   width: 100%;
@@ -43,13 +45,17 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: var(--hero-seta-tamanho);
+  height: var(--hero-seta-tamanho);
   /* Azul da marca no lugar do preto translúcido (29/10/2026); 80% para a
      seta branca manter contraste sobre fotos claras. */
   background: color-mix(in srgb, var(--color-primary) 80%, transparent);
   color: var(--color-on-primary);
   border: none;
-  font-size: 2rem;
-  padding: 1rem;
+  font-size: var(--space-32);
+  padding: 0;
   cursor: pointer;
   z-index: 3;
   transition: background 0.3s;
@@ -102,9 +108,19 @@
 }
 
 @media (max-width: 767px) {
+  .hero {
+    --hero-seta-tamanho: var(--control-min-height-mobile);
+    --hero-reserva-seta: var(--page-margin);
+  }
+
+  /* Nas telas estreitas, as setas ficam nas laterais da faixa inferior,
+     separadas do texto pelo respiro já reservado para os indicadores. */
   .seta {
-    font-size: 1.5rem;
-    padding: 0.5rem;
+    top: auto;
+    bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    font-size: var(--space-24);
+    padding: 0;
     /* 44px de toque no celular (29/10/2026; antes, 28px de largura) */
     min-width: var(--control-min-height-mobile);
     min-height: var(--control-min-height-mobile);
@@ -185,8 +201,8 @@
    o contraste do --color-text fica em pelo menos 6,4:1 e o do trecho em
    destaque em 3,4:1 (texto grande), mesmo sobre uma imagem preta.
    Alinhamento (lote seguinte de 30/10/2026): o texto fica dentro do mesmo
-   .container do cabeçalho, então a borda dele coincide com a do logo; a
-   coluna ocupa --fracao da largura do container (metade no computador, três
+   .container do cabeçalho, com uma faixa adicional reservada às setas; a
+   coluna ocupa --fracao da largura disponível (metade no computador, três
    quartos no tablet, toda no celular) e o véu cobre a coluna. O topo fica
    abaixo do cabeçalho (--altura-do-header, publicada pelo Header). */
 .conteudo {
@@ -203,6 +219,9 @@
 
 .linhaDoTexto {
   display: flex;
+  /* O espaço das setas inclui o botão e uma folga, dos dois lados. */
+  padding-left: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-left, 0px)));
+  padding-right: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-right, 0px)));
 }
 
 .textoEsquerda .linhaDoTexto {
