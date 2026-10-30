@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { EMAIL_CONTATO, REDES_SOCIAIS, RODAPE_LEGAL, RODAPE_MENU, type LinkDeNavegacao } from "@/config/navegacao";
-import { IconeFacebook, IconeInstagram } from "@/components/Icones/Icones";
+import { IconeInstagram } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
 import estilos from "./Rodape.module.css";
 
@@ -34,20 +34,15 @@ export function Rodape() {
           <a href={`mailto:${EMAIL_CONTATO}`} className={`realce ${estilos.link}`}>
             {EMAIL_CONTATO}
           </a>
-          <ul role="list" className={estilos.redes}>
-            <li>
-              <a href={REDES_SOCIAIS.instagram} target="_blank" rel="noopener noreferrer" className={estilos.rede}>
-                <IconeInstagram className={estilos.icone} />
-                <span className="somente-leitor">Instagram da ABTE (abre em nova aba)</span>
-              </a>
-            </li>
-            <li>
-              <a href={REDES_SOCIAIS.facebook} target="_blank" rel="noopener noreferrer" className={estilos.rede}>
-                <IconeFacebook className={estilos.icone} />
-                <span className="somente-leitor">Facebook da ABTE (abre em nova aba)</span>
-              </a>
-            </li>
-          </ul>
+          {/* Um link só, com o ícone e o texto (30/10/2026); o aviso de nova
+              aba vai como descrição, para o nome continuar "Siga nosso Instagram". */}
+          <a href={REDES_SOCIAIS.instagram} target="_blank" rel="noopener noreferrer" className={`realce ${estilos.rede}`} aria-describedby="rodape-nova-aba">
+            <IconeInstagram className={estilos.icone} />
+            <span>Siga nosso Instagram</span>
+          </a>
+          <span id="rodape-nova-aba" className="somente-leitor">
+            Abre em nova aba
+          </span>
         </div>
       </div>
 

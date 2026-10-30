@@ -52,28 +52,24 @@
 
 /* Hover: a pílula do .realce (globals.css), sem sublinhado */
 
-/* Os ícones começam na mesma borda esquerda do título e do e-mail da coluna */
-.redes {
-  display: flex;
-  gap: var(--space-8);
-}
-
-/* Área de toque de 44px; ícone de 24px (tamanho NÃO VERIFICADO), encostado
-   à esquerda da área para alinhar com os textos da coluna */
+/* "Siga nosso Instagram" (30/10/2026): um link com o ícone e o texto, na
+   mesma borda esquerda do título e do e-mail da coluna; 44px de toque. O
+   hover é a pílula do .realce (globals.css), sem sublinhado; o foco, o anel
+   do --focus-ring. */
 .rede {
   display: inline-flex;
+  align-self: flex-start;
+  gap: var(--space-8);
   align-items: center;
-  justify-content: flex-start;
-  min-width: var(--control-min-height-mobile);
   min-height: var(--control-min-height-mobile);
-  color: var(--color-icon-social);
-  transition: color var(--rodape-transicao);
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  text-decoration: none;
 }
 
-/* Azul da marca, mais escuro no hover (29/10/2026); o foco continua com o
-   anel do --focus-ring (globals.css). */
-.rede:hover {
-  color: var(--color-primary-hover);
+.rede .icone {
+  flex-shrink: 0;
+  color: var(--color-icon-social);
 }
 
 .icone {

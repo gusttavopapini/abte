@@ -63,7 +63,8 @@ export const RODAPE_LEGAL: LinkDeNavegacao[] = [
 // o e-mail com erro de digitação na página Contato).
 export const EMAIL_CONTATO = "tratandoescoliose@gmail.com";
 
+// Só o Instagram desde 30/10/2026 (o Facebook da ABTE saiu do site a pedido
+// do responsável).
 export const REDES_SOCIAIS = {
   instagram: "https://www.instagram.com/abte.escoliose",
-  facebook: "https://www.facebook.com/tratando.escoliose",
 } as const;
