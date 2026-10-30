@@ -19,7 +19,8 @@ export type ProporcaoRecomendada = { texto: string; tamanho: string; razao: numb
 
 // Duas versões de cada imagem (30/10/2026): computador (obrigatória para o
 // espaço ter imagem) e celular (opcional, mostrada até 767px). As proporções
-// vêm do CSS atual de cada espaço, medidas no navegador (ver CLAUDE.md).
+// vêm do CSS atual de cada espaço, medidas no navegador em 390, 767, 768,
+// 1024, 1280 e 1710 px (ver CLAUDE.md); o CSS não mudou.
 export type ProporcoesDoEspaco = { computador: ProporcaoRecomendada; celular: ProporcaoRecomendada };
 
 // Espaços de imagem fixa da home, com identificador estável (também o id do
@@ -30,7 +31,7 @@ export const ESPACOS_DA_HOME = [
     nome: "Mutirões que Transformam Vidas",
     onde: "ao lado dos números, na terceira faixa da home",
     proporcoes: {
-      computador: { texto: "1:1, quadrada (a coluna ao lado dos números, com no mínimo 500 px de altura; a imagem é recortada para preencher)", tamanho: "1200 x 1200 px", razao: 1 },
+      computador: { texto: "5:4, deitada (a coluna ao lado dos números, com cerca de 580 x 520 px numa tela de 1280 px; a imagem é recortada para preencher)", tamanho: "1500 x 1200 px", razao: 5 / 4 },
       celular: { texto: "5:7, em pé (largura da tela e 500 px de altura, abaixo dos números; a imagem é recortada para preencher)", tamanho: "1000 x 1400 px", razao: 5 / 7 },
     },
   },

@@ -55,7 +55,10 @@
   margin: 0;
 }
 
+/* A legenda vem antes da miniatura: as duas ficam na mesma linha mesmo com
+   alturas diferentes. */
 .legendaDaVersao {
+  order: -1;
   color: var(--color-text);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
