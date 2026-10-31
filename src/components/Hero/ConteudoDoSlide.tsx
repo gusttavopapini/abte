@@ -79,7 +79,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
   ) : null;
 
   const conteudo = texto ? (
-    <div className={`${estilos.conteudo} ${CLASSE_DA_POSICAO[texto.posicao]}`}>
+    <div data-area-do-texto="" className={`${estilos.conteudo} ${CLASSE_DA_POSICAO[texto.posicao]}`}>
       {/* Container compartilhado com uma faixa livre para as setas laterais. */}
       <div className={`container ${estilos.linhaDoTexto}`}>
       <div className={estilos.caixaDeTexto}>

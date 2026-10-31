@@ -2,6 +2,10 @@
 
 **Documento histórico, com registros de 28 a 30/10/2026.** Em 30/10, o responsável pediu novo mapeamento e continuidade neste chat do Codex. Leia primeiro [MAPEAMENTO_ATUAL.md](MAPEAMENTO_ATUAL.md): ele substitui tabelas, pendências e referências de produção antigas deste resumo. Os trechos abaixo foram preservados para consulta; inclusive “sem promover” e decisões sobre assistente devem ser lidos pelas datas e pelas promoções posteriores.
 
+**Mudança no banner (31/10/2026, só na branch, sem promover):** texto a 10% da borda do banner a partir de 1024px; degradê de baixo para cima e texto centralizado até 1023px, com a prévia do painel igual ao site (detalhes no fim do mapa).
+
+**Exceção de design do banner (31/10/2026, decisão do responsável):** o afastamento de 10% desfaz de propósito o alinhamento do texto com o logo, e até 1023px a posição escolhida no painel é ignorada, com o degradê subindo da base.
+
 ## 1. Pedido mais recente e forma de trabalho
 
 Em 28/10, o responsável pediu um resumo para **continuar no Claude**; em 30/10, pediu retomada neste chat do Codex. O registro abaixo descreve a transferência anterior. Não exigir ferramenta exclusiva por causa de instruções históricas.

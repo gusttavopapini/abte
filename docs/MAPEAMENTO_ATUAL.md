@@ -303,3 +303,12 @@ Produção conferida com navegador em 390 e 1280 px, sem login: home, `/blog`, `
 **Envio de vídeo por arquivo pendente:** preflight CORS do bucket `abte-dev.firebasestorage.app` a partir da origem de produção (31/10/2026) sem nenhum cabeçalho `Access-Control-Allow-*`, então o navegador bloqueia o envio até aplicar `docs/infra/cors.json`. O vídeo pelo YouTube não depende disso.
 
 **Desfazer, se preciso:** `git revert --no-edit dfe8d8d..e533db8`, depois `git push origin feature/midia-upload` e `git push origin feature/midia-upload:main` (não executado).
+
+
+## Banner da home em 31/10/2026 (só na branch, sem promover)
+
+A partir de 1024px, texto à esquerda ou à direita a 10% da largura do banner, coluna de 40% do banner (até 768px) e título limitado a 4vw; "centro" sem mudança. Até 1023px, degradê de baixo para cima no fundo da `.linhaDoTexto` (a caixa ocupa 68% da altura e cresce com o texto, para o trecho de 85% sempre chegar ao topo do texto), texto centralizado na parte de baixo em qualquer posição e pontos azuis nos slides com texto, porque os brancos sumiriam na base branca. A prévia do painel usa as mesmas regras por formato, sem depender da largura da janela. `TituloAjustavel` mede a caixa do texto e reduz a fonte se o conjunto não couber na altura. Nenhum dado, regra ou script alterado.
+
+Verificado com build local e emuladores (`demo-abte-e2e`, dados e imagens fictícios), em 9 larguras, dois títulos e três posições: 72 medições, 66 interações com clique real e 60 de 64 conferências extras, com capturas em `tmp-migracao/capturas/banner-3110/`. Linha de base igual: lint 0 erros e 4 avisos, lint:css 5 erros, 426 de unidade; `test:sessao` e `test:regras` não rodaram por não haver mudança em ações ou regras.
+
+Pendências: celular deitado (844x390) e o caso de 90 e 200 caracteres em 320x568 passam da faixa do cabeçalho (deitado, o texto não cobre o logo nem o menu); título de 90 caracteres com 5 linhas no computador; com 6 ou mais banners em 390px, a área de toque dos pontos alcança as setas (limite de 8 banners, medidas de toque que já existiam).

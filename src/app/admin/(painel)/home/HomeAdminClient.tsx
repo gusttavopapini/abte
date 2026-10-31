@@ -708,7 +708,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-posicao-foco`}>
         <h3 id={`${id}-posicao-foco`} className={estilos.tituloDaCaixa}>Posição e foco</h3>
-        <GrupoDeOpcoes id={`${id}-posicao-texto`} legenda="Posição do texto" nome="posicaoDoTexto" opcoes={POSICOES_DO_TEXTO} rotulos={ROTULOS_DAS_POSICOES_DO_TEXTO} valor={posicaoDoTexto} aoMudar={setPosicaoDoTexto} erro={erros.posicaoDoTexto} ajuda="No celular, o texto fica na parte de baixo do banner." />
+        <GrupoDeOpcoes id={`${id}-posicao-texto`} legenda="Posição do texto" nome="posicaoDoTexto" opcoes={POSICOES_DO_TEXTO} rotulos={ROTULOS_DAS_POSICOES_DO_TEXTO} valor={posicaoDoTexto} aoMudar={setPosicaoDoTexto} erro={erros.posicaoDoTexto} ajuda="A posição vale só no computador. No tablet e no celular, o texto fica sempre centralizado na parte de baixo do banner." />
         <GrupoDeOpcoes
           id={`${id}-foco`}
           legenda="Ponto de foco da imagem"

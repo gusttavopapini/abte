@@ -94,7 +94,7 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
         <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
           &#10094;
         </button>
-        <div className={estilos.controles}>
+        <div className={`${estilos.controles} ${slides[slideAtual]?.texto ? estilos.pontosSobreTexto : ""}`}>
           <div className={estilos.dotsContainer}>
             {slides.map((_, index) => (
               <button

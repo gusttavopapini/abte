@@ -7,7 +7,9 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 // ela não couber na linha, reduz o tamanho da fonte na proporção, com um
 // piso de --space-24 (24px). Sem JavaScript, o CSS já é seguro (tamanho
 // pelos tokens e nenhuma quebra no meio da palavra). Sem animação: a troca
-// é feita antes da pintura, sem salto perceptível.
+// é feita antes da pintura, sem salto perceptível. Desde 31/10/2026, mede a
+// largura na caixa do texto (o título centralizado encolhe até o conteúdo) e
+// também reduz a fonte se título, subtítulo e botão não couberem na altura.
 export function TituloAjustavel({ className, children }: { className?: string; children: ReactNode }) {
   const titulo = useRef<HTMLHeadingElement>(null);
 
@@ -23,14 +25,24 @@ export function TituloAjustavel({ className, children }: { className?: string; c
       elemento.style.fontSize = "";
       const estilo = getComputedStyle(elemento);
       const tamanho = parseFloat(estilo.fontSize);
-      const disponivel = elemento.clientWidth;
+      const caixa = elemento.parentElement;
+      const disponivel = caixa?.clientWidth ?? elemento.clientWidth;
       if (!tamanho || !disponivel) return;
       const piso = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--space-24")) || 24;
       // A palavra mais larga, medida no peso mais forte usado no título.
       const pesoForte = Math.max(...[elemento, ...elemento.querySelectorAll("*")].map((parte) => Number(getComputedStyle(parte).fontWeight) || 400));
       tela.font = `${pesoForte} ${tamanho}px ${estilo.fontFamily}`;
       const maior = Math.max(0, ...(elemento.textContent ?? "").split(/\s+/).filter(Boolean).map((palavra) => tela.measureText(palavra).width));
-      if (maior > disponivel) elemento.style.fontSize = `${Math.max(piso, Math.floor(tamanho * (disponivel / maior) * 0.98))}px`;
+      let atual = maior > disponivel ? Math.max(piso, Math.floor(tamanho * (disponivel / maior) * 0.98)) : tamanho;
+      if (atual !== tamanho) elemento.style.fontSize = `${atual}px`;
+      const area = elemento.closest<HTMLElement>("[data-area-do-texto]");
+      if (!caixa || !area) return;
+      const estiloDaArea = getComputedStyle(area);
+      const livre = area.clientHeight - parseFloat(estiloDaArea.paddingTop) - parseFloat(estiloDaArea.paddingBottom);
+      while (caixa.offsetHeight > livre && atual > piso) {
+        atual = Math.max(piso, atual - 2);
+        elemento.style.fontSize = `${atual}px`;
+      }
     }
 
     window.addEventListener("resize", ajustar);

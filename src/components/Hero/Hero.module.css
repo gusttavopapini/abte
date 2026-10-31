@@ -107,6 +107,18 @@
   background: var(--color-bg);
 }
 
+/* Slide com texto até 1023px (31/10/2026): os pontos ficam sobre a base branca
+   do degradê, onde o branco sumiria; no azul da marca (60%: 3,2:1 sobre o
+   branco). Slide só de imagem e computador: os pontos brancos de sempre. */
+@media (max-width: 1023px) {
+  .pontosSobreTexto .dot {
+    background: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+  .pontosSobreTexto .dotAtivo {
+    background: var(--color-primary);
+  }
+}
+
 @media (max-width: 767px) {
   .hero {
     --hero-seta-tamanho: var(--control-min-height-mobile);
@@ -145,6 +157,16 @@
   }
   .dotAtivo::after {
     background: var(--color-bg);
+  }
+  .pontosSobreTexto .dot,
+  .pontosSobreTexto .dotAtivo {
+    background: none;
+  }
+  .pontosSobreTexto .dot::after {
+    background: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+  .pontosSobreTexto .dotAtivo::after {
+    background: var(--color-primary);
   }
 }
 
@@ -204,24 +226,44 @@
    .container do cabeçalho, com uma faixa adicional reservada às setas; a
    coluna ocupa --fracao da largura disponível (metade no computador, três
    quartos no tablet, toda no celular) e o véu cobre a coluna. O topo fica
-   abaixo do cabeçalho (--altura-do-header, publicada pelo Header). */
+   abaixo do cabeçalho (--altura-do-header, publicada pelo Header).
+   Desde 31/10/2026 (exceção de design): a partir de 1024px, o texto à esquerda
+   ou à direita fica a pelo menos 10% da borda do banner, sem o alinhamento com
+   o logo; até 1023px, vale o bloco "Tablet e celular" mais abaixo. */
 .conteudo {
   --veu: color-mix(in srgb, var(--color-bg) 85%, transparent);
   --fracao: 0.5;
   /* Coluna: a fração da largura, com no mínimo 576px (--space-96 x 6) para
      o título não passar de 4 linhas em 1024px; o véu cobre o mesmo tanto. */
   --coluna-do-veu: max(calc(100% * var(--fracao)), calc(var(--space-96) * 6 + var(--space-64)));
+  --base-do-texto: calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: calc(var(--altura-do-header, var(--space-96)) + var(--space-24)) 0 calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
+  padding: calc(var(--altura-do-header, var(--space-96)) + var(--space-24)) 0 var(--base-do-texto);
 }
 
 .linhaDoTexto {
   display: flex;
   /* O espaço das setas inclui o botão e uma folga, dos dois lados. */
-  padding-left: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-left, 0px)));
-  padding-right: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-right, 0px)));
+  padding-left: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-left, 0px)), var(--afastamento-minimo, 0px));
+  padding-right: max(var(--page-margin), calc(var(--hero-reserva-seta, var(--page-margin)) + env(safe-area-inset-right, 0px)), var(--afastamento-minimo, 0px));
+}
+
+/* Afastamento de 10% da largura do banner (a porcentagem do padding vale sobre
+   o .conteudo, da largura do banner, por isso o .container não limita aqui).
+   Com 10% dos dois lados, a fração de 50% dá uma coluna de 40% do banner, até
+   768px; o título acompanha (4vw) para continuar com no máximo 4 linhas. */
+.textoEsquerda,
+.textoDireita {
+  --afastamento-minimo: 10%;
+  --coluna-maxima: calc(var(--space-96) * 8);
+  --titulo-pela-largura: 4vw;
+}
+
+.textoEsquerda .linhaDoTexto,
+.textoDireita .linhaDoTexto {
+  max-width: none;
 }
 
 .textoEsquerda .linhaDoTexto {
@@ -260,7 +302,7 @@
   flex-direction: column;
   gap: var(--space-24);
   width: 100%;
-  max-width: calc(100% * var(--fracao));
+  max-width: min(calc(100% * var(--fracao)), var(--coluna-maxima, 100%));
   color: var(--color-text);
 }
 
@@ -273,7 +315,7 @@
    globals.css aplica overflow-wrap: break-word aos títulos). */
 .tituloDoBanner {
   color: var(--color-text);
-  font-size: max(var(--space-24), min(calc(var(--font-size-h1) * 0.75), 7svh));
+  font-size: max(var(--space-24), min(calc(var(--font-size-h1) * 0.75), 7svh, var(--titulo-pela-largura, 100vw)));
   font-weight: var(--font-weight-light);
   line-height: var(--leading-snug);
   overflow-wrap: normal;
@@ -294,12 +336,6 @@
   word-break: normal;
   hyphens: none;
   text-wrap: pretty;
-}
-
-@media (max-width: 1023px) {
-  .conteudo {
-    --fracao: 0.75;
-  }
 }
 
 /* O botão é o link real; o ::after dele cobre o slide inteiro (o
@@ -326,25 +362,64 @@
   transform: translateX(calc(var(--space-8) / 2));
 }
 
-/* Celular (e a prévia do celular no painel): texto na parte de baixo, acima
-   dos controles, com o véu subindo da base; a ordem e o conteúdo são os
-   mesmos. */
-@media (max-width: 767px) {
-  .conteudo {
+/* Tablet e celular (31/10/2026, exceção de design): a posição escolhida no
+   painel vale só no computador. O texto fica centralizado na parte de baixo, e
+   o degradê sobe da base (branco inteiro) e some antes do topo da imagem.
+   O degradê é o fundo da própria .linhaDoTexto, para o trecho de 85% sempre
+   chegar ao topo do texto: a caixa ocupa 68% da altura e cresce com um texto
+   mais alto. As margens negativas tiram do cálculo do layout o que passa do
+   texto. Sem position aqui: o link esticado do botão cobre o .slide.
+   As mesmas regras valem para a prévia do painel, que não depende da janela. */
+@media (max-width: 1023px) {
+  .hero .conteudo {
     --fracao: 1;
+    --coluna-maxima: calc(var(--space-96) * 7);
+    --afastamento-minimo: 0px;
+    --titulo-pela-largura: 100vw;
+    --degrade-altura: 68svh;
+    --degrade-esmaecer: 33svh;
     align-items: flex-end;
-    background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
+    background: none;
+  }
+
+  .hero .linhaDoTexto {
+    justify-content: center;
+    align-items: flex-end;
+    min-height: var(--degrade-altura);
+    margin-block: calc(var(--degrade-esmaecer) * -1) calc(var(--base-do-texto) * -1);
+    padding-block: var(--degrade-esmaecer) var(--base-do-texto);
+    background: linear-gradient(to top, var(--color-bg) 0, var(--veu) calc(100% - var(--degrade-esmaecer)), transparent 100%);
+    text-align: center;
+  }
+
+  .hero .caixaDeTexto {
+    align-items: center;
   }
 }
 
-.formatoCelular .conteudo {
+:is(.formatoTablet, .formatoCelular) .conteudo {
   --fracao: 1;
+  --coluna-maxima: calc(var(--space-96) * 7);
+  --afastamento-minimo: 0px;
+  --titulo-pela-largura: 100cqi;
+  --degrade-altura: 68cqh;
+  --degrade-esmaecer: 33cqh;
   align-items: flex-end;
-  background: linear-gradient(to top, var(--veu) 0, var(--veu) 60%, transparent 90%);
+  background: none;
 }
 
-.formatoTablet .conteudo {
-  --fracao: 0.75;
+:is(.formatoTablet, .formatoCelular) .linhaDoTexto {
+  justify-content: center;
+  align-items: flex-end;
+  min-height: var(--degrade-altura);
+  margin-block: calc(var(--degrade-esmaecer) * -1) calc(var(--base-do-texto) * -1);
+  padding-block: var(--degrade-esmaecer) var(--base-do-texto);
+  background: linear-gradient(to top, var(--color-bg) 0, var(--veu) calc(100% - var(--degrade-esmaecer)), transparent 100%);
+  text-align: center;
+}
+
+:is(.formatoTablet, .formatoCelular) .caixaDeTexto {
+  align-items: center;
 }
 
 /* Prévia do painel em formato fixo (30/10/2026): os mesmos estilos do site;
@@ -364,11 +439,20 @@
 }
 
 :is(.formatoComputador, .formatoTablet, .formatoCelular) .linhaDoTexto {
-  padding-inline: var(--page-margin-previa);
+  padding-inline: max(var(--page-margin-previa), var(--afastamento-minimo, 0px));
+}
+
+/* Tablet: a mesma faixa das setas do site, para o texto quebrar igual. */
+.formatoTablet .linhaDoTexto {
+  padding-inline: calc(var(--space-20) + var(--space-64) + var(--space-16));
+}
+
+.formatoComputador :is(.textoEsquerda, .textoDireita) {
+  --titulo-pela-largura: 4cqi;
 }
 
 :is(.formatoComputador, .formatoTablet, .formatoCelular) .tituloDoBanner {
-  font-size: max(var(--space-24), min(calc(var(--font-size-h1-previa) * 0.75), 7cqh));
+  font-size: max(var(--space-24), min(calc(var(--font-size-h1-previa) * 0.75), 7cqh, var(--titulo-pela-largura, 100cqi)));
 }
 
 :is(.formatoComputador, .formatoTablet, .formatoCelular) .subtituloDoBanner {
