@@ -305,7 +305,9 @@ Produção conferida com navegador em 390 e 1280 px, sem login: home, `/blog`, `
 **Desfazer, se preciso:** `git revert --no-edit dfe8d8d..e533db8`, depois `git push origin feature/midia-upload` e `git push origin feature/midia-upload:main` (não executado).
 
 
-## Banner da home em 31/10/2026 (só na branch, sem promover)
+## Banner da home em 31/10/2026
+
+**Promovido no mesmo dia a pedido do responsável ("Faça deploy agora"):** fast-forward `e533db8..078df95`, sem force; deployment de Produção `7460665889` com `success`. Produção conferida em 390, 768, 1023, 1024, 1280 e 1920 px, sem login: 36 de 42 páginas sem falha; as 6 falhas são `/artigos` com 404, porque o interruptor do painel está desligado (`artigosAtivo` false, gravado antes do deploy, 0 links para Artigos na home). Os 2 banners reais têm texto: razão 0,100 a partir de 1024px, centros a 0px e degradê para cima até 1023px, 0 palavras partidas e setas sem sobrepor o texto. **Desfazer:** Instant Rollback da Vercel para o deployment de `e533db8` (GitHub `7460049147`), ou `git revert --no-edit 078df95` seguido dos dois pushes (não executado).
 
 A partir de 1024px, texto à esquerda ou à direita a 10% da largura do banner, coluna de 40% do banner (até 768px) e título limitado a 4vw; "centro" sem mudança. Até 1023px, degradê de baixo para cima no fundo da `.linhaDoTexto` (a caixa ocupa 68% da altura e cresce com o texto, para o trecho de 85% sempre chegar ao topo do texto), texto centralizado na parte de baixo em qualquer posição e pontos azuis nos slides com texto, porque os brancos sumiriam na base branca. A prévia do painel usa as mesmas regras por formato, sem depender da largura da janela. `TituloAjustavel` mede a caixa do texto e reduz a fonte se o conjunto não couber na altura. Nenhum dado, regra ou script alterado.
 
