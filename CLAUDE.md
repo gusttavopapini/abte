@@ -4,6 +4,8 @@
 
 O responsável pediu novo mapeamento e retomada neste chat do Codex. Leia primeiro [docs/MAPEAMENTO_ATUAL.md](docs/MAPEAMENTO_ATUAL.md), referência atual para implementação, testes e pendências. O nome deste arquivo preserva o histórico e não determina o assistente.
 
+**Atualização de 31/10/2026:** promovido a pedido do responsável ("Faça deploy de tudo agora"): `main` e `feature/midia-upload` em `e533db8`, deployment de Produção `7460049147` com sucesso (registro ao fim do mapa). Os commits de implementação citados abaixo como locais já estão na produção; a `main` local continua antiga. Pendente: aplicar o CORS do bucket para o envio de vídeo por arquivo.
+
 Código local `1a19af4`; GitHub conferido: `main` em `dfe8d8d`, branch remota em `f9b1650`, produção `7449312744` com sucesso. Cinco commits de implementação posteriores ainda são locais; a `main` local continua antiga. Este remapeamento não promoveu código nem alterou dados reais.
 
 A conferência pública de 30/10 encontrou 71 posts, cinco artigos e nove produtos nas listas; páginas legais ainda retornam 404 por falta de publicação. No HEAD foram confirmados uma expectativa antiga de 60 MB no teste de vídeo e perda de autor/data da confirmação de menores ao salvar novamente. Veja resultados atuais e prioridades no mapa. O registro anterior de 674 testes aprovados corresponde ao último lote promovido, não ao HEAD atual.

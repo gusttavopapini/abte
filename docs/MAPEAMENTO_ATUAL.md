@@ -1,6 +1,6 @@
 # ABTE — mapeamento atual e continuidade
 
-**Revisão: 30/10/2026. Código analisado: `1a19af4`.** Este é o ponto de entrada atual do projeto. Para as correções posteriores, veja o registro de retomada ao fim deste arquivo. Reúne a implementação existente, as entregas anteriores, o estado conferido de produção e as pendências. Registros antigos permanecem como histórico, com suas respectivas datas.
+**Revisão: 30/10/2026. Código analisado: `1a19af4`. Promoção posterior em 31/10/2026 (`e533db8`): ver o último registro deste arquivo; as seções 2, 8 e 10 descrevem o estado anterior a ela.** Este é o ponto de entrada atual do projeto. Para as correções posteriores, veja o registro de retomada ao fim deste arquivo. Reúne a implementação existente, as entregas anteriores, o estado conferido de produção e as pendências. Registros antigos permanecem como histórico, com suas respectivas datas.
 
 ## 1. Continuidade e objetivo
 
@@ -290,3 +290,16 @@ A pedido do responsável, as duas setas voltaram às laterais do Hero, centraliz
 ## Correção de sobreposição das setas em30/10
 
 O pedido posterior substitui o alinhamento exato do texto ao logo quando necessário para separar controles e conteúdo. Desktop/tablet: botões laterais de64px e faixa livre de100px por lado (recuo20, botão64, folga16), com safe-area. Celular: botões laterais de44px na faixa inferior, separada do conteúdo. Indicadores continuam centralizados na base. Conferência com título longo, descrição e botão:18/18 cenários (três alinhamentos, larguras320/390/768/1024/1280/1710), sem interseções entre setas e conteúdo, sem rolagem horizontal e com controles dentro do banner. Stylelint do arquivo aprovado. O primeiro teste anterior tinha slides sem texto e não cobria esta colisão; a conferência atual inclui conteúdo. Sem alteração de dados ou publicação nesta etapa.
+
+
+## Promoção de 31/10/2026
+
+Pedido do responsável: "Faça deploy de tudo agora pra o git". Fast-forward `dfe8d8d..e533db8` (14 commits, 41 arquivos), sem merge e sem force; `main` e `feature/midia-upload` em `e533db8`; deployment de Produção `7460049147` com `success`. Este registro é um commit posterior, só na branch. Nenhum dado, regra ou configuração de bucket foi alterado; nenhum script de migração rodou.
+
+Verificações antes de promover: typecheck e build aprovados; 426 unidade, 160 sessão e 103 regras (689); ESLint 0 erros e 4 avisos; Stylelint com os 5 erros conhecidos. Varredura das 1571 linhas novas: 0 segredos, 0 de 96 nomes de profissionais, 0 endereços do Wix, 0 caminhos da máquina, 0 arquivos privados; os e-mails são exemplos e os acertos de telefone são o limite de 1 GB em bytes e um id de deployment.
+
+Produção conferida com navegador em 390 e 1280 px, sem login: home, `/blog`, `/artigos`, `/profissionais`, `/loja`, `/diretoria`, `/contato`, `/doe` e `/seja-associado` (18 de 18) com status 200, um H1, 0 erros de console, 0 imagens quebradas e sem rolagem lateral; Hero na altura da janela; setas de 44 px em 390 e de 64 px em 1280. `/admin/home` e `/admin/configuracoes` sem sessão levam ao login; `robots.txt` continua bloqueando tudo; as três páginas legais respondem 404 (não publicadas). Painel com sessão não foi conferido em produção.
+
+**Envio de vídeo por arquivo pendente:** preflight CORS do bucket `abte-dev.firebasestorage.app` a partir da origem de produção (31/10/2026) sem nenhum cabeçalho `Access-Control-Allow-*`, então o navegador bloqueia o envio até aplicar `docs/infra/cors.json`. O vídeo pelo YouTube não depende disso.
+
+**Desfazer, se preciso:** `git revert --no-edit dfe8d8d..e533db8`, depois `git push origin feature/midia-upload` e `git push origin feature/midia-upload:main` (não executado).
