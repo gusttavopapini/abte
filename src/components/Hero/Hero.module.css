@@ -107,36 +107,7 @@
   background: var(--color-bg);
 }
 
-/* Slide com texto até 1023px (31/10/2026): os pontos ficam sobre a base branca
-   do degradê, onde o branco sumiria; no azul da marca (60%: 3,2:1 sobre o
-   branco). Slide só de imagem e computador: os pontos brancos de sempre. */
-@media (max-width: 1023px) {
-  .pontosSobreTexto .dot {
-    background: color-mix(in srgb, var(--color-primary) 60%, transparent);
-  }
-  .pontosSobreTexto .dotAtivo {
-    background: var(--color-primary);
-  }
-}
-
 @media (max-width: 767px) {
-  .hero {
-    --hero-seta-tamanho: var(--control-min-height-mobile);
-    --hero-reserva-seta: var(--page-margin);
-  }
-
-  /* Nas telas estreitas, as setas ficam nas laterais da faixa inferior,
-     separadas do texto pelo respiro já reservado para os indicadores. */
-  .seta {
-    top: auto;
-    bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
-    transform: none;
-    font-size: var(--space-24);
-    padding: 0;
-    /* 44px de toque no celular (29/10/2026; antes, 28px de largura) */
-    min-width: var(--control-min-height-mobile);
-    min-height: var(--control-min-height-mobile);
-  }
   /* Pontos com 44px de toque e o mesmo ponto de 12px no centro: o espaço
      entre os pontos sai da própria área de toque */
   .dotsContainer {
@@ -153,19 +124,9 @@
     position: absolute;
     inset: calc((var(--control-min-height-mobile) - 12px) / 2);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--color-bg) 50%, transparent);
-  }
-  .dotAtivo::after {
-    background: var(--color-bg);
-  }
-  .pontosSobreTexto .dot,
-  .pontosSobreTexto .dotAtivo {
-    background: none;
-  }
-  .pontosSobreTexto .dot::after {
     background: color-mix(in srgb, var(--color-primary) 60%, transparent);
   }
-  .pontosSobreTexto .dotAtivo::after {
+  .dotAtivo::after {
     background: var(--color-primary);
   }
 }
@@ -184,15 +145,31 @@
 /* Ponto de foco do banner (30/10/2026): a parte da imagem que fica à vista
    quando a tela corta as laterais, nas versões computador e celular. */
 .camadas .focoEsquerda {
+  --foco-x: 0%;
   object-position: 0% 50%;
 }
 
 .camadas .focoCentro {
+  --foco-x: 50%;
   object-position: 50% 50%;
 }
 
 .camadas .focoDireita {
+  --foco-x: 100%;
   object-position: 100% 50%;
+}
+
+/* Ponto de foco vertical (31/10/2026): só a pilha de tablet e celular lê. */
+.camadas .focoVerticalTopo {
+  --foco-y: 0%;
+}
+
+.camadas .focoVerticalCentro {
+  --foco-y: 50%;
+}
+
+.camadas .focoVerticalBase {
+  --foco-y: 100%;
 }
 
 /* Slide com destino (29/10/2026): a imagem inteira é o link. O anel de foco
@@ -212,8 +189,11 @@
   height: 100%;
 }
 
-.camadas > .imagem,
-.camadas > picture > .imagem,
+.areaDaImagem {
+  display: contents;
+}
+
+.camadas .imagem,
 .camadas > .conteudo {
   grid-area: 1 / 1;
 }
@@ -229,7 +209,7 @@
    abaixo do cabeçalho (--altura-do-header, publicada pelo Header).
    Desde 31/10/2026 (exceção de design): a partir de 1024px, o texto à esquerda
    ou à direita fica a pelo menos 10% da borda do banner, sem o alinhamento com
-   o logo; até 1023px, vale o bloco "Tablet e celular" mais abaixo. */
+   o logo; até 1023px, vale a pilha do bloco "Tablet e celular" mais abaixo. */
 .conteudo {
   --veu: color-mix(in srgb, var(--color-bg) 85%, transparent);
   --fracao: 0.5;
@@ -362,33 +342,133 @@
   transform: translateX(calc(var(--space-8) / 2));
 }
 
-/* Tablet e celular (31/10/2026, exceção de design): a posição escolhida no
-   painel vale só no computador. O texto fica centralizado na parte de baixo, e
-   o degradê sobe da base (branco inteiro) e some antes do topo da imagem.
-   O degradê é o fundo da própria .linhaDoTexto, para o trecho de 85% sempre
-   chegar ao topo do texto: a caixa ocupa 68% da altura e cresce com um texto
-   mais alto. As margens negativas tiram do cálculo do layout o que passa do
-   texto. Sem position aqui: o link esticado do botão cobre o .slide.
-   As mesmas regras valem para a prévia do painel, que não depende da janela. */
+/* Tablet e celular (31/10/2026, exceção de design; substitui o degradê sobre a
+   foto inteira): pilha vertical, com a imagem em cima e o painel branco embaixo.
+   A imagem ocupa o que sobra, com no mínimo 40% da tela; o painel tem a altura
+   do conteúdo, e o banner cresce além da tela se o conteúdo pedir. Todos os
+   slides ficam na mesma célula da grade, para o banner não mudar de altura ao
+   trocar de slide. Setas e pontos ficam numa linha própria, no fluxo, fora do
+   link esticado do botão, que cobre só o .slide. A prévia do painel repete as
+   regras por formato, porque não depende da largura da janela. */
 @media (max-width: 1023px) {
+  .hero {
+    --hero-seta-tamanho: var(--control-min-height-mobile);
+    --hero-reserva-seta: var(--page-margin);
+    flex-direction: column;
+    height: auto;
+  }
+
+  .carrossel {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: 1fr auto;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: var(--color-bg);
+  }
+
+  .slide {
+    position: relative;
+    inset: auto;
+    display: flex;
+    grid-area: 1 / 1 / 2 / -1;
+    min-width: 0;
+    height: auto;
+  }
+
+  .seta {
+    position: static;
+    grid-row: 2;
+    margin-bottom: calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
+    font-size: var(--space-24);
+    transform: none;
+  }
+
+  .setaEsquerda {
+    grid-column: 1;
+    margin-left: max(var(--page-margin), env(safe-area-inset-left, 0px));
+  }
+
+  .setaDireita {
+    grid-column: 3;
+    margin-right: max(var(--page-margin), env(safe-area-inset-right, 0px));
+  }
+
+  .controles {
+    position: static;
+    grid-area: 2 / 2;
+    justify-content: center;
+    min-height: var(--hero-seta-tamanho);
+    margin-bottom: calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
+    padding-inline: var(--space-8);
+    transform: none;
+  }
+
+  .dotsContainer {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Sobre o branco, os pontos brancos sumiriam: azul da marca (60%: 3,3:1). */
+  .dot {
+    background: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+
+  .dotAtivo {
+    background: var(--color-primary);
+  }
+
+  .hero .camadas {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    height: auto;
+  }
+
+  /* 999 para 1: a imagem cresce primeiro; o painel só fica com a sobra depois
+     do limite de 4:3 do tablet. */
+  .hero .areaDaImagem {
+    position: relative;
+    display: block;
+    flex: 999 1 auto;
+    min-height: 40svh;
+    max-height: 75vw;
+  }
+
+  .hero .areaDaImagem:only-child {
+    max-height: none;
+  }
+
+  .hero .areaDaImagem::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: min(22%, calc(var(--space-96) + var(--space-32)));
+    background: linear-gradient(to top, var(--color-bg), color-mix(in srgb, var(--color-bg) 0%, transparent));
+    pointer-events: none;
+  }
+
+  .hero .camadas .imagem {
+    position: absolute;
+    inset: 0;
+    object-position: var(--foco-x, 50%) var(--foco-y, 50%);
+  }
+
   .hero .conteudo {
     --fracao: 1;
     --coluna-maxima: calc(var(--space-96) * 7);
     --afastamento-minimo: 0px;
     --titulo-pela-largura: 100vw;
-    --degrade-altura: 68svh;
-    --degrade-esmaecer: 33svh;
-    align-items: flex-end;
-    background: none;
+    flex: 1 0 auto;
+    padding: var(--space-24) 0 var(--space-16);
+    background: var(--color-bg);
   }
 
   .hero .linhaDoTexto {
     justify-content: center;
-    align-items: flex-end;
-    min-height: var(--degrade-altura);
-    margin-block: calc(var(--degrade-esmaecer) * -1) calc(var(--base-do-texto) * -1);
-    padding-block: var(--degrade-esmaecer) var(--base-do-texto);
-    background: linear-gradient(to top, var(--color-bg) 0, var(--veu) calc(100% - var(--degrade-esmaecer)), transparent 100%);
     text-align: center;
   }
 
@@ -397,29 +477,115 @@
   }
 }
 
+@media (max-width: 767px) {
+  /* Até 767px, a cor fica no ::after dos pontos de 44px. */
+  .dot,
+  .dotAtivo {
+    background: none;
+  }
+
+  .hero .areaDaImagem {
+    max-height: none;
+  }
+
+  .hero .caixaDeTexto {
+    gap: var(--space-16);
+  }
+}
+
+:is(.formatoTablet, .formatoCelular).camadas {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+:is(.formatoTablet, .formatoCelular) .areaDaImagem {
+  position: relative;
+  display: block;
+  flex: 999 1 auto;
+  min-height: 40cqh;
+}
+
+.formatoTablet .areaDaImagem {
+  max-height: 75cqi;
+}
+
+.formatoTablet .areaDaImagem:has(+ .navDaPrevia) {
+  max-height: none;
+}
+
+:is(.formatoTablet, .formatoCelular) .areaDaImagem::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: min(22%, calc(var(--space-96) + var(--space-32)));
+  background: linear-gradient(to top, var(--color-bg), color-mix(in srgb, var(--color-bg) 0%, transparent));
+  pointer-events: none;
+}
+
+:is(.formatoTablet, .formatoCelular).camadas .imagem {
+  position: absolute;
+  inset: 0;
+  object-position: var(--foco-x, 50%) var(--foco-y, 50%);
+}
+
 :is(.formatoTablet, .formatoCelular) .conteudo {
   --fracao: 1;
   --coluna-maxima: calc(var(--space-96) * 7);
   --afastamento-minimo: 0px;
   --titulo-pela-largura: 100cqi;
-  --degrade-altura: 68cqh;
-  --degrade-esmaecer: 33cqh;
-  align-items: flex-end;
-  background: none;
+  flex: 1 0 auto;
+  padding: var(--space-24) 0 var(--space-16);
+  background: var(--color-bg);
 }
 
 :is(.formatoTablet, .formatoCelular) .linhaDoTexto {
   justify-content: center;
-  align-items: flex-end;
-  min-height: var(--degrade-altura);
-  margin-block: calc(var(--degrade-esmaecer) * -1) calc(var(--base-do-texto) * -1);
-  padding-block: var(--degrade-esmaecer) var(--base-do-texto);
-  background: linear-gradient(to top, var(--color-bg) 0, var(--veu) calc(100% - var(--degrade-esmaecer)), transparent 100%);
   text-align: center;
 }
 
 :is(.formatoTablet, .formatoCelular) .caixaDeTexto {
   align-items: center;
+}
+
+.formatoCelular .caixaDeTexto {
+  gap: var(--space-16);
+}
+
+/* A linha de setas e pontos do site, só como desenho na prévia. */
+.navDaPrevia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--page-margin-previa) var(--space-16);
+  background: var(--color-bg);
+}
+
+.setaDaPrevia {
+  display: grid;
+  place-items: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-primary) 80%, transparent);
+  color: var(--color-on-primary);
+  font-size: var(--space-24);
+}
+
+.pontosDaPrevia {
+  display: flex;
+  gap: var(--space-16);
+}
+
+.pontosDaPrevia span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 60%, transparent);
+}
+
+.pontosDaPrevia .pontoAtivoDaPrevia {
+  background: var(--color-primary);
 }
 
 /* Prévia do painel em formato fixo (30/10/2026): os mesmos estilos do site;
@@ -434,17 +600,12 @@
   container-type: size;
 }
 
-:is(.formatoComputador, .formatoTablet, .formatoCelular) .conteudo {
+.formatoComputador .conteudo {
   padding-top: calc(var(--space-96) + var(--space-24));
 }
 
 :is(.formatoComputador, .formatoTablet, .formatoCelular) .linhaDoTexto {
   padding-inline: max(var(--page-margin-previa), var(--afastamento-minimo, 0px));
-}
-
-/* Tablet: a mesma faixa das setas do site, para o texto quebrar igual. */
-.formatoTablet .linhaDoTexto {
-  padding-inline: calc(var(--space-20) + var(--space-64) + var(--space-16));
 }
 
 .formatoComputador :is(.textoEsquerda, .textoDireita) {

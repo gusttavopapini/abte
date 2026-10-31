@@ -90,11 +90,12 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
           );
         })}
 
-        {/* Setas nas laterais; indicadores centralizados na base. */}
+        {/* No computador, setas nas laterais e indicadores na base; até
+            1023px, uma linha própria no painel branco (seta, pontos, seta). */}
         <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
           &#10094;
         </button>
-        <div className={`${estilos.controles} ${slides[slideAtual]?.texto ? estilos.pontosSobreTexto : ""}`}>
+        <div className={estilos.controles}>
           <div className={estilos.dotsContainer}>
             {slides.map((_, index) => (
               <button

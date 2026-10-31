@@ -218,6 +218,40 @@ describe("Home: ponto de foco do banner (30/10/2026)", () => {
   });
 });
 
+describe("Home: ponto de foco vertical do banner (31/10/2026)", () => {
+  test("sem sessão e sem papel recusados; editor e administrador gravam, com registro", async () => {
+    assert.deepEqual(decidirAcessoAoPainel(await verificarCookieDeSessao(auth, undefined), "home.editar"), { permitido: false, motivo: "sem-sessao" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-vertical-sem-papel@exemplo.invalid"), "home.editar"), { permitido: false, motivo: "sem-papel" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-vertical-editor@exemplo.invalid", "editor"), "home.editar"), { permitido: true, papel: "editor" });
+    assert.deepEqual(decidirAcessoAoPainel(await sessaoDe("teste-vertical-admin@exemplo.invalid", "administrador"), "home.editar"), { permitido: true, papel: "administrador" });
+
+    const inicio = (await registros()).length;
+    const base = { chave: "banner-vert0001", midiaId: "midiaUm", midiaMobileId: null, alt: "Vertical", href: "", ativo: true, posicao: 1, pontoDeFoco: "centro" as const, midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const };
+    assert.equal((await salvarBanner(db, { ...base, pontoDeFocoVertical: "topo" }, EDITOR)).ok, true);
+    assert.equal((await configuracao()).banners.find((item) => item.chave === "banner-vert0001")?.pontoDeFocoVertical, "topo");
+    assert.equal((await salvarBanner(db, { ...base, pontoDeFocoVertical: "base" }, ADMINISTRADOR)).ok, true);
+    const bruto = (await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[];
+    assert.equal(bruto.find((item) => item.chave === "banner-vert0001")?.pontoDeFocoVertical, "base");
+
+    const linhas = (await registros()).slice(inicio);
+    assert.deepEqual(linhas.map((linha) => [linha.usuarioId, linha.campos]), [[EDITOR.uid, ["banners"]], [ADMINISTRADOR.uid, ["banners"]]]);
+    assert.match(linhas[0].resumo, /criado\.$/);
+    assert.match(linhas[1].resumo, /alterado: ponto de foco vertical\.$/);
+    // Libera a vaga: o documento é compartilhado e aceita até LIMITE_DE_BANNERS.
+    assert.equal((await excluirBanner(db, "banner-vert0001", ADMINISTRADOR)).ok, true);
+  });
+
+  test("valor inválido não chega à gravação; banner antigo continua valendo, com o centro", async () => {
+    const lido = lerBannerDoFormulario({ chave: "banner-vert0002", midiaId: "midiaUm", alt: "x", href: "", ativo: "sim", posicao: "1", pontoDeFocoVertical: "meio" });
+    assert.ok(!lido.ok);
+    assert.equal((await configuracao()).banners.some((item) => item.chave === "banner-vert0002"), false);
+    const atual = (await db.collection("configuracoes").doc("home").get()).get("banners") as Record<string, unknown>[];
+    await db.collection("configuracoes").doc("home").set({ banners: [...atual, { chave: "banner-antigo002", ordem: 98, midiaId: "midiaDois", alt: "Antigo", href: "", ativo: true }] }, { merge: true });
+    assert.equal((await configuracao()).banners.find((item) => item.chave === "banner-antigo002")?.pontoDeFocoVertical, "centro");
+    await db.collection("configuracoes").doc("home").set({ banners: atual }, { merge: true });
+  });
+});
+
 describe("Home: três versões e texto do banner (30/10/2026)", () => {
   const vazio = { midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const };
   test("editor grava tablet e texto; o registro leva só os nomes", async () => {

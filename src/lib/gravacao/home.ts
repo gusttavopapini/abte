@@ -79,6 +79,7 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
       href: dados.href,
       ativo: dados.ativo,
       pontoDeFoco: dados.pontoDeFoco,
+      pontoDeFocoVertical: dados.pontoDeFocoVertical ?? "centro",
       titulo: dados.titulo,
       trechoEmDestaque: dados.trechoEmDestaque,
       subtitulo: dados.subtitulo,

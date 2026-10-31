@@ -13,6 +13,9 @@ export type SlideDoBanner = {
   // Parte da imagem que fica à vista quando a tela corta as laterais
   // (banner do painel, 30/10/2026); ausente vale o centro.
   pontoDeFoco?: "esquerda" | "centro" | "direita";
+  // Parte da imagem que fica à vista na altura, só até 1023px (31/10/2026);
+  // ausente vale o centro.
+  pontoDeFocoVertical?: "topo" | "centro" | "base";
   alt: string;
   href: string;
   rotulo: string;

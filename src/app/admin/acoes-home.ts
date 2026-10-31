@@ -41,6 +41,7 @@ export async function salvarBannerDaHome(_anterior: RespostaDaHome, dados: FormD
     ativo: dados.get("ativo"),
     posicao: dados.get("posicao"),
     pontoDeFoco: dados.get("pontoDeFoco"),
+    pontoDeFocoVertical: dados.get("pontoDeFocoVertical"),
     midiaTabletId: dados.get("midiaTabletId"),
     titulo: dados.get("titulo"),
     trechoEmDestaque: dados.get("trechoEmDestaque"),

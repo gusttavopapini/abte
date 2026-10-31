@@ -29,6 +29,7 @@ function irParaAncora(evento: MouseEvent<HTMLAnchorElement>, href: string) {
 
 // Ponto de foco do banner: a classe com o object-position.
 const CLASSE_DO_FOCO = { esquerda: estilos.focoEsquerda, centro: estilos.focoCentro, direita: estilos.focoDireita };
+const CLASSE_DO_FOCO_VERTICAL = { topo: estilos.focoVerticalTopo, centro: estilos.focoVerticalCentro, base: estilos.focoVerticalBase };
 const CLASSE_DA_POSICAO = { esquerda: estilos.textoEsquerda, centro: estilos.textoCentro, direita: estilos.textoDireita };
 const CLASSE_DO_FORMATO = { computador: estilos.formatoComputador, tablet: estilos.formatoTablet, celular: estilos.formatoCelular };
 
@@ -57,7 +58,7 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
   // Com link no banner inteiro, o nome vem do link e a imagem fica
   // decorativa; com botão, o nome vem do botão e a imagem mantém o alt.
   const alt = link && !comBotao ? "" : slide.alt;
-  const foco = CLASSE_DO_FOCO[slide.pontoDeFoco ?? "centro"];
+  const foco = `${CLASSE_DO_FOCO[slide.pontoDeFoco ?? "centro"]} ${CLASSE_DO_FOCO_VERTICAL[slide.pontoDeFocoVertical ?? "centro"]}`;
   const imagemDaPrevia = formato ? imagemDoFormato(slide, formato) : null;
   const imagem = imagemDaPrevia ? (
     <ImagemDaMidia variantes={imagemDaPrevia.variantes} alt="" largura={imagemDaPrevia.largura} altura={imagemDaPrevia.altura} sizes="400px" className={`${estilos.imagem} ${foco}`} />
@@ -123,8 +124,21 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
 
   const corpo = (
     <>
-      {imagem}
+      {/* Até 1023px, a área de cima da pilha; no computador não cria caixa. */}
+      <div className={estilos.areaDaImagem}>{imagem}</div>
       {conteudo}
+      {/* Tablet e celular: a linha de setas e pontos do site, só como desenho. */}
+      {(formato === "tablet" || formato === "celular") && (
+        <div className={estilos.navDaPrevia}>
+          <span className={estilos.setaDaPrevia}>&#10094;</span>
+          <span className={estilos.pontosDaPrevia}>
+            <span className={estilos.pontoAtivoDaPrevia} />
+            <span />
+            <span />
+          </span>
+          <span className={estilos.setaDaPrevia}>&#10095;</span>
+        </div>
+      )}
     </>
   );
   const classeDoFormato = formato ? CLASSE_DO_FORMATO[formato] : "";

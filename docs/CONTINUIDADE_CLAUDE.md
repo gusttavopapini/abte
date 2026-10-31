@@ -6,6 +6,12 @@
 
 **Exceção de design do banner (31/10/2026, decisão do responsável):** o afastamento de 10% desfaz de propósito o alinhamento do texto com o logo, e até 1023px a posição escolhida no painel é ignorada, com o degradê subindo da base.
 
+**Layout em pilha até 1023px (31/10/2026, só na branch, sem promover):** imagem em cima e painel branco embaixo, com setas e pontos no fluxo; substitui o degradê sobre a foto inteira.
+
+**Campo `pontoDeFocoVertical` (31/10/2026):** "topo", "centro" ou "base" por banner, ausente vale "centro", aplicado só até 1023px.
+
+**Proporções recomendadas do banner (31/10/2026):** celular 4:5 (1080 x 1350 px) e tablet 4:3 (1536 x 1152 px).
+
 ## 1. Pedido mais recente e forma de trabalho
 
 Em 28/10, o responsável pediu um resumo para **continuar no Claude**; em 30/10, pediu retomada neste chat do Codex. O registro abaixo descreve a transferência anterior. Não exigir ferramenta exclusiva por causa de instruções históricas.

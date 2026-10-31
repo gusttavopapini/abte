@@ -7,7 +7,9 @@ import { SLIDES_DO_BANNER } from "../../src/lib/site/banners.ts";
 import {
   MENSAGEM_CELULAR_SEM_COMPUTADOR,
   MENSAGEM_PONTO_DE_FOCO_INVALIDO,
+  MENSAGEM_PONTO_DE_FOCO_VERTICAL_INVALIDO,
   POSICAO_DO_PONTO_DE_FOCO,
+  PROPORCOES_DO_BANNER,
   bannerMuitoLargo,
   camposAlteradosDoBanner,
   camposAlteradosDoEspaco,
@@ -17,6 +19,7 @@ import {
   lerImagemDoEspacoDoFormulario,
   midiasDaHome,
   nomeDoBanner,
+  posicaoDoFocoNaPilha,
   posicionarBanner,
   slidesDaHome,
   validarLinkDoBanner,
@@ -26,7 +29,7 @@ import {
 import type { ImagemNaTela } from "../../src/lib/midia/tela.ts";
 
 const IMAGEM: ImagemNaTela = { alt: "Alt da biblioteca", largura: 1920, altura: 800, variantes: [{ largura: 1600, url: "https://exemplo.invalid/a.webp" }] };
-const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda", ...extra });
+const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", pontoDeFocoVertical: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda", ...extra });
 
 describe("Link do banner", () => {
   test("vazio, caminho interno e https valem", () => {
@@ -118,7 +121,7 @@ describe("Formulários da home", () => {
   const base = { chave: "banner-aaaa1111", midiaId: "m1", alt: "Banner", href: "/loja", ativo: "sim", posicao: "1" };
 
   test("banner válido", () => {
-    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, midiaTabletId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro", titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" } });
+    assert.deepEqual(lerBannerDoFormulario(base), { ok: true, dados: { chave: "banner-aaaa1111", midiaId: "m1", midiaMobileId: null, midiaTabletId: null, alt: "Banner", href: "/loja", ativo: true, posicao: 1, pontoDeFoco: "centro", pontoDeFocoVertical: "centro", titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" } });
   });
 
   test("erros por campo, em português", () => {
@@ -252,6 +255,48 @@ describe("Ponto de foco do banner (30/10/2026)", () => {
     const slides = slidesDaHome(lida, new Map([["m1", IMAGEM], ["m2", IMAGEM], ["m3", IMAGEM]]));
     assert.deepEqual(slides.map((slide) => slide.pontoDeFoco), ["centro", "direita", "centro"]);
     assert.deepEqual(POSICAO_DO_PONTO_DE_FOCO, { esquerda: "0% 50%", centro: "50% 50%", direita: "100% 50%" });
+  });
+
+  test("foco vertical no formulário: topo, centro e base valem; ausente vale o centro; inválido recusado", () => {
+    for (const ponto of ["topo", "centro", "base"]) {
+      const lido = lerBannerDoFormulario({ ...base, pontoDeFocoVertical: ponto });
+      assert.ok(lido.ok && lido.dados.pontoDeFocoVertical === ponto, ponto);
+    }
+    const ausente = lerBannerDoFormulario(base);
+    assert.ok(ausente.ok && ausente.dados.pontoDeFocoVertical === "centro");
+    for (const ponto of ["cima", "", "Topo", "esquerda", "0%"]) {
+      const lido = lerBannerDoFormulario({ ...base, pontoDeFocoVertical: ponto });
+      assert.ok(!lido.ok, ponto);
+      assert.equal(lido.erros.pontoDeFocoVertical, MENSAGEM_PONTO_DE_FOCO_VERTICAL_INVALIDO);
+    }
+  });
+
+  test("foco vertical na leitura: documento antigo ou valor estranho valem o centro; o site recebe o valor", () => {
+    const lida = lerConfiguracaoDaHome({
+      banners: [
+        { chave: "banner-aaaa", ordem: 1, midiaId: "m1", alt: "A", href: "", ativo: true },
+        { chave: "banner-bbbb", ordem: 2, midiaId: "m2", alt: "B", href: "", ativo: true, pontoDeFocoVertical: "base" },
+        { chave: "banner-cccc", ordem: 3, midiaId: "m3", alt: "C", href: "", ativo: true, pontoDeFocoVertical: "direita" },
+      ],
+    });
+    assert.deepEqual(lida.banners.map((item) => item.pontoDeFocoVertical), ["centro", "base", "centro"]);
+    const slides = slidesDaHome(lida, new Map([["m1", IMAGEM], ["m2", IMAGEM], ["m3", IMAGEM]]));
+    assert.deepEqual(slides.map((slide) => slide.pontoDeFocoVertical), ["centro", "base", "centro"]);
+  });
+
+  test("foco vertical: posição das molduras nos dois eixos e registro sem valores", () => {
+    assert.equal(posicaoDoFocoNaPilha("direita", "topo"), "100% 0%");
+    assert.equal(posicaoDoFocoNaPilha("centro", "centro"), "50% 50%");
+    assert.equal(posicaoDoFocoNaPilha("esquerda", "base"), "0% 100%");
+    const antes = banner("banner-aaaa", 1);
+    assert.deepEqual(camposAlteradosDoBanner(antes, { ...antes, pontoDeFocoVertical: "topo" }), ["ponto de foco vertical"]);
+    assert.ok(camposAlteradosDoBanner(null, { ...antes, pontoDeFocoVertical: "base" }).includes("ponto de foco vertical"));
+    assert.ok(!camposAlteradosDoBanner(null, antes).includes("ponto de foco vertical"));
+  });
+
+  test("proporções recomendadas: computador 16:9, tablet 4:3 e celular 4:5", () => {
+    assert.deepEqual([PROPORCOES_DO_BANNER.computador.tamanho, PROPORCOES_DO_BANNER.tablet.tamanho, PROPORCOES_DO_BANNER.celular.tamanho], ["1920 x 1080 px", "1536 x 1152 px", "1080 x 1350 px"]);
+    assert.deepEqual([PROPORCOES_DO_BANNER.computador.razao, PROPORCOES_DO_BANNER.tablet.razao, PROPORCOES_DO_BANNER.celular.razao], [16 / 9, 4 / 3, 4 / 5]);
   });
 
   test("alterar o ponto de foco entra no registro, sem valores", () => {

@@ -9,7 +9,8 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 // pelos tokens e nenhuma quebra no meio da palavra). Sem animação: a troca
 // é feita antes da pintura, sem salto perceptível. Desde 31/10/2026, mede a
 // largura na caixa do texto (o título centralizado encolhe até o conteúdo) e
-// também reduz a fonte se título, subtítulo e botão não couberem na altura.
+// também reduz a fonte se título, subtítulo e botão não couberem na altura
+// (no computador; até 1023px o painel de texto cresce com o conteúdo).
 export function TituloAjustavel({ className, children }: { className?: string; children: ReactNode }) {
   const titulo = useRef<HTMLHeadingElement>(null);
 

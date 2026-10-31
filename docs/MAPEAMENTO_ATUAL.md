@@ -313,4 +313,13 @@ A partir de 1024px, texto à esquerda ou à direita a 10% da largura do banner, 
 
 Verificado com build local e emuladores (`demo-abte-e2e`, dados e imagens fictícios), em 9 larguras, dois títulos e três posições: 72 medições, 66 interações com clique real e 60 de 64 conferências extras, com capturas em `tmp-migracao/capturas/banner-3110/`. Linha de base igual: lint 0 erros e 4 avisos, lint:css 5 erros, 426 de unidade; `test:sessao` e `test:regras` não rodaram por não haver mudança em ações ou regras.
 
-Pendências: celular deitado (844x390) e o caso de 90 e 200 caracteres em 320x568 passam da faixa do cabeçalho (deitado, o texto não cobre o logo nem o menu); título de 90 caracteres com 5 linhas no computador; com 6 ou mais banners em 390px, a área de toque dos pontos alcança as setas (limite de 8 banners, medidas de toque que já existiam).
+Pendências: celular deitado (844x390) e o caso de 90 e 200 caracteres em 320x568 passam da faixa do cabeçalho (deitado, o texto não cobre o logo nem o menu); título de 90 caracteres com 5 linhas no computador; com 6 ou mais banners em 390px, a área de toque dos pontos alcança as setas (limite de 8 banners, medidas de toque que já existiam; resolvido abaixo).
+
+
+## Banner em pilha até 1023px em 31/10/2026 (só na branch, sem promover)
+
+Até 1023px, o banner virou pilha: imagem em cima, faixa de transição na base dela e painel branco com o texto centralizado, setas e pontos no fluxo (oito pontos quebram linha, sem encostar nas setas). Substitui o degradê sobre a foto inteira. Campo novo `pontoDeFocoVertical` ("topo", "centro" ou "base", ausente vale "centro"), sem migração e com `firestore.rules` sem mudança. Recomendações: celular 4:5 (1080 x 1350 px), tablet 4:3 (1536 x 1152 px) e computador 16:9. De 1024px em diante, 0 pixels diferentes em 30 capturas.
+
+Verificado com build local e emuladores (`demo-abte-e2e`, imagens fictícias com marcador): marcador sem interseção com a faixa e o painel em 20 de 20 casos com foco vertical "centro" (360, 390, 430, 768 e 1023 px), 95 de 95 interações, 3 de 3 com oito pontos e 42 de 42 na prévia do painel. `test:unidade` 430, `test:sessao` 162, `test:regras` 103; lint e lint:css iguais à linha de base. Capturas em `tmp-migracao/capturas/banner-pilha-3110/`.
+
+Pendências: os banners reais só têm a versão de computador, com o foco que está gravado, então o assunto só aparece depois de ajustar o foco no painel ou enviar as versões novas (nenhum dado foi alterado); em 360x640, o cabeçalho e o véu ocupam 180px de uma imagem de 282px a 313px; em 1023x768, a imagem fica entre 2,54:1 e 2,92:1, e uma arte 4:3 mostra cerca de 46% da altura.

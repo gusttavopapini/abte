@@ -56,8 +56,8 @@ export type IdentificadorDoEspaco = (typeof ESPACOS_DA_HOME)[number]["identifica
 export const PROPORCOES_DO_BANNER: ProporcoesDoEspaco & { tablet: ProporcaoRecomendada } = {
   computador: { texto: "16:9, deitada (a tela inteira do computador, a partir de 1024 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1920 x 1080 px", razao: 16 / 9 },
   // Tablet (768 a 1023 px), 30/10/2026.
-  tablet: { texto: "3:4, em pé (a tela inteira do tablet, de 768 a 1023 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1536 x 2048 px", razao: 3 / 4 },
-  celular: { texto: "9:16, em pé (a tela inteira do celular, até 767 px; a imagem é recortada nas bordas conforme o tamanho da tela)", tamanho: "1080 x 1920 px", razao: 9 / 16 },
+  tablet: { texto: "4:3, deitada (a parte de cima do banner no tablet, de 768 a 1023 px; a imagem é recortada conforme o tamanho da tela)", tamanho: "1536 x 1152 px", razao: 4 / 3 },
+  celular: { texto: "4:5, em pé (a parte de cima do banner no celular, até 767 px; a imagem é recortada conforme o tamanho da tela)", tamanho: "1080 x 1350 px", razao: 4 / 5 },
 };
 
 // Texto e botão em código sobre a imagem do banner (30/10/2026): a arte
@@ -70,7 +70,7 @@ export const POSICOES_DO_TEXTO = ["esquerda", "centro", "direita"] as const;
 export type PosicaoDoTexto = (typeof POSICOES_DO_TEXTO)[number];
 export const ROTULOS_DAS_POSICOES_DO_TEXTO: Record<PosicaoDoTexto, string> = { esquerda: "Esquerda", centro: "Centro", direita: "Direita" };
 export const AVISO_IMAGEM_SEM_TEXTO = "Envie a imagem sem texto. Deixe uma área calma onde o texto vai ficar.";
-export const AVISO_VERSAO_FALTANDO = "Sem a versão para tablet ou para celular, será usada a imagem da versão mais próxima (celular usa a de tablet e, sem ela, a de computador; tablet usa a de computador).";
+export const AVISO_VERSAO_FALTANDO = "Sem a versão para tablet ou para celular, será usada a imagem da versão mais próxima (celular usa a de tablet e, sem ela, a de computador; tablet usa a de computador). Ajuste os pontos de foco horizontal e vertical para o assunto da foto não ser cortado.";
 
 export type TextoDoBanner = { titulo: string; trechoEmDestaque: string; subtitulo: string; textoDoBotao: string; posicao: PosicaoDoTexto };
 
@@ -95,7 +95,7 @@ export function partesDoTitulo(titulo: string, trecho: string): { texto: string;
   ].filter((parte) => parte.texto);
 }
 
-export const DICA_DO_BANNER = "Mantenha textos e rostos na parte central da imagem; as bordas podem ser cortadas conforme o tamanho da tela.";
+export const DICA_DO_BANNER = "Mantenha o assunto da foto (rosto, objeto principal) na parte central e superior; a parte de baixo se mistura com o branco.";
 
 // Ponto de foco do banner (30/10/2026): a parte da imagem que fica à vista
 // quando a tela corta as laterais. Ausente vale "centro" (documentos
@@ -112,6 +112,23 @@ export function ehPontoDeFoco(valor: unknown): valor is PontoDeFoco {
 
 // object-position de cada ponto de foco (versões computador e celular).
 export const POSICAO_DO_PONTO_DE_FOCO: Record<PontoDeFoco, string> = { esquerda: "0% 50%", centro: "50% 50%", direita: "100% 50%" };
+
+// Ponto de foco vertical (31/10/2026): vale só até 1023px, onde a imagem ocupa
+// a parte de cima do banner. Ausente vale "centro" (sem migração de dados).
+export const PONTOS_DE_FOCO_VERTICAL = ["topo", "centro", "base"] as const;
+export type PontoDeFocoVertical = (typeof PONTOS_DE_FOCO_VERTICAL)[number];
+export const ROTULOS_DOS_PONTOS_DE_FOCO_VERTICAL: Record<PontoDeFocoVertical, string> = { topo: "Topo", centro: "Centro", base: "Base" };
+export const MENSAGEM_PONTO_DE_FOCO_VERTICAL_INVALIDO = "Escolha o ponto de foco vertical: topo, centro ou base.";
+
+export function ehPontoDeFocoVertical(valor: unknown): valor is PontoDeFocoVertical {
+  return typeof valor === "string" && (PONTOS_DE_FOCO_VERTICAL as readonly string[]).includes(valor);
+}
+
+// object-position das molduras de tablet e celular do painel: os dois eixos.
+const ALTURA_DO_PONTO_DE_FOCO: Record<PontoDeFocoVertical, string> = { topo: "0%", centro: "50%", base: "100%" };
+export function posicaoDoFocoNaPilha(pontoDeFoco: PontoDeFoco, vertical: PontoDeFocoVertical): string {
+  return `${POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco].split(" ")[0]} ${ALTURA_DO_PONTO_DE_FOCO[vertical]}`;
+}
 
 // "Bem mais larga que 16:9": mais que 2:1 (ex.: 2000 x 900). Sem medidas,
 // não avisa.
@@ -139,6 +156,7 @@ export type BannerDaHome = {
   href: string;
   ativo: boolean;
   pontoDeFoco: PontoDeFoco;
+  pontoDeFocoVertical: PontoDeFocoVertical;
   // Texto e botão em código (30/10/2026); vazios nos banners antigos.
   titulo: string;
   trechoEmDestaque: string;
@@ -295,6 +313,7 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
         ativo: banner.ativo === true,
         // Ausente ou estranho: o centro, como antes.
         pontoDeFoco: ehPontoDeFoco(banner.pontoDeFoco) ? banner.pontoDeFoco : "centro",
+        pontoDeFocoVertical: ehPontoDeFocoVertical(banner.pontoDeFocoVertical) ? banner.pontoDeFocoVertical : "centro",
         ...lerTextoDoBanner(banner),
       };
     })
@@ -328,7 +347,7 @@ export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: M
       const textoDoSlide = temTextoNoBanner(banner)
         ? { titulo: banner.titulo, trechoEmDestaque: banner.trechoEmDestaque, subtitulo: banner.subtitulo, textoDoBotao: href ? banner.textoDoBotao : "", posicao: banner.posicaoDoTexto }
         : null;
-      return { imagem: "", midia: { ...midia, alt, celular, tablet }, alt, href, rotulo: "", pontoDeFoco: banner.pontoDeFoco, texto: textoDoSlide };
+      return { imagem: "", midia: { ...midia, alt, celular, tablet }, alt, href, rotulo: "", pontoDeFoco: banner.pontoDeFoco, pontoDeFocoVertical: banner.pontoDeFocoVertical, texto: textoDoSlide };
     });
   return slides.length > 0 ? slides : SLIDES_DO_BANNER;
 }
@@ -361,6 +380,7 @@ export type CampoDoBanner =
   | "posicao"
   | "ativo"
   | "pontoDeFoco"
+  | "pontoDeFocoVertical"
   | "titulo"
   | "trechoEmDestaque"
   | "subtitulo"
@@ -376,6 +396,7 @@ export type DadosDoBanner = {
   ativo: boolean;
   posicao: number;
   pontoDeFoco: PontoDeFoco;
+  pontoDeFocoVertical?: PontoDeFocoVertical;
   titulo: string;
   trechoEmDestaque: string;
   subtitulo: string;
@@ -443,6 +464,7 @@ export function lerBannerDoFormulario(campos: {
   ativo: unknown;
   posicao: unknown;
   pontoDeFoco?: unknown;
+  pontoDeFocoVertical?: unknown;
   titulo?: unknown;
   trechoEmDestaque?: unknown;
   subtitulo?: unknown;
@@ -464,6 +486,8 @@ export function lerBannerDoFormulario(campos: {
   // Sem o campo (formulário anterior a ele): o centro. Valor estranho: recusa.
   const pontoDeFoco = campos.pontoDeFoco === null || campos.pontoDeFoco === undefined ? "centro" : campos.pontoDeFoco;
   if (!ehPontoDeFoco(pontoDeFoco)) erros.pontoDeFoco = MENSAGEM_PONTO_DE_FOCO_INVALIDO;
+  const pontoDeFocoVertical = campos.pontoDeFocoVertical === null || campos.pontoDeFocoVertical === undefined ? "centro" : campos.pontoDeFocoVertical;
+  if (!ehPontoDeFocoVertical(pontoDeFocoVertical)) erros.pontoDeFocoVertical = MENSAGEM_PONTO_DE_FOCO_VERTICAL_INVALIDO;
   // Texto e botão (30/10/2026), todos opcionais.
   const linha = (valor: unknown) => (typeof valor === "string" ? valor.trim().replace(/\s+/g, " ") : "");
   const titulo = linha(campos.titulo);
@@ -491,6 +515,7 @@ export function lerBannerDoFormulario(campos: {
       ativo,
       posicao,
       pontoDeFoco: pontoDeFoco as PontoDeFoco,
+      pontoDeFocoVertical: pontoDeFocoVertical as PontoDeFocoVertical,
       titulo,
       trechoEmDestaque,
       subtitulo,
@@ -527,6 +552,7 @@ export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: Bann
       "ativo",
       "posição",
       ...(depois.pontoDeFoco !== "centro" ? ["ponto de foco"] : []),
+      ...(depois.pontoDeFocoVertical !== "centro" ? ["ponto de foco vertical"] : []),
       ...(temTextoNoBanner(depois) ? ["texto do banner"] : []),
     ];
   const alterados: string[] = [];
@@ -537,6 +563,7 @@ export function camposAlteradosDoBanner(antes: BannerDaHome | null, depois: Bann
   if (antes.ativo !== depois.ativo) alterados.push("ativo");
   if (antes.ordem !== depois.ordem) alterados.push("posição");
   if (antes.pontoDeFoco !== depois.pontoDeFoco) alterados.push("ponto de foco");
+  if (antes.pontoDeFocoVertical !== depois.pontoDeFocoVertical) alterados.push("ponto de foco vertical");
   if (antes.midiaTabletId !== depois.midiaTabletId) alterados.push("imagem para tablet");
   if (antes.titulo !== depois.titulo) alterados.push("título");
   if (antes.trechoEmDestaque !== depois.trechoEmDestaque) alterados.push("trecho em destaque");

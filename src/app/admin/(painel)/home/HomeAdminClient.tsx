@@ -35,6 +35,9 @@ import {
   DICA_DO_BANNER,
   PONTOS_DE_FOCO,
   POSICAO_DO_PONTO_DE_FOCO,
+  PONTOS_DE_FOCO_VERTICAL,
+  ROTULOS_DOS_PONTOS_DE_FOCO_VERTICAL,
+  posicaoDoFocoNaPilha,
   ROTULOS_DOS_PONTOS_DE_FOCO,
   bannerMuitoLargo,
   LIMITE_DE_BANNERS,
@@ -47,6 +50,7 @@ import {
   type CampoDoBanner,
   type IdentificadorDoEspaco,
   type PontoDeFoco,
+  type PontoDeFocoVertical,
   type ProporcoesDoEspaco,
 } from "@/lib/site/home";
 import type { VideoQuemSomos } from "@/lib/site/videoQuemSomos";
@@ -143,6 +147,7 @@ function VersoesDaImagem({
   rotulo,
   aoMudar,
   pontoDeFoco,
+  pontoDeFocoVertical,
   dica,
   avisarLarga,
 }: {
@@ -156,6 +161,7 @@ function VersoesDaImagem({
   // Banners (30/10/2026): ponto de foco aplicado às prévias, dica de
   // composição e aviso de imagem bem mais larga que 16:9.
   pontoDeFoco?: PontoDeFoco;
+  pontoDeFocoVertical?: PontoDeFocoVertical;
   dica?: string;
   avisarLarga?: boolean;
 }) {
@@ -197,6 +203,7 @@ function VersoesDaImagem({
   }
 
   const posicao = pontoDeFoco && POSICAO_DO_PONTO_DE_FOCO[pontoDeFoco];
+  const posicaoNaPilha = pontoDeFoco && posicaoDoFocoNaPilha(pontoDeFoco, pontoDeFocoVertical ?? "centro");
   const todasIguais = Boolean(escolhas.computador && alvos.every((versao) => escolhas[versao]?.id === escolhas.computador?.id));
   const faltaAlguma = Boolean(escolhas.computador && alvos.some((versao) => !escolhas[versao]));
   const textoDoCopiar = comTablet ? "Usar a mesma imagem em todas as versões" : "Usar a mesma imagem nas duas versões";
@@ -224,7 +231,7 @@ function VersoesDaImagem({
             dono={{ tipo: "home", id: idDoDono, campo: campos.tablet }}
             proporcao={proporcoes.tablet.texto}
             tamanho={proporcoes.tablet.tamanho}
-            moldura={{ razao: proporcoes.tablet.razao, estreita: true, rotulo: "Prévia no tablet", posicao }}
+            moldura={{ razao: proporcoes.tablet.razao, estreita: true, rotulo: "Prévia no tablet", posicao: posicaoNaPilha }}
             erro={erros.midiaTabletId}
             aoMudar={(escolha) => mudar("tablet", escolha)}
           />
@@ -237,7 +244,7 @@ function VersoesDaImagem({
           dono={{ tipo: "home", id: idDoDono, campo: campos.celular }}
           proporcao={proporcoes.celular.texto}
           tamanho={proporcoes.celular.tamanho}
-          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular", posicao }}
+          moldura={{ razao: proporcoes.celular.razao, estreita: true, rotulo: "Prévia no celular", posicao: posicaoNaPilha }}
           erro={erros.midiaMobileId}
           aoMudar={(escolha) => mudar("celular", escolha)}
         />
@@ -572,6 +579,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
   const [href, setHref] = useState(banner?.href ?? "");
   const [ativo, setAtivo] = useState(banner ? banner.ativo : true);
   const [pontoDeFoco, setPontoDeFoco] = useState<PontoDeFoco>(banner?.pontoDeFoco ?? "centro");
+  const [pontoDeFocoVertical, setPontoDeFocoVertical] = useState<PontoDeFocoVertical>(banner?.pontoDeFocoVertical ?? "centro");
   const [titulo, setTitulo] = useState(banner?.titulo ?? "");
   const [trechoEmDestaque, setTrechoEmDestaque] = useState(banner?.trechoEmDestaque ?? "");
   const [subtitulo, setSubtitulo] = useState(banner?.subtitulo ?? "");
@@ -638,6 +646,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
     href: "",
     rotulo: "",
     pontoDeFoco,
+    pontoDeFocoVertical,
     texto: temTextoNoBanner({ titulo, subtitulo, textoDoBotao }) ? { titulo: titulo.trim(), trechoEmDestaque: trechoEmDestaque.trim(), subtitulo: subtitulo.trim(), textoDoBotao: textoDoBotao.trim(), posicao: posicaoDoTexto } : null,
   };
 
@@ -659,6 +668,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           proporcoes={PROPORCOES_DO_BANNER}
           rotulo="banner"
           pontoDeFoco={pontoDeFoco}
+          pontoDeFocoVertical={pontoDeFocoVertical}
           dica={DICA_DO_BANNER}
           avisarLarga
           inicial={inicial}
@@ -708,7 +718,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-posicao-foco`}>
         <h3 id={`${id}-posicao-foco`} className={estilos.tituloDaCaixa}>Posição e foco</h3>
-        <GrupoDeOpcoes id={`${id}-posicao-texto`} legenda="Posição do texto" nome="posicaoDoTexto" opcoes={POSICOES_DO_TEXTO} rotulos={ROTULOS_DAS_POSICOES_DO_TEXTO} valor={posicaoDoTexto} aoMudar={setPosicaoDoTexto} erro={erros.posicaoDoTexto} ajuda="A posição vale só no computador. No tablet e no celular, o texto fica sempre centralizado na parte de baixo do banner." />
+        <GrupoDeOpcoes id={`${id}-posicao-texto`} legenda="Posição do texto" nome="posicaoDoTexto" opcoes={POSICOES_DO_TEXTO} rotulos={ROTULOS_DAS_POSICOES_DO_TEXTO} valor={posicaoDoTexto} aoMudar={setPosicaoDoTexto} erro={erros.posicaoDoTexto} ajuda="A posição vale só no computador. No tablet e no celular, a imagem fica em cima e o texto, centralizado, em uma área branca embaixo." />
         <GrupoDeOpcoes
           id={`${id}-foco`}
           legenda="Ponto de foco da imagem"
@@ -720,11 +730,22 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           aoMudar={setPontoDeFoco}
           erro={erros.pontoDeFoco}
         />
+        <GrupoDeOpcoes
+          id={`${id}-foco-vertical`}
+          legenda="Ponto de foco vertical (tablet e celular)"
+          ajuda="Escolha a parte da imagem que não pode ser cortada. Em tablet e celular a foto ocupa só a parte de cima do banner."
+          nome="pontoDeFocoVertical"
+          opcoes={PONTOS_DE_FOCO_VERTICAL}
+          rotulos={ROTULOS_DOS_PONTOS_DE_FOCO_VERTICAL}
+          valor={pontoDeFocoVertical}
+          aoMudar={setPontoDeFocoVertical}
+          erro={erros.pontoDeFocoVertical}
+        />
       </section>
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-previa`}>
         <h3 id={`${id}-previa`} className={estilos.tituloDaCaixa}>Prévia</h3>
-        <p className={estilos.ajuda}>O banner como aparece no site, com o texto e o botão sobre a imagem de cada versão.</p>
+        <p className={estilos.ajuda}>O banner como aparece no site: no computador, o texto sobre a imagem; no tablet e no celular, a imagem em cima e o texto em uma área branca embaixo.</p>
         {slideDaPrevia.midia ? (
           <div className={estilos.previas}>
             {(["computador", "tablet", "celular"] as const).map((formato) => (
