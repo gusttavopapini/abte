@@ -68,8 +68,9 @@
   height: var(--space-20);
 }
 
-/* Subitem (categorias e tags): recuado até o texto do item de cima. */
-.subitem {
+/* Subitem (categorias e tags): recuado até o texto do item de cima. Com as
+   duas classes, para valer sobre o padding de .linkMenu, declarado depois. */
+.linkMenu.subitem {
   padding-left: calc(var(--space-16) + var(--space-20) + var(--space-8));
   font-size: var(--font-size-small);
 }

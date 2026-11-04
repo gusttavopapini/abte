@@ -384,3 +384,33 @@ Observações: como tópico em uso não vai para a lixeira, "some do site" só s
 Conferido no navegador (build de produção local contra os emuladores, `demo-abte-e2e`, 45 posts fictícios), 88 de 88: em 390, 768, 1280 e 1710 px, contagens dos filtros, 20 linhas e o mais recente primeiro, "Mostrar mais" pelo teclado com o foco na 21ª linha, busca "arquivo" com as contagens e o aviso da lixeira, resultados dentro da lixeira, endereço e recarga mantendo filtro e busca, ordem de Z a A, filtro e seleção pelo teclado, áreas de 44 px, sem rolagem lateral e sem erros; profissionais, produtos e artigos com as contagens e a ordem do site ou da loja. Em 1280: confirmação do lote com os nomes e o foco dentro, Esc cancela, 3 posts para a lixeira (saem de `/blog`), despublicar misto ("1 post foi despublicado. 1 já estava assim."), restaurar os 8 da lixeira, lixeira vazia com orientação; editor desativando em lote. Capturas em `tmp-migracao/capturas/painel-2/`. Corrigido no caminho: a legenda da ordem ficava toda em minúsculas.
 
 Testes: `test:unidade` 447 (resumo do lote, seleção e permissões da ação), `test:sessao` 197 (lote no emulador), `test:regras` 118. Lint e lint:css iguais à linha de base.
+
+**Etapa 3 (navegação e diagramação), commits `d92e371` a `90dd8fb` e o desta correção:**
+- **Contorno dos campos:** todo campo de texto, seleção e área de texto do painel tem borda de 1px em `--color-placeholder` também sem foco, inclusive nas janelas e na tela de entrar (`src/app/admin/painel.css`, ligado pelo marcador `.painel-raiz` no layout do `/admin`); o site público não muda.
+- **Menu lateral agrupado:** Visão geral; Conteúdo (Home, Blog, Categorias e tags do blog, Artigos, Categorias e tags dos artigos, Páginas); Pessoas (Profissionais); Loja (Produtos, Categorias da loja); Mídia; Configurações. Ícones em SVG próprio (`IconesDoPainel.tsx`), subitens recuados e sem ícone, item atual destacado com `aria-current`; Páginas e Configurações só para o administrador.
+- **Gaveta (até 1023px):** só tem `role="dialog"`, `aria-modal` e `aria-label` enquanto está aberta (antes ficavam na página o tempo todo, mesmo fechada).
+- **Trilha e Voltar:** toda tela tem a trilha a partir da Visão geral e o link "Voltar para ..." (sempre o passo anterior).
+- **Barra de salvar:** produtos e páginas institucionais passaram a ter "Salvar como rascunho" e "Salvar e publicar", com a situação atual escrita, como posts e artigos. Saíram a caixa "Publicado" do produto e o interruptor "Publicada" da página. Produto na lixeira tem o aviso com Restaurar, e publicar fica desligado e é recusado no servidor.
+- **Visão geral:** atalhos para criar post, artigo, profissional (abre o cadastro, `?novo=1`) e produto; publicados, rascunhos e lixeira de cada área com links para a lista filtrada; imagens na lixeira; as 10 últimas alterações do registro (quando, área, resumo e nome de quem fez, sem e-mail nem valores, conferida a permissão `registro.ver`); atalhos das áreas.
+
+Conferido no navegador (build de produção local contra os emuladores, `demo-abte-e2e`, dados fictícios), 36 de 36:
+- **As 19 telas do painel, em 390, 768, 1280 e 1710 px:** status 200, um H1, sem rolagem lateral, trilha desde a Visão geral com "Voltar para", todos os campos visíveis com o contorno na cor do token e sem erros no console.
+- **Menu:** grupos com títulos ligados às listas, 9 ícones, subitem atual destacado e nenhum id repetido.
+- **Gaveta em 390:** fechada, sem role e sem nenhum diálogo na página; aberta, com o foco dentro e o Tab preso; Esc fecha e devolve o foco.
+- **Visão geral:** seções, atalhos, contagens e links filtrados; últimas alterações em ordem; "Novo profissional" abre o cadastro com os campos contornados.
+- **Barras de salvar:** no produto, "Salvar como rascunho" tira o produto da loja e "Salvar e publicar" o devolve; a barra fica presa ao pé; sair com alteração não salva faz o navegador perguntar antes. Na página institucional, publicar responde 200 e rascunho responde 404.
+- **Editor:** o menu dele não tem Páginas nem Configurações, e ele vê as últimas alterações.
+- **Tela de entrar:** campos com contorno.
+- **Medição extra em 390 px nas 19 telas e na gaveta aberta:** nenhum controle abaixo de 44 px, exceto os campos de arquivo escondidos (1 px), acionados pelo botão visível de 44 px, como já registrado antes. A visão geral não mostra e-mail nem identificador.
+
+Corrigido nesta conferência: os subitens do menu não ficavam recuados (a regra geral do link anulava o recuo) e faltava o espaço em "Rascunhos: 10" na visão geral.
+
+Validação com a saída completa guardada: typecheck e build passam; lint 0 erros e 4 avisos; lint:css os 5 erros conhecidos (`Botao` e `Modal`); `test:unidade` 449, `test:sessao` 197, `test:regras` 118.
+
+Não verificado: leitor de tela real; dados reais do `abte-dev`.
+
+Pendências:
+- O cadastro de profissional e o de banner abrem em janela e continuam com a caixa "Ativo", sem a barra fixa nem os dois botões, porque não são páginas de formulário.
+- As janelas não têm o aviso de alterações não salvas.
+- Há um espaço grande entre o cabeçalho e a primeira seção das telas de categorias e tags (de antes).
+- Os campos de arquivo escondidos têm 1 px, com o botão visível de 44 px.

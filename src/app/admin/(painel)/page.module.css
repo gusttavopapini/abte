@@ -85,8 +85,10 @@
   font-size: var(--font-size-small);
 }
 
+/* Contêiner flexível descarta o espaço entre o texto e o número: o gap o repõe. */
 .situacao a {
   display: inline-flex;
+  gap: calc(var(--space-8) / 2);
   align-items: center;
   min-height: var(--control-min-height-mobile);
   color: var(--color-text);
