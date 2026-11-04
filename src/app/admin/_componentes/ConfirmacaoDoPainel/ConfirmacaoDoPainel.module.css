@@ -19,6 +19,14 @@
   list-style: disc;
 }
 
+/* Campo da confirmação reforçada (04/11/2026): contorno visível também sem
+   foco, sobre o fundo branco da janela. A cor vem de um token
+   (--color-placeholder, contraste de cerca de 4,9:1 com o branco); o anel de
+   foco (--focus-ring) continua por cima, pela regra global de :focus-visible. */
+.campoDaConfirmacao input {
+  border: 1px solid var(--color-placeholder);
+}
+
 .botoes {
   display: flex;
   flex-wrap: wrap;
@@ -26,7 +34,15 @@
 }
 
 @media (max-width: 767px) {
-  .botoes {
+  /* Campo da confirmação reforçada (04/11/2026): contorno visível também sem
+   foco, sobre o fundo branco da janela. A cor vem de um token
+   (--color-placeholder, contraste de cerca de 4,9:1 com o branco); o anel de
+   foco (--focus-ring) continua por cima, pela regra global de :focus-visible. */
+.campoDaConfirmacao input {
+  border: 1px solid var(--color-placeholder);
+}
+
+.botoes {
     flex-direction: column;
   }
 }

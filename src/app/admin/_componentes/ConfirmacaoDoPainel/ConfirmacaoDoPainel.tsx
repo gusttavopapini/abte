@@ -73,6 +73,7 @@ export function ConfirmacaoDoPainel({ aberto, aoFechar, titulo, children, rotulo
             </CaixaDoPainel>
             <Campo
               id={idCampo}
+              className={estilos.campoDaConfirmacao}
               rotulo={`Para confirmar, digite ${PALAVRA_DE_CONFIRMACAO} ou o nome do item`}
               autoComplete="off"
               spellCheck={false}
