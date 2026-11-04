@@ -253,3 +253,33 @@ describe("Lixeira de profissionais, produtos e banners (04/11/2026)", () => {
     });
   }
 });
+
+// Tópicos (04/11/2026): pelo navegador, nem quem tem papel ativa, desativa,
+// move para a lixeira, restaura ou exclui de vez categorias e tags.
+describe("Lixeira e situação dos tópicos (04/11/2026)", () => {
+  const TOPICOS = ["categoriasDePosts", "tagsDePosts", "categoriasDeArtigos", "tagsDeArtigos", "categoriasDeProdutos"];
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["administrador pelo navegador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor pelo navegador", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+
+  beforeEach(async () => {
+    await ambiente.withSecurityRulesDisabled(async (contexto) => {
+      const db = contexto.firestore();
+      for (const colecao of TOPICOS) await setDoc(doc(db, colecao, "naLixeira"), { nome: "exemplo", ativa: true, excluidoEm: new Date() });
+    });
+  });
+
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem}: sem acesso à situação e à lixeira dos tópicos`, async () => {
+      const db = obterContexto().firestore();
+      for (const colecao of TOPICOS) {
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { excluidoEm: null }));
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { ativa: false }));
+        await assertFails(getDocs(query(collection(db, colecao), where("excluidoEm", "!=", null))));
+        await assertFails(deleteDoc(doc(db, colecao, "naLixeira")));
+      }
+    });
+  }
+});

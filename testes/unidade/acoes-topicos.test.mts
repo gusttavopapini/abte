@@ -12,8 +12,20 @@ describe("Ações dos tópicos: sessão e papel", () => {
   test("toda ação exportada começa por exigirPapelDoPainel()", () => {
     const codigo = readFileSync("src/app/admin/acoes-topicos.ts", "utf8");
     const acoes = [...codigo.matchAll(/export async function (\w+)\([^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => ({ nome, primeira }));
-    assert.deepEqual(acoes.map((acao) => acao.nome), ["criarTopico", "atualizarTopico", "excluirTopico", "restaurarTopico"]);
-    for (const acao of acoes) assert.match(acao.primeira, /^const usuario = await exigirPapelDoPainel\(\);$/, acao.nome);
+    assert.deepEqual(acoes.map((acao) => acao.nome), ["criarTopico", "atualizarTopico", "moverTopicoParaALixeira", "restaurarTopicoDaLixeira"]);
+    const esperado: Record<string, RegExp> = {
+      criarTopico: /^const usuario = await exigirPapelDoPainel\("conteudo\.editar"\);$/,
+      atualizarTopico: /^const usuario = await exigirPapelDoPainel\("conteudo\.editar"\);$/,
+      moverTopicoParaALixeira: /^return marcarPeloMenu\("conteudo\.excluir", tipo, id\);$/,
+      restaurarTopicoDaLixeira: /^return marcarPeloMenu\("conteudo\.restaurar", tipo, id\);$/,
+    };
+    for (const acao of acoes) assert.match(acao.primeira, esperado[acao.nome], acao.nome);
+    // marcarPeloMenu: sessão e papel, depois a permissão, depois o tipo e o id.
+    const corpo = codigo.match(/async function marcarPeloMenu\([\s\S]*?\{([\s\S]*?)\n\}/)?.[1] ?? "";
+    const linhas = corpo.trim().split("\n").map((linha) => linha.trim());
+    assert.equal(linhas[0], "const usuario = await exigirPapelDoPainel();");
+    assert.match(linhas[1], /^if \(!papelPodeExecutar\(usuario\.papel, acao\)\) return/);
+    assert.match(linhas[2], /^if \(!ehTipoDeTopico\(tipo\) \|\| !ehIdDeDocumentoValido\(id\)\) return/);
   });
 
   test("sem sessão ou sem papel, recusa; editor e administrador passam", () => {

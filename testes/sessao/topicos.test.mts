@@ -1,7 +1,8 @@
 // Testes da gravação dos tópicos com o registro de alterações (npm run
 // test:sessao), num projeto só deles (demo-abte-topicos). Desde 23/10/2026,
 // as categorias de artigo registram criação, edição, exclusão e restauração
-// em logAlteracoes, na mesma transação; tags ainda não. Dados fictícios.
+// em logAlteracoes, na mesma transação; desde 04/11/2026, todos os tópicos.
+// Dados fictícios.
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
 import { deleteApp, initializeApp, type App } from "firebase-admin/app";
@@ -82,7 +83,7 @@ describe("Categorias de artigo: registro de alterações (emulador)", () => {
     assert.ok((await marcarExclusaoDoTopico(db, "categoria", categoria, false, ADMINISTRADOR)).ok);
     const ultimos = (await registrosDe(categoria)).slice(-2).map((registro) => [registro.acao, registro.campos, registro.resumo]);
     assert.deepEqual(ultimos, [
-      ["excluir", ["excluidoEm"], "Categoria movida para os excluídos."],
+      ["excluir", ["excluidoEm"], "Categoria movida para a lixeira."],
       ["restaurar", ["excluidoEm"], "Categoria restaurada."],
     ]);
   });
@@ -97,18 +98,21 @@ describe("Categorias de artigo: registro de alterações (emulador)", () => {
     assert.equal((await db.collection(COLECAO_LOG).count().get()).data().count, antes);
   });
 
-  test("tags e categorias de produto ainda não registram (etapa 3)", async () => {
+  test("tags e categorias de produto também registram, com o rótulo certo (desde 04/11/2026)", async () => {
     const tag = await criarTopico(db, "tag", { nome: "TESTE Tag", ordem: 0 }, EDITOR);
     const daLoja = await criarTopico(db, "categoriaDeProduto", { nome: "TESTE Categoria da Loja", ordem: 0 }, EDITOR);
     assert.ok(tag.ok && daLoja.ok);
-    assert.deepEqual([(await registrosDe(tag.id)).length, (await registrosDe(daLoja.id)).length], [0, 0]);
+    if (!tag.ok || !daLoja.ok) return;
+    assert.ok((await atualizarTopico(db, "tag", tag.id, { nome: "TESTE Tag renomeada", ordem: 0 }, EDITOR)).ok);
+    assert.deepEqual((await registrosDe(tag.id)).map((registro) => registro.resumo), ["Tag criada.", "Tag alterada: nome."]);
+    assert.deepEqual((await registrosDe(daLoja.id)).map((registro) => registro.resumo), ["Categoria criada."]);
   });
 });
 
 // Categorias e tags dos posts (25/10/2026): mesmo padrão das categorias de
-// artigo (ativa, lixeira e registro); as tags de post não registram.
+// artigo (ativa, lixeira e registro); desde 04/11/2026, as tags também.
 describe("Categorias de post: registro, ativa e uso (emulador)", () => {
-  test("cria, desativa e exclui com registro; tag de post não registra", async () => {
+  test("cria, desativa e exclui com registro; tag de post também registra", async () => {
     const criado = await criarTopico(db, "categoriaDePost", { nome: "TESTE Categoria de Post", ordem: 1 }, EDITOR);
     assert.ok(criado.ok);
     assert.ok((await atualizarTopico(db, "categoriaDePost", criado.id, { nome: "TESTE Categoria de Post", ordem: 1, ativa: false }, EDITOR)).ok);
@@ -118,11 +122,11 @@ describe("Categorias de post: registro, ativa e uso (emulador)", () => {
     assert.deepEqual(registros.map((registro) => [registro.colecao, registro.acao, registro.resumo]), [
       ["categoriasDePosts", "criar", "Categoria criada."],
       ["categoriasDePosts", "editar", "Categoria desativada."],
-      ["categoriasDePosts", "excluir", "Categoria movida para os excluídos."],
+      ["categoriasDePosts", "excluir", "Categoria movida para a lixeira."],
     ]);
     const tag = await criarTopico(db, "tagDePost", { nome: "TESTE Tag de Post", ordem: 0 }, EDITOR);
     assert.ok(tag.ok);
-    assert.equal((await registrosDe(tag.id)).length, 0);
+    assert.deepEqual((await registrosDe(tag.id)).map((registro) => [registro.colecao, registro.acao, registro.resumo]), [["tagsDePosts", "criar", "Tag criada."]]);
   });
 
   test("categoria e tag de post em uso por um post não vão para a lixeira", async () => {

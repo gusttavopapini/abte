@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerTopicos, ordenarTopicos } from "@/lib/dados/colecoes";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
@@ -14,7 +15,8 @@ async function lerSeparados(tipo: TipoDeTopico) {
 }
 
 export default async function PaginaTopicosDeArtigos() {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
+  const podeExcluirDeVez = papelPodeExecutar(usuario.papel, "conteudo.excluirDeVez");
   const [categorias, tags] = await Promise.all([lerSeparados("categoria"), lerSeparados("tag")]);
 
   return (
@@ -34,12 +36,14 @@ export default async function PaginaTopicosDeArtigos() {
         titulo="Categorias"
         descricao="Cada artigo tem uma categoria. As categorias aparecem em /artigos, na seção de tópicos, na ordem definida aqui."
         {...categorias}
+        podeExcluirDeVez={podeExcluirDeVez}
       />
       <GerenciadorDeTopicos
         tipo="tag"
         titulo="Tags"
         descricao="Um artigo pode ter várias tags. Elas aparecem como etiquetas na página do artigo."
         {...tags}
+        podeExcluirDeVez={podeExcluirDeVez}
       />
     </div>
   );

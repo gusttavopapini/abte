@@ -11,8 +11,8 @@
 // formato dos profissionais: só os nomes dos campos (nome, ordem,
 // imagemMidiaId, ativa), nunca os valores, e um resumo em português. Desde
 // 25/10/2026, as categorias de post seguem o mesmo padrão (com ativa e
-// registro, sem imagem). Tags e categorias de produto ainda não registram
-// (etapa 3).
+// registro, sem imagem). Desde 04/11/2026, tags e categorias de produto
+// também registram (registro em toda ação do painel).
 import { FieldValue, type Firestore, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import type { TipoDeTopico } from "../dados/tipos.ts";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
@@ -70,10 +70,12 @@ function falha(erro: unknown): Falha {
   throw erro;
 }
 
-// Só as categorias de artigo e de post registram em logAlteracoes (por
-// enquanto) e só elas têm o campo ativa.
-const comRegistro = (tipo: TipoDeTopico) => tipo === "categoria" || tipo === "categoriaDePost";
-export const temCampoAtiva = comRegistro;
+// Só as categorias de artigo e de post têm o campo ativa. Todos os tipos
+// registram em logAlteracoes (desde 04/11/2026).
+export const temCampoAtiva = (tipo: TipoDeTopico) => tipo === "categoria" || tipo === "categoriaDePost";
+const ehTag = (tipo: TipoDeTopico) => tipo === "tag" || tipo === "tagDePost";
+// "Categoria" ou "Tag", para os resumos do registro (sem o nome).
+export const rotuloDoTopico = (tipo: TipoDeTopico) => (ehTag(tipo) ? "Tag" : "Categoria");
 
 // Onde cada tópico é usado (para recusar a exclusão de um tópico em uso).
 const USO: Record<TipoDeTopico, { colecao: string; campo: string; lista: boolean }> = {
@@ -101,17 +103,17 @@ export async function imagemDaCategoriaValida(db: Firestore, colecao: string, id
 
 const ROTULOS: Record<string, string> = { nome: "nome", ordem: "ordem", imagemMidiaId: "imagem" };
 
-// Resumo da edição de uma categoria de artigo, em português, sem valores
-// (nem o nome): "Categoria desativada.", "Categoria alterada: nome e imagem."
-export function resumoDaEdicaoDaCategoria(campos: string[], ativaDepois: boolean): string {
+// Resumo da edição de um tópico, em português, sem valores (nem o nome):
+// "Categoria desativada.", "Categoria alterada: nome e imagem.", "Tag alterada: nome."
+export function resumoDaEdicaoDaCategoria(campos: string[], ativaDepois: boolean, rotulo = "Categoria"): string {
   const partes: string[] = [];
-  if (campos.includes("ativa")) partes.push(ativaDepois ? "Categoria ativada." : "Categoria desativada.");
+  if (campos.includes("ativa")) partes.push(ativaDepois ? `${rotulo} ativada.` : `${rotulo} desativada.`);
   const outros = campos.filter((campo) => campo !== "ativa").map((campo) => ROTULOS[campo] ?? campo);
   if (outros.length) {
     const lista = outros.length === 1 ? outros[0] : `${outros.slice(0, -1).join(", ")} e ${outros[outros.length - 1]}`;
-    partes.push(`Categoria alterada: ${lista}.`);
+    partes.push(`${rotulo} alterada: ${lista}.`);
   }
-  return partes.join(" ") || "Categoria salva sem alterações.";
+  return partes.join(" ") || `${rotulo} salva sem alterações.`;
 }
 
 export async function criarTopico(db: Firestore, tipo: TipoDeTopico, dados: { nome: string; ordem: number }, autor: AutorDaAlteracao): Promise<{ ok: true; id: string; mensagem: string } | Falha> {
@@ -127,9 +129,7 @@ export async function criarTopico(db: Firestore, tipo: TipoDeTopico, dados: { no
       const agora = new Date();
       const referencia = colecao.doc();
       transacao.create(referencia, { nome: dados.nome, slug: escolherSlugUnico(gerarSlug(dados.nome), emUso), ordem: dados.ordem, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
-      if (comRegistro(tipo)) {
-        registrarNaTransacao(db, transacao, autor, { colecao: COLECOES_DE_TOPICOS[tipo], documentoId: referencia.id, acao: "criar", campos: ["nome", "ordem"], resumo: "Categoria criada." });
-      }
+      registrarNaTransacao(db, transacao, autor, { colecao: COLECOES_DE_TOPICOS[tipo], documentoId: referencia.id, acao: "criar", campos: ["nome", "ordem"], resumo: `${rotuloDoTopico(tipo)} criada.` });
       return referencia.id;
     });
     return { ok: true, id, mensagem: `${TEXTOS[tipo].criado}: ${dados.nome}.` };
@@ -165,18 +165,16 @@ export async function atualizarTopico(
       if (!atual) throw new RecusaDoTopico("Tópico não encontrado.");
       if (nomeRepetido(dados.nome, existentes.docs, id)) throw new RecusaDoTopico(TEXTOS[tipo].repetido);
       transacao.update(colecao.doc(id), { ...novos, atualizadoEm: new Date() });
-      if (comRegistro(tipo)) {
-        // Antes, como a tela vê: imagem ausente é null e ativa ausente é true.
-        const antes: Record<string, unknown> = { nome: atual.get("nome"), ordem: atual.get("ordem"), imagemMidiaId: atual.get("imagemMidiaId") ?? null, ativa: lerAtiva(atual.get("ativa")) };
-        const campos = Object.keys(novos).filter((campo) => JSON.stringify(antes[campo] ?? null) !== JSON.stringify(novos[campo] ?? null));
-        registrarNaTransacao(db, transacao, autor, {
-          colecao: nomeDaColecao,
-          documentoId: id,
-          acao: "editar",
-          campos,
-          resumo: resumoDaEdicaoDaCategoria(campos, novos.ativa === undefined ? lerAtiva(atual.get("ativa")) : Boolean(novos.ativa)),
-        });
-      }
+      // Antes, como a tela vê: imagem ausente é null e ativa ausente é true.
+      const antes: Record<string, unknown> = { nome: atual.get("nome"), ordem: atual.get("ordem"), imagemMidiaId: atual.get("imagemMidiaId") ?? null, ativa: lerAtiva(atual.get("ativa")) };
+      const campos = Object.keys(novos).filter((campo) => JSON.stringify(antes[campo] ?? null) !== JSON.stringify(novos[campo] ?? null));
+      registrarNaTransacao(db, transacao, autor, {
+        colecao: nomeDaColecao,
+        documentoId: id,
+        acao: "editar",
+        campos,
+        resumo: resumoDaEdicaoDaCategoria(campos, novos.ativa === undefined ? lerAtiva(atual.get("ativa")) : Boolean(novos.ativa), rotuloDoTopico(tipo)),
+      });
     });
     return { ok: true };
   } catch (erro) {
@@ -207,15 +205,13 @@ export async function marcarExclusaoDoTopico(db: Firestore, tipo: TipoDeTopico, 
         throw new RecusaDoTopico("Já existe um tópico ativo com esse nome. Renomeie um dos dois antes de restaurar.");
       }
       transacao.update(colecao.doc(id), { excluidoEm: excluir ? FieldValue.serverTimestamp() : null, atualizadoEm: new Date() });
-      if (comRegistro(tipo)) {
-        registrarNaTransacao(db, transacao, autor, {
-          colecao: nomeDaColecao,
-          documentoId: id,
-          acao: excluir ? "excluir" : "restaurar",
-          campos: ["excluidoEm"],
-          resumo: excluir ? "Categoria movida para os excluídos." : "Categoria restaurada.",
-        });
-      }
+      registrarNaTransacao(db, transacao, autor, {
+        colecao: nomeDaColecao,
+        documentoId: id,
+        acao: excluir ? "excluir" : "restaurar",
+        campos: ["excluidoEm"],
+        resumo: excluir ? `${rotuloDoTopico(tipo)} movida para a lixeira.` : `${rotuloDoTopico(tipo)} restaurada.`,
+      });
       return String(documento.get("nome") ?? "");
     });
     return { ok: true, nome };

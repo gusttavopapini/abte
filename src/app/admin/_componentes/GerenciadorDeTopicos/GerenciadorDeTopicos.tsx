@@ -1,19 +1,17 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId } from "react";
 import { Botao } from "@/components/Botao/Botao";
-import { Modal } from "@/components/Modal/Modal";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { AcoesDoItem, type OperacoesDoItem, type TextosDoItem } from "@/app/admin/_componentes/AcoesDoItem/AcoesDoItem";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
-import {
-  atualizarTopico,
-  criarTopico,
-  excluirTopico,
-  restaurarTopico,
-  type RespostaDoTopico,
-} from "@/app/admin/acoes-topicos";
+import { MensagensDoPainel } from "@/app/admin/_componentes/MensagensDoPainel/MensagensDoPainel";
+import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
+import { excluirItemDeVez, publicarOuDespublicar } from "@/app/admin/acoes-lixeira";
+import { atualizarTopico, criarTopico, moverTopicoParaALixeira, restaurarTopicoDaLixeira, type RespostaDoTopico } from "@/app/admin/acoes-topicos";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
+import type { ColecaoDoPainel } from "@/lib/lixeira";
 import estilos from "./GerenciadorDeTopicos.module.css";
 
 // imagem: só nas categorias (null sem imagem; imagem null dentro: foi para a lixeira).
@@ -36,7 +34,50 @@ type Props = {
   descricao: string;
   ativos: TopicoNaTela[];
   excluidos: TopicoNaTela[];
+  // Só o administrador exclui de vez (tabela PERMISSOES).
+  podeExcluirDeVez?: boolean;
 };
+
+const COLECAO_DO_TIPO: Record<TipoDeTopico, ColecaoDoPainel> = {
+  categoria: "categoriasDeArtigos",
+  tag: "tagsDeArtigos",
+  categoriaDePost: "categoriasDePosts",
+  tagDePost: "tagsDePosts",
+  categoriaDeProduto: "categoriasDeProdutos",
+};
+
+const ehTag = (tipo: TipoDeTopico) => tipo === "tag" || tipo === "tagDePost";
+
+// Menu "Ações" de um tópico (04/11/2026): ativar e desativar só onde o campo
+// ativa existe; lixeira e restaurar com as regras dos tópicos (em uso não vai
+// para a lixeira; nome repetido não é restaurado); excluir de vez pelas ações
+// comuns, recusado se o tópico estiver em uso.
+function MenuDoTopico({ tipo, topico, naLixeira, comAtiva, prefixoDoEndereco, podeExcluirDeVez }: { tipo: TipoDeTopico; topico: TopicoNaTela; naLixeira: boolean; comAtiva: boolean; prefixoDoEndereco?: string; podeExcluirDeVez: boolean }) {
+  const colecao = COLECAO_DO_TIPO[tipo];
+  const operacoes: OperacoesDoItem = {
+    mudarSituacao: comAtiva ? (ligar) => publicarOuDespublicar(colecao, topico.id, ligar) : undefined,
+    moverParaLixeira: () => moverTopicoParaALixeira(tipo, topico.id),
+    restaurar: () => restaurarTopicoDaLixeira(tipo, topico.id),
+    excluirDeVez: (confirmacao) => excluirItemDeVez(colecao, topico.id, confirmacao),
+  };
+  const textos: TextosDoItem = { artigo: "a", nome: ehTag(tipo) ? "tag" : "categoria", ligar: comAtiva ? "Ativar" : null, desligar: comAtiva ? "Desativar" : null, voltaComoRascunho: false };
+  const perdas = ehTag(tipo)
+    ? ["O nome desta tag.", "Ela só pode ser excluída de vez se nenhum item a usa."]
+    : ["O nome, a ordem e o endereço desta categoria.", "Ela só pode ser excluída de vez se nenhum item a usa.", "A imagem não é apagada: continua na biblioteca de mídia."];
+  return (
+    <AcoesDoItem
+      operacoes={operacoes}
+      textos={textos}
+      id={topico.id}
+      nome={topico.nome}
+      situacao={naLixeira ? "lixeira" : !comAtiva || topico.ativa ? "publicado" : "rascunho"}
+      abrirNaLixeira={false}
+      hrefNoSite={prefixoDoEndereco ? `${prefixoDoEndereco}${topico.slug}` : null}
+      podeExcluirDeVez={podeExcluirDeVez}
+      perdas={perdas}
+    />
+  );
+}
 
 // Resposta da última ação de um formulário, em caixa branca de erro ou sucesso.
 function Resposta({ resposta }: { resposta: RespostaDoTopico | null }) {
@@ -63,28 +104,27 @@ function NovoTopico({ tipo, comOrdem, comImagem }: { tipo: TipoDeTopico; comOrde
   );
 }
 
-// Ação de excluir ou restaurar, criada na seção: o item sai da lista depois da
-// ação, e a resposta precisa continuar visível.
-type AcaoDaSecao = { acao: (dados: FormData) => void; pendente: boolean };
-
 type PropsDoItem = {
   tipo: TipoDeTopico;
   topico: TopicoNaTela;
-  excluir: AcaoDaSecao;
   comOrdem: boolean;
   comImagem: boolean;
   comAtiva: boolean;
   ondeAparece?: string;
   prefixoDoEndereco?: string;
+  podeExcluirDeVez: boolean;
 };
 
-function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeAparece, prefixoDoEndereco }: PropsDoItem) {
+function ItemAtivo({ tipo, topico, comOrdem, comImagem, comAtiva, ondeAparece, prefixoDoEndereco, podeExcluirDeVez }: PropsDoItem) {
   const [respostaSalvar, salvar, salvando] = useActionState(atualizarTopico, null);
   const id = useId();
-  // Excluir pede confirmação num modal, com o nome do item (29/10/2026).
-  const [confirmando, setConfirmando] = useState(false);
   return (
     <li className={estilos.caixa}>
+      {comAtiva && (
+        <p className={estilos.situacao}>
+          <SeloStatus status={topico.ativa ? "ativo" : "inativo"} />
+        </p>
+      )}
       <form id={`${id}-salvar`} action={salvar}>
         <input type="hidden" name="tipo" value={tipo} />
         <input type="hidden" name="id" value={topico.id} />
@@ -119,91 +159,78 @@ function ItemAtivo({ tipo, topico, excluir, comOrdem, comImagem, comAtiva, ondeA
           </div>
         )}
       </form>
-      {/* Salvar pertence ao formulário acima (atributo form); Excluir tem o próprio formulário. */}
+      {/* Salvar pertence ao formulário acima (atributo form); as outras ações ficam no menu. */}
       <div className={estilos.botoes}>
         <Botao type="submit" form={`${id}-salvar`} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
-        <Botao type="button" variante="secundario" disabled={excluir.pendente} onClick={() => setConfirmando(true)} aria-label={`Excluir ${topico.nome}`}>
-          Excluir
-        </Botao>
+        <MenuDoTopico tipo={tipo} topico={topico} naLixeira={false} comAtiva={comAtiva} prefixoDoEndereco={prefixoDoEndereco} podeExcluirDeVez={podeExcluirDeVez} />
       </div>
-      <Modal aberto={confirmando} aoFechar={() => setConfirmando(false)} titulo={`Excluir "${topico.nome}"`}>
-        <form action={excluir.acao} onSubmit={() => setConfirmando(false)} className={estilos.confirmacao}>
-          <input type="hidden" name="tipo" value={tipo} />
-          <input type="hidden" name="id" value={topico.id} />
-          <p className="tipo-texto">&ldquo;{topico.nome}&rdquo; vai para os excluídos e sai do site. Os itens que usam continuam salvos, e dá para restaurar depois.</p>
-          <div className={estilos.botoes}>
-            <Botao type="button" variante="secundario" onClick={() => setConfirmando(false)}>Cancelar</Botao>
-            <Botao type="submit" disabled={excluir.pendente}>Excluir</Botao>
-          </div>
-        </form>
-      </Modal>
       <Resposta resposta={respostaSalvar} />
     </li>
   );
 }
 
-function ItemExcluido({ tipo, topico, restaurar }: { tipo: TipoDeTopico; topico: TopicoNaTela; restaurar: AcaoDaSecao }) {
+function ItemNaLixeira({ tipo, topico, comAtiva, podeExcluirDeVez }: { tipo: TipoDeTopico; topico: TopicoNaTela; comAtiva: boolean; podeExcluirDeVez: boolean }) {
   return (
-    <li className={estilos.caixa}>
-      <form action={restaurar.acao} className={estilos.linhaExcluido}>
-        <input type="hidden" name="tipo" value={tipo} />
-        <input type="hidden" name="id" value={topico.id} />
-        <span>{topico.nome}</span>
-        <Botao type="submit" variante="secundario" disabled={restaurar.pendente} aria-label={`Restaurar ${topico.nome}`}>
-          Restaurar
-        </Botao>
-      </form>
+    <li className={`${estilos.caixa} ${estilos.linhaExcluido}`}>
+      <span className={estilos.nomeNaLixeira}>
+        {topico.nome}
+        <SeloStatus status="lixeira" />
+      </span>
+      <MenuDoTopico tipo={tipo} topico={topico} naLixeira comAtiva={comAtiva} podeExcluirDeVez={podeExcluirDeVez} />
     </li>
   );
 }
 
-// Cadastro de um tipo de tópico (artigos, posts ou loja): criar, renomear, excluir (vai
-// para os excluídos) e restaurar.
-export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, comAtiva = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos }: Props) {
+// Cadastro de um tipo de tópico (artigos, posts ou loja): criar, renomear e,
+// pelo menu "Ações", ativar, mover para a lixeira, restaurar e excluir de vez.
+export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false, comAtiva = false, ondeAparece, prefixoDoEndereco, titulo, descricao, ativos, excluidos, podeExcluirDeVez = false }: Props) {
   const idTitulo = useId();
-  const [respostaExcluir, acaoExcluir, excluindo] = useActionState(excluirTopico, null);
-  const [respostaRestaurar, acaoRestaurar, restaurando] = useActionState(restaurarTopico, null);
-  const excluir = { acao: acaoExcluir, pendente: excluindo };
-  const restaurar = { acao: acaoRestaurar, pendente: restaurando };
+  const nomeDoTipo = ehTag(tipo) ? "tags" : "categorias";
   return (
     <section aria-labelledby={idTitulo} className={estilos.secao}>
       <h2 id={idTitulo} className="tipo-h3">{titulo}</h2>
       <p className="tipo-texto">{descricao}</p>
 
-      <NovoTopico tipo={tipo} comOrdem={comOrdem} comImagem={comImagem} />
+      <MensagensDoPainel>
+        <NovoTopico tipo={tipo} comOrdem={comOrdem} comImagem={comImagem} />
 
-      {ativos.length === 0 ? (
-        <p className="tipo-texto">Nenhum item cadastrado ainda.</p>
-      ) : (
-        <ul role="list" className={estilos.lista}>
-          {ativos.map((topico) => (
-            <ItemAtivo
-              key={topico.id}
-              tipo={tipo}
-              topico={topico}
-              excluir={excluir}
-              comOrdem={comOrdem}
-              comImagem={comImagem}
-              comAtiva={comAtiva}
-              ondeAparece={ondeAparece}
-              prefixoDoEndereco={prefixoDoEndereco}
-            />
-          ))}
-        </ul>
-      )}
-      <Resposta resposta={respostaExcluir} />
+        {ativos.length === 0 ? (
+          <p className="tipo-texto">Nenhum item fora da lixeira.</p>
+        ) : (
+          <ul role="list" className={estilos.lista}>
+            {ativos.map((topico) => (
+              <ItemAtivo
+                key={topico.id}
+                tipo={tipo}
+                topico={topico}
+                comOrdem={comOrdem}
+                comImagem={comImagem}
+                comAtiva={comAtiva}
+                ondeAparece={ondeAparece}
+                prefixoDoEndereco={prefixoDoEndereco}
+                podeExcluirDeVez={podeExcluirDeVez}
+              />
+            ))}
+          </ul>
+        )}
 
-      <h3 className="tipo-texto-lg">Excluídos</h3>
-      {excluidos.length === 0 ? (
-        <p className="tipo-texto">Nenhum item excluído.</p>
-      ) : (
-        <ul role="list" className={estilos.lista}>
-          {excluidos.map((topico) => (
-            <ItemExcluido key={topico.id} tipo={tipo} topico={topico} restaurar={restaurar} />
-          ))}
-        </ul>
-      )}
-      <Resposta resposta={respostaRestaurar} />
+        <h3 className="tipo-texto-lg">Lixeira ({excluidos.length})</h3>
+        {excluidos.length === 0 ? (
+          <p className="tipo-texto">Nenhum item na lixeira.</p>
+        ) : (
+          <>
+            <p className="tipo-texto">
+              {`${nomeDoTipo.charAt(0).toUpperCase()}${nomeDoTipo.slice(1)} na lixeira não aparecem no site. Restaurar volta o item como estava.`}
+              {podeExcluirDeVez ? " Excluir de vez não tem volta." : " Só o administrador exclui de vez."}
+            </p>
+            <ul role="list" className={estilos.lista}>
+              {excluidos.map((topico) => (
+                <ItemNaLixeira key={topico.id} tipo={tipo} topico={topico} comAtiva={comAtiva} podeExcluirDeVez={podeExcluirDeVez} />
+              ))}
+            </ul>
+          </>
+        )}
+      </MensagensDoPainel>
     </section>
   );
 }

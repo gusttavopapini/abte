@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerTopicos, ordenarTopicos } from "@/lib/dados/colecoes";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
@@ -16,7 +17,8 @@ async function lerSeparados(tipo: TipoDeTopico) {
 // Categorias e tags dos posts (25/10/2026), no mesmo padrão dos tópicos dos
 // artigos: ordem, ativa, lixeira e registro das categorias em logAlteracoes.
 export default async function PaginaTopicosDoBlog() {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
+  const podeExcluirDeVez = papelPodeExecutar(usuario.papel, "conteudo.excluirDeVez");
   const [categorias, tags] = await Promise.all([lerSeparados("categoriaDePost"), lerSeparados("tagDePost")]);
 
   return (
@@ -34,12 +36,14 @@ export default async function PaginaTopicosDoBlog() {
         titulo="Categorias"
         descricao="Cada post pode ter uma categoria. As categorias ativas com post publicado aparecem como filtros em /blog, na ordem definida aqui."
         {...categorias}
+        podeExcluirDeVez={podeExcluirDeVez}
       />
       <GerenciadorDeTopicos
         tipo="tagDePost"
         titulo="Tags"
         descricao="Um post pode ter várias tags. Elas aparecem como etiquetas na página do post."
         {...tags}
+        podeExcluirDeVez={podeExcluirDeVez}
       />
     </div>
   );

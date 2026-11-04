@@ -36,6 +36,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-16);
+  align-items: center;
+}
+
+/* Situação da categoria (ativa ou inativa), acima do formulário. */
+.situacao {
+  display: flex;
+}
+
+/* Nome e selo "Na lixeira" lado a lado. */
+.nomeNaLixeira {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
 }
 
 .endereco {
@@ -65,10 +79,4 @@
 /* Seletor de imagem das categorias, abaixo do nome e da ordem */
 .imagem {
   margin-top: var(--space-16);
-}
-
-.confirmacao {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
 }

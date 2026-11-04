@@ -5,10 +5,13 @@
 // que grava (e, nas categorias de artigo, registra em logAlteracoes na mesma
 // transação, desde 23/10/2026).
 // Toda ação começa por exigirPapelDoPainel(): sem papel, nada é lido nem gravado.
+// Ativar e desativar e excluir de vez usam as ações comuns (acoes-lixeira.ts).
 // As respostas trazem a mensagem para a tela, sempre em português.
 import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
+import type { RespostaDaAcaoDoItem } from "@/app/admin/acoes-lixeira";
 import type { TipoDeTopico } from "@/lib/dados/tipos";
 import { gerarSlug } from "@/lib/slug";
 import { atualizarTopico as atualizarNoBanco, criarTopico as criarNoBanco, marcarExclusaoDoTopico, temCampoAtiva } from "@/lib/gravacao/topicos";
@@ -92,7 +95,7 @@ function atualizarPaginas() {
 }
 
 export async function criarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   try {
     const tipo = lerTipo(dados);
     const resultado = await criarNoBanco(firestoreAdmin(), tipo, { nome: lerNome(dados), ordem: lerOrdem(dados) }, autorDaAlteracao(usuario));
@@ -108,7 +111,7 @@ export async function criarTopico(_anterior: RespostaDoTopico | null, dados: For
 // artigo e de post, também o campo ativa (desde 23/10 e 25/10/2026). O slug não muda, para os
 // endereços continuarem valendo.
 export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   try {
     const tipo = lerTipo(dados);
     const id = lerId(dados);
@@ -134,29 +137,35 @@ export async function atualizarTopico(_anterior: RespostaDoTopico | null, dados:
   }
 }
 
-// Manda para a lixeira (excluidoEm). Tópico usado por algum artigo não sai:
-// antes é preciso trocar o tópico desses artigos.
-export async function excluirTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
+// Tipo de tópico vindo do menu de ações (texto, sem formulário).
+function ehTipoDeTopico(valor: unknown): valor is TipoDeTopico {
+  return valor === "categoria" || valor === "tag" || valor === "categoriaDePost" || valor === "tagDePost" || valor === "categoriaDeProduto";
+}
+
+// Lixeira e restaurar pelo menu "Ações" (04/11/2026), com as regras próprias
+// dos tópicos (lib/gravacao/topicos.ts): tópico em uso por algum post,
+// artigo ou produto (inclusive na lixeira) não vai para a lixeira; restaurar
+// recusa nome repetido. Sessão, papel e permissão antes de tudo.
+async function marcarPeloMenu(acao: "conteudo.excluir" | "conteudo.restaurar", tipo: unknown, id: unknown): Promise<RespostaDaAcaoDoItem> {
   const usuario = await exigirPapelDoPainel();
+  if (!papelPodeExecutar(usuario.papel, acao)) return { ok: false, mensagem: "Seu papel não permite esta ação." };
+  if (!ehTipoDeTopico(tipo) || !ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Tópico não encontrado. Recarregue a página." };
+  const excluir = acao === "conteudo.excluir";
   try {
-    const resultado = await marcarExclusaoDoTopico(firestoreAdmin(), lerTipo(dados), lerId(dados), true, autorDaAlteracao(usuario));
+    const resultado = await marcarExclusaoDoTopico(firestoreAdmin(), tipo, id, excluir, autorDaAlteracao(usuario));
     if (!resultado.ok) return resultado;
     atualizarPaginas();
-    return { ok: true, mensagem: `"${resultado.nome}" foi para os excluídos. Dá para restaurar abaixo.` };
+    return { ok: true, mensagem: excluir ? `"${resultado.nome}" foi para a lixeira e saiu do site.` : `"${resultado.nome}" foi restaurada.` };
   } catch (erro) {
-    return respostaDeErro(erro);
+    console.error("Falha ao mover tópico para a lixeira ou restaurar:", erro);
+    return { ok: false, mensagem: "Não foi possível concluir agora. Tente de novo em instantes." };
   }
 }
 
-// Tira da lixeira. Se outro tópico ativo já usa o mesmo nome, recusa.
-export async function restaurarTopico(_anterior: RespostaDoTopico | null, dados: FormData): Promise<RespostaDoTopico> {
-  const usuario = await exigirPapelDoPainel();
-  try {
-    const resultado = await marcarExclusaoDoTopico(firestoreAdmin(), lerTipo(dados), lerId(dados), false, autorDaAlteracao(usuario));
-    if (!resultado.ok) return resultado;
-    atualizarPaginas();
-    return { ok: true, mensagem: `"${resultado.nome}" foi restaurado.` };
-  } catch (erro) {
-    return respostaDeErro(erro);
-  }
+export async function moverTopicoParaALixeira(tipo: unknown, id: unknown): Promise<RespostaDaAcaoDoItem> {
+  return marcarPeloMenu("conteudo.excluir", tipo, id);
+}
+
+export async function restaurarTopicoDaLixeira(tipo: unknown, id: unknown): Promise<RespostaDaAcaoDoItem> {
+  return marcarPeloMenu("conteudo.restaurar", tipo, id);
 }
