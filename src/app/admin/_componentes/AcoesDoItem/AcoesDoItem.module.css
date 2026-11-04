@@ -57,6 +57,12 @@
   background: var(--color-bg);
 }
 
+/* Botão perto da borda esquerda: a lista abre para a direita. */
+.lista[data-abrir="direita"] {
+  right: auto;
+  left: 0;
+}
+
 .lista[hidden] {
   display: none;
 }

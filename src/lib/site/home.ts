@@ -163,6 +163,9 @@ export type BannerDaHome = {
   subtitulo: string;
   textoDoBotao: string;
   posicaoDoTexto: PosicaoDoTexto;
+  // Lixeira (04/11/2026): banner na lixeira fica desativado, depois dos
+  // outros, e só volta à home se for restaurado e ativado.
+  excluidoEm: Date | null;
 };
 
 // Um alt só por espaço, usado nas duas versões.
@@ -194,6 +197,14 @@ const ORDINAIS = ["Primeiro", "Segundo", "Terceiro", "Quarto", "Quinto", "Sexto"
 
 export function nomeDoBanner(posicao: number): string {
   return `${ORDINAIS[posicao - 1] ?? `${posicao}º`} banner`;
+}
+
+// Nome do banner no menu de ações e nas mensagens (04/11/2026): o título, se
+// houver; senão, a posição (os da lixeira não têm posição na home, então
+// vão pela chave). Vale também como confirmação do "Excluir de vez".
+export function nomeDoBannerNaTela(banner: Pick<BannerDaHome, "titulo" | "excluidoEm" | "chave">, posicao: number): string {
+  if (banner.titulo) return banner.titulo;
+  return banner.excluidoEm ? `Banner ${banner.chave}` : nomeDoBanner(posicao);
 }
 
 // Páginas conhecidas do site para o link do banner (30/10/2026; não há
@@ -258,9 +269,17 @@ function texto(valor: unknown, limite: number): string {
   return typeof valor === "string" ? valor.trim().replace(/\s+/g, " ").slice(0, limite) : "";
 }
 
-// Ordem dos banners: pelo campo ordem e, no empate, pela chave.
+// Ordem dos banners: os da lixeira por último; depois, pelo campo ordem e,
+// no empate, pela chave.
 export function ordenarBanners(banners: BannerDaHome[]): BannerDaHome[] {
-  return [...banners].sort((a, b) => a.ordem - b.ordem || a.chave.localeCompare(b.chave));
+  return [...banners].sort((a, b) => Number(Boolean(a.excluidoEm)) - Number(Boolean(b.excluidoEm)) || a.ordem - b.ordem || a.chave.localeCompare(b.chave));
+}
+
+// Data gravada no banner (Timestamp do Firestore ou Date); outro valor: null.
+function lerDataDoBanner(valor: unknown): Date | null {
+  if (valor instanceof Date) return Number.isNaN(valor.getTime()) ? null : valor;
+  if (valor && typeof valor === "object" && typeof (valor as { toDate?: unknown }).toDate === "function") return (valor as { toDate: () => Date }).toDate();
+  return null;
 }
 
 // Numera de 1 em diante, na ordem atual.
@@ -269,14 +288,17 @@ export function renumerarBanners(banners: BannerDaHome[]): BannerDaHome[] {
 }
 
 // Leva o banner para a posição pedida (1 = primeiro), limitada às pontas.
+// As posições contam só os banners fora da lixeira, que ficam por último.
 export function posicionarBanner(banners: BannerDaHome[], chave: string, posicao: number): BannerDaHome[] {
   const ordenados = ordenarBanners(banners);
-  const atual = ordenados.findIndex((banner) => banner.chave === chave);
+  const vivos = ordenados.filter((banner) => !banner.excluidoEm);
+  const naLixeira = ordenados.filter((banner) => banner.excluidoEm);
+  const atual = vivos.findIndex((banner) => banner.chave === chave);
   if (atual < 0) return renumerarBanners(ordenados);
-  const destino = Math.min(Math.max(Math.round(posicao) || 1, 1), ordenados.length) - 1;
-  const [banner] = ordenados.splice(atual, 1);
-  ordenados.splice(destino, 0, banner);
-  return renumerarBanners(ordenados);
+  const destino = Math.min(Math.max(Math.round(posicao) || 1, 1), vivos.length) - 1;
+  const [banner] = vivos.splice(atual, 1);
+  vivos.splice(destino, 0, banner);
+  return renumerarBanners([...vivos, ...naLixeira]);
 }
 
 // Texto do banner gravado (leitura tolerante): acima dos limites é cortado;
@@ -315,6 +337,7 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
         pontoDeFoco: ehPontoDeFoco(banner.pontoDeFoco) ? banner.pontoDeFoco : "centro",
         pontoDeFocoVertical: ehPontoDeFocoVertical(banner.pontoDeFocoVertical) ? banner.pontoDeFocoVertical : "centro",
         ...lerTextoDoBanner(banner),
+        excluidoEm: lerDataDoBanner(banner.excluidoEm),
       };
     })
     .filter((banner, indice, lista) => lista.findIndex((outro) => outro.chave === banner.chave) === indice)
@@ -336,7 +359,7 @@ export function lerConfiguracaoDaHome(dados: unknown): ConfiguracaoDaHome {
 // com link para /artigos aparece sem link.
 export function slidesDaHome(configuracao: ConfiguracaoDaHome | null, imagens: Map<string, ImagemNaTela>, artigosAtivo = true): SlideDoBanner[] {
   const slides = ordenarBanners(configuracao?.banners ?? [])
-    .filter((banner) => banner.ativo && banner.midiaId && imagens.has(banner.midiaId))
+    .filter((banner) => banner.ativo && !banner.excluidoEm && banner.midiaId && imagens.has(banner.midiaId))
     .map((banner) => {
       const midia = imagens.get(banner.midiaId as string) as ImagemNaTela;
       const alt = banner.alt || midia.alt;

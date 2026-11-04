@@ -10,7 +10,7 @@ import { ehIdDeDocumentoValido } from "@/lib/validacao";
 export const metadata: Metadata = { title: "Editar produto" };
 
 export default async function PaginaEditarProduto({ params }: { params: Promise<{ id: string }> }) {
-  await exigirPapelDoPainel();
+  await exigirPapelDoPainel("conteudo.editar");
   const { id } = await params;
   // Id inválido ou inexistente: volta para a lista.
   if (!ehIdDeDocumentoValido(id)) redirect("/admin/loja");

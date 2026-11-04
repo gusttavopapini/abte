@@ -7,7 +7,7 @@ import { listarTopicosAtivos } from "@/lib/dados/colecoes";
 export const metadata: Metadata = { title: "Novo produto" };
 
 export default async function PaginaNovoProduto() {
-  await exigirPapelDoPainel();
+  await exigirPapelDoPainel("conteudo.editar");
   const categorias = await listarTopicosAtivos("categoriaDeProduto");
   return (
     <div>

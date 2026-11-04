@@ -1,13 +1,14 @@
 "use server";
 
-// Ações de servidor do diretório de profissionais.
+// Ações de servidor do diretório de profissionais. Lixeira, restaurar,
+// excluir de vez e ativar ficam nas ações comuns (acoes-lixeira.ts).
 // Toda ação começa por exigirPapelDoPainel(): sem papel, nada é lido nem gravado.
 // A gravação (com o registro de alterações) fica em src/lib/gravacao/profissionais.ts.
 // As respostas trazem a mensagem para a tela (e os erros de cada campo), em português.
 import { revalidatePath } from "next/cache";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
-import { gravarProfissional, marcarExclusaoDoProfissional } from "@/lib/gravacao/profissionais";
+import { gravarProfissional } from "@/lib/gravacao/profissionais";
 import { completarDonoDasMidias } from "@/lib/midia/biblioteca";
 import { validarProfissional, type CampoDoProfissional } from "@/lib/profissionais";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
@@ -27,7 +28,7 @@ function atualizarPaginas() {
 
 // Cria (sem id) ou atualiza (com id) um profissional.
 export async function salvarProfissional(_anterior: RespostaDoProfissional | null, dados: FormData): Promise<RespostaDoProfissional> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   const id = dados.get("id");
   if (id !== null && id !== "" && !ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Profissional não encontrado." };
 
@@ -55,27 +56,4 @@ export async function salvarProfissional(_anterior: RespostaDoProfissional | nul
 
   atualizarPaginas();
   return { ok: true, mensagem: `"${resultado.dados.nome}" foi salvo.` };
-}
-
-async function marcarExclusao(dados: FormData, excluir: boolean): Promise<RespostaDoProfissional> {
-  const usuario = await exigirPapelDoPainel();
-  const id = dados.get("id");
-  if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Profissional não encontrado." };
-  try {
-    const resultado = await marcarExclusaoDoProfissional(firestoreAdmin(), id, excluir, autorDaAlteracao(usuario));
-    if (!resultado.ok) return { ok: false, mensagem: resultado.mensagem };
-    atualizarPaginas();
-    return { ok: true, mensagem: excluir ? `"${resultado.nome}" foi para os excluídos e saiu do site.` : `"${resultado.nome}" foi restaurado.` };
-  } catch (erro) {
-    console.error("Falha ao excluir ou restaurar profissional:", erro);
-    return { ok: false, mensagem: excluir ? "Não foi possível excluir agora. Tente de novo em instantes." : "Não foi possível restaurar agora. Tente de novo em instantes." };
-  }
-}
-
-export async function excluirProfissional(_anterior: RespostaDoProfissional | null, dados: FormData): Promise<RespostaDoProfissional> {
-  return marcarExclusao(dados, true);
-}
-
-export async function restaurarProfissional(_anterior: RespostaDoProfissional | null, dados: FormData): Promise<RespostaDoProfissional> {
-  return marcarExclusao(dados, false);
 }

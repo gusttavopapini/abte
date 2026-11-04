@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FocusEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { type FocusEvent, type KeyboardEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import {
   duplicarItem,
   excluirItemDeVez,
@@ -16,12 +16,63 @@ import { ConfirmacaoDoPainel } from "../ConfirmacaoDoPainel/ConfirmacaoDoPainel"
 import { useAvisarNoPainel } from "../MensagensDoPainel/MensagensDoPainel";
 import estilos from "./AcoesDoItem.module.css";
 
+// Operações do menu. Para as coleções, montadas a partir das ações comuns
+// (acoes-lixeira.ts); itens fora de coleção (banners da home) passam as suas.
+export type OperacoesDoItem = {
+  mudarSituacao?: (ligar: boolean) => Promise<RespostaDaAcaoDoItem>;
+  duplicar?: () => Promise<RespostaDaAcaoDoItem>;
+  moverParaLixeira: () => Promise<RespostaDaAcaoDoItem>;
+  restaurar: () => Promise<RespostaDaAcaoDoItem>;
+  excluirDeVez: (confirmacao: string) => Promise<RespostaDaAcaoDoItem>;
+};
+
+// Como o item é chamado nas mensagens e nos botões.
+export type TextosDoItem = {
+  artigo: "o" | "a";
+  nome: string;
+  // Rótulos de publicar e despublicar (ou ativar e desativar); null: sem.
+  ligar: string | null;
+  desligar: string | null;
+  // Posts e artigos voltam da lixeira como rascunho.
+  voltaComoRascunho: boolean;
+};
+
+function textosDaColecao(colecao: ColecaoDoPainel): TextosDoItem {
+  const { artigo, nome, situacao, rascunhoNaLixeira } = COLECOES_DO_PAINEL[colecao];
+  const publicacao = situacao?.ligado === "publicado";
+  return {
+    artigo,
+    nome,
+    ligar: situacao ? (publicacao ? "Publicar" : "Ativar") : null,
+    desligar: situacao ? (publicacao ? "Despublicar" : "Desativar") : null,
+    voltaComoRascunho: rascunhoNaLixeira,
+  };
+}
+
+function operacoesDaColecao(colecao: ColecaoDoPainel, id: string, podeDuplicar: boolean): OperacoesDoItem {
+  return {
+    mudarSituacao: COLECOES_DO_PAINEL[colecao].situacao ? (ligar) => publicarOuDespublicar(colecao, id, ligar) : undefined,
+    duplicar: podeDuplicar ? () => duplicarItem(colecao, id) : undefined,
+    moverParaLixeira: () => moverItemParaALixeira(colecao, id),
+    restaurar: () => restaurarItemDaLixeira(colecao, id),
+    excluirDeVez: (confirmacao) => excluirItemDeVez(colecao, id, confirmacao),
+  };
+}
+
 type Props = {
-  colecao: ColecaoDoPainel;
+  // Item de uma coleção: as operações e os textos vêm dela.
+  colecao?: ColecaoDoPainel;
+  // Item fora de coleção (banner da home): operações e textos próprios.
+  operacoes?: OperacoesDoItem;
+  textos?: TextosDoItem;
   id: string;
   nome: string;
   situacao: Situacao;
-  hrefEditar: string;
+  // Editar por endereço (página do formulário) ou por janela na própria tela.
+  hrefEditar?: string;
+  aoEditar?: () => void;
+  // "Abrir" na lixeira (ver o item sem restaurar); falso esconde.
+  abrirNaLixeira?: boolean;
   // Endereço no site, só quando publicado.
   hrefNoSite?: string | null;
   podeExcluirDeVez: boolean;
@@ -41,7 +92,7 @@ const FOCAVEIS = "a[href], button:not([disabled])";
 // fecha e devolve o foco, Tab para fora fecha). Mover para a lixeira e
 // excluir de vez pedem confirmação na janela do painel; o resultado aparece
 // na caixa de mensagens acima da lista.
-export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSite, podeExcluirDeVez, podeDuplicar, prefixoDaCopia, perdas }: Props) {
+export function AcoesDoItem({ colecao, operacoes, textos, id, nome, situacao, hrefEditar, aoEditar, abrirNaLixeira = true, hrefNoSite, podeExcluirDeVez, podeDuplicar = false, prefixoDaCopia, perdas }: Props) {
   const router = useRouter();
   const avisar = useAvisarNoPainel();
   const idDaLista = useId();
@@ -51,10 +102,22 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
   const botaoRef = useRef<HTMLButtonElement>(null);
   const caixaRef = useRef<HTMLDivElement>(null);
   const listaRef = useRef<HTMLUListElement>(null);
-  const configuracao = COLECOES_DO_PAINEL[colecao];
+  if (!colecao && (!operacoes || !textos)) throw new Error("AcoesDoItem precisa de uma coleção ou de operações e textos.");
+  const ops = operacoes ?? operacoesDaColecao(colecao as ColecaoDoPainel, id, podeDuplicar);
+  const t = textos ?? textosDaColecao(colecao as ColecaoDoPainel);
   const naLixeira = situacao === "lixeira";
-  const rotuloLigar = configuracao.situacao?.ligado === "publicado" ? "Publicar" : "Ativar";
-  const rotuloDesligar = configuracao.situacao?.ligado === "publicado" ? "Despublicar" : "Desativar";
+  const restaurado = t.artigo === "a" ? "restaurada" : "restaurado";
+
+  // A lista abre alinhada à direita do botão (fim da linha da tabela); se
+  // assim sair da tela (botão perto da borda esquerda, como nos cartões dos
+  // banners), abre para a direita. Atributo posto direto no elemento, antes
+  // da pintura, sem nova renderização.
+  useLayoutEffect(() => {
+    const lista = listaRef.current;
+    if (!lista || !aberto) return;
+    delete lista.dataset.abrir;
+    if (lista.getBoundingClientRect().left < 0) lista.dataset.abrir = "direita";
+  }, [aberto]);
 
   // Clique fora fecha o menu.
   useEffect(() => {
@@ -109,11 +172,18 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
     if (!caixaRef.current?.contains(evento.relatedTarget as Node | null)) setAberto(false);
   }
 
-  // A janela de confirmação devolve o foco a quem a abriu: o botão "Ações".
+  // A janela de confirmação (e a de edição) devolve o foco a quem a abriu:
+  // o botão "Ações".
   function abrirJanela(tipo: Exclude<Janela, null>) {
     setAberto(false);
     botaoRef.current?.focus();
     setJanela(tipo);
+  }
+
+  function editar() {
+    setAberto(false);
+    botaoRef.current?.focus();
+    aoEditar?.();
   }
 
   function concluir(resposta: RespostaDaAcaoDoItem, focar: boolean, link?: { href: string; rotulo: string }) {
@@ -136,6 +206,18 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
       setOcupado(false);
     }
   }
+
+  const itemDeEditar = (rotulo: string) =>
+    aoEditar ? (
+      <li>
+        <button type="button" className={estilos.item} onClick={editar}>{rotulo}</button>
+      </li>
+    ) : hrefEditar ? (
+      <li>
+        <Link href={hrefEditar} className={estilos.item}>{rotulo}</Link>
+      </li>
+    ) : null;
+  const { mudarSituacao, duplicar } = ops;
 
   return (
     <div ref={caixaRef} className={estilos.caixa} onBlur={aoSairDoFoco}>
@@ -164,9 +246,7 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
       <ul id={idDaLista} ref={listaRef} className={estilos.lista} hidden={!aberto} onKeyDown={aoTeclarNaLista}>
         {!naLixeira && (
           <>
-            <li>
-              <Link href={hrefEditar} className={estilos.item}>Editar</Link>
-            </li>
+            {itemDeEditar("Editar")}
             {hrefNoSite && situacao === "publicado" && (
               <li>
                 <a href={hrefNoSite} target="_blank" rel="noopener noreferrer" className={estilos.item}>
@@ -174,16 +254,16 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
                 </a>
               </li>
             )}
-            {configuracao.situacao && (
+            {mudarSituacao && t.ligar && t.desligar && (
               <li>
-                <button type="button" className={estilos.item} onClick={() => executar(() => publicarOuDespublicar(colecao, id, situacao !== "publicado"), false)}>
-                  {situacao === "publicado" ? rotuloDesligar : rotuloLigar}
+                <button type="button" className={estilos.item} onClick={() => executar(() => mudarSituacao(situacao !== "publicado"), false)}>
+                  {situacao === "publicado" ? t.desligar : t.ligar}
                 </button>
               </li>
             )}
-            {podeDuplicar && (
+            {duplicar && (
               <li>
-                <button type="button" className={estilos.item} onClick={() => executar(() => duplicarItem(colecao, id), true)}>Duplicar</button>
+                <button type="button" className={estilos.item} onClick={() => executar(duplicar, true)}>Duplicar</button>
               </li>
             )}
             <li>
@@ -194,11 +274,9 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
         {naLixeira && (
           <>
             <li>
-              <button type="button" className={estilos.item} onClick={() => executar(() => restaurarItemDaLixeira(colecao, id), true)}>Restaurar</button>
+              <button type="button" className={estilos.item} onClick={() => executar(ops.restaurar, true)}>Restaurar</button>
             </li>
-            <li>
-              <Link href={hrefEditar} className={estilos.item}>Abrir</Link>
-            </li>
+            {abrirNaLixeira && itemDeEditar("Abrir")}
             {podeExcluirDeVez && (
               <li>
                 <button type="button" className={estilos.item} onClick={() => abrirJanela("excluirDeVez")}>Excluir de vez</button>
@@ -214,14 +292,14 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
         titulo={`Mover para a lixeira: "${nome}"`}
         rotuloDoBotao="Mover para a lixeira"
         aoConfirmar={async () => {
-          const resposta = await moverItemParaALixeira(colecao, id);
+          const resposta = await ops.moverParaLixeira();
           if (resposta.ok) concluir(resposta, true);
           return resposta;
         }}
       >
         <p>
-          {configuracao.artigo === "a" ? "A" : "O"} {configuracao.nome} sai do site e fica na lixeira, de onde pode ser {configuracao.artigo === "a" ? "restaurada" : "restaurado"} depois.
-          {configuracao.rascunhoNaLixeira && " Se for restaurado, volta como rascunho."}
+          {t.artigo === "a" ? "A" : "O"} {t.nome} sai do site e fica na lixeira, de onde pode ser {restaurado} depois.
+          {t.voltaComoRascunho && ` Se for ${restaurado}, volta como rascunho.`}
         </p>
       </ConfirmacaoDoPainel>
 
@@ -232,12 +310,14 @@ export function AcoesDoItem({ colecao, id, nome, situacao, hrefEditar, hrefNoSit
         rotuloDoBotao="Excluir de vez"
         reforcada={{ nome, perdas }}
         aoConfirmar={async (confirmacao) => {
-          const resposta = await excluirItemDeVez(colecao, id, confirmacao);
+          const resposta = await ops.excluirDeVez(confirmacao);
           if (resposta.ok) concluir(resposta, true);
           return resposta;
         }}
       >
-        <p>{configuracao.artigo === "a" ? "A" : "O"} {configuracao.nome} será {configuracao.artigo === "a" ? "apagada" : "apagado"} do painel e não poderá ser {configuracao.artigo === "a" ? "recuperada" : "recuperado"}.</p>
+        <p>
+          {t.artigo === "a" ? "A" : "O"} {t.nome} será {t.artigo === "a" ? "apagada" : "apagado"} do painel e não poderá ser {t.artigo === "a" ? "recuperada" : "recuperado"}.
+        </p>
       </ConfirmacaoDoPainel>
     </div>
   );

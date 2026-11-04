@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerProfissionais, ordenarProfissionais } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
@@ -9,7 +10,7 @@ import { ProfissionaisAdminClient } from "./ProfissionaisAdminClient";
 export const metadata: Metadata = { title: "Profissionais" };
 
 export default async function PaginaAdminProfissionais() {
-  await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel();
   const todos = ordenarProfissionais((await lerProfissionais().get()).docs.map((documento) => documento.data()));
   const fotos = await imagensAtivasPorId(todos.map((profissional) => profissional.fotoMidiaId));
   // Só os campos que a tela usa; as datas não vão para o navegador.
@@ -40,6 +41,7 @@ export default async function PaginaAdminProfissionais() {
     <ProfissionaisAdminClient
       ativos={paraTela(todos.filter((profissional) => !profissional.excluidoEm))}
       excluidos={paraTela(todos.filter((profissional) => profissional.excluidoEm))}
+      podeExcluirDeVez={papelPodeExecutar(usuario.papel, "conteudo.excluirDeVez")}
     />
   );
 }

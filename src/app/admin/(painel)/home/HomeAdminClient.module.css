@@ -326,3 +326,8 @@
   aspect-ratio: 9 / 16;
   border-radius: var(--radius);
 }
+
+/* Etiqueta "Na lixeira" (04/11/2026): contorno tracejado, como o selo das listas. */
+.naLixeira {
+  border-style: dashed;
+}

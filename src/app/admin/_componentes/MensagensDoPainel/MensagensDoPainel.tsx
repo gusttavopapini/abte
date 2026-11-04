@@ -21,8 +21,9 @@ const Contexto = createContext<Avisar | null>(null);
 
 // Resultado das ações rápidas das listas (04/11/2026): uma caixa branca acima
 // da lista, anunciada aos leitores de tela, com a última mensagem.
-export function MensagensDoPainel({ children }: { children: ReactNode }) {
-  const [atual, setAtual] = useState<(MensagemDoPainel & { chave: number }) | null>(null);
+// inicial: mensagem já na chegada (ex.: "Produto salvo." depois do formulário).
+export function MensagensDoPainel({ children, inicial }: { children: ReactNode; inicial?: MensagemDoPainel }) {
+  const [atual, setAtual] = useState<(MensagemDoPainel & { chave: number }) | null>(inicial ? { ...inicial, chave: 0 } : null);
   const caixaRef = useRef<HTMLDivElement>(null);
   const avisar = useCallback<Avisar>((mensagem) => setAtual({ ...mensagem, chave: Date.now() }), []);
 

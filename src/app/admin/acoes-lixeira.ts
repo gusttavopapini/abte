@@ -13,6 +13,7 @@ import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { excluirDeVez, moverParaLixeira, mudarSituacao, restaurarDaLixeira, type ResultadoDaAcao } from "@/lib/gravacao/lixeira";
 import { duplicarArtigo } from "@/lib/gravacao/artigos";
 import { duplicarPost } from "@/lib/gravacao/posts";
+import { duplicarProduto } from "@/lib/gravacao/produtos";
 import { LIMITE_TITULO_DO_ARTIGO, LIMITE_TITULO_DO_POST } from "@/lib/limitesDoConteudo";
 import { COLECOES_DO_PAINEL, ehColecaoDoPainel, MENSAGENS_DA_LIXEIRA, type ColecaoDoPainel } from "@/lib/lixeira";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
@@ -112,20 +113,27 @@ export async function excluirItemDeVez(colecao: unknown, id: unknown, confirmaca
   );
 }
 
-// Duplicar (posts e artigos nesta etapa; produtos na seguinte): cópia como
-// rascunho, "Cópia de ...", sem slug nem publicação.
+// Duplicar (posts, artigos e produtos): cópia como rascunho (o produto, fora
+// da loja), "Cópia de ...", sem slug copiado nem publicação.
 export async function duplicarItem(colecao: unknown, id: unknown): Promise<RespostaDaAcaoDoItem> {
   const preparo = await preparar("conteudo.editar", colecao, id);
   if (!preparo.ok) return preparo.resposta;
   const { usuario, colecao: c, id: i } = preparo;
   try {
     const autor = autorDaAlteracao(usuario);
+    const db = firestoreAdmin();
     const copia =
-      c === "posts" ? await duplicarPost(firestoreAdmin(), i, autor, LIMITE_TITULO_DO_POST) : c === "artigos" ? await duplicarArtigo(firestoreAdmin(), i, autor, LIMITE_TITULO_DO_ARTIGO) : null;
+      c === "posts"
+        ? await duplicarPost(db, i, autor, LIMITE_TITULO_DO_POST)
+        : c === "artigos"
+          ? await duplicarArtigo(db, i, autor, LIMITE_TITULO_DO_ARTIGO)
+          : c === "produtos"
+            ? await duplicarProduto(db, i, autor).then((resultado) => (resultado.ok ? { ...resultado, titulo: resultado.nome } : resultado))
+            : null;
     if (!copia) return { ok: false, mensagem: "Este item não pode ser duplicado." };
     if (!copia.ok) return { ok: false, mensagem: copia.mensagem };
     atualizarPaginas(c);
-    return { ok: true, mensagem: `Cópia criada como rascunho: "${copia.titulo}".`, novoId: copia.id };
+    return { ok: true, mensagem: c === "produtos" ? `Cópia criada fora da loja: "${copia.titulo}".` : `Cópia criada como rascunho: "${copia.titulo}".`, novoId: copia.id };
   } catch (erro) {
     console.error("Falha ao duplicar no painel:", erro);
     return { ok: false, mensagem: ERRO_GENERICO };

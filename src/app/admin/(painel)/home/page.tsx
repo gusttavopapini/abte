@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerImagensDaHome } from "@/lib/dados/home";
 import { lerConfiguracaoDoSiteAgora } from "@/lib/dados/site";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
-import { ESPACOS_DA_HOME, midiasDaHome, nomeDoBanner, ordenarBanners } from "@/lib/site/home";
+import { ESPACOS_DA_HOME, midiasDaHome, nomeDoBanner, nomeDoBannerNaTela, ordenarBanners } from "@/lib/site/home";
 import { HomeAdminClient, type BannerNaTela, type EspacoNaTela } from "./HomeAdminClient";
 
 export const metadata: Metadata = { title: "Home" };
@@ -12,13 +13,14 @@ export const metadata: Metadata = { title: "Home" };
 // sections, lidas de configuracoes/home. Sem o documento, a lista de banners
 // fica vazia e a home mostra o padrão de antes.
 export default async function PaginaAdminHome() {
-  await exigirPapelDoPainel("home.editar");
+  const usuario = await exigirPapelDoPainel("home.editar");
   const configuracao = await lerImagensDaHome();
   const imagens = await imagensAtivasPorId(midiasDaHome(configuracao));
 
   const banners: BannerNaTela[] = ordenarBanners(configuracao?.banners ?? []).map((banner) => ({
     ...banner,
-    nome: nomeDoBanner(banner.ordem),
+    nome: banner.excluidoEm ? "Banner na lixeira" : nomeDoBanner(banner.ordem),
+    nomeNaTela: nomeDoBannerNaTela(banner, banner.ordem),
     imagem: banner.midiaId ? imagens.get(banner.midiaId) ?? null : null,
     imagemCelular: banner.midiaMobileId ? imagens.get(banner.midiaMobileId) ?? null : null,
     imagemTablet: banner.midiaTabletId ? imagens.get(banner.midiaTabletId) ?? null : null,
@@ -41,5 +43,14 @@ export default async function PaginaAdminHome() {
   const { artigosAtivo } = await lerConfiguracaoDoSiteAgora().catch(() => ({ artigosAtivo: true }));
   const video = configuracao?.video ?? null;
   const capaDoVideo = video?.capaMidiaId ? imagens.get(video.capaMidiaId) ?? null : null;
-  return <HomeAdminClient banners={banners} espacos={espacos} artigosAtivo={artigosAtivo} video={video} capaDoVideo={capaDoVideo} />;
+  return (
+    <HomeAdminClient
+      banners={banners}
+      espacos={espacos}
+      artigosAtivo={artigosAtivo}
+      video={video}
+      capaDoVideo={capaDoVideo}
+      podeExcluirDeVez={papelPodeExecutar(usuario.papel, "conteudo.excluirDeVez")}
+    />
+  );
 }

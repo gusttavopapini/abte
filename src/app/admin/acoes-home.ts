@@ -8,7 +8,9 @@
 import { revalidatePath } from "next/cache";
 import { autorDaAlteracao, exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import { excluirBanner, salvarBanner, salvarImagemDoEspaco } from "@/lib/gravacao/home";
+import { excluirBannerDeVez, moverBannerParaLixeira, mudarSituacaoDoBanner, restaurarBanner, salvarBanner, salvarImagemDoEspaco } from "@/lib/gravacao/home";
+import { papelPodeExecutar } from "@/lib/auth/papeis";
+import type { RespostaDaAcaoDoItem } from "@/app/admin/acoes-lixeira";
 import { headers } from "next/headers";
 import { conferirEnvioDoVideo, gerarCapaDoYoutube, prepararEnvioDoVideo, prepararEnvioRetomavel, salvarVideoQuemSomos } from "@/lib/gravacao/videoQuemSomos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
@@ -61,19 +63,45 @@ export async function salvarBannerDaHome(_anterior: RespostaDaHome, dados: FormD
   }
 }
 
-export async function excluirBannerDaHome(_anterior: RespostaDaHome, dados: FormData): Promise<RespostaDaHome> {
+// Ações rápidas dos banners (04/11/2026): ativar e desativar, lixeira,
+// restaurar e excluir de vez. Exigem a permissão da home e a da ação de
+// conteúdo (tabela PERMISSOES); excluir de vez é só do administrador.
+async function acaoDoBanner(
+  acao: "conteudo.publicar" | "conteudo.excluir" | "conteudo.restaurar" | "conteudo.excluirDeVez",
+  chave: unknown,
+  gravar: (chave: string, autor: ReturnType<typeof autorDaAlteracao>) => Promise<{ ok: true; nome: string; mudou: boolean } | { ok: false; mensagem: string }>,
+  mensagem: (nome: string) => string,
+): Promise<RespostaDaAcaoDoItem> {
   const usuario = await exigirPapelDoPainel("home.editar");
-  const chave = dados.get("chave");
+  if (!papelPodeExecutar(usuario.papel, acao)) return { ok: false, mensagem: acao === "conteudo.excluirDeVez" ? "Só o administrador pode excluir de vez." : "Seu papel não permite esta ação." };
   if (!ehChaveDeBanner(chave)) return { ok: false, mensagem: "Banner não encontrado. Recarregue a página." };
   try {
-    const excluido = await excluirBanner(firestoreAdmin(), chave, autorDaAlteracao(usuario));
-    if (!excluido.ok) return { ok: false, mensagem: excluido.mensagem };
-    atualizarPaginas();
-    return { ok: true, mensagem: `${excluido.nome} excluído. A imagem continua na biblioteca.` };
+    const resultado = await gravar(chave, autorDaAlteracao(usuario));
+    if (!resultado.ok) return { ok: false, mensagem: resultado.mensagem };
+    if (resultado.mudou) atualizarPaginas();
+    return { ok: true, mensagem: mensagem(resultado.nome) };
   } catch (erro) {
-    console.error("Falha ao excluir o banner da home:", erro);
-    return { ok: false, mensagem: "Não foi possível excluir agora. Tente de novo em instantes." };
+    console.error("Falha numa ação rápida do banner:", erro);
+    return { ok: false, mensagem: "Não foi possível concluir agora. Tente de novo em instantes." };
   }
+}
+
+export async function ativarOuDesativarBanner(chave: unknown, ativo: boolean): Promise<RespostaDaAcaoDoItem> {
+  return acaoDoBanner("conteudo.publicar", chave, (c, autor) => mudarSituacaoDoBanner(firestoreAdmin(), c, ativo === true, autor), (nome) =>
+    ativo ? `"${nome}" foi ativado. A home já mostra o banner, se ele tiver imagem.` : `"${nome}" foi desativado e saiu da home.`,
+  );
+}
+
+export async function moverBannerParaALixeira(chave: unknown): Promise<RespostaDaAcaoDoItem> {
+  return acaoDoBanner("conteudo.excluir", chave, (c, autor) => moverBannerParaLixeira(firestoreAdmin(), c, autor), (nome) => `"${nome}" foi para a lixeira e saiu da home. A imagem continua na biblioteca.`);
+}
+
+export async function restaurarBannerDaHome(chave: unknown): Promise<RespostaDaAcaoDoItem> {
+  return acaoDoBanner("conteudo.restaurar", chave, (c, autor) => restaurarBanner(firestoreAdmin(), c, autor), (nome) => `"${nome}" foi restaurado, ainda desativado. Ative quando quiser que apareça na home.`);
+}
+
+export async function excluirBannerDaHomeDeVez(chave: unknown, confirmacao: unknown): Promise<RespostaDaAcaoDoItem> {
+  return acaoDoBanner("conteudo.excluirDeVez", chave, (c, autor) => excluirBannerDeVez(firestoreAdmin(), c, confirmacao, autor), (nome) => `"${nome}" foi excluído de vez. A imagem continua na biblioteca.`);
 }
 
 export async function salvarImagemDaSecao(_anterior: RespostaDaHome, dados: FormData): Promise<RespostaDaHome> {

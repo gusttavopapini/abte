@@ -29,7 +29,7 @@ import {
 import type { ImagemNaTela } from "../../src/lib/midia/tela.ts";
 
 const IMAGEM: ImagemNaTela = { alt: "Alt da biblioteca", largura: 1920, altura: 800, variantes: [{ largura: 1600, url: "https://exemplo.invalid/a.webp" }] };
-const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", pontoDeFocoVertical: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda", ...extra });
+const banner = (chave: string, ordem: number, extra: Partial<BannerDaHome> = {}): BannerDaHome => ({ chave, ordem, midiaId: `m${ordem}`, midiaMobileId: null, alt: "", href: "", ativo: true, pontoDeFoco: "centro", pontoDeFocoVertical: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda", excluidoEm: null, ...extra });
 
 describe("Link do banner", () => {
   test("vazio, caminho interno e https valem", () => {
@@ -319,7 +319,34 @@ describe("Ações da home: sessão e papel", () => {
     const { readFileSync } = await import("node:fs");
     const codigo = readFileSync("src/app/admin/acoes-home.ts", "utf8");
     const acoes = [...codigo.matchAll(/export async function (\w+)\([^)]*(?:\{[^}]*\})?[^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => ({ nome, primeira }));
-    assert.deepEqual(acoes.map((acao) => acao.nome), ["salvarBannerDaHome", "excluirBannerDaHome", "salvarImagemDaSecao", "prepararEnvioDoVideoDaHome", "confirmarEnvioDoVideoDaHome", "salvarVideoDaHome", "prepararEnvioRetomavelDaHome", "gerarCapaDoYoutubeDaHome"]);
-    for (const acao of acoes) assert.match(acao.primeira, /^(?:const usuario = )?await exigirPapelDoPainel\("home\.editar"\);$/, acao.nome);
+    assert.deepEqual(acoes.map((acao) => acao.nome), [
+      "salvarBannerDaHome",
+      "ativarOuDesativarBanner",
+      "moverBannerParaALixeira",
+      "restaurarBannerDaHome",
+      "excluirBannerDaHomeDeVez",
+      "salvarImagemDaSecao",
+      "prepararEnvioDoVideoDaHome",
+      "confirmarEnvioDoVideoDaHome",
+      "salvarVideoDaHome",
+      "prepararEnvioRetomavelDaHome",
+      "gerarCapaDoYoutubeDaHome",
+    ]);
+    // As ações rápidas dos banners (04/11/2026) passam por acaoDoBanner, com a
+    // permissão de conteúdo certa; ela começa por exigirPapelDoPainel("home.editar").
+    const rapidas: Record<string, string> = {
+      ativarOuDesativarBanner: "conteudo.publicar",
+      moverBannerParaALixeira: "conteudo.excluir",
+      restaurarBannerDaHome: "conteudo.restaurar",
+      excluirBannerDaHomeDeVez: "conteudo.excluirDeVez",
+    };
+    for (const acao of acoes) {
+      if (rapidas[acao.nome]) assert.ok(acao.primeira.startsWith(`return acaoDoBanner("${rapidas[acao.nome]}", chave,`), acao.nome);
+      else assert.match(acao.primeira, /^(?:const usuario = )?await exigirPapelDoPainel\("home\.editar"\);$/, acao.nome);
+    }
+    const corpo = codigo.match(/async function acaoDoBanner\([\s\S]*?\): Promise<RespostaDaAcaoDoItem> \{([\s\S]*?)\n\}/)?.[1] ?? "";
+    const linhas = corpo.trim().split("\n").map((linha) => linha.trim());
+    assert.equal(linhas[0], 'const usuario = await exigirPapelDoPainel("home.editar");');
+    assert.match(linhas[1], /^if \(!papelPodeExecutar\(usuario\.papel, acao\)\) return/);
   });
 });

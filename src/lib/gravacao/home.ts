@@ -5,6 +5,7 @@
 // nomes do que mudou e o nome do espaço, nunca os valores.
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
+import { MENSAGENS_DA_LIXEIRA, confirmacaoDeExclusaoValida } from "../lixeira.ts";
 import { midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
 import {
   COLECAO_DA_HOME,
@@ -15,8 +16,10 @@ import {
   camposAlteradosDoEspaco,
   lerConfiguracaoDaHome,
   nomeDoBanner,
+  nomeDoBannerNaTela,
   ordenarBanners,
   posicionarBanner,
+  renumerarBanners,
   versaoRecusada,
   type BannerDaHome,
   type DadosDoBanner,
@@ -53,6 +56,8 @@ function paraGravar(banners: BannerDaHome[]): Record<string, unknown>[] {
   return banners.map((banner) => {
     const gravado: Record<string, unknown> = { ...banner };
     for (const campo of OPCIONAIS_DO_BANNER) if (!gravado[campo]) delete gravado[campo];
+    // Fora da lixeira, sem o campo (como nos documentos anteriores a ela).
+    if (!banner.excluidoEm) delete gravado.excluidoEm;
     // Posição do texto só quando há texto.
     if (!banner.titulo && !banner.subtitulo && !banner.textoDoBotao) delete gravado.posicaoDoTexto;
     return gravado;
@@ -65,7 +70,12 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
     const documento = await transacao.get(referencia(db));
     const configuracao = lerConfiguracaoDaHome(documento.data());
     const antes = configuracao.banners.find((banner) => banner.chave === dados.chave) ?? null;
-    if (!antes && configuracao.banners.length >= LIMITE_DE_BANNERS) return { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners.` };
+    // O limite conta também os banners da lixeira (ocupam lugar no documento).
+    if (!antes && configuracao.banners.length >= LIMITE_DE_BANNERS) {
+      return { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners, contando os da lixeira. Exclua de vez um banner da lixeira para liberar lugar.` };
+    }
+    // Na lixeira, o banner só é salvo desativado: ativar exige restaurar antes.
+    if (antes?.excluidoEm && dados.ativo) return { ok: false, mensagem: MENSAGENS_DA_LIXEIRA.naLixeira };
     const recusa = await conferirVersoes(db, dados, antes);
     if (recusa) return recusa;
 
@@ -85,6 +95,7 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
       subtitulo: dados.subtitulo,
       textoDoBotao: dados.href ? dados.textoDoBotao : "",
       posicaoDoTexto: dados.posicaoDoTexto,
+      excluidoEm: antes?.excluidoEm ?? null,
     };
     const outros = configuracao.banners.filter((banner) => banner.chave !== dados.chave);
     const banners = posicionarBanner([...outros, novo], dados.chave, dados.posicao);
@@ -104,17 +115,70 @@ export async function salvarBanner(db: Firestore, dados: DadosDoBanner, autor: A
   });
 }
 
-export async function excluirBanner(db: Firestore, chave: string, autor: AutorDaAlteracao): Promise<{ ok: true; nome: string } | Falha> {
+type ResultadoDoBanner = { ok: true; nome: string; mudou: boolean } | { ok: false; mensagem: string };
+
+// Altera um banner da lista numa transação, com o registro. "alterar"
+// devolve a lista nova e o resumo, ou uma recusa (sem gravar).
+async function alterarBanner(
+  db: Firestore,
+  chave: string,
+  autor: AutorDaAlteracao,
+  acao: "editar" | "excluir" | "restaurar" | "excluir_definitivo",
+  alterar: (banner: BannerDaHome, nome: string, ordenados: BannerDaHome[]) => { banners: BannerDaHome[]; resumo: string } | { recusa: string } | { semMudanca: true },
+): Promise<ResultadoDoBanner> {
   return db.runTransaction(async (transacao) => {
     const documento = await transacao.get(referencia(db));
     const ordenados = ordenarBanners(lerConfiguracaoDaHome(documento.data()).banners);
     const posicao = ordenados.findIndex((banner) => banner.chave === chave);
-    if (posicao < 0) return { ok: false, mensagem: "Banner não encontrado. Recarregue a página." };
-    const banners = ordenados.filter((banner) => banner.chave !== chave).map((banner, indice) => ({ ...banner, ordem: indice + 1 }));
-    const nome = nomeDoBanner(posicao + 1);
-    transacao.set(referencia(db), { banners: paraGravar(banners), atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
-    registrarNaTransacao(db, transacao, autor, { colecao: COLECAO_DA_HOME, documentoId: DOCUMENTO_DA_HOME, acao: "excluir", campos: ["banners"], resumo: `${nome} excluído.` });
-    return { ok: true, nome };
+    if (posicao < 0) return { ok: false as const, mensagem: "Banner não encontrado. Recarregue a página." };
+    const banner = ordenados[posicao];
+    const nome = nomeDoBannerNaTela(banner, posicao + 1);
+    const resultado = alterar(banner, nome, ordenados);
+    if ("recusa" in resultado) return { ok: false as const, mensagem: resultado.recusa };
+    if ("semMudanca" in resultado) return { ok: true as const, nome, mudou: false };
+    transacao.set(referencia(db), { banners: paraGravar(resultado.banners), atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
+    registrarNaTransacao(db, transacao, autor, { colecao: COLECAO_DA_HOME, documentoId: DOCUMENTO_DA_HOME, acao, campos: ["banners"], resumo: resultado.resumo });
+    return { ok: true as const, nome, mudou: true };
+  });
+}
+
+// Lista renumerada: os banners fora da lixeira primeiro, na ordem.
+const reordenar = (banners: BannerDaHome[]) => renumerarBanners(ordenarBanners(banners));
+
+// Ativa ou desativa sem abrir o formulário. Na lixeira, recusa.
+export function mudarSituacaoDoBanner(db: Firestore, chave: string, ativo: boolean, autor: AutorDaAlteracao): Promise<ResultadoDoBanner> {
+  return alterarBanner(db, chave, autor, "editar", (banner, _nome, ordenados) => {
+    if (banner.excluidoEm) return { recusa: MENSAGENS_DA_LIXEIRA.naLixeira };
+    if (banner.ativo === ativo) return { semMudanca: true };
+    return { banners: ordenados.map((item) => (item.chave === chave ? { ...item, ativo } : item)), resumo: ativo ? "Banner ativado." : "Banner desativado." };
+  });
+}
+
+// Lixeira (04/11/2026): o banner fica no documento, desativado e por último.
+export function moverBannerParaLixeira(db: Firestore, chave: string, autor: AutorDaAlteracao): Promise<ResultadoDoBanner> {
+  return alterarBanner(db, chave, autor, "excluir", (banner, _nome, ordenados) => {
+    if (banner.excluidoEm) return { semMudanca: true };
+    return { banners: reordenar(ordenados.map((item) => (item.chave === chave ? { ...item, ativo: false, excluidoEm: new Date() } : item))), resumo: "Banner movido para a lixeira." };
+  });
+}
+
+// Restaurar: volta para o fim da lista, ainda desativado (ativar é outra ação).
+export function restaurarBanner(db: Firestore, chave: string, autor: AutorDaAlteracao): Promise<ResultadoDoBanner> {
+  return alterarBanner(db, chave, autor, "restaurar", (banner, _nome, ordenados) => {
+    if (!banner.excluidoEm) return { semMudanca: true };
+    const vivos = ordenados.filter((item) => !item.excluidoEm);
+    const restaurado = { ...banner, excluidoEm: null, ordem: vivos.length + 0.5 };
+    return { banners: reordenar(ordenados.map((item) => (item.chave === chave ? restaurado : item))), resumo: "Banner restaurado da lixeira." };
+  });
+}
+
+// Excluir de vez: só da lixeira, com a confirmação reforçada (EXCLUIR ou o
+// nome). A imagem continua na biblioteca.
+export function excluirBannerDeVez(db: Firestore, chave: string, confirmacao: unknown, autor: AutorDaAlteracao): Promise<ResultadoDoBanner> {
+  return alterarBanner(db, chave, autor, "excluir_definitivo", (banner, nome, ordenados) => {
+    if (!banner.excluidoEm) return { recusa: MENSAGENS_DA_LIXEIRA.soDaLixeira };
+    if (!confirmacaoDeExclusaoValida(confirmacao, nome)) return { recusa: MENSAGENS_DA_LIXEIRA.confirmacao };
+    return { banners: reordenar(ordenados.filter((item) => item.chave !== chave)), resumo: "Banner excluído de vez." };
   });
 }
 

@@ -213,3 +213,43 @@ describe("Lixeira de posts e artigos (04/11/2026)", () => {
     }
   }
 });
+
+// Lixeira de profissionais, produtos e banners (04/11/2026): pelo navegador,
+// nem quem tem papel ativa, move para a lixeira, restaura ou exclui de vez;
+// os banners ficam no documento configuracoes/home, também fechado.
+describe("Lixeira de profissionais, produtos e banners (04/11/2026)", () => {
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["administrador pelo navegador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor pelo navegador", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+
+  beforeEach(async () => {
+    await ambiente.withSecurityRulesDisabled(async (contexto) => {
+      const db = contexto.firestore();
+      await setDoc(doc(db, "profissionais", "naLixeira"), { nome: "exemplo", ativo: false, excluidoEm: new Date() });
+      await setDoc(doc(db, "produtos", "naLixeira"), { nome: "exemplo", publicado: false, excluidoEm: new Date() });
+      await setDoc(doc(db, "configuracoes", "home"), { banners: [{ chave: "banner-exemplo1", ordem: 1, ativo: false, excluidoEm: new Date() }] });
+    });
+  });
+
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem}: sem acesso à lixeira de profissionais e produtos`, async () => {
+      const db = obterContexto().firestore();
+      for (const [colecao, campo] of [["profissionais", "ativo"], ["produtos", "publicado"]] as const) {
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { excluidoEm: null }));
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { [campo]: true }));
+        await assertFails(getDocs(query(collection(db, colecao), where("excluidoEm", "!=", null))));
+        await assertFails(deleteDoc(doc(db, colecao, "naLixeira")));
+      }
+    });
+
+    test(`${quem}: sem acesso aos banners da home`, async () => {
+      const db = obterContexto().firestore();
+      await assertFails(getDoc(doc(db, "configuracoes", "home")));
+      await assertFails(updateDoc(doc(db, "configuracoes", "home"), { banners: [] }));
+      await assertFails(setDoc(doc(db, "configuracoes", "home"), { banners: [{ chave: "banner-exemplo1", ordem: 1, ativo: true }] }));
+      await assertFails(deleteDoc(doc(db, "configuracoes", "home")));
+    });
+  }
+});

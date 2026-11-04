@@ -8,7 +8,15 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { decidirAcessoAoPainel } from "../../src/lib/auth/papeis.ts";
 import { verificarCookieDeSessao } from "../../src/lib/auth/verificacao.ts";
-import { MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, MENSAGEM_IMAGEM_TABLET_INDISPONIVEL, excluirBanner, salvarBanner, salvarImagemDoEspaco } from "../../src/lib/gravacao/home.ts";
+import { MENSAGEM_IMAGEM_CELULAR_INDISPONIVEL, MENSAGEM_IMAGEM_DA_HOME_INDISPONIVEL, MENSAGEM_IMAGEM_TABLET_INDISPONIVEL, excluirBannerDeVez, moverBannerParaLixeira, salvarBanner, salvarImagemDoEspaco } from "../../src/lib/gravacao/home.ts";
+import type { AutorDaAlteracao as AutorDoApagar } from "../../src/lib/log/alteracoes.ts";
+
+// Tira um banner do documento (desde 04/11/2026, em dois passos: lixeira e
+// excluir de vez), para liberar vaga entre os testes.
+async function apagarBanner(db: import("firebase-admin/firestore").Firestore, chave: string, autor: AutorDoApagar) {
+  await moverBannerParaLixeira(db, chave, autor);
+  return excluirBannerDeVez(db, chave, "EXCLUIR", autor);
+}
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
 import { COLECAO_MIDIAS } from "../../src/lib/midia/biblioteca.ts";
 import { LIMITE_DE_BANNERS, lerBannerDoFormulario, lerConfiguracaoDaHome } from "../../src/lib/site/home.ts";
@@ -91,7 +99,8 @@ describe("Home: gravação e registro", () => {
     assert.deepEqual((await configuracao()).banners.map((banner) => [banner.chave, banner.ordem]), [["banner-dois00002", 1], ["banner-um000001", 2]]);
 
     assert.deepEqual(await salvarBanner(db, { chave: "banner-um000001", midiaId: "midiaUm", midiaMobileId: null, alt: "Um", href: "", ativo: false, posicao: 2, pontoDeFoco: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const }, EDITOR), { ok: true, nome: "Segundo banner" });
-    assert.deepEqual(await excluirBanner(db, "banner-dois00002", EDITOR), { ok: true, nome: "Primeiro banner" });
+    assert.deepEqual(await moverBannerParaLixeira(db, "banner-dois00002", EDITOR), { ok: true, nome: "Primeiro banner", mudou: true });
+    assert.deepEqual(await excluirBannerDeVez(db, "banner-dois00002", "EXCLUIR", EDITOR), { ok: true, nome: "Banner banner-dois00002", mudou: true });
     assert.deepEqual((await configuracao()).banners.map((banner) => [banner.chave, banner.ordem, banner.ativo]), [["banner-um000001", 1, false]]);
 
     const linhas = await registros();
@@ -101,7 +110,8 @@ describe("Home: gravação e registro", () => {
         ["criar", "Primeiro banner criado."],
         ["criar", "Primeiro banner criado."],
         ["editar", "Segundo banner alterado: link, ativo."],
-        ["excluir", "Primeiro banner excluído."],
+        ["excluir", "Banner movido para a lixeira."],
+        ["excluir_definitivo", "Banner excluído de vez."],
       ],
     );
     for (const linha of linhas) {
@@ -118,7 +128,7 @@ describe("Home: gravação e registro", () => {
       await salvarBanner(db, { chave: `banner-limite${indice}x`, midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: indice + 1, pontoDeFoco: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const }, EDITOR);
     }
     const recusado = await salvarBanner(db, { chave: "banner-nono0009", midiaId: null, midiaMobileId: null, alt: "", href: "", ativo: false, posicao: 1, pontoDeFoco: "centro", midiaTabletId: null, titulo: "", trechoEmDestaque: "", subtitulo: "", textoDoBotao: "", posicaoDoTexto: "esquerda" as const }, EDITOR);
-    assert.deepEqual(recusado, { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners.` });
+    assert.deepEqual(recusado, { ok: false, mensagem: `A home aceita no máximo ${LIMITE_DE_BANNERS} banners, contando os da lixeira. Exclua de vez um banner da lixeira para liberar lugar.` });
     assert.equal((await configuracao()).banners.length, LIMITE_DE_BANNERS);
     assert.equal((await registros()).length, antes + LIMITE_DE_BANNERS - 1);
   });
@@ -138,7 +148,7 @@ describe("Home: versão para celular (30/10/2026)", () => {
   test("editor e administrador gravam as duas versões, com registro só dos nomes", async () => {
     const antes = (await registros()).length;
     // A gravação começa limpa (os testes acima deixam 8 banners).
-    for (const item of (await configuracao()).banners) await excluirBanner(db, item.chave, EDITOR);
+    for (const item of (await configuracao()).banners) await apagarBanner(db, item.chave, EDITOR);
     const inicio = (await registros()).length;
     assert.equal(inicio - antes > 0, true);
 
@@ -238,7 +248,7 @@ describe("Home: ponto de foco vertical do banner (31/10/2026)", () => {
     assert.match(linhas[0].resumo, /criado\.$/);
     assert.match(linhas[1].resumo, /alterado: ponto de foco vertical\.$/);
     // Libera a vaga: o documento é compartilhado e aceita até LIMITE_DE_BANNERS.
-    assert.equal((await excluirBanner(db, "banner-vert0001", ADMINISTRADOR)).ok, true);
+    assert.equal((await apagarBanner(db, "banner-vert0001", ADMINISTRADOR)).ok, true);
   });
 
   test("valor inválido não chega à gravação; banner antigo continua valendo, com o centro", async () => {

@@ -4,7 +4,9 @@ import { useActionState, useCallback, useEffect, useId, useRef, useState, type C
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
-import { excluirBannerDaHome, salvarBannerDaHome, salvarImagemDaSecao, type RespostaDaHome } from "@/app/admin/acoes-home";
+import { ativarOuDesativarBanner, excluirBannerDaHomeDeVez, moverBannerParaALixeira, restaurarBannerDaHome, salvarBannerDaHome, salvarImagemDaSecao } from "@/app/admin/acoes-home";
+import { AcoesDoItem, type TextosDoItem } from "@/app/admin/_componentes/AcoesDoItem/AcoesDoItem";
+import { MensagensDoPainel, useAvisarNoPainel } from "@/app/admin/_componentes/MensagensDoPainel/MensagensDoPainel";
 import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
@@ -57,7 +59,9 @@ import type { VideoQuemSomos } from "@/lib/site/videoQuemSomos";
 import estilos from "./HomeAdminClient.module.css";
 import { VideoQuemSomosAdmin } from "./VideoQuemSomosAdmin";
 
-export type BannerNaTela = BannerDaHome & { nome: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null; imagemTablet: ImagemNaTela | null };
+// nome: título do cartão ("Primeiro banner"); nomeNaTela: nome no menu de
+// ações e na confirmação de excluir de vez (nomeDoBannerNaTela).
+export type BannerNaTela = BannerDaHome & { nome: string; nomeNaTela: string; imagem: ImagemNaTela | null; imagemCelular: ImagemNaTela | null; imagemTablet: ImagemNaTela | null };
 export type EspacoNaTela = {
   identificador: IdentificadorDoEspaco;
   nome: string;
@@ -70,7 +74,7 @@ export type EspacoNaTela = {
   imagemCelular: ImagemNaTela | null;
 };
 
-type Janela = { tipo: "banner"; banner: BannerNaTela | null } | { tipo: "excluir"; banner: BannerNaTela } | { tipo: "espaco"; espaco: EspacoNaTela } | null;
+type Janela = { tipo: "banner"; banner: BannerNaTela | null } | { tipo: "espaco"; espaco: EspacoNaTela } | null;
 
 // Chave de um banner novo (também o id do dono das imagens dele).
 function novaChave(): string {
@@ -860,58 +864,67 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: Espaco
   );
 }
 
-function ConfirmarExclusao({ banner, aoTerminar, aoCancelar }: { banner: BannerNaTela; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
-  const [resposta, excluir, excluindo] = useActionState<RespostaDaHome, FormData>(excluirBannerDaHome, null);
-  useEffect(() => {
-    if (resposta?.ok) aoTerminar(resposta.mensagem);
-  }, [resposta, aoTerminar]);
-  return (
-    <form action={excluir} className={estilos.formulario}>
-      <input type="hidden" name="chave" value={banner.chave} />
-      <p className="tipo-texto">
-        O {banner.nome.toLowerCase()} sai do carrossel da home. A imagem continua na biblioteca de mídia. Esta ação não pode ser desfeita.
-      </p>
-      {resposta?.ok === false && <Mensagem tipo="erro">{resposta.mensagem}</Mensagem>}
-      <div className={estilos.botoes}>
-        <Botao type="button" variante="secundario" onClick={aoCancelar} disabled={excluindo}>
-          Cancelar
-        </Botao>
-        <Botao type="submit" disabled={excluindo}>
-          {excluindo ? "Excluindo..." : `Excluir o ${banner.nome.toLowerCase()}`}
-        </Botao>
-      </div>
-    </form>
-  );
-}
+const TEXTOS_DO_BANNER: TextosDoItem = { artigo: "o", nome: "banner", ligar: "Ativar", desligar: "Desativar", voltaComoRascunho: false };
+
+// O que se perde ao excluir um banner de vez (texto da confirmação reforçada).
+const PERDAS_DO_BANNER = ["O link, o texto, os pontos de foco e a ligação com as imagens deste banner.", "As imagens não são apagadas: continuam na biblioteca de mídia."];
 
 // Tela /admin/home (29/10/2026): banners do carrossel e imagens fixas das
 // sections em cartões; "Editar" abre o Modal com o envio de imagem do item.
-export function HomeAdminClient({
-  banners,
-  espacos,
-  artigosAtivo = true,
-  video = null,
-  capaDoVideo = null,
-}: {
+export function HomeAdminClient(props: PropsDaTela) {
+  return (
+    <MensagensDoPainel>
+      <TelaDaHome {...props} />
+    </MensagensDoPainel>
+  );
+}
+
+type PropsDaTela = {
   banners: BannerNaTela[];
   espacos: EspacoNaTela[];
   artigosAtivo?: boolean;
   video?: VideoQuemSomos | null;
   capaDoVideo?: ImagemNaTela | null;
-}) {
+  podeExcluirDeVez?: boolean;
+};
+
+function TelaDaHome({ banners, espacos, artigosAtivo = true, video = null, capaDoVideo = null, podeExcluirDeVez = false }: PropsDaTela) {
+  const avisar = useAvisarNoPainel();
   const [janela, setJanela] = useState<Janela>(null);
-  const [aviso, setAviso] = useState<string | null>(null);
   const fechar = useCallback(() => setJanela(null), []);
-  const concluir = useCallback((mensagem: string) => {
-    setJanela(null);
-    setAviso(mensagem);
-  }, []);
-  const abrir = (nova: Janela) => {
-    setAviso(null);
-    setJanela(nova);
-  };
+  const concluir = useCallback(
+    (mensagem: string) => {
+      setJanela(null);
+      avisar({ tipo: "sucesso", texto: mensagem });
+    },
+    [avisar],
+  );
+  const abrir = (nova: Janela) => setJanela(nova);
+  // O limite conta os banners da lixeira (eles ocupam lugar no documento).
   const noLimite = banners.length >= LIMITE_DE_BANNERS;
-  const algumAtivo = banners.some((banner) => banner.ativo && banner.imagem);
+  const vivos = banners.filter((banner) => !banner.excluidoEm);
+  const naLixeira = banners.filter((banner) => banner.excluidoEm);
+  const algumAtivo = vivos.some((banner) => banner.ativo && banner.imagem);
+
+  const acoesDoBanner = (banner: BannerNaTela) => (
+    <AcoesDoItem
+      operacoes={{
+        mudarSituacao: (ligar) => ativarOuDesativarBanner(banner.chave, ligar),
+        moverParaLixeira: () => moverBannerParaALixeira(banner.chave),
+        restaurar: () => restaurarBannerDaHome(banner.chave),
+        excluirDeVez: (confirmacao) => excluirBannerDaHomeDeVez(banner.chave, confirmacao),
+      }}
+      textos={TEXTOS_DO_BANNER}
+      id={banner.chave}
+      nome={banner.nomeNaTela}
+      situacao={banner.excluidoEm ? "lixeira" : banner.ativo ? "publicado" : "rascunho"}
+      aoEditar={() => abrir({ tipo: "banner", banner })}
+      abrirNaLixeira={false}
+      hrefNoSite={banner.imagem ? "/" : null}
+      podeExcluirDeVez={podeExcluirDeVez}
+      perdas={PERDAS_DO_BANNER}
+    />
+  );
 
   return (
     <div className={estilos.pagina}>
@@ -926,27 +939,25 @@ export function HomeAdminClient({
         }
       />
 
-      <div aria-live="polite">{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
-
       <section className={estilos.secao} aria-labelledby="titulo-banners">
         <h2 id="titulo-banners" className="tipo-texto-lg">Banners do carrossel</h2>
         <div className={estilos.caixa}>
           <p className={estilos.ajuda}>
             {algumAtivo
-              ? `Só os banners ativos e com imagem aparecem na home, nesta ordem. Até ${LIMITE_DE_BANNERS} banners.`
-              : `Nenhum banner ativo com imagem: a home mostra o carrossel padrão (3 imagens provisórias). Até ${LIMITE_DE_BANNERS} banners.`}
+              ? `Só os banners ativos e com imagem aparecem na home, nesta ordem. Até ${LIMITE_DE_BANNERS} banners, contando os da lixeira.`
+              : `Nenhum banner ativo com imagem: a home mostra o carrossel padrão (3 imagens provisórias). Até ${LIMITE_DE_BANNERS} banners, contando os da lixeira.`}
           </p>
         </div>
-        {banners.length === 0 ? (
+        {vivos.length === 0 ? (
           <div className={estilos.vazio}>
-            <p className="tipo-texto">Nenhum banner cadastrado ainda.</p>
+            <p className="tipo-texto">Nenhum banner fora da lixeira.</p>
             <Botao variante="secundario" onClick={() => abrir({ tipo: "banner", banner: null })}>
               Adicionar o primeiro banner
             </Botao>
           </div>
         ) : (
           <ul role="list" className={estilos.grade}>
-            {banners.map((banner) => (
+            {vivos.map((banner) => (
               <li key={banner.chave} className={estilos.cartao}>
                 <Miniaturas
                   proporcoes={PROPORCOES_DO_BANNER}
@@ -971,17 +982,44 @@ export function HomeAdminClient({
                     {banner.href ? `Link: ${banner.href}${linkEhExterno(banner.href) ? " (abre em nova aba)" : ""}` : "Sem link"}
                   </p>
                 </div>
-                <div className={estilos.acoes}>
-                  <Botao variante="secundario" onClick={() => abrir({ tipo: "banner", banner })} aria-label={`Editar o ${banner.nome.toLowerCase()}`}>
-                    Editar
-                  </Botao>
-                  <Botao variante="secundario" onClick={() => abrir({ tipo: "excluir", banner })} aria-label={`Excluir o ${banner.nome.toLowerCase()}`}>
-                    Excluir
-                  </Botao>
-                </div>
+                <div className={estilos.acoes}>{acoesDoBanner(banner)}</div>
               </li>
             ))}
           </ul>
+        )}
+        {naLixeira.length > 0 && (
+          <>
+            <h3 className="tipo-texto-lg">Lixeira ({naLixeira.length})</h3>
+            <div className={estilos.caixa}>
+              <p className={estilos.ajuda}>
+                Banners na lixeira não aparecem na home. Restaurar volta o banner desativado, no fim da lista.
+                {podeExcluirDeVez ? " Excluir de vez não tem volta." : " Só o administrador exclui de vez."}
+              </p>
+            </div>
+            <ul role="list" className={estilos.grade}>
+              {naLixeira.map((banner) => (
+                <li key={banner.chave} className={estilos.cartao}>
+                  <Miniaturas
+                    proporcoes={PROPORCOES_DO_BANNER}
+                    midiaId={banner.midiaId}
+                    imagem={banner.imagem}
+                    midiaMobileId={banner.midiaMobileId}
+                    imagemCelular={banner.imagemCelular}
+                    tablet={{ midiaTabletId: banner.midiaTabletId, imagem: banner.imagemTablet }}
+                    vazio="Sem imagem"
+                  />
+                  <div className={estilos.texto}>
+                    <h4 className={estilos.nome}>{banner.nomeNaTela}</h4>
+                    <p className={estilos.etiquetas}>
+                      <span className={estilos.etiqueta}>{banner.chave}</span>
+                      <span className={`${estilos.etiqueta} ${estilos.naLixeira}`}>Na lixeira</span>
+                    </p>
+                  </div>
+                  <div className={estilos.acoes}>{acoesDoBanner(banner)}</div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 
@@ -1012,13 +1050,10 @@ export function HomeAdminClient({
       <VideoQuemSomosAdmin video={video} capa={capaDoVideo} aoTerminar={concluir} />
 
       <Modal aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
-        {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={banners.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fechar} />}
+        {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={vivos.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
       <Modal aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"} largura="larga">
         {janela?.tipo === "espaco" && <FormularioDoEspaco espaco={janela.espaco} aoTerminar={concluir} aoCancelar={fechar} />}
-      </Modal>
-      <Modal aberto={janela?.tipo === "excluir"} aoFechar={fechar} titulo={janela?.tipo === "excluir" ? `Excluir o ${janela.banner.nome.toLowerCase()}` : "Excluir banner"}>
-        {janela?.tipo === "excluir" && <ConfirmarExclusao banner={janela.banner} aoTerminar={concluir} aoCancelar={fechar} />}
       </Modal>
     </div>
   );
