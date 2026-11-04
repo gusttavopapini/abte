@@ -11,6 +11,8 @@ import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import { COLECAO_CARRINHOS } from "../loja/contas.ts";
 import {
+  type AcaoEmLote,
+  type ResultadoDoLote,
   COLECOES_DO_PAINEL,
   MENSAGENS_DA_LIXEIRA,
   confirmacaoDeExclusaoValida,
@@ -175,4 +177,22 @@ export async function excluirDeVez(db: Firestore, colecao: ColecaoDoPainel, id: 
       return { ok: true as const, nome, mudou: true, avisos };
     }),
   );
+}
+
+// Ações em lote (etapa 2, 04/11/2026): despublicar, mover para a lixeira ou
+// restaurar vários itens, um por vez (cada um com a própria transação e a
+// própria linha no registro). O que falha não impede os outros; o resultado
+// diz quem mudou, quem já estava assim e quem falhou (com o motivo).
+export async function aplicarEmLote(db: Firestore, colecao: ColecaoDoPainel, ids: string[], acao: AcaoEmLote, autor: AutorDaAlteracao): Promise<ResultadoDoLote> {
+  const resultado: ResultadoDoLote = { feitos: [], semMudanca: [], falhas: [] };
+  for (const id of ids) {
+    const resposta =
+      acao === "despublicar" ? await mudarSituacao(db, colecao, id, false, autor) : acao === "lixeira" ? await moverParaLixeira(db, colecao, id, autor) : await restaurarDaLixeira(db, colecao, id, autor);
+    if (!resposta.ok) {
+      const documento = await db.collection(colecao).doc(id).get();
+      resultado.falhas.push({ nome: documento.exists ? nomeDoItem(colecao, documento.data() ?? {}) : "Item não encontrado", motivo: resposta.mensagem });
+    } else if (resposta.mudou) resultado.feitos.push(resposta.nome);
+    else resultado.semMudanca.push(resposta.nome);
+  }
+  return resultado;
 }

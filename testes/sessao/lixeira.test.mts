@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, test } from "node:test";
 import { deleteApp, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { excluirDeVez, moverParaLixeira, mudarSituacao, restaurarDaLixeira } from "../../src/lib/gravacao/lixeira.ts";
+import { aplicarEmLote, excluirDeVez, moverParaLixeira, mudarSituacao, restaurarDaLixeira } from "../../src/lib/gravacao/lixeira.ts";
 import { COLECAO_LOG, type AutorDaAlteracao } from "../../src/lib/log/alteracoes.ts";
 import { MENSAGENS_DA_LIXEIRA } from "../../src/lib/lixeira.ts";
 
@@ -143,5 +143,32 @@ describe("Excluir de vez", () => {
     assert.equal((await db.collection("produtos").doc("pc").get()).exists, false);
     // O carrinho do cliente não é mexido.
     assert.equal((await db.collection("carrinhos").doc("cliente-ficticio").get()).get("itens").length, 1);
+  });
+});
+
+describe("Ações em lote (etapa 2)", () => {
+  test("move vários para a lixeira, conta quem já estava e quem falhou, com uma linha no registro por item", async () => {
+    await db.collection("posts").doc("l1").set({ titulo: "Post um", status: "publicado", excluidoEm: null });
+    await db.collection("posts").doc("l2").set({ titulo: "Post dois", status: "rascunho", excluidoEm: null });
+    await db.collection("posts").doc("l3").set({ titulo: "Post três", status: "rascunho", excluidoEm: new Date() });
+    const resultado = await aplicarEmLote(db, "posts", ["l1", "l2", "l3", "naoExiste"], "lixeira", EDITOR);
+    assert.deepEqual(resultado.feitos, ["Post um", "Post dois"]);
+    assert.deepEqual(resultado.semMudanca, ["Post três"]);
+    assert.deepEqual(resultado.falhas, [{ nome: "Item não encontrado", motivo: MENSAGENS_DA_LIXEIRA.naoEncontrado }]);
+    assert.equal((await db.collection("posts").doc("l1").get()).get("status"), "rascunho");
+    assert.equal((await registrosDe("l1")).length + (await registrosDe("l2")).length, 2);
+    assert.equal((await registrosDe("l3")).length, 0);
+  });
+
+  test("despublicar recusa item na lixeira (com o nome) e restaurar devolve todos", async () => {
+    await db.collection("produtos").doc("a").set({ nome: "Produto A", publicado: true, excluidoEm: null });
+    await db.collection("produtos").doc("b").set({ nome: "Produto B", publicado: true, excluidoEm: new Date() });
+    const despublicar = await aplicarEmLote(db, "produtos", ["a", "b"], "despublicar", EDITOR);
+    assert.deepEqual(despublicar.feitos, ["Produto A"]);
+    assert.deepEqual(despublicar.falhas, [{ nome: "Produto B", motivo: MENSAGENS_DA_LIXEIRA.naLixeira }]);
+    await moverParaLixeira(db, "produtos", "a", EDITOR);
+    const restaurar = await aplicarEmLote(db, "produtos", ["a", "b"], "restaurar", EDITOR);
+    assert.deepEqual(restaurar.feitos.sort(), ["Produto A", "Produto B"]);
+    for (const id of ["a", "b"]) assert.equal((await db.collection("produtos").doc(id).get()).get("excluidoEm"), null);
   });
 });

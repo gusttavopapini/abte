@@ -4,6 +4,10 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { decidirAcessoAoPainel, papelPodeExecutar } from "../../src/lib/auth/papeis.ts";
 import {
+  LIMITE_DO_LOTE,
+  ehAcaoEmLote,
+  lerIdsDoLote,
+  resumoDoLote,
   COLECOES_DO_PAINEL,
   confirmacaoDeExclusaoValida,
   ehColecaoDoPainel,
@@ -103,5 +107,27 @@ describe("Mensagens", () => {
         assert.ok(!resumoDaAcao(colecao as keyof typeof COLECOES_DO_PAINEL, acao).includes("—"));
       }
     }
+  });
+});
+
+describe("Ações em lote", () => {
+  const ehId = (id: unknown): id is string => typeof id === "string" && /^[A-Za-z0-9]{1,30}$/.test(id);
+
+  test("só as três ações e uma seleção válida", () => {
+    assert.equal(ehAcaoEmLote("lixeira"), true);
+    assert.equal(ehAcaoEmLote("excluirDeVez"), false, "excluir de vez nunca é em lote");
+    assert.deepEqual(lerIdsDoLote(["a", "b", "a"], ehId), ["a", "b"]);
+    assert.equal(lerIdsDoLote([], ehId), null);
+    assert.equal(lerIdsDoLote(["a", "../x"], ehId), null);
+    assert.equal(lerIdsDoLote("a", ehId), null);
+    assert.equal(lerIdsDoLote(Array.from({ length: LIMITE_DO_LOTE + 1 }, (_, i) => `id${i}`), ehId), null);
+  });
+
+  test("resumo em português, com plural e gênero, sem nomes", () => {
+    assert.equal(resumoDoLote("posts", "lixeira", { feitos: ["A", "B", "C"], semMudanca: [], falhas: [] }), "3 posts foram para a lixeira.");
+    assert.equal(resumoDoLote("posts", "despublicar", { feitos: ["A"], semMudanca: ["B"], falhas: [] }), "1 post foi despublicado. 1 já estava assim.");
+    assert.equal(resumoDoLote("profissionais", "despublicar", { feitos: ["A", "B"], semMudanca: [], falhas: [] }), "2 profissionais foram desativados.");
+    assert.equal(resumoDoLote("produtos", "restaurar", { feitos: ["A"], semMudanca: [], falhas: [{ nome: "B", motivo: "x" }] }), "1 produto foi restaurado. 1 não pôde ser alterado; veja o motivo abaixo.");
+    assert.equal(resumoDoLote("artigos", "lixeira", { feitos: [], semMudanca: [], falhas: [] }), "Nada foi alterado.");
   });
 });

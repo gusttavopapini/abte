@@ -10,12 +10,12 @@ import { revalidatePath } from "next/cache";
 import { papelPodeExecutar, type AcaoDoPainel } from "@/lib/auth/papeis";
 import { autorDaAlteracao, exigirPapelDoPainel, type UsuarioDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
-import { excluirDeVez, moverParaLixeira, mudarSituacao, restaurarDaLixeira, type ResultadoDaAcao } from "@/lib/gravacao/lixeira";
+import { aplicarEmLote, excluirDeVez, moverParaLixeira, mudarSituacao, restaurarDaLixeira, type ResultadoDaAcao } from "@/lib/gravacao/lixeira";
 import { duplicarArtigo } from "@/lib/gravacao/artigos";
 import { duplicarPost } from "@/lib/gravacao/posts";
 import { duplicarProduto } from "@/lib/gravacao/produtos";
 import { LIMITE_TITULO_DO_ARTIGO, LIMITE_TITULO_DO_POST } from "@/lib/limitesDoConteudo";
-import { COLECOES_DO_PAINEL, ehColecaoDoPainel, MENSAGENS_DA_LIXEIRA, type ColecaoDoPainel } from "@/lib/lixeira";
+import { COLECOES_DO_PAINEL, ehAcaoEmLote, ehColecaoDoPainel, lerIdsDoLote, MENSAGENS_DA_LIXEIRA, resumoDoLote, type AcaoEmLote, type ColecaoDoPainel } from "@/lib/lixeira";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 
 export type RespostaDaAcaoDoItem = { ok: boolean; mensagem: string; avisos?: string[]; novoId?: string };
@@ -136,6 +136,33 @@ export async function duplicarItem(colecao: unknown, id: unknown): Promise<Respo
     return { ok: true, mensagem: c === "produtos" ? `Cópia criada fora da loja: "${copia.titulo}".` : `Cópia criada como rascunho: "${copia.titulo}".`, novoId: copia.id };
   } catch (erro) {
     console.error("Falha ao duplicar no painel:", erro);
+    return { ok: false, mensagem: ERRO_GENERICO };
+  }
+}
+
+const PERMISSAO_DO_LOTE: Record<AcaoEmLote, AcaoDoPainel> = { despublicar: "conteudo.publicar", lixeira: "conteudo.excluir", restaurar: "conteudo.restaurar" };
+
+// Ação em lote (etapa 2): despublicar, mover para a lixeira ou restaurar
+// vários itens de uma coleção. Sessão e papel primeiro; depois a permissão da
+// ação, a coleção e os ids (1 a 100, válidos). O resumo diz quantos mudaram;
+// os avisos trazem os que não puderam, com o motivo.
+export async function aplicarAcaoEmLote(colecao: unknown, ids: unknown, acao: unknown): Promise<RespostaDaAcaoDoItem> {
+  const usuario = await exigirPapelDoPainel();
+  if (!ehAcaoEmLote(acao)) return { ok: false, mensagem: "Ação em lote desconhecida." };
+  if (!papelPodeExecutar(usuario.papel, PERMISSAO_DO_LOTE[acao])) return { ok: false, mensagem: "Seu papel não permite esta ação." };
+  const lidos = lerIdsDoLote(ids, ehIdDeDocumentoValido);
+  if (!ehColecaoDoPainel(colecao) || !lidos) return { ok: false, mensagem: "Seleção inválida. Recarregue a página e selecione de novo." };
+  if (acao === "despublicar" && !COLECOES_DO_PAINEL[colecao].situacao) return { ok: false, mensagem: MENSAGENS_DA_LIXEIRA.semSituacao };
+  try {
+    const resultado = await aplicarEmLote(firestoreAdmin(), colecao, lidos, acao, autorDaAlteracao(usuario));
+    if (resultado.feitos.length > 0) atualizarPaginas(colecao);
+    return {
+      ok: resultado.falhas.length < lidos.length,
+      mensagem: resumoDoLote(colecao, acao, resultado),
+      avisos: resultado.falhas.map((falha) => `"${falha.nome}": ${falha.motivo}`),
+    };
+  } catch (erro) {
+    console.error("Falha numa ação em lote do painel:", erro);
     return { ok: false, mensagem: ERRO_GENERICO };
   }
 }

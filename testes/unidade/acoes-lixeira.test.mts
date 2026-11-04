@@ -11,7 +11,7 @@ const codigo = readFileSync("src/app/admin/acoes-lixeira.ts", "utf8");
 describe("Ações comuns de conteúdo: sessão, papel e permissão", () => {
   test("cada ação usa a permissão certa da tabela", () => {
     const acoes = Object.fromEntries([...codigo.matchAll(/export async function (\w+)\([^)]*\)[^{]*\{\s*([^\n]*)/g)].map(([, nome, primeira]) => [nome, primeira]));
-    assert.deepEqual(Object.keys(acoes), ["publicarOuDespublicar", "moverItemParaALixeira", "restaurarItemDaLixeira", "excluirItemDeVez", "duplicarItem"]);
+    assert.deepEqual(Object.keys(acoes), ["publicarOuDespublicar", "moverItemParaALixeira", "restaurarItemDaLixeira", "excluirItemDeVez", "duplicarItem", "aplicarAcaoEmLote"]);
     const esperado: Record<string, string> = {
       publicarOuDespublicar: "conteudo.publicar",
       moverItemParaALixeira: "conteudo.excluir",
@@ -20,6 +20,7 @@ describe("Ações comuns de conteúdo: sessão, papel e permissão", () => {
       duplicarItem: "conteudo.editar",
     };
     for (const [nome, primeira] of Object.entries(acoes)) {
+      if (nome === "aplicarAcaoEmLote") continue;
       assert.equal(primeira, `const preparo = await preparar("${esperado[nome]}", colecao, id);`, nome);
     }
   });
@@ -35,5 +36,17 @@ describe("Ações comuns de conteúdo: sessão, papel e permissão", () => {
   test("duplicar só grava depois de conferir o preparo", () => {
     const corpo = codigo.match(/export async function duplicarItem[\s\S]*?\n\}/)?.[0] ?? "";
     assert.ok(corpo.indexOf("if (!preparo.ok) return preparo.resposta;") < corpo.indexOf("duplicarPost("));
+  });
+});
+
+describe("Ação em lote: sessão, papel e permissão", () => {
+  test("começa por exigirPapelDoPainel(), confere a ação e a permissão antes da seleção e de gravar", () => {
+    const corpo = codigo.match(/export async function aplicarAcaoEmLote[\s\S]*?\n\}/)?.[0] ?? "";
+    const linhas = corpo.split("\n").slice(1).map((linha) => linha.trim());
+    assert.equal(linhas[0], "const usuario = await exigirPapelDoPainel();");
+    assert.match(linhas[1], /^if \(!ehAcaoEmLote\(acao\)\) return/);
+    assert.match(linhas[2], /^if \(!papelPodeExecutar\(usuario\.papel, PERMISSAO_DO_LOTE\[acao\]\)\) return/);
+    assert.ok(corpo.indexOf("lerIdsDoLote(") < corpo.indexOf("aplicarEmLote("));
+    assert.match(codigo, /const PERMISSAO_DO_LOTE: Record<AcaoEmLote, AcaoDoPainel> = \{ despublicar: "conteudo\.publicar", lixeira: "conteudo\.excluir", restaurar: "conteudo\.restaurar" \};/);
   });
 });

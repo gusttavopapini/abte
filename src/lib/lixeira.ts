@@ -161,3 +161,47 @@ export function resumoDaAcao(colecao: ColecaoDoPainel, acao: "lixeira" | "restau
       return `${rotulo} ${situacao?.desligado ?? ajustar("despublicado")}.`;
   }
 }
+
+// ---------- Ações em lote (etapa 2, 04/11/2026) ----------
+
+export type AcaoEmLote = "despublicar" | "lixeira" | "restaurar";
+export const ACOES_EM_LOTE: readonly AcaoEmLote[] = ["despublicar", "lixeira", "restaurar"];
+export const LIMITE_DO_LOTE = 100;
+
+export function ehAcaoEmLote(valor: unknown): valor is AcaoEmLote {
+  return typeof valor === "string" && (ACOES_EM_LOTE as readonly string[]).includes(valor);
+}
+
+// Ids do lote: lista de 1 a LIMITE_DO_LOTE ids válidos, sem repetir.
+export function lerIdsDoLote(valor: unknown, ehId: (id: unknown) => id is string): string[] | null {
+  if (!Array.isArray(valor) || valor.length === 0 || valor.length > LIMITE_DO_LOTE) return null;
+  if (!valor.every(ehId)) return null;
+  return [...new Set(valor)];
+}
+
+export type ResultadoDoLote = { feitos: string[]; semMudanca: string[]; falhas: { nome: string; motivo: string }[] };
+
+// Verbo de cada ação em lote, no plural, com o gênero da coleção.
+function verboDoLote(colecao: ColecaoDoPainel, acao: AcaoEmLote, quantidade: number): string {
+  const { artigo, situacao } = COLECOES_DO_PAINEL[colecao];
+  const plural = quantidade === 1 ? "" : "s";
+  const genero = (palavra: string) => (artigo === "a" ? palavra.replace(/o$/, "a") : palavra);
+  if (acao === "lixeira") return `${quantidade === 1 ? "foi" : "foram"} para a lixeira`;
+  if (acao === "restaurar") return `${quantidade === 1 ? "foi" : "foram"} ${genero("restaurado")}${plural}`;
+  return `${quantidade === 1 ? "foi" : "foram"} ${situacao?.desligado ?? genero("despublicado")}${plural}`;
+}
+
+// Resumo do lote em português, sem os nomes (que vão nos avisos):
+// "3 posts foram para a lixeira. 1 já estava assim. 1 não pôde ser alterado."
+export function resumoDoLote(colecao: ColecaoDoPainel, acao: AcaoEmLote, resultado: ResultadoDoLote): string {
+  const { nome, plural, artigo } = COLECOES_DO_PAINEL[colecao];
+  const feitos = resultado.feitos.length;
+  const partes: string[] = [];
+  if (feitos > 0) partes.push(`${feitos} ${feitos === 1 ? nome : plural} ${verboDoLote(colecao, acao, feitos)}.`);
+  if (resultado.semMudanca.length > 0) partes.push(`${resultado.semMudanca.length} já ${resultado.semMudanca.length === 1 ? "estava" : "estavam"} assim.`);
+  if (resultado.falhas.length > 0) {
+    const quantos = resultado.falhas.length;
+    partes.push(`${quantos} não ${quantos === 1 ? "pôde" : "puderam"} ser ${artigo === "a" ? "alterada" : "alterado"}${quantos === 1 ? "" : "s"}; veja o motivo abaixo.`);
+  }
+  return partes.join(" ") || "Nada foi alterado.";
+}
