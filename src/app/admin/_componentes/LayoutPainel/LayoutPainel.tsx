@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode 
 import { IconeFechar, IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
 import { BotaoDasConfiguracoes, type ConfiguracoesDoSiteNaTela } from "../ConfiguracoesDoSite/ConfiguracoesDoSite";
+import { IconeAjustes, IconeCaixa, IconeCasa, IconeImagem, IconeLivro, IconePaginas, IconePessoas, IconeTexto, IconeVisaoGeral } from "./IconesDoPainel";
 import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
@@ -17,23 +18,44 @@ type PropsLayoutPainel = {
   configuracoes?: ConfiguracoesDoSiteNaTela | null;
 };
 
-// Itens do menu, na ordem do trabalho (29/10/2026).
-type ItemDoPainel = { href: string; rotulo: string; exato?: boolean; fora?: string[]; soAdministrador?: boolean };
+// Menu agrupado (etapa 3, 04/11/2026): Visão geral; Conteúdo; Pessoas;
+// Loja; Mídia; Configurações. Os subitens (categorias e tags) ficam recuados
+// abaixo do item a que pertencem, sem ícone.
+type ItemDoPainel = {
+  href: string;
+  rotulo: string;
+  icone?: (props: { className?: string }) => ReactNode;
+  sub?: boolean;
+  exato?: boolean;
+  fora?: string[];
+  soAdministrador?: boolean;
+};
+type GrupoDoPainel = { titulo: string | null; itens: ItemDoPainel[] };
 
-const ITENS: ItemDoPainel[] = [
-  { href: "/admin", rotulo: "Visão geral", exato: true },
-  { href: "/admin/home", rotulo: "Home" },
-  { href: "/admin/blog", rotulo: "Blog", fora: ["/admin/blog/topicos"] },
-  { href: "/admin/blog/topicos", rotulo: "Blog: categorias e tags" },
-  { href: "/admin/artigos", rotulo: "Artigos", fora: ["/admin/artigos/topicos"] },
-  { href: "/admin/artigos/topicos", rotulo: "Artigos: categorias e tags" },
-  { href: "/admin/profissionais", rotulo: "Profissionais" },
-  { href: "/admin/loja", rotulo: "Loja", fora: ["/admin/loja/categorias"] },
-  { href: "/admin/loja/categorias", rotulo: "Loja: categorias" },
-  { href: "/admin/midia", rotulo: "Mídia" },
-  // Só administrador (30/10/2026); para o editor, o item não aparece.
-  { href: "/admin/paginas", rotulo: "Páginas", soAdministrador: true },
-  { href: "/admin/configuracoes", rotulo: "Configurações", soAdministrador: true },
+const GRUPOS: GrupoDoPainel[] = [
+  { titulo: null, itens: [{ href: "/admin", rotulo: "Visão geral", icone: IconeVisaoGeral, exato: true }] },
+  {
+    titulo: "Conteúdo",
+    itens: [
+      { href: "/admin/home", rotulo: "Home", icone: IconeCasa },
+      { href: "/admin/blog", rotulo: "Blog", icone: IconeTexto, fora: ["/admin/blog/topicos"] },
+      { href: "/admin/blog/topicos", rotulo: "Categorias e tags do blog", sub: true },
+      { href: "/admin/artigos", rotulo: "Artigos", icone: IconeLivro, fora: ["/admin/artigos/topicos"] },
+      { href: "/admin/artigos/topicos", rotulo: "Categorias e tags dos artigos", sub: true },
+      // Só administrador (30/10/2026); para o editor, o item não aparece.
+      { href: "/admin/paginas", rotulo: "Páginas", icone: IconePaginas, soAdministrador: true },
+    ],
+  },
+  { titulo: "Pessoas", itens: [{ href: "/admin/profissionais", rotulo: "Profissionais", icone: IconePessoas }] },
+  {
+    titulo: "Loja",
+    itens: [
+      { href: "/admin/loja", rotulo: "Produtos", icone: IconeCaixa, fora: ["/admin/loja/categorias"] },
+      { href: "/admin/loja/categorias", rotulo: "Categorias da loja", sub: true },
+    ],
+  },
+  { titulo: null, itens: [{ href: "/admin/midia", rotulo: "Mídia", icone: IconeImagem }] },
+  { titulo: null, itens: [{ href: "/admin/configuracoes", rotulo: "Configurações", icone: IconeAjustes, soAdministrador: true }] },
 ];
 
 function itemAtual(caminho: string, item: ItemDoPainel): boolean {
@@ -94,20 +116,39 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
   }
 
   const nomeDoUsuario = usuario ? usuario.nome || usuario.email : null;
-  const menu = (
+  // O menu aparece duas vezes (barra lateral e gaveta): os ids dos títulos
+  // dos grupos levam o lugar, para não se repetirem na página.
+  const ehAdministrador = usuario?.papel === "administrador";
+  const menu = (lugar: "lateral" | "gaveta") => (
     <nav aria-label="Menu do painel" className={estilos.menu}>
-      <ul role="list" className={estilos.listaMenu}>
-        {ITENS.filter((item) => !item.soAdministrador || usuario?.papel === "administrador").map((item) => {
-          const atual = itemAtual(caminho, item);
-          return (
-            <li key={item.href}>
-              <Link href={item.href} className={`${estilos.linkMenu} ${atual ? estilos.atual : ""}`} aria-current={atual ? "page" : undefined}>
-                {item.rotulo}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {GRUPOS.map((grupo, indiceDoGrupo) => {
+        const itens = grupo.itens.filter((item) => !item.soAdministrador || ehAdministrador);
+        if (itens.length === 0) return null;
+        const idDoTitulo = `${idGaveta}-${lugar}-grupo-${indiceDoGrupo}`;
+        return (
+          <div key={indiceDoGrupo} className={estilos.grupo}>
+            {grupo.titulo && (
+              <p id={idDoTitulo} className={estilos.tituloDoGrupo}>
+                {grupo.titulo}
+              </p>
+            )}
+            <ul role="list" className={estilos.listaMenu} aria-labelledby={grupo.titulo ? idDoTitulo : undefined}>
+              {itens.map((item) => {
+                const atual = itemAtual(caminho, item);
+                const Icone = item.icone;
+                return (
+                  <li key={item.href}>
+                    <Link href={item.href} className={`${estilos.linkMenu} ${item.sub ? estilos.subitem : ""} ${atual ? estilos.atual : ""}`} aria-current={atual ? "page" : undefined}>
+                      {Icone && <Icone className={estilos.iconeDoMenu} />}
+                      {item.rotulo}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
     </nav>
   );
   const rodapeDoMenu = (
@@ -126,7 +167,7 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
           <p className={estilos.nomeDoPainel}>Painel</p>
         </div>
 
-        {menu}
+        {menu("lateral")}
         {rodapeDoMenu}
       </aside>
 
@@ -145,9 +186,12 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
       <div
         ref={gavetaRef}
         id={idGaveta}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Menu do painel"
+        // Só é janela enquanto está aberta (04/11/2026): fechada, fica inerte
+        // e sem papel de diálogo (antes, role="dialog" e aria-modal ficavam
+        // na página o tempo todo).
+        role={aberta ? "dialog" : undefined}
+        aria-modal={aberta ? true : undefined}
+        aria-label={aberta ? "Menu do painel" : undefined}
         className={`${estilos.gaveta} ${aberta ? estilos.gavetaAberta : ""}`}
         inert={!aberta}
         onKeyDown={aoTeclarNaGaveta}
@@ -159,7 +203,7 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
             <IconeFechar className={estilos.icone} />
           </button>
         </div>
-        {menu}
+        {menu("gaveta")}
         {rodapeDoMenu}
       </div>
 

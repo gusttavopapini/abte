@@ -33,9 +33,27 @@
 }
 
 .menu {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: var(--space-16);
   min-height: 0;
   overflow-y: auto;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-8) / 2);
+}
+
+/* Título do grupo (Conteúdo, Pessoas, Loja): texto pequeno, sem link. */
+.tituloDoGrupo {
+  padding: 0 var(--space-16);
+  color: var(--color-placeholder);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
 }
 
 .listaMenu {
@@ -44,10 +62,23 @@
   gap: calc(var(--space-8) / 2);
 }
 
+.iconeDoMenu {
+  flex: none;
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+/* Subitem (categorias e tags): recuado até o texto do item de cima. */
+.subitem {
+  padding-left: calc(var(--space-16) + var(--space-20) + var(--space-8));
+  font-size: var(--font-size-small);
+}
+
 .linkMenu {
   border-radius: var(--radius);
   text-decoration: none;
   display: flex;
+  gap: var(--space-8);
   align-items: center;
   min-height: var(--control-min-height-mobile);
   padding: var(--space-8) var(--space-16);
