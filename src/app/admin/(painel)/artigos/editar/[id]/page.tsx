@@ -24,7 +24,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
 
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Editar artigo" }]} titulo="Editar artigo" descricao="Atualize os dados do artigo científico. Os campos com * são obrigatórios." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Editar artigo" }]} titulo="Editar artigo" descricao="Atualize os dados do artigo científico. Os campos com * são obrigatórios." />
       {artigo.excluidoEm && <AvisoDeLixeira colecao="artigos" id={artigo.id} />}
       <FormularioArtigo
         acao={atualizarArtigo}

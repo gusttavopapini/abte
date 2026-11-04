@@ -59,7 +59,7 @@ export function ProdutosAdminClient({ ativos, excluidos, salvo, podeExcluirDeVez
   return (
     <div>
       <CabecalhoDoPainel
-        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Loja" }]}
+        trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Produtos" }]}
         titulo="Loja: produtos"
         descricao={`Cadastro dos produtos da loja. Só os publicados aparecem em /loja. Não há pagamento online: a finalização da compra aparece como “em breve”.${podeExcluirDeVez ? "" : " Só o administrador exclui de vez."}`}
         acao={<Botao href="/admin/loja/novo">Adicionar produto</Botao>}

@@ -11,7 +11,7 @@ export default async function PaginaNovoProduto() {
   const categorias = await listarTopicosAtivos("categoriaDeProduto");
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Loja", href: "/admin/loja" }, { rotulo: "Novo produto" }]} titulo="Novo produto" descricao="Preencha os dados do produto. Os campos com * são obrigatórios; preços aparecem na loja só como informação (não há pagamento online)." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Produtos", href: "/admin/loja" }, { rotulo: "Novo produto" }]} titulo="Novo produto" descricao="Preencha os dados do produto. Os campos com * são obrigatórios; preços aparecem na loja só como informação (não há pagamento online)." />
       <FormularioProduto produto={null} categorias={categorias.map(({ id, nome }) => ({ id, nome }))} />
     </div>
   );

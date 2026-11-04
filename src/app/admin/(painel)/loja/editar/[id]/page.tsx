@@ -37,7 +37,7 @@ export default async function PaginaEditarProduto({ params }: { params: Promise<
 
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Loja", href: "/admin/loja" }, { rotulo: "Editar produto" }]} titulo="Editar produto" descricao="Atualize os dados do produto. Os campos com * são obrigatórios; preços aparecem na loja só como informação (não há pagamento online)." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Produtos", href: "/admin/loja" }, { rotulo: "Editar produto" }]} titulo="Editar produto" descricao="Atualize os dados do produto. Os campos com * são obrigatórios; preços aparecem na loja só como informação (não há pagamento online)." />
       <FormularioProduto produto={paraTela} categorias={categorias.map(({ id: idCategoria, nome }) => ({ id: idCategoria, nome }))} />
     </div>
   );

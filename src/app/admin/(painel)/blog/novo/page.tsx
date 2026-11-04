@@ -14,7 +14,7 @@ export default async function PaginaNovoPost() {
 
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Novo post" }]} titulo="Novo post" descricao="Preencha o texto e, se quiser, a capa e a classificação. Os campos com * são obrigatórios." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Novo post" }]} titulo="Novo post" descricao="Preencha o texto e, se quiser, a capa e a classificação. Os campos com * são obrigatórios." />
       
       <FormularioPost
         acao={salvarPost}

@@ -24,7 +24,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Editar post" }]} titulo="Editar post" descricao={`"${post.titulo}". Os campos com * são obrigatórios; o endereço do post não muda ao trocar o título.`} />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Editar post" }]} titulo="Editar post" descricao={`"${post.titulo}". Os campos com * são obrigatórios; o endereço do post não muda ao trocar o título.`} />
       {post.excluidoEm && <AvisoDeLixeira colecao="posts" id={post.id} />}
       <FormularioPost
         acao={atualizarPost}

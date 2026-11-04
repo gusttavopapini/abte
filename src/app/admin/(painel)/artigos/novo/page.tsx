@@ -14,7 +14,7 @@ export default async function PaginaNovoArtigo() {
 
   return (
     <div>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Novo artigo" }]} titulo="Novo artigo" descricao="Preencha os dados do artigo científico. Os campos com * são obrigatórios." />
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Novo artigo" }]} titulo="Novo artigo" descricao="Preencha os dados do artigo científico. Os campos com * são obrigatórios." />
       
       <FormularioArtigo
         imagem={null}

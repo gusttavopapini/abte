@@ -6,6 +6,24 @@
   margin-bottom: var(--space-24);
 }
 
+/* Voltar e trilha na mesma linha (quebram no celular). */
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  align-items: center;
+}
+
+.voltar {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
 .trilha {
   display: flex;
   flex-wrap: wrap;
