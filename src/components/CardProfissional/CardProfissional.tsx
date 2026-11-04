@@ -3,9 +3,9 @@
 import { type MouseEvent, useRef } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { ContatosProfissional } from "@/components/ContatosProfissional/ContatosProfissional";
+import { FotoAusenteProfissional } from "@/components/FotoAusenteProfissional/FotoAusenteProfissional";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { MetodosProfissional } from "@/components/MetodosProfissional/MetodosProfissional";
-import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import type { ProfissionalPublico } from "@/lib/profissionaisPublicos";
 import { resumirTexto } from "@/lib/texto";
 import estilos from "./CardProfissional.module.css";
@@ -25,7 +25,7 @@ export function nomeCompletoDoProfissional({ tratamento, nome }: Pick<Profission
 }
 
 // Card do diretório de profissionais. Com foto, mostra a imagem da biblioteca
-// (texto alternativo cadastrado nela); sem foto, o placeholder. "Ver mais"
+// (texto alternativo cadastrado nela); sem foto, o ícone de usuário. "Ver mais"
 // (e o clique em qualquer ponto do card fora de links e botões) abre o popup.
 export function CardProfissional({ profissional, aoVerMais }: { profissional: ProfissionalDoCard; aoVerMais: () => void }) {
   const { registro, metodos, local, telerreabilitacao, whatsapp, instagram, facebook, email, bio, foto } = profissional;
@@ -56,7 +56,7 @@ export function CardProfissional({ profissional, aoVerMais }: { profissional: Pr
         {foto ? (
           <ImagemDaMidia variantes={foto.variantes} alt={foto.alt} largura={foto.largura} altura={foto.altura} sizes={LARGURA_DA_FOTO} className={estilos.imagem} />
         ) : (
-          <PlaceholderImagem />
+          <FotoAusenteProfissional />
         )}
       </div>
       <div className={estilos.conteudo}>

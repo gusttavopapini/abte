@@ -336,3 +336,10 @@ Conferido com o build de produção local lendo o `abte-dev`: `/profissionais` c
 Verificações: typecheck e build passam; lint 0 erros e 4 avisos e lint:css 5 erros (iguais à linha de base); `test:unidade` 430, `test:sessao` 170 (8 novos), `test:regras` 103.
 
 Pendências: fotos das posições 1 e 8 (quando chegarem, pôr na pasta do lote e repetir o comando com `--executar`, que só envia e liga as fotos); foto de baixa resolução na posição 3 (pedir uma maior); os profissionais aparecem na produção atual, que lê o `abte-dev`.
+
+
+## Profissional sem foto com ícone em 04/11/2026 (só na branch, sem promover)
+
+No card e no popup dos profissionais, o quadro preto "IMAGEM" deu lugar ao componente `FotoAusenteProfissional`: fundo `--color-bg`, ícone de usuário em SVG próprio (cabeça e ombros) preenchido com `--color-surface-soft`, com metade da largura do quadro e centralizado, sem raio próprio, borda ou sombra, `aria-hidden`. Ocupa o mesmo quadro 1:1 da foto (o contêiner do card e do popup não mudou). `PlaceholderImagem` e os outros cards continuam iguais. Não existe página individual do profissional.
+
+Conferido com o build de produção local lendo o `abte-dev`, Chrome headless em 390, 768, 1280 e 1710 px: 104 cards, 3 sem foto (os 2 do lote 1 e o 1 antigo sem foto) e 101 com foto; quadro igual ao contêiner da foto (356, 354, 288 e 391,5 px de lado), mesma altura dos cards da linha e mesma caixa de foto na linha, ícone a 0 px do centro, fundo branco, preenchimento #ADD8E6 calculado, raio 0, sem sombra; popup com o quadro quadrado e dentro da tela; nenhum "IMAGEM" na página, 0 erros e sem rolagem lateral. Capturas em `tmp-migracao/capturas/foto-ausente/`.

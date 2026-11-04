@@ -1,0 +1,18 @@
+/* Quadro do profissional sem foto: mesmo espaço da foto, fundo branco, sem
+   raio próprio, sem borda e sem sombra. */
+.quadro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg);
+}
+
+/* Ícone centralizado, com metade da largura do quadro em qualquer tela. */
+.icone {
+  display: block;
+  width: 50%;
+  height: auto;
+  fill: var(--color-surface-soft);
+}

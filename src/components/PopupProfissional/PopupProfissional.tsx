@@ -3,10 +3,10 @@
 import { Botao } from "@/components/Botao/Botao";
 import { nomeCompletoDoProfissional, type ProfissionalDoCard } from "@/components/CardProfissional/CardProfissional";
 import { ContatosProfissional } from "@/components/ContatosProfissional/ContatosProfissional";
+import { FotoAusenteProfissional } from "@/components/FotoAusenteProfissional/FotoAusenteProfissional";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { MetodosProfissional } from "@/components/MetodosProfissional/MetodosProfissional";
 import { Modal } from "@/components/Modal/Modal";
-import { PlaceholderImagem } from "@/components/PlaceholderImagem/PlaceholderImagem";
 import { paragrafosDoTexto } from "@/lib/texto";
 import estilos from "./PopupProfissional.module.css";
 
@@ -29,7 +29,7 @@ export function PopupProfissional({ profissional, aoFechar }: { profissional: Pr
           {foto ? (
             <ImagemDaMidia variantes={foto.variantes} alt={foto.alt} largura={foto.largura} altura={foto.altura} sizes={LARGURA_DA_FOTO} className={estilos.imagem} />
           ) : (
-            <PlaceholderImagem />
+            <FotoAusenteProfissional />
           )}
         </div>
         <div className={estilos.dados}>
