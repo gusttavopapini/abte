@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { AcoesDoItem } from "@/app/admin/_componentes/AcoesDoItem/AcoesDoItem";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
@@ -48,7 +49,9 @@ export function ProfissionaisAdminClient(props: Props) {
 function ListaDeProfissionais({ ativos, excluidos, podeExcluirDeVez }: Props) {
   const avisar = useAvisarNoPainel();
   // null: fechado; "novo": cadastro; profissional: edição.
-  const [editando, setEditando] = useState<ProfissionalNaTela | "novo" | null>(null);
+  // ?novo=1 (atalho "Novo profissional" da visão geral) abre o cadastro.
+  const parametros = useSearchParams();
+  const [editando, setEditando] = useState<ProfissionalNaTela | "novo" | null>(() => (parametros.get("novo") === "1" ? "novo" : null));
   const fechar = useCallback(() => setEditando(null), []);
   const concluir = useCallback(
     (mensagem: string) => {
