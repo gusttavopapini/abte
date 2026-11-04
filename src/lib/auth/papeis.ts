@@ -11,7 +11,25 @@ export function ehPapelDoPainel(valor: unknown): valor is PapelDoPainel {
 
 // Ações do painel que nem todo papel pode executar. Ponto ÚNICO das permissões
 // por papel: para mudar quem pode o quê, mude só a tabela PERMISSOES.
-export type AcaoDoPainel = "midia.enviar" | "midia.editar" | "midia.excluir" | "midia.restaurar" | "midia.excluirDeVez" | "home.editar" | "configuracoes.editar" | "paginas.editar";
+export type AcaoDoPainel =
+  | "midia.enviar"
+  | "midia.editar"
+  | "midia.excluir"
+  | "midia.restaurar"
+  | "midia.excluirDeVez"
+  | "home.editar"
+  | "configuracoes.editar"
+  | "paginas.editar"
+  // Conteúdo (posts, artigos, profissionais, produtos, tópicos e banners),
+  // 04/11/2026: criar, editar e duplicar; publicar e despublicar (ou ativar
+  // e desativar); mover para a lixeira; restaurar; excluir de vez.
+  | "conteudo.editar"
+  | "conteudo.publicar"
+  | "conteudo.excluir"
+  | "conteudo.restaurar"
+  | "conteudo.excluirDeVez"
+  // Últimas alterações do registro na visão geral (04/11/2026).
+  | "registro.ver";
 
 // PROVISÓRIO (pendência P7 no CLAUDE.md, depende da diretoria): administrador
 // e editor enviam, editam, excluem para a lixeira e restauram mídia; só o
@@ -29,6 +47,14 @@ const PERMISSOES: Record<AcaoDoPainel, readonly PapelDoPainel[]> = {
   // Páginas institucionais (acessibilidade, privacidade e termos), 30/10/2026:
   // só administrador.
   "paginas.editar": ["administrador"],
+  // Conteúdo (decisão do responsável de 04/11/2026): o editor faz tudo,
+  // menos excluir de vez, que fica só com o administrador, sem exceção.
+  "conteudo.editar": ["administrador", "editor"],
+  "conteudo.publicar": ["administrador", "editor"],
+  "conteudo.excluir": ["administrador", "editor"],
+  "conteudo.restaurar": ["administrador", "editor"],
+  "conteudo.excluirDeVez": ["administrador"],
+  "registro.ver": ["administrador", "editor"],
 };
 
 export function papelPodeExecutar(papel: PapelDoPainel, acao: AcaoDoPainel): boolean {
