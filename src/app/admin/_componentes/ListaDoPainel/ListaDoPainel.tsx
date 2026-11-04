@@ -237,7 +237,7 @@ export function ListaDoPainel({ colecao, itens, colunas, ordenacoes, rotulos, ro
       )}
 
       {filtrados.length > 0 && (
-        <TabelaPainel legenda={`Ordem: ${ordenacao.rotulo.toLowerCase()}.`} colunas={["Selecionar", ...colunas, "Ações"]} vazia={false} estadoVazio={null}>
+        <TabelaPainel legenda={`Ordem: ${ordenacao.rotulo.charAt(0).toLowerCase()}${ordenacao.rotulo.slice(1)}.`} colunas={["Selecionar", ...colunas, "Ações"]} vazia={false} estadoVazio={null}>
           {mostrados.map((item) => (
             <tr key={item.id}>
               <CelulaDoPainel rotulo="Selecionar">
