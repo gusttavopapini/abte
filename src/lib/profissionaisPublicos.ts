@@ -16,10 +16,15 @@ export type ProfissionalPublico = {
   metodos: string[];
   // Cidades, UF ou país, já em texto (ex.: "Cidade Um, Cidade Dois / SP").
   local: string;
+  // Código do país (BR, PY, BO) e a UF (só no Brasil; vazia se não cadastrada),
+  // usados pelo filtro por estado (04/11/2026).
+  pais: string;
+  uf: string;
   telerreabilitacao: boolean;
   whatsapp: string;
   instagram: string;
-  facebook: string;
+  // Sem Facebook desde 04/11/2026: o dado continua no cadastro do painel,
+  // mas não vai ao site.
   email: string;
   // Apresentação completa (o card mostra a versão curta; o popup, toda).
   bio: string;
@@ -29,8 +34,8 @@ export type ProfissionalPublico = {
 
 // Lista fechada dos campos que vão ao navegador (conferida nos testes).
 export const CAMPOS_PUBLICOS_DO_PROFISSIONAL = [
-  "id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "telerreabilitacao",
-  "whatsapp", "instagram", "facebook", "email", "bio", "foto",
+  "id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao",
+  "whatsapp", "instagram", "email", "bio", "foto",
 ] as const satisfies readonly (keyof ProfissionalPublico)[];
 
 // "Cidade Um, Cidade Dois / SP" no Brasil; nos outros países, o nome do país.
@@ -50,10 +55,12 @@ export function paraProfissionalPublico(profissional: Profissional, foto: Imagem
     registro: profissional.registro,
     metodos: [...profissional.metodos],
     local: localDoProfissional(profissional),
+    pais: profissional.pais,
+    // UF só no Brasil; fora dele, vazia (nunca inventada).
+    uf: profissional.pais === "BR" ? profissional.uf : "",
     telerreabilitacao: profissional.telerreabilitacao,
     whatsapp: profissional.whatsapp,
     instagram: profissional.instagram,
-    facebook: profissional.facebook,
     email: profissional.email,
     bio: profissional.bio,
     foto: foto ? { alt: foto.alt, largura: foto.largura, altura: foto.altura, variantes: foto.variantes.map(({ largura, url }) => ({ largura, url })) } : null,

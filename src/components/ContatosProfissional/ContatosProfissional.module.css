@@ -46,10 +46,6 @@
   --cor-contato: var(--color-social-instagram);
 }
 
-.facebook {
-  --cor-contato: var(--color-social-facebook);
-}
-
 .email {
   --cor-contato: var(--color-social-email);
 }

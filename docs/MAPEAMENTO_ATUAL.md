@@ -414,3 +414,29 @@ Pendências:
 - As janelas não têm o aviso de alterações não salvas.
 - Há um espaço grande entre o cabeçalho e a primeira seção das telas de categorias e tags (de antes).
 - Os campos de arquivo escondidos têm 1 px, com o botão visível de 44 px.
+
+## Profissionais: filtro por estado e perfil sem Facebook (04/11/2026, só na branch, sem promover)
+
+**O que mudou:**
+- **Campos públicos** (`src/lib/profissionaisPublicos.ts`): passam a levar `pais` e `uf` (a UF só no Brasil; fora dele, vazia, nunca inventada) e não levam mais o `facebook`. A lista fechada e o teste foram atualizados. O Facebook saiu do card e do popup (`ContatosProfissional` mostra só WhatsApp, Instagram e e-mail, com o botão de WhatsApp igual); o dado continua no cadastro e no formulário do painel.
+- **Nomes das UFs:** por extenso em `NOMES_DAS_UFS` (`src/config/profissionais.ts`), para os 27 códigos.
+- **Regras do filtro** em `src/lib/filtroDeProfissionais.ts` (puras, testadas):
+  - As opções nascem dos dados: "Todos os estados"; os estados com profissional em ordem alfabética pelo nome ("São Paulo (SP)"); depois os países de fora do Brasil com profissional.
+  - O endereço vale `?uf=SP` ou `?pais=BO`, só se estiver entre as opções; com os dois, vale a UF; valor inválido cai em "Todos os estados".
+  - O estado se combina com o tipo (`?tag=`). Profissional do Brasil sem UF só aparece em "Todos os estados".
+- **Página** (`ProfissionaisClient.tsx`):
+  - Select nativo "Estado", com rótulo ligado, abaixo dos botões de tipo.
+  - Região `aria-live="polite"` com a quantidade; sem resultado, "Nenhum profissional encontrado com esses filtros." em caixa branca e o botão "Limpar filtros", que limpa tipo e estado e devolve o foco ao seletor.
+  - Os botões de tipo ganharam `aria-pressed` (pendência antiga resolvida).
+
+**Dados atuais do `abte-dev`** (só leitura, contagem sem nomes): 104 profissionais ativos fora da lixeira. Opções: 17 estados (AL 4, AM 1, CE 4, DF 3, GO 2, MT 3, MS 4, MG 12, PB 1, PR 1, PE 6, PI 4, RJ 4, RS 1, SC 6, SP 38, SE 5), Bolívia 2 e Paraguai 1; 2 do Brasil sem UF, que só aparecem em "Todos os estados". A soma dá 104.
+
+**Conferido no navegador** (build local contra os emuladores, dados fictícios com um Facebook cadastrado), 66 de 66:
+- O HTML e os dados da página não têm o Facebook.
+- Em 390, 768, 1280 e 1710 px: um H1, sem rolagem lateral, opções nascidas dos dados, rótulo ligado e quantidade anunciada, card sem Facebook e com os outros contatos.
+- Tab chega ao seletor; SP pelo endereço; combinação com Médicos; sem resultado com a caixa branca; "Limpar filtros" pelo teclado volta tudo e foca o seletor; Bolívia pelo endereço; valor inválido cai em todos; popup sem Facebook; controles com 44 px em 390; sem erros no console.
+- Capturas em `tmp-migracao/capturas/filtro-estado/`.
+
+Não verificado: escolher o estado só pelo teclado em 768, 1280 e 1710 px. Nessas larguras a seta abre a lista nativa do navegador, que o roteiro automático não opera; a escolha foi feita pelo valor. Em 390 px, a seta escolheu Alagoas direto.
+
+Validação com a saída completa guardada: typecheck e build passam; lint 0 erros e 4 avisos; lint:css os 5 erros conhecidos; `test:unidade` 458 (9 novos), `test:sessao` 197, `test:regras` 118.

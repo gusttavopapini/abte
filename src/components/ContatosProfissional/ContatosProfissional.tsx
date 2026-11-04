@@ -1,18 +1,19 @@
-import { IconeEmail, IconeFacebook, IconeInstagram, IconeWhatsapp } from "@/components/Icones/Icones";
+import { IconeEmail, IconeInstagram, IconeWhatsapp } from "@/components/Icones/Icones";
 import estilos from "./ContatosProfissional.module.css";
 
 type Props = {
   nomeCompleto: string;
   whatsapp: string;
   instagram: string;
-  facebook: string;
   email: string;
 };
 
 // Botões de contato do profissional (card e popup), com os mesmos destinos,
 // textos e área mínima de toque de 44px. Sem nenhum contato, não mostra nada.
-export function ContatosProfissional({ nomeCompleto, whatsapp, instagram, facebook, email }: Props) {
-  if (!whatsapp && !instagram && !facebook && !email) return null;
+// Só WhatsApp, Instagram e e-mail: o Facebook saiu do site em 04/11/2026 (o
+// dado continua no cadastro do painel).
+export function ContatosProfissional({ nomeCompleto, whatsapp, instagram, email }: Props) {
+  if (!whatsapp && !instagram && !email) return null;
   const novaAba = { target: "_blank", rel: "noopener noreferrer" } as const;
 
   return (
@@ -30,14 +31,6 @@ export function ContatosProfissional({ nomeCompleto, whatsapp, instagram, facebo
           <a href={`https://www.instagram.com/${instagram}/`} {...novaAba} className={`${estilos.contato} ${estilos.instagram}`}>
             <IconeInstagram className={estilos.iconeContato} />
             Instagram<span className="somente-leitor"> (abre em nova aba)</span>
-          </a>
-        </li>
-      )}
-      {facebook && (
-        <li>
-          <a href={facebook} {...novaAba} className={`${estilos.contato} ${estilos.facebook}`}>
-            <IconeFacebook className={estilos.iconeContato} />
-            Facebook<span className="somente-leitor"> (abre em nova aba)</span>
           </a>
         </li>
       )}

@@ -107,7 +107,7 @@ test("navegador recebe só os campos públicos, nunca os internos, de revisão o
   const publico = paraProfissionalPublico(documento, foto);
   assert.deepEqual(Object.keys(publico).sort(), [...CAMPOS_PUBLICOS_DO_PROFISSIONAL].sort());
   const serializado = JSON.stringify(publico);
-  for (const proibido of ["revisarMigracao", "pontosDeRevisao", "origem", "chave-privada", "conferenciaDeMenor", "indicaMenor", "ativo", "ordem", "fotoMidiaId", "criadoEm", "atualizadoEm", "excluidoEm", "midia1"]) {
+  for (const proibido of ["revisarMigracao", "pontosDeRevisao", "origem", "chave-privada", "conferenciaDeMenor", "indicaMenor", "ativo", "ordem", "fotoMidiaId", "criadoEm", "atualizadoEm", "excluidoEm", "midia1", "facebook"]) {
     assert.ok(!serializado.includes(proibido), `vazou: ${proibido}`);
   }
   assert.deepEqual(Object.keys(publico.foto ?? {}).sort(), ["altura", "alt", "largura", "variantes"].sort());
@@ -127,4 +127,15 @@ test("tipo fora da lista vira a tag sem classificação; país estrangeiro mostr
   const outro = paraProfissionalPublico({ ...documento, tipo: "Desconhecido" }, null);
   assert.notEqual(outro.tipo, "Desconhecido");
   assert.equal(localDoProfissional({ cidades: [], pais: "PY", uf: "" }), "Paraguai");
+});
+
+test("lista fechada (04/11/2026): com país e UF, sem Facebook", () => {
+  assert.deepEqual([...CAMPOS_PUBLICOS_DO_PROFISSIONAL], ["id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao", "whatsapp", "instagram", "email", "bio", "foto"]);
+  const publico = paraProfissionalPublico(documento, null);
+  assert.equal(publico.pais, "BR");
+  assert.equal(publico.uf, "SP");
+  assert.equal("facebook" in publico, false);
+  // Fora do Brasil, a UF nunca vai ao site (mesmo se algo estiver gravado).
+  const deFora = paraProfissionalPublico({ ...documento, pais: "BO", uf: "SP" } as Profissional, null);
+  assert.deepEqual([deFora.pais, deFora.uf], ["BO", ""]);
 });
