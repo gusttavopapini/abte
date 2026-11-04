@@ -32,12 +32,14 @@ type PropsFormularioArtigo = {
   imagem: EscolhaDeImagem;
   rotuloPublicar: string;
   rotuloRascunho: string;
+  // Item na lixeira (04/11/2026): só salva como rascunho; publicar exige restaurar.
+  naLixeira?: boolean;
 };
 
 // Formulário de artigo científico (criar e editar), em seções; erros voltam
 // da ação em português, sem perder o que foi digitado (29/10/2026: seções,
 // contadores, barra de salvar e aviso de alterações não salvas).
-export function FormularioArtigo({ acao, artigo, categorias, tags, imagem, rotuloPublicar, rotuloRascunho }: PropsFormularioArtigo) {
+export function FormularioArtigo({ acao, artigo, categorias, tags, imagem, rotuloPublicar, rotuloRascunho, naLixeira = false }: PropsFormularioArtigo) {
   const [resposta, enviar, salvando] = useActionState(acao, null);
   const resumoRef = useRef<HTMLDivElement>(null);
   const [alterado, setAlterado] = useState(false);
@@ -148,9 +150,9 @@ export function FormularioArtigo({ acao, artigo, categorias, tags, imagem, rotul
         </fieldset>
       </SecaoDoFormulario>
 
-      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : "Publicar mostra o artigo em /artigos; rascunho o deixa só no painel."}>
+      <BarraDeSalvar aviso={naLixeira ? "Na lixeira: só é possível salvar como rascunho. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o artigo em /artigos; rascunho o deixa só no painel."}>
         <Botao type="submit" name="acao" value="rascunho" variante="secundario" disabled={salvando}>{rotuloRascunho}</Botao>
-        <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando}>{salvando ? "Salvando..." : rotuloPublicar}</Botao>
+        <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando || naLixeira}>{salvando ? "Salvando..." : rotuloPublicar}</Botao>
       </BarraDeSalvar>
     </form>
   );

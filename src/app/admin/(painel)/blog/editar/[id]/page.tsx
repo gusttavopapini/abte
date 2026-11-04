@@ -8,11 +8,12 @@ import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { AvisoDeLixeira } from "@/app/admin/_componentes/AvisoDeLixeira/AvisoDeLixeira";
 
 export const metadata: Metadata = { title: "Editar Post | Blog" };
 
 export default async function PaginaEditarPost({ params }: { params: Promise<{ id: string }> }) {
-  await exigirPapelDoPainel();
+  await exigirPapelDoPainel("conteudo.editar");
   const { id } = await params;
   // Id inválido é tratado como registro inexistente: volta para a lista.
   if (!ehIdDeDocumentoValido(id)) redirect("/admin/blog");
@@ -24,7 +25,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
   return (
     <div>
       <CabecalhoDoPainel trilha={[{ rotulo: "Blog", href: "/admin/blog" }, { rotulo: "Editar post" }]} titulo="Editar post" descricao={`"${post.titulo}". Os campos com * são obrigatórios; o endereço do post não muda ao trocar o título.`} />
-      
+      {post.excluidoEm && <AvisoDeLixeira colecao="posts" id={post.id} />}
       <FormularioPost
         acao={atualizarPost}
         post={{ id: post.id, titulo: post.titulo, imagem: post.imagem, conteudo: post.conteudo, categoria: post.categoria, tags: post.tags, formatoConteudo: post.formatoConteudo }}
@@ -33,6 +34,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
         rotuloPublicar="Salvar e publicar"
         rotuloRascunho="Salvar como rascunho"
+        naLixeira={Boolean(post.excluidoEm)}
       />
     </div>
   );

@@ -1,0 +1,10 @@
+.aviso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-bottom: var(--space-24);
+}
+
+.acao {
+  margin-top: var(--space-16);
+}

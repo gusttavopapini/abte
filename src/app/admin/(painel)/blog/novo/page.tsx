@@ -9,7 +9,7 @@ import { opcoesDeCategoriaNoPainel } from "@/lib/topicos";
 export const metadata: Metadata = { title: "Novo Post | Blog" };
 
 export default async function PaginaNovoPost() {
-  await exigirPapelDoPainel();
+  await exigirPapelDoPainel("conteudo.editar");
   const [categorias, tags] = await Promise.all([listarTopicosAtivos("categoriaDePost"), listarTopicosAtivos("tagDePost")]);
 
   return (

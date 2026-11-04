@@ -15,3 +15,9 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
+
+.lixeira {
+  border-style: dashed;
+  color: var(--color-text);
+  border-color: var(--color-text);
+}

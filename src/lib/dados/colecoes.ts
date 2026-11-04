@@ -60,6 +60,7 @@ const conversorPost = conversorDeLeitura<Post>((id, campos) => ({
   publicadoEm: data(campos.publicadoEm),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
+  excluidoEm: data(campos.excluidoEm),
 }));
 
 const conversorArtigo = conversorDeLeitura<Artigo>((id, campos) => ({
@@ -74,6 +75,7 @@ const conversorArtigo = conversorDeLeitura<Artigo>((id, campos) => ({
   status: texto(campos.status),
   criadoEm: data(campos.criadoEm),
   atualizadoEm: data(campos.atualizadoEm),
+  excluidoEm: data(campos.excluidoEm),
 }));
 
 const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => ({

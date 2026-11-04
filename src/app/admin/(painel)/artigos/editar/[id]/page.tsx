@@ -8,11 +8,12 @@ import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { redirect } from "next/navigation";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { AvisoDeLixeira } from "@/app/admin/_componentes/AvisoDeLixeira/AvisoDeLixeira";
 
 export const metadata: Metadata = { title: "Editar Artigo" };
 
 export default async function PaginaEditarArtigo({ params }: { params: Promise<{ id: string }> }) {
-  await exigirPapelDoPainel();
+  await exigirPapelDoPainel("conteudo.editar");
   const { id } = await params;
   // Id inválido é tratado como registro inexistente: volta para a lista.
   if (!ehIdDeDocumentoValido(id)) redirect("/admin/artigos");
@@ -24,7 +25,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
   return (
     <div>
       <CabecalhoDoPainel trilha={[{ rotulo: "Artigos", href: "/admin/artigos" }, { rotulo: "Editar artigo" }]} titulo="Editar artigo" descricao="Atualize os dados do artigo científico. Os campos com * são obrigatórios." />
-      
+      {artigo.excluidoEm && <AvisoDeLixeira colecao="artigos" id={artigo.id} />}
       <FormularioArtigo
         acao={atualizarArtigo}
         artigo={{ id: artigo.id, titulo: artigo.titulo, categoria: artigo.categoria, tags: artigo.tags, autores: artigo.autores, link: artigo.link, resumo: artigo.resumo }}
@@ -33,6 +34,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
         tags={tags.map(({ id, nome }) => ({ id, nome }))}
         rotuloPublicar="Salvar e publicar"
         rotuloRascunho="Salvar como rascunho"
+        naLixeira={Boolean(artigo.excluidoEm)}
       />
     </div>
   );

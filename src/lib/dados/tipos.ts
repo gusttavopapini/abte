@@ -30,6 +30,9 @@ export type Post = {
   publicadoEm: Date | null;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
+  // Lixeira do painel (04/11/2026). O site público não lê este campo: na
+  // lixeira, o post também vira rascunho.
+  excluidoEm: Date | null;
 };
 
 export type Artigo = {
@@ -47,6 +50,8 @@ export type Artigo = {
   status: string;
   criadoEm: Date | null;
   atualizadoEm: Date | null;
+  // Lixeira do painel (04/11/2026), como nos posts.
+  excluidoEm: Date | null;
 };
 
 // Profissional do diretório (modelo de 10/10/2026). Contatos já padronizados

@@ -12,14 +12,13 @@ import { gravarPost, type DadosDoPost } from "@/lib/gravacao/posts";
 import { completarDonoDasMidias } from "@/lib/midia/biblioteca";
 import { idsDasImagensNoTexto } from "@/lib/midia/dono";
 import { lerIdDaMidiaEscolhida } from "@/lib/midia/regras";
+import { LIMITE_TITULO_DO_ARTIGO, LIMITE_TITULO_DO_POST } from "@/lib/limitesDoConteudo";
 import { ehIdDeDocumentoValido, lerListaDoFormulario, lerTextoDoFormulario } from "@/lib/validacao";
 
 // Limites de tamanho dos campos curtos. Textos longos (conteúdo e resumo) não
 // têm limite aqui.
-const LIMITE_TITULO = 200;
-// Títulos de artigos científicos são longos (os importados chegam a 239
-// caracteres, 25/10/2026).
-const LIMITE_TITULO_ARTIGO = 300;
+const LIMITE_TITULO = LIMITE_TITULO_DO_POST;
+const LIMITE_TITULO_ARTIGO = LIMITE_TITULO_DO_ARTIGO;
 const LIMITE_URL = 2048;
 const LIMITE_TAGS_POR_ARTIGO = 20;
 const LIMITE_TAGS_POR_POST = 20;
@@ -107,7 +106,7 @@ async function gravarPostDoFormulario(usuario: UsuarioDoPainel, id: string | nul
   }
 
   try {
-    const gravado = await gravarPost(firestoreAdmin(), id, dados);
+    const gravado = await gravarPost(firestoreAdmin(), id, dados, { autor: autorDaAlteracao(usuario) });
     if (!gravado.ok) {
       return gravado.campo ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } } : { ok: false, mensagem: gravado.mensagem };
     }
@@ -127,12 +126,12 @@ async function gravarPostDoFormulario(usuario: UsuarioDoPainel, id: string | nul
 }
 
 export async function salvarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   return gravarPostDoFormulario(usuario, null, formData);
 }
 
 export async function atualizarPost(_anterior: RespostaDoPost, formData: FormData): Promise<RespostaDoPost> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   const id = formData.get("id");
   if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Post não encontrado." };
   return gravarPostDoFormulario(usuario, id, formData);
@@ -157,7 +156,7 @@ async function gravarArtigoDoFormulario(usuario: UsuarioDoPainel, id: string | n
   }
 
   try {
-    const gravado = await gravarArtigo(firestoreAdmin(), id, dados);
+    const gravado = await gravarArtigo(firestoreAdmin(), id, dados, { autor: autorDaAlteracao(usuario) });
     if (!gravado.ok) {
       return gravado.campo ? { ok: false, mensagem: "Confira os campos marcados.", erros: { [gravado.campo]: gravado.mensagem } } : { ok: false, mensagem: gravado.mensagem };
     }
@@ -175,12 +174,12 @@ async function gravarArtigoDoFormulario(usuario: UsuarioDoPainel, id: string | n
 }
 
 export async function salvarArtigo(_anterior: RespostaDoArtigo, formData: FormData): Promise<RespostaDoArtigo> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   return gravarArtigoDoFormulario(usuario, null, formData);
 }
 
 export async function atualizarArtigo(_anterior: RespostaDoArtigo, formData: FormData): Promise<RespostaDoArtigo> {
-  const usuario = await exigirPapelDoPainel();
+  const usuario = await exigirPapelDoPainel("conteudo.editar");
   const id = formData.get("id");
   if (!ehIdDeDocumentoValido(id)) return { ok: false, mensagem: "Artigo não encontrado." };
   return gravarArtigoDoFormulario(usuario, id, formData);

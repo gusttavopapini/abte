@@ -1,0 +1,13 @@
+/* Lugar da mensagem: some quando vazio; ao receber o foco, sem contorno
+   próprio (a caixa é lida pelos leitores de tela). */
+.lugar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
+  outline: none;
+}
+
+.lugar:empty {
+  display: none;
+}

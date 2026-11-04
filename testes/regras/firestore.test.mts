@@ -177,3 +177,39 @@ describe("Configurações da home", () => {
     });
   }
 });
+
+// Lixeira de posts e artigos (04/11/2026): o painel grava excluidoEm e a
+// situação só pelo servidor. Pelo navegador, nem quem tem papel move para a
+// lixeira, restaura, publica, consulta a lixeira ou exclui de vez.
+describe("Lixeira de posts e artigos (04/11/2026)", () => {
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["administrador pelo navegador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor pelo navegador", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+
+  beforeEach(async () => {
+    await ambiente.withSecurityRulesDisabled(async (contexto) => {
+      const db = contexto.firestore();
+      for (const colecao of ["posts", "artigos"]) {
+        await setDoc(doc(db, colecao, "naLixeira"), { titulo: "exemplo", status: "rascunho", excluidoEm: new Date() });
+        await setDoc(doc(db, colecao, "publicado"), { titulo: "exemplo", status: "publicado", excluidoEm: null });
+      }
+    });
+  });
+
+  for (const [quem, obterContexto] of contextos) {
+    for (const colecao of ["posts", "artigos"]) {
+      test(`${quem}: sem acesso à lixeira de ${colecao}`, async () => {
+        const db = obterContexto().firestore();
+        await assertFails(updateDoc(doc(db, colecao, "publicado"), { excluidoEm: new Date(), status: "rascunho" }));
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { excluidoEm: null }));
+        await assertFails(updateDoc(doc(db, colecao, "naLixeira"), { status: "publicado" }));
+        await assertFails(getDocs(query(collection(db, colecao), where("excluidoEm", "!=", null))));
+        await assertFails(getDoc(doc(db, colecao, "naLixeira")));
+        await assertFails(deleteDoc(doc(db, colecao, "naLixeira")));
+        await assertFails(setDoc(doc(db, colecao, "copia"), { titulo: "Cópia de exemplo", status: "rascunho", excluidoEm: null }));
+      });
+    }
+  }
+});
