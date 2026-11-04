@@ -95,3 +95,10 @@
     min-height: var(--control-min-height-mobile);
   }
 }
+
+/* Situação atual do produto (na loja ou fora dela), acima dos botões de salvar. */
+.situacaoAtual {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}

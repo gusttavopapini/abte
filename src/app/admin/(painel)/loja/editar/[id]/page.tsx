@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { FormularioProduto } from "@/app/admin/_componentes/FormularioProduto/FormularioProduto";
+import { AvisoDeLixeira } from "@/app/admin/_componentes/AvisoDeLixeira/AvisoDeLixeira";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { lerProdutos, listarTopicosAtivos } from "@/lib/dados/colecoes";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
@@ -38,7 +39,8 @@ export default async function PaginaEditarProduto({ params }: { params: Promise<
   return (
     <div>
       <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Produtos", href: "/admin/loja" }, { rotulo: "Editar produto" }]} titulo="Editar produto" descricao="Atualize os dados do produto. Os campos com * são obrigatórios; preços aparecem na loja só como informação (não há pagamento online)." />
-      <FormularioProduto produto={paraTela} categorias={categorias.map(({ id: idCategoria, nome }) => ({ id: idCategoria, nome }))} />
+      {produto.excluidoEm && <AvisoDeLixeira colecao="produtos" id={produto.id} />}
+      <FormularioProduto naLixeira={Boolean(produto.excluidoEm)} produto={paraTela} categorias={categorias.map(({ id: idCategoria, nome }) => ({ id: idCategoria, nome }))} />
     </div>
   );
 }

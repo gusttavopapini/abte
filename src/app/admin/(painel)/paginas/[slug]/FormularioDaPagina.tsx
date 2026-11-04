@@ -4,7 +4,6 @@ import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { AvisoDeAlteracoes } from "@/app/admin/_componentes/AvisoDeAlteracoes/AvisoDeAlteracoes";
 import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
-import { Interruptor } from "@/app/admin/_componentes/Interruptor/Interruptor";
 import { salvarPagina } from "@/app/admin/acoes-paginas";
 import { Botao } from "@/components/Botao/Botao";
 import { MarkdownRestrito } from "@/components/MarkdownRestrito/MarkdownRestrito";
@@ -14,8 +13,10 @@ import { LIMITE_DO_TITULO_DA_PAGINA, type PaginaInstitucional } from "@/lib/site
 import estilos from "../paginas.module.css";
 
 // Formulário de uma página institucional (30/10/2026): título, texto em
-// Markdown restrito (o mesmo dos posts), "Publicada" e a prévia montada pelo
-// mesmo componente do site.
+// Markdown restrito (o mesmo dos posts) e a prévia montada pelo mesmo
+// componente do site. Desde 04/11/2026, a situação vem do botão usado na
+// barra de salvar ("Salvar como rascunho" ou "Salvar e publicar"), como nos
+// posts, artigos e produtos.
 export function FormularioDaPagina({ pagina }: { pagina: PaginaInstitucional }) {
   const id = useId();
   const [resposta, salvar, salvando] = useActionState(salvarPagina, null);
@@ -40,10 +41,18 @@ export function FormularioDaPagina({ pagina }: { pagina: PaginaInstitucional }) 
   const alterado = titulo !== base.titulo || corpo.trim() !== base.corpo.trim() || publicada !== base.publicada;
   const erros = resposta?.ok === false ? resposta.erros ?? {} : {};
   return (
-    <form action={salvar} onSubmit={() => setEnviado({ titulo: titulo.trim(), corpo: corpo.trim(), publicada })} className={estilos.formulario}>
+    <form
+      action={salvar}
+      onSubmit={(evento) => {
+        // "Salvar e publicar" manda publicada=sim; "Salvar como rascunho" não manda o campo.
+        const nova = (evento.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "sim";
+        setPublicada(nova);
+        setEnviado({ titulo: titulo.trim(), corpo: corpo.trim(), publicada: nova });
+      }}
+      className={estilos.formulario}
+    >
       <AvisoDeAlteracoes alterado={alterado && !salvando} />
       <input type="hidden" name="slug" value={pagina.slug} />
-      {publicada && <input type="hidden" name="publicada" value="sim" />}
       <CaixaDoPainel tipo="atencao">O conteúdo jurídico deve ser fornecido e validado pela ABTE com assessoria jurídica. Este painel não gera texto legal.</CaixaDoPainel>
 
       <section className={estilos.secao} aria-labelledby={`${id}-texto`}>
@@ -76,16 +85,21 @@ export function FormularioDaPagina({ pagina }: { pagina: PaginaInstitucional }) 
 
       <section className={estilos.secao} aria-labelledby={`${id}-publicacao`}>
         <h2 id={`${id}-publicacao`} className="tipo-texto-lg">Publicação</h2>
-        <Interruptor id={`${id}-publicada`} rotulo="Publicada" ligado={publicada} aoMudar={setPublicada} descricao={`${id}-publicada-ajuda`} />
-        <p id={`${id}-publicada-ajuda`} className={estilos.ajuda}>Publicada, a página abre no site e aparece no rodapé. Em rascunho, a página responde &quot;Página não encontrada&quot; e sai do rodapé.</p>
+        <p className={estilos.ajuda}>
+          Situação atual: <strong>{base.publicada ? "publicada" : "rascunho"}</strong>. Para mudar, use os botões de salvar no pé da página.
+        </p>
+        <p className={estilos.ajuda}>Publicada, a página abre no site e aparece no rodapé. Em rascunho, a página responde &quot;Página não encontrada&quot; e sai do rodapé.</p>
       </section>
 
       <div tabIndex={-1} ref={resultadoRef} aria-live="polite">
         {resposta && <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>}
       </div>
-      <BarraDeSalvar>
-        <Botao type="submit" disabled={salvando}>
-          {salvando ? "Salvando..." : publicada ? "Salvar e publicar" : "Salvar como rascunho"}
+      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : "Publicar mostra a página no site e no rodapé; rascunho a tira do site."}>
+        <Botao type="submit" variante="secundario" disabled={salvando}>
+          Salvar como rascunho
+        </Botao>
+        <Botao type="submit" name="publicada" value="sim" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar e publicar"}
         </Botao>
       </BarraDeSalvar>
     </form>

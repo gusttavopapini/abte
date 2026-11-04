@@ -5,6 +5,7 @@
 // alterações na mesma transação. Não há pagamento: preço é só informação.
 import type { Firestore } from "firebase-admin/firestore";
 import { camposAlterados, registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
+import { MENSAGENS_DA_LIXEIRA } from "../lixeira.ts";
 import { escolhasDeMidiaValidas, midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
 import type { DadosDoProduto, ImagemDoProduto } from "../produtos.ts";
 import { escolherSlugUnico, gerarSlug } from "../slug.ts";
@@ -47,6 +48,8 @@ export async function gravarProduto(
     if (id) {
       const atual = await transacao.get(referencia);
       if (!atual.exists) return { ok: false as const, mensagem: "Produto não encontrado." };
+      // Na lixeira, só se salva fora da loja: publicar exige restaurar antes.
+      if (atual.get("excluidoEm") && produto.publicado) return { ok: false as const, mensagem: MENSAGENS_DA_LIXEIRA.naLixeira };
       transacao.update(referencia, { ...produto, atualizadoEm: agora });
       registrarNaTransacao(db, transacao, autor, { colecao: COLECAO_PRODUTOS, documentoId: referencia.id, acao: "editar", campos: camposAlterados(atual.data() ?? {}, produto), resumo: resumoDoRegistro ?? "Produto alterado." });
       return { ok: true as const, id: referencia.id };

@@ -23,6 +23,8 @@ type Props = {
   produto: ProdutoNaTela | null;
   // Categorias de produto fora da lixeira.
   categorias: { id: string; nome: string }[];
+  // Produto na lixeira (04/11/2026): só salva fora da loja; publicar exige restaurar.
+  naLixeira?: boolean;
 };
 
 function ErroDoCampo({ id, erro }: { id: string; erro?: string }) {
@@ -31,7 +33,7 @@ function ErroDoCampo({ id, erro }: { id: string; erro?: string }) {
 }
 
 // Cadastro e edição de produto, com a galeria de imagens da biblioteca de mídia.
-export function FormularioProduto({ produto, categorias }: Props) {
+export function FormularioProduto({ produto, categorias, naLixeira = false }: Props) {
   const router = useRouter();
   const [resposta, acao, salvando] = useActionState<RespostaDoProduto | null, FormData>(salvarProduto, null);
   const id = useId();
@@ -48,9 +50,12 @@ export function FormularioProduto({ produto, categorias }: Props) {
   }, [resposta, router]);
 
   // Envio sem limpar o formulário: com erro, o que foi digitado continua.
+  // O botão usado decide a situação: "Salvar e publicar" manda publicado=sim;
+  // "Salvar como rascunho" não manda o campo (fica fora da loja).
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    const dados = new FormData(evento.currentTarget);
+    const botao = (evento.nativeEvent as SubmitEvent).submitter;
+    const dados = new FormData(evento.currentTarget, botao instanceof HTMLButtonElement ? botao : undefined);
     setAlterado(false);
     startTransition(() => acao(dados));
   }
@@ -109,10 +114,9 @@ export function FormularioProduto({ produto, categorias }: Props) {
         <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem na loja (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
       </div>
 
-      <label className={estilos.opcao}>
-        <input type="checkbox" name="publicado" value="sim" defaultChecked={p ? p.publicado : false} />
-        Publicado (aparece na loja)
-      </label>
+      <p className={estilos.situacaoAtual}>
+        Situação atual: {p ? (p.publicado ? "na loja (publicado)" : "fora da loja (rascunho)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da página.
+      </p>
       </SecaoDoFormulario>
       <SecaoDoFormulario titulo="Imagens" descricao="Envie cada imagem com o texto alternativo dela. A primeira é a principal.">
 
@@ -127,9 +131,10 @@ export function FormularioProduto({ produto, categorias }: Props) {
       />
       </SecaoDoFormulario>
 
-      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : undefined}>
-        <Botao href="/admin/loja" variante="secundario">Cancelar</Botao>
-        <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
+      <BarraDeSalvar aviso={naLixeira ? "Na lixeira: só é possível salvar fora da loja. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o produto na loja; rascunho o deixa fora dela."}>
+        <Botao href="/admin/loja" variante="link">Cancelar</Botao>
+        <Botao type="submit" variante="secundario" disabled={salvando}>Salvar como rascunho</Botao>
+        <Botao type="submit" name="publicado" value="sim" disabled={salvando || naLixeira}>{salvando ? "Salvando..." : "Salvar e publicar"}</Botao>
       </BarraDeSalvar>
     </form>
   );
