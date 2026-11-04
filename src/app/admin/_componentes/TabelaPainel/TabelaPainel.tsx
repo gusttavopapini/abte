@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import estilos from "./TabelaPainel.module.css";
 
 type PropsTabelaPainel = {
-  // Id da tabela (a busca da lista a encontra por ele).
+  // Id da tabela (opcional).
   id?: string;
   // Frase curta sobre a lista, lida antes dela (ex.: a ordem).
   legenda: string;
@@ -32,15 +32,6 @@ export function TabelaPainel({ id, legenda, colunas, vazia, estadoVazio, childre
         <tbody>{children}</tbody>
       </table>
     </div>
-  );
-}
-
-// Linha da tabela; "busca" e "situacao" alimentam a busca da lista (BuscaNaTabela).
-export function LinhaDoPainel({ busca, situacao, children }: { busca: string; situacao?: string; children: ReactNode }) {
-  return (
-    <tr data-busca={busca} data-situacao={situacao}>
-      {children}
-    </tr>
   );
 }
 

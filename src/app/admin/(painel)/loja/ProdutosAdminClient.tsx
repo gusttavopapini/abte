@@ -1,13 +1,11 @@
 "use client";
 
 import { AcoesDoItem } from "@/app/admin/_componentes/AcoesDoItem/AcoesDoItem";
-import { BuscaNaTabela } from "@/app/admin/_componentes/BuscaNaTabela/BuscaNaTabela";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
 import { MensagensDoPainel } from "@/app/admin/_componentes/MensagensDoPainel/MensagensDoPainel";
 import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
-import { CelulaDoPainel, LinhaDoPainel, TabelaPainel } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
+import { ListaDoPainel, type ItemDaLista, type OrdenacaoDaLista } from "@/app/admin/_componentes/ListaDoPainel/ListaDoPainel";
 import { Botao } from "@/components/Botao/Botao";
-import estilosDaLixeira from "../listaComLixeira.module.css";
 
 export type LinhaDeProduto = { id: string; nome: string; slug: string; categoria: string; preco: string; situacao: string; publicado: boolean };
 
@@ -36,71 +34,52 @@ function Acoes({ produto, naLixeira, podeExcluirDeVez }: { produto: LinhaDeProdu
   );
 }
 
+const ORDENACOES: OrdenacaoDaLista[] = [
+  { valor: "loja", rotulo: "Ordem da loja", chave: "ordem", direcao: "asc" },
+  { valor: "nome", rotulo: "Nome, de A a Z", chave: "nome", direcao: "asc" },
+  { valor: "nome-inverso", rotulo: "Nome, de Z a A", chave: "nome", direcao: "desc" },
+  { valor: "categoria", rotulo: "Categoria, de A a Z", chave: "categoria", direcao: "asc" },
+];
+
 export function ProdutosAdminClient({ ativos, excluidos, salvo, podeExcluirDeVez }: { ativos: LinhaDeProduto[]; excluidos: LinhaDeProduto[]; salvo: boolean; podeExcluirDeVez: boolean }) {
+  // A ordem que chega do servidor já é a da loja (Ordem e, no empate, o nome).
+  const itens: ItemDaLista[] = [...ativos.map((produto) => ({ produto, naLixeira: false })), ...excluidos.map((produto) => ({ produto, naLixeira: true }))].map(({ produto, naLixeira }, indice) => {
+    const situacao = naLixeira ? "lixeira" : produto.publicado ? "publicado" : "rascunho";
+    return {
+      id: produto.id,
+      nome: produto.nome,
+      busca: produto.categoria,
+      situacao,
+      chaves: { ordem: indice, nome: produto.nome, categoria: produto.categoria },
+      celulas: [produto.nome, produto.categoria, produto.preco, produto.situacao, <SeloStatus key="situacao" status={situacao} />],
+      acoes: <Acoes produto={produto} naLixeira={naLixeira} podeExcluirDeVez={podeExcluirDeVez} />,
+    };
+  });
+
   return (
     <div>
       <CabecalhoDoPainel
         trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Loja" }]}
         titulo="Loja: produtos"
-        descricao="Cadastro dos produtos da loja. Só os publicados aparecem em /loja. Não há pagamento online: a finalização da compra aparece como “em breve”."
+        descricao={`Cadastro dos produtos da loja. Só os publicados aparecem em /loja. Não há pagamento online: a finalização da compra aparece como “em breve”.${podeExcluirDeVez ? "" : " Só o administrador exclui de vez."}`}
         acao={<Botao href="/admin/loja/novo">Adicionar produto</Botao>}
       />
       <MensagensDoPainel inicial={salvo ? { tipo: "sucesso", texto: "Produto salvo." } : undefined}>
-        {ativos.length > 0 && (
-          <BuscaNaTabela
-            tabela="tabela-produtos"
-            rotuloDaBusca="Buscar pelo nome ou categoria"
-            situacoes={[{ valor: "publicado", rotulo: "Na loja" }, { valor: "rascunho", rotulo: "Fora da loja (rascunho)" }]}
-            total={ativos.length}
-            nomeNoSingular="produto"
-            nomeNoPlural="produtos"
-          />
-        )}
-
-        <TabelaPainel
-          id="tabela-produtos"
-          legenda="Na ordem da loja (campo Ordem; no empate, pelo nome)."
-          colunas={["Nome", "Categoria", "Preço", "Estoque", "Na loja", "Ações"]}
-          vazia={ativos.length === 0}
+        <ListaDoPainel
+          colecao="produtos"
+          itens={itens}
+          colunas={["Nome", "Categoria", "Preço", "Estoque", "Na loja"]}
+          ordenacoes={ORDENACOES}
+          rotulos={{ singular: "produto", plural: "produtos", publicados: "Na loja", rascunhos: "Fora da loja" }}
+          rotuloDaBusca="Buscar pelo nome ou categoria"
+          comSituacao
           estadoVazio={
             <>
-              <p className="tipo-texto">Nenhum produto fora da lixeira. Cada produto precisa de uma categoria: cadastre antes em Loja: categorias.</p>
-              <Botao href="/admin/loja/novo" variante="secundario">Adicionar um produto</Botao>
+              <p className="tipo-texto">Nenhum produto cadastrado. Cada produto precisa de uma categoria: cadastre antes em Loja: categorias.</p>
+              <Botao href="/admin/loja/novo" variante="secundario">Adicionar o primeiro produto</Botao>
             </>
           }
-        >
-          {ativos.map((produto) => (
-            <LinhaDoPainel key={produto.id} busca={`${produto.nome} ${produto.categoria}`} situacao={produto.publicado ? "publicado" : "rascunho"}>
-              <CelulaDoPainel rotulo="Nome" destaque>{produto.nome}</CelulaDoPainel>
-              <CelulaDoPainel rotulo="Categoria">{produto.categoria}</CelulaDoPainel>
-              <CelulaDoPainel rotulo="Preço">{produto.preco}</CelulaDoPainel>
-              <CelulaDoPainel rotulo="Estoque">{produto.situacao}</CelulaDoPainel>
-              <CelulaDoPainel rotulo="Na loja"><SeloStatus status={produto.publicado ? "publicado" : "rascunho"} /></CelulaDoPainel>
-              <CelulaDoPainel rotulo="Ações" acoes><Acoes produto={produto} naLixeira={false} podeExcluirDeVez={podeExcluirDeVez} /></CelulaDoPainel>
-            </LinhaDoPainel>
-          ))}
-        </TabelaPainel>
-
-        {excluidos.length > 0 && (
-          <section className={estilosDaLixeira.lixeira} aria-labelledby="titulo-lixeira-produtos">
-            <h2 id="titulo-lixeira-produtos" className={estilosDaLixeira.titulo}>Lixeira ({excluidos.length})</h2>
-            <TabelaPainel
-              legenda={`Produtos na lixeira não aparecem na loja. Restaurar volta o produto com a situação que ele tinha.${podeExcluirDeVez ? " Excluir de vez não tem volta." : " Só o administrador exclui de vez."}`}
-              colunas={["Nome", "Categoria", "Situação", "Ações"]}
-              vazia={false}
-              estadoVazio={null}
-            >
-              {excluidos.map((produto) => (
-                <LinhaDoPainel key={produto.id} busca={produto.nome}>
-                  <CelulaDoPainel rotulo="Nome" destaque>{produto.nome}</CelulaDoPainel>
-                  <CelulaDoPainel rotulo="Categoria">{produto.categoria}</CelulaDoPainel>
-                  <CelulaDoPainel rotulo="Situação"><SeloStatus status="lixeira" /></CelulaDoPainel>
-                  <CelulaDoPainel rotulo="Ações" acoes><Acoes produto={produto} naLixeira podeExcluirDeVez={podeExcluirDeVez} /></CelulaDoPainel>
-                </LinhaDoPainel>
-              ))}
-            </TabelaPainel>
-          </section>
-        )}
+        />
       </MensagensDoPainel>
     </div>
   );
