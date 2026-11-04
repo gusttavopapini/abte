@@ -4,7 +4,7 @@
 // (acoes-profissionais.ts, que conferem sessão e papel antes) e pelos testes
 // no emulador.
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
-import { camposAlterados, registrarNoLote, type AutorDaAlteracao } from "../log/alteracoes.ts";
+import { camposAlterados, registrarNoLote, type Alteracao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import { escolhaDeMidiaValida } from "../midia/biblioteca.ts";
 import type { DadosDoProfissional } from "../profissionais.ts";
 
@@ -14,6 +14,14 @@ export const MENSAGEM_FOTO_INDISPONIVEL = "A foto escolhida não está mais na b
 
 type Falha = { ok: false; mensagem: string; campo?: "fotoMidiaId" };
 
+// Só para scripts (cadastro em lote, 04/11/2026): campos extras gravados junto
+// com os do formulário (ex.: origem) e a marca do registro de alterações
+// (origem "migracao" e a execução). O painel não usa nenhum dos dois.
+export type OpcoesDaGravacaoDoProfissional = {
+  extras?: Record<string, unknown>;
+  registro?: Pick<Alteracao, "origem" | "execucao"> & { resumo?: string };
+};
+
 // Cria (id null) ou atualiza um profissional. Uma foto nova precisa existir na
 // biblioteca e estar fora da lixeira; a foto que já estava gravada pode ficar
 // mesmo se foi para a lixeira (volta a aparecer se a imagem for restaurada).
@@ -22,7 +30,10 @@ export async function gravarProfissional(
   id: string | null,
   dados: DadosDoProfissional,
   autor: AutorDaAlteracao,
+  opcoes: OpcoesDaGravacaoDoProfissional = {},
 ): Promise<{ ok: true; id: string } | Falha> {
+  const extras = opcoes.extras ?? {};
+  const marca = opcoes.registro ? { origem: opcoes.registro.origem, execucao: opcoes.registro.execucao } : {};
   const colecao = db.collection(COLECAO_PROFISSIONAIS);
   const referencia = id ? colecao.doc(id) : colecao.doc();
   const atual = id ? await referencia.get() : null;
@@ -36,22 +47,24 @@ export async function gravarProfissional(
   const agora = new Date();
   const lote = db.batch();
   if (atual) {
-    lote.update(referencia, { ...dados, atualizadoEm: agora });
+    lote.update(referencia, { ...dados, ...extras, atualizadoEm: agora });
     registrarNoLote(db, lote, autor, {
       colecao: COLECAO_PROFISSIONAIS,
       documentoId: referencia.id,
       acao: "editar",
-      campos: camposAlterados(atual.data() ?? {}, dados),
-      resumo: "Profissional alterado.",
+      campos: camposAlterados(atual.data() ?? {}, { ...dados, ...extras }),
+      resumo: opcoes.registro?.resumo ?? "Profissional alterado.",
+      ...marca,
     });
   } else {
-    lote.create(referencia, { ...dados, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
+    lote.create(referencia, { ...dados, ...extras, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
     registrarNoLote(db, lote, autor, {
       colecao: COLECAO_PROFISSIONAIS,
       documentoId: referencia.id,
       acao: "criar",
-      campos: Object.keys(dados),
-      resumo: "Profissional cadastrado.",
+      campos: [...Object.keys(dados), ...Object.keys(extras)],
+      resumo: opcoes.registro?.resumo ?? "Profissional cadastrado.",
+      ...marca,
     });
   }
   await lote.commit();

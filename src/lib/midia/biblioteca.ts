@@ -301,6 +301,11 @@ export type DadosDaImportacao = {
   // false só quando o alt veio pronto do site antigo (resposta 2 de
   // 22/10/2026); sem o campo, o alt é provisório.
   altProvisorio?: boolean;
+  // Item a que a imagem pertence (cadastro de profissionais em lote,
+  // 04/11/2026); sem o campo, a imagem fica sem dono, como as do site antigo.
+  dono?: DonoDaMidia | null;
+  // Frase do registro de alterações, quando a imagem não vem do site antigo.
+  resumo?: string;
 };
 
 // Importação de uma imagem do site antigo (etapa 6). Diferenças do envio pelo
@@ -331,11 +336,12 @@ export async function importarImagem(
       enviadoPor: autor.uid,
       conferenciaDeMenor: "pendente",
       origem: { sistema: dados.origem.sistema, midiaId: dados.origem.midiaId, execucao: dados.origem.execucao },
+      ...(dados.dono ? { dono: dados.dono } : {}),
     }),
     autor,
     {
-      campos: ["alt", "variantes", "origem"],
-      resumo: "Imagem importada do site antigo.",
+      campos: dados.dono ? ["alt", "variantes", "origem", "dono"] : ["alt", "variantes", "origem"],
+      resumo: dados.resumo ?? "Imagem importada do site antigo.",
       origem: "migracao",
       execucao: dados.origem.execucao,
     },

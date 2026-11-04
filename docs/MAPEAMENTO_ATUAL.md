@@ -323,3 +323,16 @@ Até 1023px, o banner virou pilha: imagem em cima, faixa de transição na base 
 Verificado com build local e emuladores (`demo-abte-e2e`, imagens fictícias com marcador): marcador sem interseção com a faixa e o painel em 20 de 20 casos com foco vertical "centro" (360, 390, 430, 768 e 1023 px), 95 de 95 interações, 3 de 3 com oito pontos e 42 de 42 na prévia do painel. `test:unidade` 430, `test:sessao` 162, `test:regras` 103; lint e lint:css iguais à linha de base. Capturas em `tmp-migracao/capturas/banner-pilha-3110/`.
 
 Pendências: os banners reais só têm a versão de computador, com o foco que está gravado, então o assunto só aparece depois de ajustar o foco no painel ou enviar as versões novas (nenhum dado foi alterado); em 360x640, o cabeçalho e o véu ocupam 180px de uma imagem de 282px a 313px; em 1023x768, a imagem fica entre 2,54:1 e 2,92:1, e uma arte 4:3 mostra cerca de 46% da altura.
+
+
+## Cadastro de profissionais em lote em 04/11/2026 (lote 1, só no `abte-dev`)
+
+Script novo `npm run cadastro:profissionais-lote` (`scripts/cadastrar-profissionais-lote.mts` e `src/lib/migracao/profissionaisLote.ts`), separado da migração do site antigo, que continua sem mudança. Os dados passam pelo `validarProfissional` do painel (montado como o formulário) e são gravados pelo `gravarProfissional`, que ganhou opções só para scripts (campos extras e a marca de migração no registro); `importarImagem` aceita `dono` e `resumo`. Nada mudou no comportamento do painel.
+
+Execução `20261104-042619-f33e` no `abte-dev`, depois da simulação limpa: 8 profissionais criados (7 fisioterapeutas e 1 médica), todos ativos, ordem 0, sem telerreabilitação, métodos e apresentação; 0 recusados e 0 possíveis duplicados entre os 96 anteriores; 6 fotos enviadas e ligadas (dono, alt provisório e conferência de menores pendente), 1 delas reduzida como no navegador (arquivo de 9 MB, maior que 2560 px) e 1 de baixa resolução (176 x 320 px, só a variante de 176 px); 2 sem foto (posições 1 e 8 do arquivo). 20 linhas em `logAlteracoes`, todas da migração. Projeto com 104 profissionais, 104 ativos. **Desfazer:** `npm run cadastro:profissionais-lote -- --desfazer --execucao=20261104-042619-f33e` (simula) e com `--executar --confirmo-projeto=abte-dev`.
+
+Conferido com o build de produção local lendo o `abte-dev`: `/profissionais` com status 200, um H1, 104 cards (69 fisioterapeutas e 24 médicos nos filtros) e o placeholder nos 3 sem foto; o profissional da Bolívia sem UF aparece com "cidade / Bolívia". A página não tem filtro por estado (só por tipo) nem página individual (o detalhe é o popup do card).
+
+Verificações: typecheck e build passam; lint 0 erros e 4 avisos e lint:css 5 erros (iguais à linha de base); `test:unidade` 430, `test:sessao` 170 (8 novos), `test:regras` 103.
+
+Pendências: fotos das posições 1 e 8 (quando chegarem, pôr na pasta do lote e repetir o comando com `--executar`, que só envia e liga as fotos); foto de baixa resolução na posição 3 (pedir uma maior); os profissionais aparecem na produção atual, que lê o `abte-dev`.
