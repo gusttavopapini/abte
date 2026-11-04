@@ -1,0 +1,19 @@
+/* Painel (etapa 3, 04/11/2026): contorno visível em repouso em todos os
+   campos de formulário, inclusive dentro das janelas (que o Modal abre fora
+   da área do painel, direto no body). O marcador .painel-raiz fica no layout
+   do /admin; a regra não vale no site público, onde os campos continuam
+   como o design system define. Cor do token --color-placeholder (contraste
+   de cerca de 4,9:1 com o branco); o anel de foco (--focus-ring) continua
+   por cima, pela regra global de :focus-visible. */
+.painel-raiz {
+  display: contents;
+}
+
+body:has(.painel-raiz)
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"], [type="submit"], [type="button"], [type="reset"], [type="image"], [type="color"]),
+    select,
+    textarea
+  ) {
+  border: 1px solid var(--color-placeholder);
+}
