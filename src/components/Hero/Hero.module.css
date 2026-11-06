@@ -217,10 +217,15 @@
      o título não passar de 4 linhas em 1024px; o véu cobre o mesmo tanto. */
   --coluna-do-veu: max(calc(100% * var(--fracao)), calc(var(--space-96) * 6 + var(--space-64)));
   --base-do-texto: calc(var(--space-64) + var(--space-24) + env(safe-area-inset-bottom, 0px));
+  /* Altura do header até o JavaScript publicar a medida real: o padding da
+     .barra (--space-24 em cima e embaixo) mais o logo de 100px
+     (Logo.module.css). Com a reserva menor de antes (--space-96), o texto
+     descia 26px logo depois de carregar (pulo de layout, 06/11/2026). */
+  --altura-do-header-padrao: calc(100px + var(--space-24) * 2);
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: calc(var(--altura-do-header, var(--space-96)) + var(--space-24)) 0 var(--base-do-texto);
+  padding: calc(var(--altura-do-header, var(--altura-do-header-padrao)) + var(--space-24)) 0 var(--base-do-texto);
 }
 
 .linhaDoTexto {

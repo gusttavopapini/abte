@@ -104,6 +104,8 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
                 className={`${estilos.dot} ${index === slideAtual ? estilos.dotAtivo : ""}`}
                 onClick={() => setSlideAtual(index)}
                 aria-label={`Ir para o slide ${index + 1}`}
+                // O ponto do slide à vista é anunciado como o atual.
+                aria-current={index === slideAtual ? "true" : undefined}
               />
             ))}
           </div>
