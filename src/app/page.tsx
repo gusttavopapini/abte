@@ -35,7 +35,7 @@ const VALORES = [
     titulo: "Missão",
     Icone: IconeAlvo,
     texto:
-      "Reunir fisioterapeutas, médicos e parceiros engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.",
+      "Reunir fisioterapeutas, médicos, ortesistas, psicólogos e demais profissionais engajados no Tratamento Conservador da Escoliose Baseado em Evidências, para trocar informações, criar ações de conscientização e promover tratamentos de qualidade em todo o território nacional.",
   },
   { titulo: "Visão", Icone: IconeOlho, texto: "Ser referência em Tratamento Conservador da Escoliose na América Latina." },
   {
