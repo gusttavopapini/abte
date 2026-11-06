@@ -9,7 +9,7 @@ import { MensagensDoPainel, useAvisarNoPainel } from "@/app/admin/_componentes/M
 import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
 import { ListaDoPainel, type ItemDaLista, type OrdenacaoDaLista } from "@/app/admin/_componentes/ListaDoPainel/ListaDoPainel";
 import { Botao } from "@/components/Botao/Botao";
-import { Modal } from "@/components/Modal/Modal";
+import { JanelaDeFormulario } from "@/app/admin/_componentes/JanelaDeFormulario/JanelaDeFormulario";
 
 type Props = {
   ativos: ProfissionalNaTela[];
@@ -118,11 +118,20 @@ function ListaDeProfissionais({ ativos, excluidos, podeExcluirDeVez }: Props) {
         }
       />
 
-      <Modal aberto={editando !== null} aoFechar={fechar} titulo={editando && editando !== "novo" ? "Editar profissional" : "Novo profissional"}>
-        {editando !== null && (
-          <FormularioProfissional key={editando === "novo" ? "novo" : editando.id} profissional={editando === "novo" ? null : editando} aoSalvar={concluir} aoCancelar={fechar} />
-        )}
-      </Modal>
+      {/* Com alteração não salva, fechar a janela pede confirmação (06/11/2026). */}
+      <JanelaDeFormulario aberto={editando !== null} aoFechar={fechar} titulo={editando && editando !== "novo" ? "Editar profissional" : "Novo profissional"}>
+        {({ fecharComAviso, marcarAlteracao }) =>
+          editando !== null && (
+            <FormularioProfissional
+              key={editando === "novo" ? "novo" : editando.id}
+              profissional={editando === "novo" ? null : editando}
+              aoSalvar={concluir}
+              aoCancelar={fecharComAviso}
+              aoMudarFoto={marcarAlteracao}
+            />
+          )
+        }
+      </JanelaDeFormulario>
     </>
   );
 }

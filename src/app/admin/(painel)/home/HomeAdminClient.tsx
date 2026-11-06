@@ -2,7 +2,9 @@
 
 import { useActionState, useCallback, useEffect, useId, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
+import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
 import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
+import { JanelaDeFormulario } from "@/app/admin/_componentes/JanelaDeFormulario/JanelaDeFormulario";
 import { ImagemDoItem, type EscolhaDeImagem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { ativarOuDesativarBanner, excluirBannerDaHomeDeVez, moverBannerParaALixeira, restaurarBannerDaHome, salvarBannerDaHome, salvarImagemDaSecao } from "@/app/admin/acoes-home";
 import { AcoesDoItem, type TextosDoItem } from "@/app/admin/_componentes/AcoesDoItem/AcoesDoItem";
@@ -11,7 +13,6 @@ import { Botao } from "@/components/Botao/Botao";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ConteudoDoSlide, type FormatoDaPrevia } from "@/components/Hero/ConteudoDoSlide";
-import { Modal } from "@/components/Modal/Modal";
 import type { SlideDoBanner } from "@/lib/site/banners";
 import { ANCORAS_DA_HOME } from "@/lib/site/ancoras";
 import { ehCaminhoDosArtigos } from "@/lib/site/configuracoes";
@@ -574,14 +575,13 @@ function CampoDoLink({
   );
 }
 
-function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancelar }: { banner: BannerNaTela | null; total: number; artigosAtivo: boolean; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
+function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancelar, aoAlterar }: { banner: BannerNaTela | null; total: number; artigosAtivo: boolean; aoTerminar: (mensagem: string) => void; aoCancelar: () => void; aoAlterar: () => void }) {
   const id = useId();
   const [resposta, salvar, salvando] = useActionState(salvarBannerDaHome, null);
   const [chave] = useState(() => banner?.chave ?? novaChave());
   const [alt, setAlt] = useState(banner?.alt ?? "");
   // Controlados: um erro na resposta não apaga o que foi digitado.
   const [href, setHref] = useState(banner?.href ?? "");
-  const [ativo, setAtivo] = useState(banner ? banner.ativo : true);
   const [pontoDeFoco, setPontoDeFoco] = useState<PontoDeFoco>(banner?.pontoDeFoco ?? "centro");
   const [pontoDeFocoVertical, setPontoDeFocoVertical] = useState<PontoDeFocoVertical>(banner?.pontoDeFocoVertical ?? "centro");
   const [titulo, setTitulo] = useState(banner?.titulo ?? "");
@@ -607,6 +607,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
   }, [resposta, aoTerminar]);
 
   function aoMudarImagem(versao: Versao, escolha: EscolhaDeImagem) {
+    aoAlterar();
     setImagens((atual) => ({ ...atual, [versao]: escolha }));
     if (versao !== "computador") return;
     const sugerido = escolha?.imagem?.alt ?? "";
@@ -642,6 +643,11 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
     } else if (link.ok && link.href !== href) setHref(link.href);
   }
   const limitar = (valor: number) => Math.min(Math.max(valor, 1), maximo);
+  // Subir e Descer não passam por um campo digitado: avisam a janela.
+  const moverPara = (valor: number) => {
+    aoAlterar();
+    setPosicao(limitar(valor));
+  };
   const temImagem = Boolean(imagens.computador);
   const slideDaPrevia: SlideDoBanner = {
     imagem: "",
@@ -763,15 +769,17 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-publicacao`}>
         <h3 id={`${id}-publicacao`} className={estilos.tituloDaCaixa}>Publicação</h3>
-        <label className={estilos.opcao}>
-          <input type="checkbox" name="ativo" value="sim" checked={ativo} onChange={(evento) => setAtivo(evento.target.checked)} />
-          Ativo (aparece no carrossel da home)
-        </label>
+        {/* A situação sai do botão usado no pé da janela (06/11/2026): "Salvar e
+            ativar" manda ativo=sim, "Salvar como inativo" não manda o campo,
+            como a caixa "Ativo" de antes. */}
+        <p className={estilos.ajuda}>
+          Situação atual: {banner ? (banner.ativo ? "ativo (aparece no carrossel da home)" : "inativo (fora da home)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da janela.
+        </p>
 
         <fieldset className={estilos.grupoSemMoldura} aria-describedby={erros.posicao ? `${id}-posicao-erro` : undefined}>
           <legend className={estilos.rotulo}>Posição no carrossel</legend>
           <div className={estilos.posicao}>
-            <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao - 1))} disabled={posicao <= 1} aria-label={`Subir uma posição (agora ${posicao} de ${maximo})`}>
+            <Botao type="button" variante="secundario" onClick={() => moverPara(posicao - 1)} disabled={posicao <= 1} aria-label={`Subir uma posição (agora ${posicao} de ${maximo})`}>
               Subir
             </Botao>
             <label htmlFor={`${id}-posicao`} className="somente-leitor">Posição, de 1 a {maximo}</label>
@@ -785,7 +793,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
               onChange={(evento) => setPosicao(limitar(Number(evento.target.value) || 1))}
               className={`${estilos.entrada} ${estilos.numero}`}
             />
-            <Botao type="button" variante="secundario" onClick={() => setPosicao(limitar(posicao + 1))} disabled={posicao >= maximo} aria-label={`Descer uma posição (agora ${posicao} de ${maximo})`}>
+            <Botao type="button" variante="secundario" onClick={() => moverPara(posicao + 1)} disabled={posicao >= maximo} aria-label={`Descer uma posição (agora ${posicao} de ${maximo})`}>
               Descer
             </Botao>
             <span className={estilos.ajuda} aria-live="polite">
@@ -796,19 +804,22 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
         </fieldset>
       </section>
 
-      <div className={estilos.botoes}>
-        <Botao type="button" variante="secundario" onClick={aoCancelar} disabled={salvando}>
+      <BarraDeSalvar aviso="Ativar mostra o banner no carrossel da home, se ele tiver imagem; inativo o deixa fora dela.">
+        <Botao type="button" variante="link" onClick={aoCancelar} disabled={salvando}>
           Cancelar
         </Botao>
-        <Botao type="submit" disabled={salvando}>
-          {salvando ? "Salvando..." : "Salvar"}
+        <Botao type="submit" variante="secundario" disabled={salvando}>
+          Salvar como inativo
         </Botao>
-      </div>
+        <Botao type="submit" name="ativo" value="sim" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar e ativar"}
+        </Botao>
+      </BarraDeSalvar>
     </form>
   );
 }
 
-function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: EspacoNaTela; aoTerminar: (mensagem: string) => void; aoCancelar: () => void }) {
+function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar, aoAlterar }: { espaco: EspacoNaTela; aoTerminar: (mensagem: string) => void; aoCancelar: () => void; aoAlterar: () => void }) {
   const id = useId();
   const [resposta, salvar, salvando] = useActionState(salvarImagemDaSecao, null);
   const [alt, setAlt] = useState(espaco.alt);
@@ -822,6 +833,7 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar }: { espaco: Espaco
   }, [resposta, aoTerminar]);
 
   function aoMudarImagem(versao: Versao, escolha: EscolhaDeImagem) {
+    aoAlterar();
     if (versao !== "computador") return;
     setTemImagem(escolha !== null);
     const sugerido = escolha?.imagem?.alt ?? "";
@@ -1049,12 +1061,17 @@ function TelaDaHome({ banners, espacos, artigosAtivo = true, video = null, capaD
 
       <VideoQuemSomosAdmin video={video} capa={capaDoVideo} aoTerminar={concluir} />
 
-      <Modal aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
-        {janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={vivos.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fechar} />}
-      </Modal>
-      <Modal aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"} largura="larga">
-        {janela?.tipo === "espaco" && <FormularioDoEspaco espaco={janela.espaco} aoTerminar={concluir} aoCancelar={fechar} />}
-      </Modal>
+      {/* Com alteração não salva, fechar a janela pede confirmação (06/11/2026). */}
+      <JanelaDeFormulario aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
+        {({ fecharComAviso, marcarAlteracao }) =>
+          janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={vivos.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fecharComAviso} aoAlterar={marcarAlteracao} />
+        }
+      </JanelaDeFormulario>
+      <JanelaDeFormulario aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"} largura="larga">
+        {({ fecharComAviso, marcarAlteracao }) =>
+          janela?.tipo === "espaco" && <FormularioDoEspaco espaco={janela.espaco} aoTerminar={concluir} aoCancelar={fecharComAviso} aoAlterar={marcarAlteracao} />
+        }
+      </JanelaDeFormulario>
     </div>
   );
 }

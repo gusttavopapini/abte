@@ -4,6 +4,7 @@ import { startTransition, useActionState, useEffect, useId, useRef, type FormEve
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
@@ -20,6 +21,8 @@ type Props = {
   profissional: ProfissionalNaTela | null;
   aoSalvar: (mensagem: string) => void;
   aoCancelar: () => void;
+  // Avisa a janela que a foto mudou (escolha não passa por campo digitado).
+  aoMudarFoto?: () => void;
 };
 
 // Erro de um campo que não usa o componente Campo (seleções e grupos).
@@ -29,7 +32,7 @@ function ErroDoCampo({ id, erro }: { id: string; erro?: string }) {
 }
 
 // Cadastro e edição de profissional, dentro do modal do painel.
-export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: Props) {
+export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoMudarFoto }: Props) {
   const [resposta, acao, salvando] = useActionState<RespostaDoProfissional | null, FormData>(salvarProfissional, null);
   const id = useId();
   const resumoRef = useRef<HTMLDivElement>(null);
@@ -43,9 +46,13 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
   }, [resposta, aoSalvar]);
 
   // Envio sem o formulário se limpar: com erro, o que foi digitado continua.
+  // O botão usado decide a situação (06/11/2026, como no produto): "Salvar e
+  // ativar" manda ativo=sim; "Salvar como oculto" não manda o campo. O campo
+  // gravado continua o mesmo de quando era a caixa "Mostrar no site".
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    const dados = new FormData(evento.currentTarget);
+    const botao = (evento.nativeEvent as SubmitEvent).submitter;
+    const dados = new FormData(evento.currentTarget, botao instanceof HTMLButtonElement ? botao : undefined);
     startTransition(() => acao(dados));
   }
 
@@ -128,13 +135,7 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
 
       <Campo id={`${id}-bio`} name="bio" rotulo="Apresentação (até 1.000 caracteres)" multilinha maxLength={1000} defaultValue={p?.bio} erro={erros.bio} />
 
-      <div className={estilos.linha}>
-        <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem no site (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
-        <label className={`${estilos.opcao} ${estilos.alinharEmbaixo}`}>
-          <input type="checkbox" name="ativo" value="sim" defaultChecked={p ? p.ativo : true} />
-          Mostrar no site
-        </label>
-      </div>
+      <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem no site (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
 
       <ImagemDoItem
         nome="fotoMidiaId"
@@ -143,12 +144,18 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
         dono={{ tipo: "profissional", id: p?.id ?? null, campo: "foto" }}
         proporcao="1:1, quadrada (o card mostra a foto alinhada ao alto)"
         erro={erros.fotoMidiaId}
+        aoMudar={aoMudarFoto}
       />
 
-      <div className={estilos.botoes}>
-        <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
-        <Botao type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
-      </div>
+      <p className={estilos.situacaoAtual}>
+        Situação atual: {p ? (p.ativo ? "ativo (aparece no site)" : "oculto (fora do site)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da janela.
+      </p>
+
+      <BarraDeSalvar aviso="Ativar mostra o profissional no site; oculto o deixa fora dele.">
+        <Botao type="button" variante="link" onClick={aoCancelar}>Cancelar</Botao>
+        <Botao type="submit" variante="secundario" disabled={salvando}>Salvar como oculto</Botao>
+        <Botao type="submit" name="ativo" value="sim" disabled={salvando}>{salvando ? "Salvando..." : "Salvar e ativar"}</Botao>
+      </BarraDeSalvar>
     </form>
   );
 }

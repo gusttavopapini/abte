@@ -1,6 +1,16 @@
+/* Categorias e tags: --space-64 entre as duas seções, mas não depois do
+   cabeçalho, que fica a --space-24 do primeiro bloco (a margem dele), como nas
+   listas e nos formulários do painel (06/11/2026; antes, 88px). */
 .pagina {
   display: flex;
   flex-direction: column;
-  gap: var(--space-64);
   max-width: var(--content-max);
+}
+
+.pagina > * + * {
+  margin-top: var(--space-64);
+}
+
+.pagina > header + * {
+  margin-top: 0;
 }
