@@ -1,7 +1,7 @@
 // Navegação do site, centralizada aqui para facilitar mudanças.
 // Itens e ordem do menu: PROPOSTA da arquitetura, ainda não validada pela ABTE.
 
-import { TAGS_DE_PROFISSIONAIS } from "./profissionais";
+import { TAGS_DE_PROFISSIONAIS, rotuloDoTipo } from "./profissionais.ts";
 
 export type LinkDeNavegacao = {
   rotulo: string;
@@ -19,7 +19,7 @@ export const MENU_PRINCIPAL: ItemDoMenu[] = [
   {
     rotulo: "Profissionais",
     href: "/profissionais",
-    submenu: TAGS_DE_PROFISSIONAIS.map((tag) => ({ rotulo: tag, href: `/profissionais?tag=${tag}` })),
+    submenu: TAGS_DE_PROFISSIONAIS.map((tag) => ({ rotulo: rotuloDoTipo(tag), href: `/profissionais?tag=${tag}` })),
   },
   { rotulo: "Blog", href: "/blog" },
   { rotulo: "Artigos", href: "/artigos" },

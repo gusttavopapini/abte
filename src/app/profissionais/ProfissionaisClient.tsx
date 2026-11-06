@@ -4,7 +4,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
 import { PopupProfissional } from "@/components/PopupProfissional/PopupProfissional";
-import { TAGS_DE_PROFISSIONAIS } from "@/config/profissionais";
+import { TAGS_DE_PROFISSIONAIS, rotuloDoTipo } from "@/config/profissionais";
 import { filtrarProfissionais, opcoesDeRegiao, regiaoDoEndereco, textoDaQuantidade, tipoDoEndereco, TODOS_OS_TIPOS, valorDaRegiao } from "@/lib/filtroDeProfissionais";
 import type { ProfissionalPublico } from "@/lib/profissionaisPublicos";
 import estilos from "./page.module.css";
@@ -73,7 +73,7 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
             onClick={() => selecionarTipo(tipo)}
             className={`${estilos.tag} ${tipoAtivo === tipo ? estilos.tagAtiva : ""}`}
           >
-            {tipo}
+            {rotuloDoTipo(tipo)}
           </button>
         ))}
       </div>

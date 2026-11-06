@@ -6,7 +6,7 @@ import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
-import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS } from "@/config/profissionais";
+import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
 import type { Profissional } from "@/lib/dados/tipos";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./FormularioProfissional.module.css";
@@ -66,7 +66,7 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar }: P
       <div className={estilos.grupo}>
         <label htmlFor={`${id}-tipo`} className={estilos.rotulo}>Tipo <span aria-hidden="true">*</span></label>
         <select id={`${id}-tipo`} name="tipo" required defaultValue={p?.tipo || TAGS_DE_PROFISSIONAIS[0]} className={estilos.selecao} aria-invalid={erros.tipo ? true : undefined} aria-describedby={descrito("tipo", !!erros.tipo)}>
-          {TAGS_DE_PROFISSIONAIS.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+          {TAGS_DE_PROFISSIONAIS.map((tipo) => <option key={tipo} value={tipo}>{rotuloDoTipo(tipo)}</option>)}
         </select>
         <ErroDoCampo id={`${id}-tipo-erro`} erro={erros.tipo} />
       </div>

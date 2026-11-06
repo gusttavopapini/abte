@@ -7,6 +7,23 @@ export const TAGS_DE_PROFISSIONAIS = ["Fisioterapeutas", "Médicos", "Ortesistas
 
 export type TipoDeProfissional = (typeof TAGS_DE_PROFISSIONAIS)[number];
 
+// Rótulo visível de cada tipo (06/11/2026). Pelo estatuto, membros da ABTE
+// são só médicos e fisioterapeutas: ortesistas e psicólogos aparecem como
+// parceiros. O valor gravado em profissional.tipo e o ?tag= não mudam.
+// "Outros" fica igual (decisão em aberto).
+export const ROTULOS_DOS_TIPOS: Record<TipoDeProfissional, string> = {
+  Fisioterapeutas: "Fisioterapeutas",
+  Médicos: "Médicos",
+  Ortesistas: "Ortesistas parceiros",
+  Psicólogos: "Psicólogos parceiros",
+  Outros: "Outros",
+};
+
+// Rótulo visível de um tipo; valor fora da lista volta como veio.
+export function rotuloDoTipo(tipo: string): string {
+  return (ROTULOS_DOS_TIPOS as Record<string, string>)[tipo] ?? tipo;
+}
+
 // Profissional sem tipo válido aparece em "Outros" no site.
 export const TAG_SEM_CLASSIFICACAO = "Outros";
 
