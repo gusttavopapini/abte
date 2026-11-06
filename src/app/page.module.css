@@ -17,6 +17,20 @@
   gap: var(--space-64);
 }
 
+/* "Juntos transformamos" empilhado (até 767px, 06/11/2026): título e texto a
+   --space-16, a mesma distância de título e texto das outras seções da home
+   (Produtos em destaque e Faça parte dessa rede). Só a linha muda: o espaço
+   entre colunas a partir de 768px e o espaço até os cards ficam iguais. */
+@media (max-width: 767px) {
+  .gradeLadoALado {
+    row-gap: var(--space-16);
+  }
+
+  .gradeLadoALado > .tituloSecao {
+    margin-bottom: 0;
+  }
+}
+
 .gradeMeioAMeio {
   display: grid;
   gap: var(--space-64);
