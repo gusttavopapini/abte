@@ -47,3 +47,14 @@
 .texto {
   font-weight: var(--font-weight-light);
 }
+
+@media (max-width: 1023px) {
+  .centralizado {
+    align-items: center;
+    text-align: center;
+  }
+
+  .centralizado .meio {
+    align-items: center;
+  }
+}

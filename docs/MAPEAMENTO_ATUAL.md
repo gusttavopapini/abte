@@ -440,3 +440,33 @@ Pendências:
 Não verificado: escolher o estado só pelo teclado em 768, 1280 e 1710 px. Nessas larguras a seta abre a lista nativa do navegador, que o roteiro automático não opera; a escolha foi feita pelo valor. Em 390 px, a seta escolheu Alagoas direto.
 
 Validação com a saída completa guardada: typecheck e build passam; lint 0 erros e 4 avisos; lint:css os 5 erros conhecidos; `test:unidade` 458 (9 novos), `test:sessao` 197, `test:regras` 118.
+
+## Home: "Juntos transformamos" centralizada até 1023px (06/11/2026, só na branch, sem push)
+
+**Exceção de design consciente**, no mesmo espírito da centralização do banner até 1023px. Escopo exato: só a seção `#o-que-fazemos` da home, só até 1023px e só o alinhamento. Título e parágrafo da seção ficam centralizados (`.centralizadoAteOTablet` em `src/app/page.module.css`); nos dois `CardPublico`, a prop nova `centralizarAteOTablet` liga a classe `.centralizado` (`CardPublico.module.css`), que centraliza ícone, título, texto e botão em coluna, com o botão na largura do texto. Cores, tipografia, textos, ordem dos elementos, colunas e espaçamentos não mudaram. A página `/componentes` continua com o card como antes.
+
+**Onde a seção muda de colunas:** a 768px (título e parágrafo lado a lado e os dois cards lado a lado de 768px em diante). Então de 768 a 1023px o alinhamento é centralizado dentro de cada coluna; até 767px, tudo empilhado e centralizado.
+
+**Conferido** (build de produção local lendo o `abte-dev`, Chrome headless, movimento reduzido) em 360, 390, 768, 1023, 1024 e 1280 px: até 1023px, título, parágrafo e cards com `text-align: center` e ícone, título, texto e botão a 0px do centro do card; cards com a mesma largura (328, 358, 356 e 480,4 px), 24px entre eles e a 16px (19,1px em 1023) da borda; botão com 56px de altura; sem rolagem lateral; status 200 e 0 erros de console. De 1024px em diante, a captura da seção é idêntica pixel a pixel à de antes (0 bytes diferentes em 1024 e 1280). Validação: typecheck e build passam; lint 0 erros e 4 avisos; lint:css os 5 erros conhecidos; `test:unidade` 458, `test:sessao` 197, `test:regras` 118.
+
+**Observações de antes, sem mudança:** (1) o texto do card "Para pacientes e famílias" usa `tipo-texto-lg` sobre `--color-surface-strong` (#76ACF5) e fica com 18px a 22px até 1280px, abaixo dos 24px da regra do #76ACF5; o título do card (`tipo-texto-xl`, mínimo 24px) e o botão (sobre `--color-primary`) estão dentro da regra; nada foi alterado, por ser mudança de tipografia. (2) Em 360 e 768px os dois cards têm alturas diferentes (495/444 e 515/460), igual antes da mudança, porque o card não ocupa a altura do invólucro de entrada.
+
+**Levantamento para decisão (não alterado):** seções públicas com texto ou botão à esquerda até 1023px (medido em 390 e 768 px), candidatas ao mesmo tratamento:
+
+| Página | Seção | O que fica à esquerda | Arquivo |
+|---|---|---|---|
+| Home | Mutirões que Transformam Vidas | Título e os 4 cards de números (número e legenda) | `src/app/page.tsx`, `src/app/page.module.css` (`.colunaCentralizada`), `src/components/Estatisticas/Estatisticas.module.css` |
+| Home | Quem Somos | Missão, Visão e Valores (título e texto de cada bloco) | `src/app/page.module.css` (`.cardValor`) |
+| Home | Faça parte dessa rede | Título, texto e o botão "Quero me associar" na caixa sobre a imagem | `src/app/page.module.css` (`.caixaFlutuanteConteudo`, `.botoesDaChamada`) |
+| Home e loja | Produtos em destaque, grade da loja e relacionados | Conteúdo do card de produto (título, preço, "Esgotado") | `src/components/CardProduto/CardProduto.module.css` |
+| Profissionais | Grade de cards | Nome, registro, local, etiquetas, apresentação e "Ver mais" | `src/components/CardProfissional/CardProfissional.module.css` |
+| Blog | Grade de posts | Título, data e "Ler mais" do card | `src/components/CardPost/CardPost.module.css` |
+| Post | Cabeçalho | Link "Voltar", H1 e linha de dados (o corpo do texto deve continuar à esquerda, por ser leitura longa) | `src/app/blog/[slug]/page.module.css` |
+| Artigos | Tópicos e lista | Botões dos cards de categoria e conteúdo dos cards de artigo | `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css`, `src/components/CardArtigo/CardArtigo.module.css` |
+| Loja | Acima da grade | "N produtos", ordem e etiquetas dos filtros | `src/app/loja/_componentes/FiltroDaLoja/FiltroDaLoja.module.css` |
+| Produto | Ficha e relacionados | H1, preço, descrição, botão do carrinho e o título "Produtos relacionados" | `src/app/loja/produto/[slug]/page.module.css` |
+| Diretoria | Períodos | Título do período e nome e cargo nos cards | `src/app/diretoria/page.module.css`, `src/components/CardMembroDiretoria/CardMembroDiretoria.module.css` |
+| Entrar e Criar conta (loja) | Cabeçalho | H1 e texto de abertura (os campos do formulário devem continuar à esquerda) | `src/app/loja/entrar/page.tsx`, `src/app/loja/cadastro/page.tsx` |
+| Página não encontrada | Conteúdo | H1 e botão de voltar | `src/app/not-found.tsx` |
+
+Ficam de fora por não terem nada à esquerda: `/doe` e `/seja-associado`. Não são candidatos: formulários (contato, entrar, cadastro), cujos rótulos e campos ficam melhores à esquerda, e o corpo dos posts. Os filtros de categoria do blog já são centralizados (falso positivo da medição automática).

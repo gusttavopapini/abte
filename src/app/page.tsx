@@ -122,7 +122,7 @@ export default async function PaginaInicial() {
       <div>
         {/* 2. Afirmação + cards de público */}
         <section id="o-que-fazemos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`}>
-          <div {...revelar(estilos.gradeLadoALado)}>
+          <div {...revelar(`${estilos.gradeLadoALado} ${estilos.centralizadoAteOTablet}`)}>
             <h2 tabIndex={-1} className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
             <p className={`tipo-texto-xl ${estilos.textoLeve}`}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
@@ -131,6 +131,7 @@ export default async function PaginaInicial() {
           <div className={estilos.gradeCards}>
             <div {...revelar(undefined, 1)}>
               <CardPublico
+                centralizarAteOTablet
                 letra="A"
                 titulo="Para pacientes e famílias"
                 texto="Encontre profissionais capacitados para o tratamento da escoliose perto de você e tenha acesso a materiais informativos de alta qualidade."
@@ -139,6 +140,7 @@ export default async function PaginaInicial() {
             </div>
             <div {...revelar(undefined, 2)}>
               <CardPublico
+                centralizarAteOTablet
                 letra="B"
                 titulo="Para profissionais de saúde"
                 texto="Junte-se à Associação. Faça parte de uma rede de especialistas qualificados e ajude a transformar a vida de pessoas com escoliose."

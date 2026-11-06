@@ -8,14 +8,15 @@ type PropsCard = {
   titulo: ReactNode;
   texto: ReactNode;
   botao: { rotulo: string; href: string };
+  centralizarAteOTablet?: boolean;
 };
 
 // Cards de público [A] e [B] (design-system.md seção 8.3). A letra escolhe a
 // cor do card e o ícone do topo.
-export function CardPublico({ letra, titulo, texto, botao }: PropsCard) {
+export function CardPublico({ letra, titulo, texto, botao, centralizarAteOTablet = false }: PropsCard) {
   const destaque = letra === "A";
   return (
-    <article className={`${estilos.card} ${destaque ? estilos.a : estilos.b}`}>
+    <article className={`${estilos.card} ${destaque ? estilos.a : estilos.b}${centralizarAteOTablet ? ` ${estilos.centralizado}` : ""}`}>
       <div className={`${estilos.topo} tipo-texto`}>
         {letra === "A" ? (
           <IconeUsuarios className={estilos.iconeDestaque} />
