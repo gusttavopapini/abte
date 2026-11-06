@@ -5,9 +5,11 @@
   gap: var(--gutter);
 }
 
+/* Número e rótulo centralizados em todas as larguras (06/11/2026) */
 .card {
   display: flex;
   flex-direction: column;
+  text-align: center;
   justify-content: space-between;
   gap: var(--space-32);
   min-height: calc(var(--space-96) * 2);
@@ -39,10 +41,4 @@
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
   font-size: var(--font-size-h1);
-}
-
-@media (max-width: 1023px) {
-  .centralizado .card {
-    text-align: center;
-  }
 }

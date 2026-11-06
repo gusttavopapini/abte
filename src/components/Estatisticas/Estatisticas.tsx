@@ -5,9 +5,9 @@ type Estatistica = { numero: string; legenda: string };
 // Estatísticas (design-system.md seção 8.4): 4 cards em xadrez, alternando
 // #76ACF5 e branco. Legendas com 24px fixos (regra do #76ACF5).
 // Só números reais e confirmados pela ABTE; até lá, "00".
-export function Estatisticas({ itens, centralizarAteOTablet = false }: { itens: Estatistica[]; centralizarAteOTablet?: boolean }) {
+export function Estatisticas({ itens }: { itens: Estatistica[] }) {
   return (
-    <ul role="list" className={`${estilos.grade}${centralizarAteOTablet ? ` ${estilos.centralizado}` : ""}`}>
+    <ul role="list" className={estilos.grade}>
       {itens.map((item, indice) => (
         <li key={indice} className={`${estilos.card} ${estilos[`posicao${indice % 4}`]}`}>
           <p className={estilos.numero}>{item.numero}</p>

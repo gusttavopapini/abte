@@ -480,3 +480,41 @@ Mesma exceção de design e mesmo padrão da seção "Juntos transformamos" (reg
 **Observações de antes, sem mudança:** (1) as legendas usam `tipo-texto` (16px a cerca de 19px até 1280px) também nos cards em `--color-surface-strong` (#76ACF5), o 1º e o 4º, abaixo dos 24px da regra do #76ACF5; o comentário do componente diz "Legendas com 24px fixos", mas o código não aplica. O número (40px ou mais) está dentro da regra. Nada foi alterado, por ser mudança de tipografia. (2) Os números +45, 500, 69 e 23 estão escritos no código (`src/app/page.tsx`, linhas 161 a 164, desde 27/09/2026), não vêm de dado cadastrado nem do painel; números oficiais continuam decisão em aberto da ABTE. O comentário do `Estatisticas` pede "00" até a confirmação, o que o código também não segue.
 
 O levantamento das outras seções com texto ou botão à esquerda até 1023px está no registro anterior; esta seção sai da lista.
+
+## Home: centralização total de cinco blocos (06/11/2026, só na branch, sem push)
+
+**Exceção única e consciente** à regra "mesmo design em todas as telas": centralização total (todas as larguras) dos blocos 1 a 5 abaixo, pedida por Gustavo em 06/11/2026; pendente de confirmação da Bianca (designer). **Supera os dois registros anteriores deste dia** (centralização só até 1023px de "Juntos transformamos", `8c3cf17`, e de "Mutirões que Transformam Vidas", `67ea66e`): as media queries e as props `centralizarAteOTablet` saíram. O histórico do banner (afastamento de 10% e pilha até 1023px, 31/10/2026) continua valendo.
+
+| Bloco | O que fica centralizado |
+|---|---|
+| 1. `#o-que-fazemos` | Título e parágrafo, cada um na sua coluna a partir de 768px (sem empilhar) |
+| 2. Dois `CardPublico` | Ícone, título, texto e botão; botão na largura do texto (também em `/componentes`) |
+| 3. `#mutiroes` | Título da seção; número e rótulo em cada card de `Estatisticas`, com o número no alto e o rótulo embaixo (também em `/componentes`) |
+| 4. Quem Somos | Ícone e título de Missão, Visão e Valores (na mesma linha, como antes) e o texto |
+| 5. "Faça parte dessa rede" | Título, texto e botão dentro da caixa; a caixa continua no mesmo lugar sobre a foto |
+
+Só alinhamento: cores, tipografia, textos, números, ordem, colunas e grades não mudaram. Parágrafos centralizados com `max-width: calc(var(--content-max) / 2)` e `margin-inline: auto` (não há token em `ch`; é a medida do `CabecalhoDePagina`). **Arquivos:** `src/app/page.tsx`, `src/app/page.module.css`, `src/components/CardPublico/CardPublico.tsx` e `CardPublico.module.css`, `src/components/Estatisticas/Estatisticas.tsx` e `Estatisticas.module.css`.
+
+**Conferido** (build de produção local lendo o `abte-dev`, Chrome headless, movimento reduzido) em 360, 390, 768, 1023, 1024, 1280 e 1710 px: 0 elementos fora do centro nos cinco blocos (texto, ícones e botões a no máximo 1px do centro do card ou da coluna; antes, 8 a 28 por largura); ordem dos elementos igual à de antes nas 7 larguras; nenhum texto cortado; botões com o mesmo tamanho de antes (56px de altura); sem rolagem lateral; status 200 e 0 erros de console. A única mudança de quebra de linha: o texto de Missão em 1710px passou de 2 para 3 linhas, por causa do limite de largura do parágrafo. `/componentes` também conferida (cards de público centralizados, sem rolagem). Validação: typecheck e build passam; lint 0 erros e 4 avisos; lint:css os 5 erros conhecidos; `test:unidade` 458, `test:sessao` 197, `test:regras` 118. Capturas fora do Git.
+
+**Observações visuais, sem mudança:** a partir de 1024px, os cards de Missão, Visão e Valores ficam largos (até 1262px em 1710) com o texto curto no meio e bastante espaço dos lados; em `#o-que-fazemos`, título e parágrafo ficam centralizados em colunas separadas, alinhados pelo topo.
+
+**Levantamento (não alterado):**
+- **Parágrafos centralizados com mais de 5 linhas (todo o site):** só na home, no celular e no tablet: texto do card "Para pacientes e famílias" (7 linhas em 360 e 768px), texto de Missão (8 linhas em 360 e 7 em 390) e texto de "Faça parte dessa rede" (7 em 360 e 6 em 390). Nenhum nas outras páginas.
+- **Texto menor que 24px sobre #76ACF5:** texto do card "Para pacientes e famílias" (18px a 22px até 1280px; chega a 24px perto de 1710) e rótulos dos cards de estatística azuis, o 1º e o 4º (16px a 20px em todas as larguras). Os números (40px ou mais), o título do card (24px ou mais) e o botão (sobre `--color-primary`) estão dentro da regra.
+- **Seções que ainda ficam à esquerda** (medido em 390 e 1280 px; substitui a tabela do primeiro registro de hoje):
+
+| Página | Seção | O que fica à esquerda | Arquivo |
+|---|---|---|---|
+| Home, `/loja` e produto | Produtos em destaque, grade da loja e relacionados | Título, preço e "Esgotado" do card de produto | `src/components/CardProduto/CardProduto.module.css` |
+| `/profissionais` | Grade de cards | Nome, registro, local, etiquetas, apresentação e "Ver mais"; rótulo "Estado" do filtro | `src/components/CardProfissional/CardProfissional.module.css`, `src/app/profissionais/` |
+| `/blog` | Grade de posts | Título, data e botão do card | `src/components/CardPost/CardPost.module.css` |
+| Post | Cabeçalho | "Voltar", H1 e linha de dados | `src/app/blog/[slug]/page.module.css` |
+| `/artigos` (desligado na produção) | Tópicos e lista | Botão do card de categoria e conteúdo do card de artigo | `src/components/CardCategoriaArtigo/CardCategoriaArtigo.module.css`, `src/components/CardArtigo/CardArtigo.module.css` |
+| `/loja` | Acima da grade | "N produtos", ordem e etiquetas dos filtros | `src/app/loja/_componentes/FiltroDaLoja/FiltroDaLoja.module.css` |
+| Produto | Ficha e relacionados | H1, preço, descrição, botão do carrinho e o título "Produtos relacionados" | `src/app/loja/produto/[slug]/page.module.css` |
+| `/diretoria` | Períodos | Título do período e nome e cargo nos cards | `src/app/diretoria/page.module.css`, `src/components/CardMembroDiretoria/CardMembroDiretoria.module.css` |
+| Entrar e Criar conta (loja) | Abertura | H1 e texto de abertura | `src/app/loja/entrar/page.tsx`, `src/app/loja/cadastro/page.tsx` |
+| Página não encontrada | Conteúdo | H1 e botão | `src/app/not-found.tsx` |
+
+Não entram na lista, com recomendação de manter à esquerda: o corpo dos posts (leitura longa) e os formulários (contato, entrar, cadastro). Também fica de fora o texto do banner a partir de 1024px, cuja posição é escolhida por slide no painel. `/doe`, `/seja-associado` e os filtros de categoria do blog já são centralizados.

@@ -122,16 +122,15 @@ export default async function PaginaInicial() {
       <div>
         {/* 2. Afirmação + cards de público */}
         <section id="o-que-fazemos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`}>
-          <div {...revelar(`${estilos.gradeLadoALado} ${estilos.centralizadoAteOTablet}`)}>
+          <div {...revelar(`${estilos.gradeLadoALado} ${estilos.centralizado}`)}>
             <h2 tabIndex={-1} className={estilos.tituloSecao}>Juntos transformamos a jornada da escoliose no Brasil</h2>
-            <p className={`tipo-texto-xl ${estilos.textoLeve}`}>
+            <p className={`tipo-texto-xl ${estilos.textoLeve} ${estilos.paragrafoCentralizado}`}>
               Promovemos o tratamento conservador da escoliose baseado em evidências, apoiando pacientes e qualificando profissionais.
             </p>
           </div>
           <div className={estilos.gradeCards}>
             <div {...revelar(undefined, 1)}>
               <CardPublico
-                centralizarAteOTablet
                 letra="A"
                 titulo="Para pacientes e famílias"
                 texto="Encontre profissionais capacitados para o tratamento da escoliose perto de você e tenha acesso a materiais informativos de alta qualidade."
@@ -140,7 +139,6 @@ export default async function PaginaInicial() {
             </div>
             <div {...revelar(undefined, 2)}>
               <CardPublico
-                centralizarAteOTablet
                 letra="B"
                 titulo="Para profissionais de saúde"
                 texto="Junte-se à Associação. Faça parte de uma rede de especialistas qualificados e ajude a transformar a vida de pessoas com escoliose."
@@ -153,10 +151,9 @@ export default async function PaginaInicial() {
         {/* 3. Estatísticas: números à esquerda e imagem à direita */}
         <section id="mutiroes" className={`${estilos.secaoAlt} ${estilos.secaoComAncora}`}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
-            <div {...revelar(`${estilos.colunaCentralizada} ${estilos.centralizadoAteOTablet}`)}>
+            <div {...revelar(`${estilos.colunaCentralizada} ${estilos.centralizado}`)}>
               <h2 tabIndex={-1} className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
-                centralizarAteOTablet
                 itens={[
                   { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
                   { numero: "500", legenda: "Atendimentos realizados" },
@@ -225,7 +222,7 @@ export default async function PaginaInicial() {
                       <valor.Icone className={estilos.iconeValor} />
                       <h3 className={`tipo-h4 ${estilos.tituloDoValor}`}>{valor.titulo}</h3>
                     </div>
-                    <p className={estilos.textoDoValor}>{valor.texto}</p>
+                    <p className={`${estilos.textoDoValor} ${estilos.paragrafoCentralizado}`}>{valor.texto}</p>
                   </div>
                 </div>
               ))}
@@ -257,7 +254,7 @@ export default async function PaginaInicial() {
             <div className={estilos.caixaFlutuante}>
               <div {...revelar(estilos.caixaFlutuanteConteudo, 2)}>
                 <h2 tabIndex={-1} className={`${estilos.tituloSecao} ${estilos.tituloCompacto}`}>Faça parte dessa rede</h2>
-                <p className={`tipo-texto-lg ${estilos.textoLeve} ${estilos.textoDaChamada}`}>
+                <p className={`tipo-texto-lg ${estilos.textoLeve} ${estilos.textoDaChamada} ${estilos.paragrafoCentralizado}`}>
                   Ajude-nos a transformar a vida de milhares de pacientes com escoliose em todo o Brasil. Você pode contribuir se associando ou fazendo uma doação.
                 </p>
                 <div className={estilos.botoesDaChamada}>

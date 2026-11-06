@@ -36,12 +36,6 @@
   margin-top: var(--space-32);
 }
 
-@media (max-width: 1023px) {
-  .centralizadoAteOTablet {
-    text-align: center;
-  }
-}
-
 @media (min-width: 768px) {
   .gradeLadoALado {
     grid-template-columns: 1fr 1fr;
@@ -71,6 +65,7 @@
   color: var(--color-primary);
 }
 .cardValor {
+  text-align: center;
   background: var(--color-surface-soft);
   padding: var(--space-32);
   border-radius: var(--radius);
@@ -136,6 +131,7 @@
 }
 
 .caixaFlutuanteConteudo {
+  text-align: center;
   background: var(--color-bg);
   padding: 35px;
   max-width: 500px;
@@ -163,8 +159,17 @@
   text-align: center;
 }
 
+/* Centralização total dos blocos da home (06/11/2026, pedido do responsável,
+   pendente da designer): parágrafo centralizado com a mesma medida do
+   CabecalhoDePagina, para a linha não ficar longa no desktop. */
+.paragrafoCentralizado {
+  max-width: calc(var(--content-max) / 2);
+  margin-inline: auto;
+}
+
 .cabecalhoDoValor {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: var(--space-16);
   margin-bottom: var(--space-16);
@@ -187,6 +192,7 @@
 
 .botoesDaChamada {
   display: flex;
+  justify-content: center;
   gap: var(--space-16);
   flex-wrap: wrap;
 }

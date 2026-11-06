@@ -1,6 +1,10 @@
+/* Conteúdo em coluna e centralizado em todas as larguras (06/11/2026); o
+   botão fica na largura do próprio texto. */
 .card {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   justify-content: space-between;
   gap: var(--space-32);
   padding: calc(var(--card-padding) + 30px);
@@ -33,6 +37,7 @@
 .meio {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-16);
 }
 
@@ -45,16 +50,6 @@
 /* Classes que substituíram estilos inline (mesmos valores), no fim do arquivo
    para valer sobre as regras anteriores, como o estilo inline valia. */
 .texto {
+  max-width: calc(var(--content-max) / 2);
   font-weight: var(--font-weight-light);
-}
-
-@media (max-width: 1023px) {
-  .centralizado {
-    align-items: center;
-    text-align: center;
-  }
-
-  .centralizado .meio {
-    align-items: center;
-  }
 }
