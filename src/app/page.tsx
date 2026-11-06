@@ -153,9 +153,10 @@ export default async function PaginaInicial() {
         {/* 3. Estatísticas: números à esquerda e imagem à direita */}
         <section id="mutiroes" className={`${estilos.secaoAlt} ${estilos.secaoComAncora}`}>
           <div className={`container ${estilos.gradeMeioAMeio}`}>
-            <div {...revelar(estilos.colunaCentralizada)}>
+            <div {...revelar(`${estilos.colunaCentralizada} ${estilos.centralizadoAteOTablet}`)}>
               <h2 tabIndex={-1} className={estilos.tituloSecao}>Mutirões que Transformam Vidas</h2>
               <Estatisticas
+                centralizarAteOTablet
                 itens={[
                   { numero: "+45", legenda: "Pacientes atendidos nos mutirões" },
                   { numero: "500", legenda: "Atendimentos realizados" },

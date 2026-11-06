@@ -40,3 +40,9 @@
   letter-spacing: var(--tracking-heading);
   font-size: var(--font-size-h1);
 }
+
+@media (max-width: 1023px) {
+  .centralizado .card {
+    text-align: center;
+  }
+}
