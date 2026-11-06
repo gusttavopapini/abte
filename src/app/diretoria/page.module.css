@@ -8,7 +8,9 @@
   gap: var(--space-64);
 }
 
+/* Título do período centralizado em todas as larguras (06/11/2026) */
 .periodo {
+  text-align: center;
   color: var(--color-primary);
   font-weight: var(--font-weight-light);
 }

@@ -5,10 +5,14 @@
   height: 100%;
 }
 
+/* Nome e cargo centralizados em todas as larguras (06/11/2026); a foto já
+   ocupa a largura do card */
 .cabecalho {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-8);
+  text-align: center;
 }
 
 .nome {
