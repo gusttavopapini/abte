@@ -45,7 +45,7 @@
   cursor: pointer;
   color: var(--color-text);
   opacity: 0.6;
-  transition: opacity 0.2s;
+  transition: opacity var(--interacao-duracao) var(--interacao-curva);
 }
 
 .botaoFechar:hover {

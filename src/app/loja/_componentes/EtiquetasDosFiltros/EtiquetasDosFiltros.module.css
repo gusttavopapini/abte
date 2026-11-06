@@ -18,7 +18,7 @@
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
   text-decoration: none;
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -43,7 +43,7 @@
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
   text-decoration: none;
-  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva), color var(--interacao-duracao) var(--interacao-curva);
 }
 
 /* Hover: o fundo da pílula do site (globals.css), sem sublinhado */

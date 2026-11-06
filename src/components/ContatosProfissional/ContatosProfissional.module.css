@@ -23,7 +23,7 @@
   font-size: var(--font-size-small);
   line-height: var(--leading-compact);
   text-decoration: none;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva), color var(--interacao-duracao) var(--interacao-curva);
 }
 
 .contato:hover,

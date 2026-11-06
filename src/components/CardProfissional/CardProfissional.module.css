@@ -9,7 +9,7 @@
   background: var(--color-bg);
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color var(--interacao-duracao) var(--interacao-curva), box-shadow var(--interacao-duracao) var(--interacao-curva), transform var(--interacao-duracao) var(--interacao-curva);
 }
 
 .card:hover,
@@ -73,9 +73,14 @@
   padding-top: var(--space-16);
 }
 
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .card:hover {
     transform: translateY(-4px);
+  }
+
+  /* Pressionado: desce um pouco (06/11/2026). */
+  .card:active {
+    transform: translateY(-2px);
   }
 }
 

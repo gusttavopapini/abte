@@ -86,12 +86,17 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: transform var(--interacao-duracao) var(--interacao-curva), box-shadow var(--interacao-duracao) var(--interacao-curva);
 }
 
-.cardValor:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+/* Elevação só com mouse ou trackpad (no toque o hover grudava depois do
+   toque)
+   (06/11/2026). */
+@media (hover: hover) and (pointer: fine) {
+  .cardValor:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  }
 }
 
 .iconeValor {

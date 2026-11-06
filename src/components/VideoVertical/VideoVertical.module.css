@@ -63,7 +63,7 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
   cursor: pointer;
-  transition: transform var(--realce-duracao), background var(--realce-duracao);
+  transition: transform var(--interacao-duracao) var(--interacao-curva), background-color var(--interacao-duracao) var(--interacao-curva);
 }
 
 .iconePlay {

@@ -207,14 +207,22 @@ h3,
    transições e o .seta-* não se move: só troca a cor e o fundo. */
 :root {
   --realce-fundo: color-mix(in srgb, var(--color-surface-soft) 70%, transparent);
-  --realce-duracao: 200ms;
+  /* Movimento das interações (06/11/2026): uma só duração e uma só curva
+     para hover, foco e pressionado em cards, botões e links do site público.
+     O tokens.css não tem token de movimento (o design system não define
+     movimento), então estas são as constantes únicas, PROPOSTA pendente da
+     designer. Movimentos maiores (menus, painéis, header, entrada ao rolar)
+     ficam com as próprias durações, nos módulos. */
+  --interacao-duracao: 200ms;
+  --interacao-curva: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --realce-duracao: var(--interacao-duracao);
 }
 
 .realce {
   position: relative;
   isolation: isolate;
   text-decoration: none;
-  transition: color var(--realce-duracao) ease-out;
+  transition: color var(--interacao-duracao) var(--interacao-curva);
 }
 
 .realce::before {
@@ -225,13 +233,13 @@ h3,
   border-radius: var(--radius);
   background: transparent;
   pointer-events: none;
-  transition: background-color var(--realce-duracao) ease-out;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva);
 }
 
 .seta-para-frente,
 .seta-para-tras {
   display: inline-block;
-  transition: transform var(--realce-duracao) ease-out;
+  transition: transform var(--interacao-duracao) var(--interacao-curva);
 }
 
 .texto-corrido a {
@@ -245,9 +253,9 @@ h3,
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
   transition:
-    background-size var(--realce-duracao) ease-out,
-    color var(--realce-duracao) ease-out,
-    text-decoration-color var(--realce-duracao) ease-out;
+    background-size var(--interacao-duracao) var(--interacao-curva),
+    color var(--interacao-duracao) var(--interacao-curva),
+    text-decoration-color var(--interacao-duracao) var(--interacao-curva);
 }
 
 .realce:focus-visible,

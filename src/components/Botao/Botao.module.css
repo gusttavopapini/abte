@@ -103,9 +103,19 @@
    e discreta no hover. O foco aparece na hora, sem transição. */
 .botao {
   /* Duração e curva da troca de cor */
-  --botao-transicao: 150ms ease-out;
+  --botao-transicao: var(--interacao-duracao) var(--interacao-curva);
 
   transition:
     background-color var(--botao-transicao),
-    color var(--botao-transicao);
+    color var(--botao-transicao),
+    transform var(--botao-transicao);
+}
+
+/* Pressionado (06/11/2026): o botão desce 1px; só transform, sem mudar o
+   tamanho nem empurrar o resto. Com movimento reduzido, o globals.css tira
+   o deslocamento. A variante link fica só com a troca de cor. */
+.primario:active,
+.secundario:active,
+.envio:active {
+  transform: translateY(1px);
 }

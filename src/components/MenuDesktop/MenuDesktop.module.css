@@ -100,7 +100,7 @@
   /* Arredondamento do item para o efeito hover */
   border-radius: var(--radius);
   justify-content: flex-start;
-  transition: background-color var(--realce-duracao) ease-out, color var(--realce-duracao) ease-out;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva), color var(--interacao-duracao) var(--interacao-curva);
 }
 
 /* No submenu, o item já tem a caixa: a pílula é o próprio fundo dele */
