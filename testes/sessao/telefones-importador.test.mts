@@ -15,7 +15,7 @@ before(() => {
 });
 beforeEach(async () => {
   for (const c of ["profissionais", COLECAO_LOG]) await Promise.all((await db.collection(c).listDocuments()).map((d) => d.delete()));
-  await db.collection("profissionais").doc("fixo").set({ pais: "BR", whatsapp: "551133334444", excluidoEm: null });
+  await db.collection("profissionais").doc("fixo").set({ pais: "BR", whatsapp: "551133334444", excluidoEm: null, origem: { sistema: "cadastro-lote", chave: "lote1-fixo" } });
 });
 after(async () => { await deleteApp(app); });
 const importar = (modo: "simulacao" | "executar") => importarTelefones({ db, registros: [], modo, execucao: EXECUCAO });

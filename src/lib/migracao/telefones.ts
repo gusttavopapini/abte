@@ -5,8 +5,10 @@
 //    origem.chave. Cada número passa pela mesma validação do painel
 //    (validarTelefone); número inválido ou igual ao WhatsApp de hoje fica de
 //    fora.
-// 2. Número fixo brasileiro gravado no campo WhatsApp (não abre conversa no
-//    WhatsApp): passa para Telefones e o WhatsApp fica vazio.
+// 2. Número fixo brasileiro gravado no campo WhatsApp de um cadastro em lote
+//    (origem "cadastro-lote", aprovado em 06/11/2026): passa para Telefones e
+//    o WhatsApp fica vazio. Os fixos que o site antigo listava como WhatsApp
+//    ficam como estão (clínicas usam WhatsApp Business em linha fixa).
 // Nada é inventado: links encurtados do WhatsApp (sem número) não entram.
 // Nunca sobrescreve: profissional que já tem telefone é pulado. Idempotente:
 // repetir não grava de novo. Cada documento alterado ganha a marca
@@ -73,7 +75,8 @@ export function planejarTelefones(registros: readonly RegistroDeOrigem[], docume
 
   for (const documento of documentos) {
     const whatsapp = texto(documento.dados.whatsapp);
-    if (usados.has(documento.id) || !ehFixoBrasileiro(whatsapp)) continue;
+    const sistema = (documento.dados.origem as { sistema?: unknown } | undefined)?.sistema;
+    if (usados.has(documento.id) || sistema !== "cadastro-lote" || !ehFixoBrasileiro(whatsapp)) continue;
     const situacao: Situacao = documento.dados.excluidoEm ? "naLixeira" : lista(documento.dados.telefones).length > 0 ? "jaTemTelefone" : "aGravar";
     plano.push({ posicao: null, documentoId: documento.id, regra: "fixoNoWhatsapp", situacao, telefones: [whatsapp], esvaziarWhatsapp: true, deFora: 0 });
   }

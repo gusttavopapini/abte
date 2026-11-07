@@ -98,8 +98,12 @@ describe("plano do importador", () => {
     assert.equal(por(3)?.situacao, "semNumeroValido");
     assert.equal(por(4)?.situacao, "semDocumento");
   });
-  test("fixo no campo WhatsApp passa para Telefones; celular fica", () => {
-    const plano = planejarTelefones([], [doc("F", { origem: { sistema: "cadastro-lote", chave: "lote1-x" }, whatsapp: "553133334444" }), doc("G", { whatsapp: "5531933334444" })]);
+  test("fixo no campo WhatsApp do cadastro em lote passa para Telefones; celular e fixo do site antigo ficam", () => {
+    const plano = planejarTelefones([], [
+      doc("F", { origem: { sistema: "cadastro-lote", chave: "lote1-x" }, whatsapp: "553133334444" }),
+      doc("G", { origem: { sistema: "cadastro-lote", chave: "lote1-y" }, whatsapp: "5531933334444" }),
+      doc("W", { origem: { sistema: "wix", chave: "sem-telefones" }, whatsapp: "553133335555" }),
+    ]);
     assert.equal(plano.length, 1);
     assert.equal(plano[0].documentoId, "F");
     assert.equal(plano[0].esvaziarWhatsapp, true);

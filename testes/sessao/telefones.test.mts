@@ -9,7 +9,7 @@ import { COLECAO_LOG } from "../../src/lib/log/alteracoes.ts";
 import type { RegistroDeOrigem } from "../../src/lib/migracao/profissionais.ts";
 import { CAMPO_DA_MARCA, desfazerTelefones, importarTelefones } from "../../src/lib/migracao/telefones.ts";
 
-const PROJETO = "demo-abte-telefones";
+const PROJETO = "demo-abte-telefones-site";
 let app: App;
 let db: Firestore;
 
