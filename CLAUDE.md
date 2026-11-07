@@ -14,6 +14,8 @@ O responsável pediu novo mapeamento e retomada neste chat do Codex. Leia primei
 
 **Centralização total de blocos da home (06/11/2026, só na branch, sem push):** exceção consciente à regra "mesmo design em todas as telas": centralização total (todas as larguras) de cinco blocos da home, da página não encontrada e da Diretoria, pedida por Gustavo em 06/11/2026, pendente de confirmação da Bianca (designer). Supera a versão do mesmo dia que valia só até 1023px. Ver a tabela E de "Exceções de design" e o registro em `docs/MAPEAMENTO_ATUAL.md`.
 
+**Rodapé centralizado (07/11/2026, conferido em 360 a 1710px e promovido para a `main`):** pedido de Gustavo: títulos, links, e-mail e "Siga nosso Instagram" das colunas do rodapé centralizados em todas as larguras (`src/components/Rodape/Rodape.module.css`: `.coluna` e `.lista` com `align-items: center`, `.coluna` com `text-align: center`, `.rede` com `align-self: center`). Substitui o alinhamento à esquerda do pedido de 10/10/2026. Mesma exceção consciente da centralização de 06/11/2026, pendente de confirmação da Bianca.
+
 **Proporções recomendadas do banner (31/10/2026):** celular 4:5 (1080 x 1350 px), tablet 4:3 (1536 x 1152 px) e computador 16:9 (1920 x 1080 px), sem mudança.
 
 Código local `1a19af4`; GitHub conferido: `main` em `dfe8d8d`, branch remota em `f9b1650`, produção `7449312744` com sucesso. Cinco commits de implementação posteriores ainda são locais; a `main` local continua antiga. Este remapeamento não promoveu código nem alterou dados reais.
