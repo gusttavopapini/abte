@@ -17,6 +17,7 @@
     "migracao:imagens": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-imagens.mts",
     "migracao:conferencia-menor": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/marcar-conferencia-menor.mts",
     "migracao:profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-profissionais.mts",
+    "migracao:telefones": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/importar-telefones.mts",
     "cadastro:profissionais-lote": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/cadastrar-profissionais-lote.mts",
     "migracao:coletar-produtos": "node scripts/coletar-produtos.mts",
     "migracao:loja": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-loja.mts",

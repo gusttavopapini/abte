@@ -85,6 +85,7 @@ const documento = {
   cidades: ["Cidade Um", "Cidade Dois"],
   telerreabilitacao: true,
   whatsapp: "5500000000000",
+  telefones: ["551100000000"],
   instagram: "perfil.exemplo",
   facebook: "https://www.facebook.com/exemplo",
   email: "contato@exemplo.invalid",
@@ -120,6 +121,7 @@ test("campos públicos chegam com os mesmos valores do documento", () => {
   assert.equal(publico.bio, "Linha um.\nLinha dois.");
   assert.deepEqual(publico.metodos, ["SEAS", "Lyon"]);
   assert.equal(publico.whatsapp, "5500000000000");
+  assert.deepEqual(publico.telefones, ["551100000000"]);
   assert.equal(publico.foto, null);
 });
 
@@ -129,8 +131,8 @@ test("tipo fora da lista vira a tag sem classificação; país estrangeiro mostr
   assert.equal(localDoProfissional({ cidades: [], pais: "PY", uf: "" }), "Paraguai");
 });
 
-test("lista fechada (04/11/2026): com país e UF, sem Facebook", () => {
-  assert.deepEqual([...CAMPOS_PUBLICOS_DO_PROFISSIONAL], ["id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao", "whatsapp", "instagram", "email", "bio", "foto"]);
+test("lista fechada (04/11/2026, telefones desde 06/11/2026): com país e UF, sem Facebook", () => {
+  assert.deepEqual([...CAMPOS_PUBLICOS_DO_PROFISSIONAL], ["id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao", "whatsapp", "telefones", "instagram", "email", "bio", "foto"]);
   const publico = paraProfissionalPublico(documento, null);
   assert.equal(publico.pais, "BR");
   assert.equal(publico.uf, "SP");

@@ -136,7 +136,8 @@ describe("Migração dos profissionais (emulador)", () => {
     assert.equal(um.pontosDeRevisao, 1);
     assert.equal(um.ordem, 1);
     assert.deepEqual(um.origem, { sistema: "wix", chave: "pessoa-ficticia-1", execucao });
-    for (const campo of ["conselho", "telefones", "endereco", "revisar", "grupo", "fotoOrigemWixId", "nomeBusca", "site"]) assert.equal(um[campo], undefined, campo);
+    assert.deepEqual(um.telefones, [], "telefones aguardam o importador dedicado");
+    for (const campo of ["conselho", "endereco", "revisar", "grupo", "fotoOrigemWixId", "nomeBusca", "site"]) assert.equal(um[campo], undefined, campo);
     // Duas fotos: liga a primeira e marca revisão.
     assert.equal(porChave.get("pessoa-ficticia-2")?.fotoMidiaId, "fotoDois");
     assert.equal(porChave.get("pessoa-ficticia-2")?.revisarMigracao, true);
@@ -186,7 +187,7 @@ describe("Migração dos profissionais (emulador)", () => {
     const dados = editado.data() as DadosDoProfissional & Record<string, unknown>;
     const campos: DadosDoProfissional = {
       tipo: dados.tipo, tratamento: dados.tratamento, nome: dados.nome, registro: dados.registro, metodos: dados.metodos, pais: dados.pais, uf: dados.uf,
-      cidades: dados.cidades, telerreabilitacao: dados.telerreabilitacao, whatsapp: dados.whatsapp, instagram: dados.instagram, facebook: dados.facebook,
+      cidades: dados.cidades, telerreabilitacao: dados.telerreabilitacao, whatsapp: dados.whatsapp, telefones: [], instagram: dados.instagram, facebook: dados.facebook,
       email: dados.email, bio: "Apresentação revisada por uma pessoa.", ativo: false, ordem: dados.ordem, fotoMidiaId: dados.fotoMidiaId,
     };
     assert.ok((await gravarProfissional(db, editado.id, campos, PESSOA)).ok);

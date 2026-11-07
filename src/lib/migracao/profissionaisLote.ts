@@ -141,6 +141,7 @@ export function converterRegistroDoLote(registro: RegistroDoLote) {
   formulario.set("uf", registro.uf);
   formulario.set("cidades", registro.cidades.join("\n"));
   formulario.set("whatsapp", registro.whatsapp);
+  formulario.set("telefones", "");
   formulario.set("instagram", registro.instagram);
   formulario.set("facebook", "");
   formulario.set("email", registro.email);

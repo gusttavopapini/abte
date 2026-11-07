@@ -234,6 +234,8 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
       cidades,
       telerreabilitacao,
       whatsapp,
+      // Os telefones do site antigo entram pelo importador próprio (06/11/2026).
+      telefones: [],
       instagram,
       facebook,
       email,

@@ -85,7 +85,7 @@ before(async () => {
   // Profissional que já existe (cadastrado por uma pessoa), parecido com o 7.
   const existente: DadosDoProfissional = {
     tipo: "Fisioterapeutas", tratamento: "", nome: "Fulanana Maria Exemplo", registro: "Crefito 77777", metodos: [], pais: "BR", uf: "AL", cidades: ["Cidade Sete"],
-    telerreabilitacao: false, whatsapp: "", instagram: "perfil.outro", facebook: "", email: "", bio: "", ativo: true, ordem: 0, fotoMidiaId: null,
+    telerreabilitacao: false, whatsapp: "", telefones: [], instagram: "perfil.outro", facebook: "", email: "", bio: "", ativo: true, ordem: 0, fotoMidiaId: null,
   };
   assert.ok((await gravarProfissional(db, null, existente, PESSOA)).ok);
 });

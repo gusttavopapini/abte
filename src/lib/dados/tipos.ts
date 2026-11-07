@@ -71,6 +71,8 @@ export type Profissional = {
   cidades: string[];
   telerreabilitacao: boolean;
   whatsapp: string;
+  // Fixos ou celulares (06/11/2026), só os dígitos; ausente vale lista vazia.
+  telefones: string[];
   instagram: string;
   facebook: string;
   email: string;

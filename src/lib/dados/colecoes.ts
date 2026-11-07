@@ -90,6 +90,7 @@ const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => (
   cidades: listaDeTextos(campos.cidades),
   telerreabilitacao: campos.telerreabilitacao === true,
   whatsapp: texto(campos.whatsapp),
+  telefones: listaDeTextos(campos.telefones),
   instagram: texto(campos.instagram),
   facebook: texto(campos.facebook),
   email: texto(campos.email),

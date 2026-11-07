@@ -27,6 +27,7 @@ export default async function PaginaAdminProfissionais() {
       cidades: profissional.cidades,
       telerreabilitacao: profissional.telerreabilitacao,
       whatsapp: profissional.whatsapp,
+      telefones: profissional.telefones,
       instagram: profissional.instagram,
       facebook: profissional.facebook,
       email: profissional.email,

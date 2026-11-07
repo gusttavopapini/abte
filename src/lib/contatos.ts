@@ -1,5 +1,5 @@
 // Validação e padronização dos contatos dos profissionais (WhatsApp,
-// Instagram, Facebook e e-mail). Funções puras, com mensagens em português,
+// telefones, Instagram, Facebook e e-mail). Funções puras, com mensagens em português,
 // usadas pelas ações do painel e pelos testes de unidade.
 // Cada função também percebe contato colado no campo errado (ex.: e-mail no
 // campo do WhatsApp) e diz em qual campo ele deveria estar.
@@ -8,7 +8,7 @@ import { ehEmailValido } from "./validacao.ts";
 
 export type ResultadoDoContato = { ok: true; valor: string } | { ok: false; erro: string };
 
-type Campo = "whatsapp" | "instagram" | "facebook" | "email";
+type Campo = "whatsapp" | "telefone" | "instagram" | "facebook" | "email";
 
 const valido = (valor: string): ResultadoDoContato => ({ ok: true, valor });
 const invalido = (erro: string): ResultadoDoContato => ({ ok: false, erro });
@@ -24,8 +24,9 @@ function campoTrocado(valor: string, campoAtual: Campo): string | null {
   if (campoAtual !== "email" && PARECE_EMAIL.test(valor)) return "Isto parece um e-mail. Coloque no campo E-mail.";
   if (campoAtual !== "instagram" && LINK_INSTAGRAM.test(valor)) return "Isto parece um link do Instagram. Coloque no campo Instagram.";
   if (campoAtual !== "facebook" && LINK_FACEBOOK.test(valor)) return "Isto parece um link do Facebook. Coloque no campo Facebook.";
-  if (campoAtual !== "whatsapp" && (LINK_WHATSAPP.test(valor) || PARECE_TELEFONE.test(valor))) {
-    return "Isto parece um número de telefone. Coloque no campo WhatsApp.";
+  if (campoAtual === "telefone" && LINK_WHATSAPP.test(valor)) return "Isto parece um link do WhatsApp. Coloque no campo WhatsApp.";
+  if (campoAtual !== "whatsapp" && campoAtual !== "telefone" && (LINK_WHATSAPP.test(valor) || PARECE_TELEFONE.test(valor))) {
+    return "Isto parece um número de telefone. Coloque no campo WhatsApp ou Telefones.";
   }
   return null;
 }
@@ -74,6 +75,62 @@ export function validarWhatsapp(entrada: string, pais: CodigoDePais): ResultadoD
     return invalido("Número de WhatsApp inválido. Confira o código de área (DDD) e o número; para outro país, comece com + e o código do país.");
   }
   return valido(digitos);
+}
+
+// Telefone (fixo ou celular, 06/11/2026): mesma padronização do WhatsApp
+// (só os dígitos, com o código do país), pronto para o link tel:+<dígitos>.
+export function validarTelefone(entrada: string, pais: CodigoDePais): ResultadoDoContato {
+  const valor = entrada.trim();
+  if (!valor) return valido("");
+  const trocado = campoTrocado(valor, "telefone");
+  if (trocado) return invalido(trocado);
+  if (/[^\d\s()+.-]/.test(valor)) return invalido("Use só números, espaços, parênteses, hífen e o sinal de +.");
+  let digitos = valor.replace(/\D/g, "");
+  const internacional = valor.startsWith("+") || digitos.startsWith("00");
+  if (digitos.startsWith("00")) digitos = digitos.slice(2);
+  if (!internacional && !numeroCompletoValido(digitos)) {
+    const ddi = PAISES.find((item) => item.codigo === pais)?.ddi ?? "55";
+    digitos = ddi + digitos.replace(/^0+/, "");
+  }
+  if (!numeroCompletoValido(digitos)) {
+    return invalido("Telefone inválido. Confira o código de área (DDD) e o número; para outro país, comece com + e o código do país.");
+  }
+  return valido(digitos);
+}
+
+export const LIMITE_DE_TELEFONES = 3;
+
+export type ResultadoDosTelefones = { ok: true; valor: string[] } | { ok: false; erro: string };
+
+// Vários telefones num campo só, separados por vírgula, ponto e vírgula ou
+// linha; até LIMITE_DE_TELEFONES, sem repetir. O erro cita a posição.
+export function validarTelefones(entrada: string, pais: CodigoDePais): ResultadoDosTelefones {
+  const partes = entrada.split(/[,;\n]/).map((parte) => parte.trim()).filter(Boolean);
+  if (partes.length > LIMITE_DE_TELEFONES) return { ok: false, erro: `Informe no máximo ${LIMITE_DE_TELEFONES} telefones.` };
+  const numeros: string[] = [];
+  for (const [indice, parte] of partes.entries()) {
+    const resultado = validarTelefone(parte, pais);
+    if (!resultado.ok) return { ok: false, erro: partes.length > 1 ? `Telefone ${indice + 1}: ${resultado.erro}` : resultado.erro };
+    if (!numeros.includes(resultado.valor)) numeros.push(resultado.valor);
+  }
+  return { ok: true, valor: numeros };
+}
+
+// Número para ler na tela: "(11) 3333-4444" ou "(11) 93333-4444" no Brasil;
+// nos outros países, "+595 21 123 456" (só os grupos de dígitos).
+export function telefoneParaLeitura(digitos: string): string {
+  if (digitos.startsWith("55") && (digitos.length === 12 || digitos.length === 13)) {
+    const ddd = digitos.slice(2, 4);
+    const numero = digitos.slice(4);
+    return `(${ddd}) ${numero.slice(0, numero.length - 4)}-${numero.slice(-4)}`;
+  }
+  return `+${digitos}`;
+}
+
+// Fixo brasileiro (DDD e 8 dígitos começando de 2 a 5): não tem WhatsApp
+// pessoal na maior parte dos casos; usado pelo importador de telefones.
+export function ehFixoBrasileiro(digitos: string): boolean {
+  return digitos.startsWith("55") && digitos.length === 12 && /^[2-5]/.test(digitos.slice(4));
 }
 
 // Caminhos do Instagram que não são perfil (publicação, vídeo, busca...).

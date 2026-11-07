@@ -33,6 +33,7 @@ function profissional(nome: string, fotoMidiaId: string | null): DadosDoProfissi
     cidades: ["Cidade TESTE"],
     telerreabilitacao: false,
     whatsapp: "5511900000000",
+    telefones: [],
     instagram: "",
     facebook: "",
     email: "",

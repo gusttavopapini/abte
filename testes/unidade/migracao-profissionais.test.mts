@@ -91,6 +91,7 @@ describe("Conversão para o modelo atual", () => {
       cidades: ["Cidade Exemplo"],
       telerreabilitacao: false,
       whatsapp: "5511912345678",
+      telefones: [],
       instagram: "perfil.exemplo",
       facebook: "https://www.facebook.com/pagina.exemplo",
       email: "contato@exemplo.invalid",

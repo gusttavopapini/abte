@@ -42,6 +42,10 @@
   --cor-contato: var(--color-social-whatsapp);
 }
 
+.telefone {
+  --cor-contato: var(--color-primary);
+}
+
 .instagram {
   --cor-contato: var(--color-social-instagram);
 }

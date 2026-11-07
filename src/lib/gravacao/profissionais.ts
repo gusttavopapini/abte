@@ -47,12 +47,16 @@ export async function gravarProfissional(
   const agora = new Date();
   const lote = db.batch();
   if (atual) {
-    lote.update(referencia, { ...dados, ...extras, atualizadoEm: agora });
+    // Documento de antes do campo telefones (06/11/2026): a lista vazia não é
+    // gravada, para a edição não registrar uma mudança que não houve.
+    const { telefones, ...semTelefones } = dados;
+    const gravar = telefones.length === 0 && atual.get("telefones") === undefined ? semTelefones : dados;
+    lote.update(referencia, { ...gravar, ...extras, atualizadoEm: agora });
     registrarNoLote(db, lote, autor, {
       colecao: COLECAO_PROFISSIONAIS,
       documentoId: referencia.id,
       acao: "editar",
-      campos: camposAlterados(atual.data() ?? {}, { ...dados, ...extras }),
+      campos: camposAlterados(atual.data() ?? {}, { ...gravar, ...extras }),
       resumo: opcoes.registro?.resumo ?? "Profissional alterado.",
       ...marca,
     });

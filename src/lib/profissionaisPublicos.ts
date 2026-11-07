@@ -22,6 +22,8 @@ export type ProfissionalPublico = {
   uf: string;
   telerreabilitacao: boolean;
   whatsapp: string;
+  // Telefones (06/11/2026), só os dígitos com o código do país.
+  telefones: string[];
   instagram: string;
   // Sem Facebook desde 04/11/2026: o dado continua no cadastro do painel,
   // mas não vai ao site.
@@ -35,7 +37,7 @@ export type ProfissionalPublico = {
 // Lista fechada dos campos que vão ao navegador (conferida nos testes).
 export const CAMPOS_PUBLICOS_DO_PROFISSIONAL = [
   "id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao",
-  "whatsapp", "instagram", "email", "bio", "foto",
+  "whatsapp", "telefones", "instagram", "email", "bio", "foto",
 ] as const satisfies readonly (keyof ProfissionalPublico)[];
 
 // "Cidade Um, Cidade Dois / SP" no Brasil; nos outros países, o nome do país.
@@ -60,6 +62,7 @@ export function paraProfissionalPublico(profissional: Profissional, foto: Imagem
     uf: profissional.pais === "BR" ? profissional.uf : "",
     telerreabilitacao: profissional.telerreabilitacao,
     whatsapp: profissional.whatsapp,
+    telefones: [...profissional.telefones],
     instagram: profissional.instagram,
     email: profissional.email,
     bio: profissional.bio,

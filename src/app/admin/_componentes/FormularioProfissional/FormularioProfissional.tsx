@@ -8,6 +8,7 @@ import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSal
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
+import { LIMITE_DE_TELEFONES } from "@/lib/contatos";
 import type { Profissional } from "@/lib/dados/tipos";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./FormularioProfissional.module.css";
@@ -127,6 +128,16 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoM
         <legend className={estilos.rotulo}>Contatos (pelo menos um)</legend>
         <div className={estilos.contatos}>
           <Campo id={`${id}-whatsapp`} name="whatsapp" rotulo="WhatsApp, com DDD" inputMode="tel" autoComplete="off" defaultValue={p?.whatsapp ? `+${p.whatsapp}` : ""} erro={erros.whatsapp} />
+          <Campo
+            id={`${id}-telefones`}
+            name="telefones"
+            rotulo={`Telefones, com DDD (até ${LIMITE_DE_TELEFONES}, um por linha)`}
+            multilinha
+            inputMode="tel"
+            autoComplete="off"
+            defaultValue={p?.telefones.map((telefone) => `+${telefone}`).join("\n")}
+            erro={erros.telefones}
+          />
           <Campo id={`${id}-instagram`} name="instagram" rotulo="Instagram (@usuario ou link do perfil)" autoComplete="off" defaultValue={p?.instagram ? `@${p.instagram}` : ""} erro={erros.instagram} />
           <Campo id={`${id}-facebook`} name="facebook" rotulo="Facebook (link do perfil ou da página)" inputMode="url" autoComplete="off" defaultValue={p?.facebook} erro={erros.facebook} />
           <Campo id={`${id}-email`} name="email" type="email" rotulo="E-mail" autoComplete="off" defaultValue={p?.email} erro={erros.email} />

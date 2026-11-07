@@ -46,6 +46,21 @@ export function IconeWhatsapp({ className }: PropsIcone) {
   );
 }
 
+// Telefone (fone de gancho), 06/11/2026: contatos dos profissionais.
+export function IconeTelefone({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path
+        d="M6.6 3h2.6l1.4 4.2-2 1.6a12 12 0 0 0 6.6 6.6l1.6-2 4.2 1.4v2.6A2.6 2.6 0 0 1 18.4 20 15.4 15.4 0 0 1 4 5.6 2.6 2.6 0 0 1 6.6 3z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function IconeEmail({ className }: PropsIcone) {
   return (
     <svg {...comuns} className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

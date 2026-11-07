@@ -2,7 +2,7 @@
 // devolve os dados prontos para gravar ou os erros de cada campo, em português.
 // Usada pela ação de servidor e pelos testes de unidade.
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, type CodigoDePais, type TipoDeProfissional } from "../config/profissionais.ts";
-import { validarEmailDeContato, validarFacebook, validarInstagram, validarWhatsapp, type ResultadoDoContato } from "./contatos.ts";
+import { validarEmailDeContato, validarFacebook, validarInstagram, validarTelefones, validarWhatsapp, type ResultadoDoContato } from "./contatos.ts";
 import { ehIdDeDocumentoValido } from "./validacao.ts";
 
 export type DadosDoProfissional = {
@@ -16,6 +16,9 @@ export type DadosDoProfissional = {
   cidades: string[];
   telerreabilitacao: boolean;
   whatsapp: string;
+  // Telefones fixos ou celulares (06/11/2026): só os dígitos, com o código do
+  // país, até 3. Lista vazia sem telefone.
+  telefones: string[];
   instagram: string;
   facebook: string;
   email: string;
@@ -97,8 +100,10 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
     if (!resultado.ok) erros[campo as keyof typeof contatos] = resultado.erro;
   }
   const valores = Object.fromEntries(Object.entries(contatos).map(([campo, resultado]) => [campo, resultado.ok ? resultado.valor : ""]));
-  if (Object.values(contatos).every((resultado) => resultado.ok && !resultado.valor)) {
-    erros.contatos = "Informe pelo menos um contato: WhatsApp, Instagram, Facebook ou e-mail.";
+  const telefones = validarTelefones(texto(dados, "telefones").slice(0, LIMITES.contato), paisValido ? (pais as CodigoDePais) : "BR");
+  if (!telefones.ok) erros.telefones = telefones.erro;
+  if (telefones.ok && telefones.valor.length === 0 && Object.values(contatos).every((resultado) => resultado.ok && !resultado.valor)) {
+    erros.contatos = "Informe pelo menos um contato: WhatsApp, telefone, Instagram, Facebook ou e-mail.";
   }
 
   const bio = texto(dados, "bio");
@@ -126,6 +131,7 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
       cidades,
       telerreabilitacao,
       whatsapp: valores.whatsapp,
+      telefones: telefones.ok ? telefones.valor : [],
       instagram: valores.instagram,
       facebook: valores.facebook,
       email: valores.email,
