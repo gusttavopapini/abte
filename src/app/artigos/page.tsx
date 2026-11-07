@@ -1,3 +1,4 @@
+import { conteudoPublicadoVisivel } from "@/lib/lixeira";
 import { notFound } from "next/navigation";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { lerConfiguracaoDoSiteEmCache } from "@/lib/dados/site";
@@ -22,11 +23,11 @@ export default async function PaginaArtigos() {
   const [snapshot, todasAsCategorias] = await Promise.all([lerArtigos().orderBy("criadoEm", "desc").get(), listarTopicosAtivos("categoria")]);
   const categorias = categoriasComPublicados(
     todasAsCategorias,
-    snapshot.docs.map((documento) => documento.data()).filter((artigo) => artigo.status === "publicado"),
+    snapshot.docs.map((documento) => documento.data()).filter(conteudoPublicadoVisivel),
   );
   // Artigos publicados, do mais novo para o mais antigo no site. O card não
   // mostra data: a gravada é a da importação, não a do artigo (29/10/2026).
-  const publicados = snapshot.docs.map((documento) => documento.data()).filter((artigo) => artigo.status === "publicado");
+  const publicados = snapshot.docs.map((documento) => documento.data()).filter(conteudoPublicadoVisivel);
   const imagens = await imagensAtivasPorId([
     ...categorias.map((categoria) => categoria.imagemMidiaId),
     ...publicados.map((artigo) => artigo.imagemMidiaId),

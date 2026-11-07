@@ -1,3 +1,4 @@
+import { conteudoPublicadoVisivel } from "@/lib/lixeira";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -43,7 +44,7 @@ export default async function PaginaCategoriaArtigos({ params }: { params: Promi
   const snapshot = await lerArtigos().where("categoria", "==", categoria.id).get();
   const artigos = snapshot.docs
     .map((documento) => documento.data())
-    .filter((artigo) => artigo.status === "publicado")
+    .filter(conteudoPublicadoVisivel)
     .sort((a, b) => (b.criadoEm?.getTime() ?? 0) - (a.criadoEm?.getTime() ?? 0));
   const imagens = await imagensAtivasPorId(artigos.map((artigo) => artigo.imagemMidiaId));
 

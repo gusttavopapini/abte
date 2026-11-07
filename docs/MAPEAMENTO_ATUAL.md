@@ -619,3 +619,17 @@ Parecem reais e ficam fora da lista: "Mutirões" (`1xL6A7PAIloNZDmSR9c6`, 1200 x
 **K. Fotos do Scoliosis Day** (projeto `scoliosisday-9ebd4`, só leitura pela mesma consulta pública que o site do evento faz; nada alterado lá). 4 edições publicadas: 41 fotos de galeria (2820 x 1880 a 6000 x 4000) e 9 imagens de banner com o degradê do evento (640 x 960 a 1920 x 1080), 50 no total, baixadas em resolução original para `docs/dados-privados/fotos-scoliosis-day/` (fora do Git), com `indice.json` e a folha de contato `folha-de-contato.html` (miniaturas numeradas, resolução, proporção e a vaga sugerida). Fotos de grupo: 12 e 32 (grupos grandes), 3, 19, 30, 31 e 36 (3 a 5 pessoas no palco ou na tribuna); quem é do grupo da ABTE ou da diretoria precisa ser confirmado pela ABTE (não houve identificação por rosto). Excluída das sugestões: 20 (o telão mostra costas nuas de pacientes com órtese, que podem ser crianças ou adolescentes). Fora das sugestões: os banners com degradê (5 a 7, 17, 18, 33 e 45 a 50). Nenhuma foto do evento mostra criança ou adolescente na plateia ou no palco, pelo que se vê.
 
 **Próximo passo concreto:** aprovação do responsável para executar a D (com a decisão de um ou vários telefones), para corrigir o carregamento da legenda (CORS com GET e `crossOrigin`) e publicá-la depois da revisão, e para trocar as imagens da parte E pelas fotos escolhidas (com a autorização de uso de imagem).
+
+
+## Auditoria de código de 06/11/2026 — Codex
+
+O pedido atual foi revisar o projeto pelo código fonte, sem Claude Chrome, corrigir anomalias e entregar relatório. Ver `docs/AUDITORIA_2026-11-06.md` para escopo, histórico, correções e riscos. Os números e estados de produção registrados acima continuam históricos: não houve consulta nem gravação em dados reais nesta auditoria.
+
+- Preservado o trabalho local ainda sem commit de telefones dos profissionais; importação não executada.
+- Next.js e eslint-config-next atualizados de 16.3.6 para 16.4.5; lockfile e instalação limpa verificados. Nenhum alerta crítico permanece no npm audit, mas restam 42 pacotes com alertas (13 nas dependências de produção).
+- Corrigidos tipagem/teste de telefones, duplicação sem tópicos, continuidade de ações em lote, regras de tópicos nas ações genéricas, confirmação de exclusão e concorrência da lixeira em posts/artigos. Listas e detalhes públicos agora excluem explicitamente itens da lixeira.
+- Desfazer telefones passou a conferir o documento na transação; teste reproduz a preservação de edição concorrente.
+- Contato deixou de anunciar entrega inexistente; envio real continua pendente. Player/CORS de legendas ajustados no código; configuração do bucket não aplicada.
+- Resolvidos os cinco erros antigos de Stylelint e duas referências a cores inexistentes no detalhe do blog.
+- Validação isolada: TypeScript aprovado; ESLint 0 erros/3 avisos de imagens; Stylelint 0 erros; 477 testes de unidade + 207 de integração/sessão + 118 de regras = 802 aprovados. Build 16.4.5 aprovado, 32 páginas estáticas, sem credenciais reais.
+- Próximo trabalho: dependências restantes, recuperação de falha parcial na exclusão de conta, validação editorial no servidor e integração de contato. Conferências de produção e publicação são etapas separadas.

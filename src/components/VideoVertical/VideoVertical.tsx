@@ -57,7 +57,7 @@ export function VideoVertical({ endereco, titulo, fonte }: { endereco: string; t
             className={estilos.midia}
           />
         ) : (
-          <video controls playsInline autoPlay poster={fonte.poster ?? undefined} aria-label={fonte.descricao} className={estilos.midia}>
+          <video controls playsInline autoPlay crossOrigin={fonte.legenda ? "anonymous" : undefined} poster={fonte.poster ?? undefined} aria-label={fonte.descricao} className={estilos.midia}>
             <source src={fonte.src} type={fonte.contentType} />
             {fonte.legenda && <track kind="captions" src={fonte.legenda} srcLang="pt-BR" label="Português" default />}
             Seu navegador não mostra este vídeo.

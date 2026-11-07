@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +20,7 @@
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-modal);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -34,14 +34,14 @@
 
 .titulo {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--font-size-modal-title);
   font-weight: 600;
 }
 
 .botaoFechar {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: var(--font-size-modal-close);
   cursor: pointer;
   color: var(--color-text);
   opacity: 0.6;

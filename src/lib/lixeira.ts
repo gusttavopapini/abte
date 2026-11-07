@@ -205,3 +205,9 @@ export function resumoDoLote(colecao: ColecaoDoPainel, acao: AcaoEmLote, resulta
   }
   return partes.join(" ") || "Nada foi alterado.";
 }
+
+// Publicação e lixeira são condições independentes: documentos legados ou
+// gravações simultâneas não podem recolocar um item excluído no site.
+export function conteudoPublicadoVisivel(item: { status: string; excluidoEm?: unknown } | null | undefined): boolean {
+  return item?.status === "publicado" && !item.excluidoEm;
+}

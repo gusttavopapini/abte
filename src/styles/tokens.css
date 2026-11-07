@@ -41,6 +41,13 @@
   --color-social-facebook: #185ABD;
   --color-social-email: #43566F;
 
+  /* Valores existentes nos botões e janelas, centralizados na auditoria. */
+  --color-black: #000000;
+  --color-modal-overlay: rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --font-size-modal-title: 1.25rem;
+  --font-size-modal-close: 1.5rem;
+
   /* Foco */
   --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #00449F; /* AJUSTE APROVADO PELA DESIGNER; usar em box-shadow com outline: none */
 

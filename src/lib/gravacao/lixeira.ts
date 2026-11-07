@@ -8,6 +8,8 @@
 // Excluir de vez apaga só o documento: as imagens continuam na biblioteca de
 // mídia (decisão de 04/11/2026). Item em uso por outro é recusado.
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import { marcarExclusaoDoTopico, COLECOES_DE_TOPICOS } from "./topicos.ts";
+import type { TipoDeTopico } from "../dados/tipos.ts";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import { COLECAO_CARRINHOS } from "../loja/contas.ts";
 import {
@@ -24,6 +26,10 @@ import {
 } from "../lixeira.ts";
 
 export type ResultadoDaAcao = { ok: true; nome: string; mudou: boolean; avisos?: string[] } | { ok: false; mensagem: string };
+
+function tipoDoTopico(colecao: ColecaoDoPainel): TipoDeTopico | undefined {
+  return (Object.keys(COLECOES_DE_TOPICOS) as TipoDeTopico[]).find((tipo) => COLECOES_DE_TOPICOS[tipo] === colecao);
+}
 
 // Erro com mensagem para a tela, lançado dentro da transação.
 class Recusa extends Error {}
@@ -62,6 +68,11 @@ export async function mudarSituacao(db: Firestore, colecao: ColecaoDoPainel, id:
 // Move para a lixeira (excluidoEm preenchido). Posts e artigos também viram
 // rascunho, para saírem do site público sem mudar o código dele.
 export async function moverParaLixeira(db: Firestore, colecao: ColecaoDoPainel, id: string, autor: AutorDaAlteracao): Promise<ResultadoDaAcao> {
+  const tipo = tipoDoTopico(colecao);
+  if (tipo) {
+    const resultado = await marcarExclusaoDoTopico(db, tipo, id, true, autor);
+    return resultado.ok ? { ...resultado, mudou: true } : resultado;
+  }
   const configuracao = COLECOES_DO_PAINEL[colecao];
   const referencia = db.collection(colecao).doc(id);
   return emTransacao(() =>
@@ -91,6 +102,11 @@ export async function moverParaLixeira(db: Firestore, colecao: ColecaoDoPainel, 
 // Tira da lixeira. Posts e artigos voltam como rascunho (não são publicados
 // de novo sozinhos).
 export async function restaurarDaLixeira(db: Firestore, colecao: ColecaoDoPainel, id: string, autor: AutorDaAlteracao): Promise<ResultadoDaAcao> {
+  const tipo = tipoDoTopico(colecao);
+  if (tipo) {
+    const resultado = await marcarExclusaoDoTopico(db, tipo, id, false, autor);
+    return resultado.ok ? { ...resultado, mudou: true } : resultado;
+  }
   const referencia = db.collection(colecao).doc(id);
   return emTransacao(() =>
     db.runTransaction(async (transacao) => {
@@ -172,9 +188,11 @@ export async function excluirDeVez(db: Firestore, colecao: ColecaoDoPainel, id: 
       if (!atual.exists) throw new Recusa(MENSAGENS_DA_LIXEIRA.naoEncontrado);
       // Restaurado por outra pessoa entre a conferência e a exclusão.
       if (!atual.get("excluidoEm")) throw new Recusa(MENSAGENS_DA_LIXEIRA.soDaLixeira);
+      const nomeAtual = nomeDoItem(colecao, atual.data() ?? {});
+      if (!confirmacaoDeExclusaoValida(confirmacao, nomeAtual)) throw new Recusa(MENSAGENS_DA_LIXEIRA.confirmacao);
       transacao.delete(referencia);
       registrarNaTransacao(db, transacao, autor, { colecao, documentoId: id, acao: "excluir_definitivo", campos: [], resumo: resumoDaAcao(colecao, "excluirDeVez") });
-      return { ok: true as const, nome, mudou: true, avisos };
+      return { ok: true as const, nome: nomeAtual, mudou: true, avisos };
     }),
   );
 }
@@ -186,13 +204,19 @@ export async function excluirDeVez(db: Firestore, colecao: ColecaoDoPainel, id: 
 export async function aplicarEmLote(db: Firestore, colecao: ColecaoDoPainel, ids: string[], acao: AcaoEmLote, autor: AutorDaAlteracao): Promise<ResultadoDoLote> {
   const resultado: ResultadoDoLote = { feitos: [], semMudanca: [], falhas: [] };
   for (const id of ids) {
-    const resposta =
-      acao === "despublicar" ? await mudarSituacao(db, colecao, id, false, autor) : acao === "lixeira" ? await moverParaLixeira(db, colecao, id, autor) : await restaurarDaLixeira(db, colecao, id, autor);
-    if (!resposta.ok) {
-      const documento = await db.collection(colecao).doc(id).get();
-      resultado.falhas.push({ nome: documento.exists ? nomeDoItem(colecao, documento.data() ?? {}) : "Item não encontrado", motivo: resposta.mensagem });
-    } else if (resposta.mudou) resultado.feitos.push(resposta.nome);
-    else resultado.semMudanca.push(resposta.nome);
+    try {
+      const resposta =
+        acao === "despublicar" ? await mudarSituacao(db, colecao, id, false, autor) : acao === "lixeira" ? await moverParaLixeira(db, colecao, id, autor) : await restaurarDaLixeira(db, colecao, id, autor);
+      if (!resposta.ok) {
+        const documento = await db.collection(colecao).doc(id).get();
+        resultado.falhas.push({ nome: documento.exists ? nomeDoItem(colecao, documento.data() ?? {}) : "Item não encontrado", motivo: resposta.mensagem });
+      } else if (resposta.mudou) resultado.feitos.push(resposta.nome);
+      else resultado.semMudanca.push(resposta.nome);
+    } catch (erro) {
+      // A falha deste item não esconde o resultado dos anteriores nem impede os seguintes.
+      console.error("Falha em item de uma ação em lote:", erro);
+      resultado.falhas.push({ nome: `Item ${id}`, motivo: "Não foi possível concluir este item. Tente novamente." });
+    }
   }
   return resultado;
 }

@@ -1,3 +1,4 @@
+import { conteudoPublicadoVisivel } from "@/lib/lixeira";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -22,7 +23,7 @@ const lerArtigoPublicado = cache(async (slug: string) => {
     artigo = consulta.docs[0]?.data();
   }
   // Rascunho conta como inexistente.
-  return artigo?.status === "publicado" ? artigo : null;
+  return conteudoPublicadoVisivel(artigo) ? artigo : null;
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

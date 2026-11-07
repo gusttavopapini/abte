@@ -72,8 +72,11 @@ export async function gravarPost(db: Firestore, id: string | null, dados: DadosD
 
   const agora = new Date();
   // Coleção pequena: lida inteira na transação só quando precisa de slug novo.
-  const slug = await db.runTransaction(async (transacao) => {
+  return db.runTransaction(async (transacao) => {
     const gravado = atual ? await transacao.get(referencia) : null;
+    // Outra pessoa pode excluir ou mandar para a lixeira durante as validações.
+    if (atual && !gravado?.exists) return { ok: false as const, mensagem: "Post não encontrado." };
+    if (gravado?.get("excluidoEm") && dados.status === "publicado") return { ok: false as const, mensagem: MENSAGENS_DA_LIXEIRA.naLixeira };
     const slugAtual = gravado?.get("slug");
     let escolhido = typeof slugAtual === "string" && slugAtual.trim() ? slugAtual : null;
     if (!escolhido || opcoes.regerarSlug) {
@@ -93,9 +96,8 @@ export async function gravarPost(db: Firestore, id: string | null, dados: DadosD
         resumo: opcoes.resumoDoRegistro ?? (atual ? "Post alterado." : "Post criado."),
       });
     }
-    return escolhido;
+    return { ok: true as const, id: referencia.id, slug: escolhido };
   });
-  return { ok: true, id: referencia.id, slug };
 }
 
 // Campos copiados na duplicação além dos do formulário (os que o site mostra).
@@ -116,7 +118,8 @@ export async function duplicarPost(db: Firestore, id: string, autor: AutorDaAlte
   const campos = original.data() ?? {};
   const categoria = typeof campos.categoria === "string" && campos.categoria ? campos.categoria : null;
   const tags: string[] = Array.isArray(campos.tags) ? campos.tags.filter((tag): tag is string => typeof tag === "string") : [];
-  const topicos = await db.getAll(...[...(categoria ? [db.collection(COLECAO_CATEGORIAS).doc(categoria)] : []), ...tags.map((tag) => db.collection(COLECAO_TAGS).doc(tag))]);
+  const referencias = [...(categoria ? [db.collection(COLECAO_CATEGORIAS).doc(categoria)] : []), ...tags.map((tag) => db.collection(COLECAO_TAGS).doc(tag))];
+  const topicos = referencias.length > 0 ? await db.getAll(...referencias) : [];
   const disponiveis = new Set(topicos.filter((documento) => documento.exists && !documento.get("excluidoEm")).map((documento) => documento.ref.path));
   const capa = typeof campos.capaMidiaId === "string" && (await midiaPodeSerEscolhida(db, campos.capaMidiaId)) ? campos.capaMidiaId : null;
   const titulo = tituloDaCopia(String(campos.titulo ?? ""), limiteDoTitulo);

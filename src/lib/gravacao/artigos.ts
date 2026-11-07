@@ -2,9 +2,9 @@
 // gravacao/posts.ts: recebe o Firestore por parâmetro e é usada pelas ações
 // de servidor (acoes-conteudo.ts, que conferem sessão e papel antes) e pelos
 // testes no emulador. Desde 04/11/2026, com o autor, cada criação e edição
-// grava no registro de alterações no mesmo lote.
+// grava no registro de alterações na mesma transação.
 import type { Firestore } from "firebase-admin/firestore";
-import { camposAlterados, registrarNoLote, type AutorDaAlteracao } from "../log/alteracoes.ts";
+import { camposAlterados, registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import { MENSAGENS_DA_LIXEIRA } from "../lixeira.ts";
 import { escolhaDeMidiaValida, midiaPodeSerEscolhida } from "../midia/biblioteca.ts";
 
@@ -54,20 +54,23 @@ export async function gravarArtigo(db: Firestore, id: string | null, dados: Dado
   }
 
   const agora = new Date();
-  const lote = db.batch();
-  if (atual) lote.update(referencia, { ...dados, atualizadoEm: agora });
-  else lote.create(referencia, { ...dados, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
-  if (opcoes.autor) {
-    registrarNoLote(db, lote, opcoes.autor, {
-      colecao: COLECAO_ARTIGOS,
-      documentoId: referencia.id,
-      acao: atual ? "editar" : "criar",
-      campos: atual ? camposAlterados(atual.data() ?? {}, dados) : Object.keys(dados),
-      resumo: opcoes.resumoDoRegistro ?? (atual ? "Artigo alterado." : "Artigo criado."),
-    });
-  }
-  await lote.commit();
-  return { ok: true, id: referencia.id };
+  return db.runTransaction(async (transacao) => {
+    const gravado = atual ? await transacao.get(referencia) : null;
+    if (atual && !gravado?.exists) return { ok: false as const, mensagem: "Artigo não encontrado." };
+    if (gravado?.get("excluidoEm") && dados.status === "publicado") return { ok: false as const, mensagem: MENSAGENS_DA_LIXEIRA.naLixeira };
+    if (atual) transacao.update(referencia, { ...dados, atualizadoEm: agora });
+    else transacao.create(referencia, { ...dados, criadoEm: agora, atualizadoEm: agora, excluidoEm: null });
+    if (opcoes.autor) {
+      registrarNaTransacao(db, transacao, opcoes.autor, {
+        colecao: COLECAO_ARTIGOS,
+        documentoId: referencia.id,
+        acao: atual ? "editar" : "criar",
+        campos: atual ? camposAlterados(gravado?.data() ?? {}, dados) : Object.keys(dados),
+        resumo: opcoes.resumoDoRegistro ?? (atual ? "Artigo alterado." : "Artigo criado."),
+      });
+    }
+    return { ok: true as const, id: referencia.id };
+  });
 }
 
 // Duplica um artigo (04/11/2026): cópia como rascunho, "Cópia de ...", sem

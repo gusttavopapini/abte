@@ -1,3 +1,4 @@
+import { conteudoPublicadoVisivel } from "@/lib/lixeira";
 import Link from "next/link";
 import Form from "next/form";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
@@ -37,7 +38,7 @@ export default async function PaginaBlog({ searchParams }: { searchParams: Promi
   // (posts importados) ou, sem ela, pela criação.
   const [snapshot, categorias] = await Promise.all([lerPosts().get(), listarTopicosAtivos("categoriaDePost")]);
 
-  const todosPublicados = ordenarPosts(snapshot.docs.map((documento) => documento.data()).filter((post) => post.status === "publicado"));
+  const todosPublicados = ordenarPosts(snapshot.docs.map((documento) => documento.data()).filter(conteudoPublicadoVisivel));
   // Filtros: categorias ativas com post publicado (lib/topicos.ts). Slug
   // desconhecido ou de categoria oculta mostra todos.
   const filtros = categoriasComPublicados(categorias, todosPublicados);

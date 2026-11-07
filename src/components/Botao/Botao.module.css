@@ -34,7 +34,7 @@
 .secundario:hover,
 .secundario:active,
 .secundario[data-demonstrar="hover"] {
-  background: color-mix(in srgb, var(--color-surface-soft) 85%, #000);
+  background: color-mix(in srgb, var(--color-surface-soft) 85%, var(--color-black));
   color: var(--color-text);
 }
 

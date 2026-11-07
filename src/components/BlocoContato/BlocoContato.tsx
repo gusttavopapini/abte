@@ -40,7 +40,8 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
   const id = useId();
   const [valores, setValores] = useState<Valores>(VAZIO);
   const [erros, setErros] = useState<Erros>(() => (estadoInicial === "erro" ? validar(VAZIO) : {}));
-  const [enviado, setEnviado] = useState(estadoInicial === "sucesso");
+  const [enviado] = useState(estadoInicial === "sucesso");
+  const [envioIndisponivel, setEnvioIndisponivel] = useState(false);
   const nomeRef = useRef<HTMLInputElement>(null);
   const sobrenomeRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -71,7 +72,7 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
     // TODO: o envio real da mensagem será implementado em outra etapa
     // (serviço de e-mail e local de armazenamento ainda em aberto, ver
     // ABTE_contexto_redesign.md seção 14). Nada é gravado nem enviado agora.
-    setEnviado(true);
+    setEnvioIndisponivel(true);
     setFocarSucesso(true);
   }
 
@@ -141,7 +142,12 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
           Li e concordo com a {politicaPublicada ? <Link href="/politica-de-privacidade">Política de Privacidade</Link> : "Política de Privacidade"}
         </CaixaConsentimento>
 
-        {/* Sucesso: mensagem em caixa branca no lugar do botão */}
+        {envioIndisponivel && (
+          <Mensagem tipo="erro" ref={sucessoRef}>
+            O envio pelo formulário está indisponível. Sua mensagem não foi enviada. Use os canais de contato indicados no rodapé.
+          </Mensagem>
+        )}
+        {/* Estado de sucesso reservado à demonstração até existir entrega real. */}
         {enviado ? (
           <Mensagem tipo="sucesso" ref={sucessoRef}>
             Mensagem enviada. Obrigado por falar com a ABTE.
