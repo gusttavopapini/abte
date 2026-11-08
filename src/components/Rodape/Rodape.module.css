@@ -17,17 +17,17 @@
   justify-content: center;
 }
 
-/* Rodapé todo centralizado em todas as larguras (pedido de Gustavo em
-   07/11/2026, que substitui o alinhamento à esquerda pedido em 10/10/2026):
-   título, links, e-mail e Instagram de cada coluna no centro; o grupo de
-   colunas continua centralizado no rodapé (.colunas). */
+/* Desktop (a partir de 1024px): textos alinhados à esquerda dentro de cada
+   coluna, como no pedido de 10/10/2026; o grupo de colunas continua
+   centralizado no rodapé (.colunas). Até 1023px tudo fica centralizado
+   (bloco no fim do arquivo; pedido de Gustavo em 08/11/2026). */
 .coluna {
   display: flex;
   flex: 0 1 auto;
   flex-direction: column;
   gap: var(--space-8);
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 /* Títulos das colunas em negrito (PROPOSTA) */
@@ -42,7 +42,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  align-items: center;
+  align-items: flex-start;
 }
 
 .link {
@@ -54,13 +54,14 @@
 
 /* Hover: a pílula do .realce (globals.css), sem sublinhado */
 
-/* "Siga nosso Instagram" (30/10/2026): um link com o ícone e o texto,
-   centralizado como o título e o e-mail da coluna (07/11/2026); 44px de toque. O
+/* "Siga nosso Instagram" (30/10/2026): um link com o ícone e o texto, na
+   mesma borda do título e do e-mail da coluna (à esquerda no desktop, no
+   centro até 1023px); 44px de toque. O
    hover é a pílula do .realce (globals.css), sem sublinhado; o foco, o anel
    do --focus-ring. */
 .rede {
   display: inline-flex;
-  align-self: center;
+  align-self: flex-start;
   gap: var(--space-8);
   align-items: center;
   min-height: var(--control-min-height-mobile);
@@ -88,7 +89,8 @@
 }
 
 /* O logo continua centralizado (.pe); o texto de direitos ocupa a largura
-   toda e fica centralizado, como o resto do rodapé (07/11/2026). */
+   toda e fica centralizado em todas as larguras (exceção ao alinhamento à
+   esquerda das colunas no desktop, pedido de 12/10/2026). */
 .copyright {
   align-self: stretch;
   font-size: var(--font-size-small);
@@ -97,6 +99,24 @@
 
 .logoFooter img {
   height: 90px;
+}
+
+/* Celular e tablet (até 1023px): colunas do rodapé centralizadas, com
+   título, links, e-mail e Instagram no centro (pedido de Gustavo em
+   07/11/2026, restrito a até 1023px em 08/11/2026). */
+@media (max-width: 1023px) {
+  .coluna {
+    align-items: center;
+    text-align: center;
+  }
+
+  .lista {
+    align-items: center;
+  }
+
+  .rede {
+    align-self: center;
+  }
 }
 
 @media (max-width: 767px) {
