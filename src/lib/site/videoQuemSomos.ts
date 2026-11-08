@@ -46,6 +46,26 @@ const CAMINHO_DE_VIDEO = /^publico\/videos\/[A-Za-z0-9]{20}\/video\.(mp4|webm)$/
 const CAMINHO_DE_LEGENDA = /^publico\/videos\/[A-Za-z0-9]{20}\/legenda\.vtt$/;
 const ID_DO_YOUTUBE = /^[A-Za-z0-9_-]{11}$/;
 
+// Legenda servida pelo próprio site (08/11/2026): o Storage não manda CORS,
+// e o navegador só aceita <track> de outro domínio com crossOrigin no
+// <video>, o que faria o próprio vídeo falhar. A home aponta a faixa para
+// /api/legenda/{id}, e a rota lê no servidor só o caminho fixo
+// publico/videos/{id}/legenda.vtt (o mesmo do envio pelo painel).
+const ID_DA_PASTA_DO_VIDEO = /^[A-Za-z0-9]{20}$/;
+export const ROTA_DA_LEGENDA = "/api/legenda";
+
+// Id da pasta (20 letras e números) para o caminho da legenda; o resto, null.
+export function caminhoDaLegendaPeloId(id: unknown): string | null {
+  return typeof id === "string" && ID_DA_PASTA_DO_VIDEO.test(id) ? `${PASTA_DOS_VIDEOS}/${id}/legenda.vtt` : null;
+}
+
+// Endereço da legenda no próprio site, a partir do caminho gravado; null se
+// o caminho não for o de uma legenda do vídeo.
+export function enderecoDaLegenda(caminho: unknown): string | null {
+  if (!ehCaminhoDoArquivo("legenda", caminho)) return null;
+  return `${ROTA_DA_LEGENDA}/${caminho.split("/")[2]}`;
+}
+
 export function ehTipoDeVideo(valor: unknown): valor is TipoDeVideo {
   return typeof valor === "string" && Object.hasOwn(TIPOS_DE_VIDEO, valor);
 }

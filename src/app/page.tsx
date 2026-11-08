@@ -15,7 +15,7 @@ import { VIDEO_QUEM_SOMOS } from "@/lib/site/video";
 import { VideoVertical, type FonteDoVideo } from "@/components/VideoVertical/VideoVertical";
 import { urlPublicaDoArquivo } from "@/lib/midia/servicos";
 import { escolherVariante } from "@/lib/midia/regras";
-import type { VideoQuemSomos } from "@/lib/site/videoQuemSomos";
+import { enderecoDaLegenda, type VideoQuemSomos } from "@/lib/site/videoQuemSomos";
 import { ImagemDaMidia } from "@/components/ImagemDaMidia/ImagemDaMidia";
 import { lerImagensDaHome } from "@/lib/dados/home";
 import { imagemDoEspaco, midiasDaHome, slidesDaHome } from "@/lib/site/home";
@@ -86,7 +86,8 @@ function fonteDoVideo(video: VideoQuemSomos | null, imagens: Map<string, ImagemN
     descricao: video.descricao,
     capa,
     poster: capa ? escolherVariante(capa.variantes, 960)?.url ?? null : null,
-    legenda: video.legendaCaminho ? urlPublicaDoArquivo(video.legendaCaminho) : null,
+    // A legenda vem do próprio site (08/11/2026): o Storage não manda CORS.
+    legenda: enderecoDaLegenda(video.legendaCaminho),
   };
 }
 

@@ -7,6 +7,7 @@ import { IconeFechar, IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
 import { BotaoDasConfiguracoes, type ConfiguracoesDoSiteNaTela } from "../ConfiguracoesDoSite/ConfiguracoesDoSite";
 import { IconeAjustes, IconeCaixa, IconeCasa, IconeImagem, IconeLivro, IconePaginas, IconePessoas, IconeTexto, IconeVisaoGeral } from "./IconesDoPainel";
+import { IconeEnvelope } from "./IconesDoPainel";
 import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
@@ -58,6 +59,8 @@ const GRUPOS: GrupoDoPainel[] = [
     ],
   },
   { titulo: null, itens: [{ href: "/admin/midia", rotulo: "Mídia", icone: IconeImagem }] },
+  // Mensagens do formulário de contato (08/11/2026): só administrador.
+  { titulo: null, itens: [{ href: "/admin/mensagens", rotulo: "Mensagens", icone: IconeEnvelope, soAdministrador: true }] },
   { titulo: null, itens: [{ href: "/admin/configuracoes", rotulo: "Configurações", icone: IconeAjustes, soAdministrador: true }] },
 ];
 

@@ -503,7 +503,7 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 - Antes de 08/11/2026: pagamento online desativado; gateway definido para quando fosse ativado: **Stripe**.
 - Loja com **carrinho e conta de cliente restritos à área da loja** (D1, 10/10/2026), sem pagamento e sem finalização de compra. Substitui a regra anterior "loja só vitrine".
 - Desde 30/10/2026, **Pix estático preenchido pelo administrador em `/admin/configuracoes`** (`configuracoes/site.pix`), mostrado na `/doe` com "Copiar chave", sem QR Code, sem gateway e sem registro de doações; a chave ainda não foi recebida. Antes: doação por **Pix estático** (QR code e código copia e cola, valores sugeridos de R$25, R$50, R$100 e valor livre, sem registro automático das doações), **a confirmar**.
-- Fora do pedido de 08/11/2026 continuam sem pedido explícito: outro gateway, doação com pagamento online, cupons e as coleções `pedidoItens`, `doacoes` e `cupons` (a coleção `pedidos` existe desde 08/11/2026, com os itens dentro do próprio pedido).
+- Fora do pedido de 08/11/2026 continuam sem pedido explícito: outro gateway, doação com pagamento online, cupons e as coleções `pedidoItens`, `doacoes` e `cupons` (a coleção `pedidos` existe desde 08/11/2026, com os itens dentro do próprio pedido). Também desde 08/11/2026: `mensagensDeContato` (formulário de contato gravado pelo servidor, lido em `/admin/mensagens` só pelo administrador), negada ao navegador.
 
 ## Decisões registradas
 

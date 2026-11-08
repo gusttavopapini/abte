@@ -33,7 +33,9 @@ export type AcaoDoPainel =
   // Pedidos da loja e frete fixo (08/11/2026, pagamento pela Stripe).
   | "pedidos.ver"
   | "pedidos.editar"
-  | "loja.configurar";
+  | "loja.configurar"
+  // Mensagens do formulário de contato (08/11/2026): ler e marcar como lida.
+  | "mensagens.ler";
 
 // PROVISÓRIO (pendência P7 no CLAUDE.md, depende da diretoria): administrador
 // e editor enviam, editam, excluem para a lixeira e restauram mídia; só o
@@ -64,6 +66,8 @@ const PERMISSOES: Record<AcaoDoPainel, readonly PapelDoPainel[]> = {
   "pedidos.ver": ["administrador"],
   "pedidos.editar": ["administrador"],
   "loja.configurar": ["administrador"],
+  // Mensagens do formulário de contato (08/11/2026): só administrador.
+  "mensagens.ler": ["administrador"],
 };
 
 export function papelPodeExecutar(papel: PapelDoPainel, acao: AcaoDoPainel): boolean {
