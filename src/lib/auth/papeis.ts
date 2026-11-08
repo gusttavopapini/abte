@@ -29,7 +29,9 @@ export type AcaoDoPainel =
   | "conteudo.restaurar"
   | "conteudo.excluirDeVez"
   // Últimas alterações do registro na visão geral (04/11/2026).
-  | "registro.ver";
+  | "registro.ver"
+  // Mensagens do formulário de contato (08/11/2026): ler e marcar como lida.
+  | "mensagens.ler";
 
 // PROVISÓRIO (pendência P7 no CLAUDE.md, depende da diretoria): administrador
 // e editor enviam, editam, excluem para a lixeira e restauram mídia; só o
@@ -55,6 +57,8 @@ const PERMISSOES: Record<AcaoDoPainel, readonly PapelDoPainel[]> = {
   "conteudo.restaurar": ["administrador", "editor"],
   "conteudo.excluirDeVez": ["administrador"],
   "registro.ver": ["administrador", "editor"],
+  // Mensagens do formulário de contato (08/11/2026): só administrador.
+  "mensagens.ler": ["administrador"],
 };
 
 export function papelPodeExecutar(papel: PapelDoPainel, acao: AcaoDoPainel): boolean {

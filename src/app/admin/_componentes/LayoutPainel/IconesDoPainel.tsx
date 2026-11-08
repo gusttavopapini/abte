@@ -83,3 +83,11 @@ export const IconeAjustes = (props: Props) => (
     <circle cx="8" cy="17" r="2" />
   </Icone>
 );
+
+// Mensagens do formulário de contato (08/11/2026): envelope.
+export const IconeEnvelope = (props: Props) => (
+  <Icone {...props}>
+    <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+    <path d="m4 7 8 6 8-6" />
+  </Icone>
+);

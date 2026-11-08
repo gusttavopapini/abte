@@ -283,3 +283,28 @@ describe("Lixeira e situação dos tópicos (04/11/2026)", () => {
     });
   }
 });
+
+// Mensagens do formulário de contato (08/11/2026): gravadas e lidas só pelo
+// servidor; pelo navegador, ninguém envia, lê, marca como lida nem apaga.
+describe("Mensagens de contato (08/11/2026)", () => {
+  const mensagem = { nome: "TESTE", sobrenome: "Exemplo", email: "teste@exemplo.invalid", assunto: "", mensagem: "Olá", consentimento: true, criadoEm: new Date(), lida: false };
+  const contextos: [string, () => RulesTestContext][] = [
+    ["visitante", () => ambiente.unauthenticatedContext()],
+    ["logado sem papel", () => ambiente.authenticatedContext("usuario-sem-papel")],
+    ["administrador", () => ambiente.authenticatedContext("usuario-admin", { papel: "administrador" })],
+    ["editor", () => ambiente.authenticatedContext("usuario-editor", { papel: "editor" })],
+  ];
+  for (const [quem, obterContexto] of contextos) {
+    test(`${quem} não lê nem grava mensagensDeContato`, async () => {
+      await ambiente.withSecurityRulesDisabled(async (contexto) => {
+        await setDoc(doc(contexto.firestore(), "mensagensDeContato", "existente"), mensagem);
+      });
+      const db = obterContexto().firestore();
+      await assertFails(getDoc(doc(db, "mensagensDeContato", "existente")));
+      await assertFails(getDocs(collection(db, "mensagensDeContato")));
+      await assertFails(setDoc(doc(db, "mensagensDeContato", "nova"), mensagem));
+      await assertFails(updateDoc(doc(db, "mensagensDeContato", "existente"), { lida: true }));
+      await assertFails(deleteDoc(doc(db, "mensagensDeContato", "existente")));
+    });
+  }
+});

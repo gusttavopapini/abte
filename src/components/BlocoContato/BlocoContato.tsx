@@ -1,33 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { enviarMensagemDeContato } from "@/app/contato/acoes";
 import { Botao } from "@/components/Botao/Botao";
 import { CaixaConsentimento } from "@/components/CaixaConsentimento/CaixaConsentimento";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { ehEmailValido } from "@/lib/validacao";
+import { LIMITES_DO_CONTATO, ORDEM_DOS_CAMPOS_DO_CONTATO, validarMensagemDeContato, type ErrosDoContato } from "@/lib/contato";
 import estilos from "./BlocoContato.module.css";
 
 type Valores = { nome: string; sobrenome: string; email: string; assunto: string; mensagem: string; consentimento: boolean };
-type Erros = Partial<Record<"nome" | "sobrenome" | "email" | "consentimento", string>>;
+type Erros = ErrosDoContato;
 
 const VAZIO: Valores = { nome: "", sobrenome: "", email: "", assunto: "", mensagem: "", consentimento: false };
 
 // Na página /componentes, mostra o bloco já com erro ou com sucesso.
 type EstadoInicialContato = "padrao" | "erro" | "sucesso";
 
-// Ordem dos campos: o foco vai para o primeiro com erro.
-const ORDEM: (keyof Erros)[] = ["nome", "sobrenome", "email", "consentimento"];
-
+// Mesma validação do servidor (src/lib/contato.ts), aqui só como ajuda
+// imediata; a que vale é a da ação de servidor.
 function validar(valores: Valores): Erros {
-  const erros: Erros = {};
-  if (!valores.nome.trim()) erros.nome = "Informe seu nome.";
-  if (!valores.sobrenome.trim()) erros.sobrenome = "Informe seu sobrenome.";
-  if (!valores.email.trim()) erros.email = "Informe seu e-mail.";
-  else if (!ehEmailValido(valores.email.trim())) erros.email = "Informe um e-mail válido, como nome@exemplo.com.";
-  if (!valores.consentimento) erros.consentimento = "Para enviar, marque que você leu e concorda com a Política de Privacidade.";
-  return erros;
+  const lido = validarMensagemDeContato(valores);
+  return lido.ok ? {} : lido.erros;
 }
 
 // Bloco "Fale com a ABTE", antes do rodapé em todas as páginas
@@ -40,18 +35,23 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
   const id = useId();
   const [valores, setValores] = useState<Valores>(VAZIO);
   const [erros, setErros] = useState<Erros>(() => (estadoInicial === "erro" ? validar(VAZIO) : {}));
-  const [enviado] = useState(estadoInicial === "sucesso");
-  const [envioIndisponivel, setEnvioIndisponivel] = useState(false);
-  const nomeRef = useRef<HTMLInputElement>(null);
-  const sobrenomeRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
+  const [enviado, setEnviado] = useState(estadoInicial === "sucesso");
+  const [erroDoEnvio, setErroDoEnvio] = useState<string | null>(null);
+  const [enviando, iniciarEnvio] = useTransition();
   const consentimentoRef = useRef<HTMLInputElement>(null);
-  const sucessoRef = useRef<HTMLDivElement>(null);
-  const [focarSucesso, setFocarSucesso] = useState(false);
+  const avisoRef = useRef<HTMLDivElement>(null);
+  const [focarAviso, setFocarAviso] = useState(0);
 
+  // O foco vai para o aviso (sucesso ou erro do envio) a cada resposta.
   useEffect(() => {
-    if (focarSucesso) sucessoRef.current?.focus();
-  }, [focarSucesso]);
+    if (focarAviso) avisoRef.current?.focus();
+  }, [focarAviso]);
+
+  function focarPrimeiroComErro(novosErros: Erros) {
+    const primeiro = ORDEM_DOS_CAMPOS_DO_CONTATO.find((campo) => novosErros[campo]);
+    if (primeiro) document.getElementById(`${id}-${primeiro}`)?.focus();
+    return Boolean(primeiro);
+  }
 
   function atualizar<K extends keyof Valores>(campo: K, valor: Valores[K]) {
     setValores((atuais) => ({ ...atuais, [campo]: valor }));
@@ -59,21 +59,38 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
     if (campo in erros) setErros((atuais) => ({ ...atuais, [campo]: undefined }));
   }
 
+  // Envio (08/11/2026): a ação de servidor valida de novo e grava em
+  // mensagensDeContato; o sucesso só aparece depois de gravar. Na página
+  // /componentes (estadoInicial diferente de "padrao"), nada é enviado.
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    if (enviando) return;
     const novosErros = validar(valores);
     setErros(novosErros);
-    const primeiroComErro = ORDEM.find((campo) => novosErros[campo]);
-    if (primeiroComErro) {
-      const refs = { nome: nomeRef, sobrenome: sobrenomeRef, email: emailRef, consentimento: consentimentoRef };
-      refs[primeiroComErro].current?.focus();
-      return;
-    }
-    // TODO: o envio real da mensagem será implementado em outra etapa
-    // (serviço de e-mail e local de armazenamento ainda em aberto, ver
-    // ABTE_contexto_redesign.md seção 14). Nada é gravado nem enviado agora.
-    setEnvioIndisponivel(true);
-    setFocarSucesso(true);
+    setErroDoEnvio(null);
+    if (focarPrimeiroComErro(novosErros)) return;
+    if (estadoInicial !== "padrao") return;
+    iniciarEnvio(async () => {
+      let resposta;
+      try {
+        resposta = await enviarMensagemDeContato(valores);
+      } catch {
+        resposta = { ok: false, mensagem: "Não foi possível enviar sua mensagem agora. Confira sua conexão e tente de novo." };
+      }
+      if (resposta.ok) {
+        setValores(VAZIO);
+        setEnviado(true);
+        setFocarAviso((n) => n + 1);
+        return;
+      }
+      if (resposta.erros && Object.keys(resposta.erros).length > 0) {
+        setErros(resposta.erros);
+        focarPrimeiroComErro(resposta.erros);
+        return;
+      }
+      setErroDoEnvio(resposta.mensagem);
+      setFocarAviso((n) => n + 1);
+    });
   }
 
   const idTitulo = `${id}-titulo`;
@@ -88,9 +105,9 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
         <div className={estilos.linhaDupla}>
           <Campo
             id={`${id}-nome`}
-            ref={nomeRef}
             rotulo="Nome"
             obrigatorio
+            maxLength={LIMITES_DO_CONTATO.nome}
             autoComplete="given-name"
             value={valores.nome}
             onChange={(e) => atualizar("nome", e.target.value)}
@@ -98,9 +115,9 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
           />
           <Campo
             id={`${id}-sobrenome`}
-            ref={sobrenomeRef}
             rotulo="Sobrenome"
             obrigatorio
+            maxLength={LIMITES_DO_CONTATO.sobrenome}
             autoComplete="family-name"
             value={valores.sobrenome}
             onChange={(e) => atualizar("sobrenome", e.target.value)}
@@ -109,10 +126,10 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
         </div>
         <Campo
           id={`${id}-email`}
-          ref={emailRef}
           rotulo="E-mail"
           type="email"
           obrigatorio
+          maxLength={LIMITES_DO_CONTATO.email}
           autoComplete="email"
           value={valores.email}
           onChange={(e) => atualizar("email", e.target.value)}
@@ -121,15 +138,20 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
         <Campo
           id={`${id}-assunto`}
           rotulo="Assunto"
+          maxLength={LIMITES_DO_CONTATO.assunto}
           value={valores.assunto}
           onChange={(e) => atualizar("assunto", e.target.value)}
+          erro={erros.assunto}
         />
         <Campo
           id={`${id}-mensagem`}
           rotulo="Mensagem"
           multilinha
+          obrigatorio
+          maxLength={LIMITES_DO_CONTATO.mensagem}
           value={valores.mensagem}
           onChange={(e) => atualizar("mensagem", e.target.value)}
+          erro={erros.mensagem}
         />
         <CaixaConsentimento
           id={`${id}-consentimento`}
@@ -142,19 +164,18 @@ export function BlocoContato({ estadoInicial = "padrao", centralizado = false, p
           Li e concordo com a {politicaPublicada ? <Link href="/politica-de-privacidade">Política de Privacidade</Link> : "Política de Privacidade"}
         </CaixaConsentimento>
 
-        {envioIndisponivel && (
-          <Mensagem tipo="erro" ref={sucessoRef}>
-            O envio pelo formulário está indisponível. Sua mensagem não foi enviada. Use os canais de contato indicados no rodapé.
+        {erroDoEnvio && (
+          <Mensagem tipo="erro" ref={avisoRef}>
+            {erroDoEnvio}
           </Mensagem>
         )}
-        {/* Estado de sucesso reservado à demonstração até existir entrega real. */}
         {enviado ? (
-          <Mensagem tipo="sucesso" ref={sucessoRef}>
+          <Mensagem tipo="sucesso" ref={avisoRef}>
             Mensagem enviada. Obrigado por falar com a ABTE.
           </Mensagem>
         ) : (
-          <Botao variante="envio" type="submit">
-            Enviar
+          <Botao variante="envio" type="submit" aria-disabled={enviando || undefined}>
+            {enviando ? "Enviando..." : "Enviar"}
           </Botao>
         )}
       </form>
