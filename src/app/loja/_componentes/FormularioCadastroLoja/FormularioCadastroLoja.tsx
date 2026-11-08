@@ -52,7 +52,7 @@ export function FormularioCadastroLoja({ destino, politicaPublicada = true }: { 
   }
 
   return (
-    <form className={estilos.formulario} onSubmit={enviar} noValidate>
+    <form onSubmit={enviar} noValidate>
       {resposta && !resposta.ok && <Mensagem tipo="erro" ref={resumoRef}>{resposta.mensagem}</Mensagem>}
       <Campo id="cadastro-nome" name="nome" rotulo="Nome" obrigatorio autoComplete="name" maxLength={80} erro={erros.nome} />
       <Campo id="cadastro-email" name="email" type="email" rotulo="E-mail" obrigatorio autoComplete="email" erro={erros.email} />
@@ -78,8 +78,8 @@ export function FormularioCadastroLoja({ destino, politicaPublicada = true }: { 
         {erros.consentimento && <p id="cadastro-consentimento-erro" className={estilos.erro}>{erros.consentimento}</p>}
       </div>
 
-      <Botao type="submit" disabled={enviando}>{enviando ? "Criando conta…" : "Criar conta"}</Botao>
-      <Link href={`/loja/entrar?voltar=${encodeURIComponent(destino)}`} className={`realce ${estilos.link}`}>Já tenho conta: entrar</Link>
+      <Botao variante="envio" type="submit" disabled={enviando}>{enviando ? "Criando conta…" : "Criar conta"}</Botao>
+      <Link href={`/loja/entrar?voltar=${encodeURIComponent(destino)}`} className="realce">Já tenho conta: entrar</Link>
     </form>
   );
 }

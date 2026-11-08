@@ -3,9 +3,8 @@ import { redirect } from "next/navigation";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { destinoSeguroNaLoja } from "@/lib/auth/destino";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
+import { CaixaDeAcesso } from "../_componentes/CaixaDeAcesso/CaixaDeAcesso";
 import { FormularioEntrarLoja } from "../_componentes/FormularioEntrarLoja/FormularioEntrarLoja";
-import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
-import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Entrar na loja", robots: { index: false, follow: false } };
 
@@ -16,17 +15,9 @@ export default async function PaginaEntrarLoja({ searchParams }: { searchParams:
   if (await lerSessaoCliente()) redirect(destino);
 
   return (
-    <div className={`container pagina-interna ${estilos.secao}`}>
-      {/* Links da loja (08/11/2026), no lugar do menu flutuante. */}
-      <LinksDaLoja />
-      <h1 className={`tipo-h2 ${estilos.titulo}`}>Entrar na loja</h1>
-      <p className="tipo-texto">Use a conta de cliente da loja. A conta do painel não serve aqui.</p>
-      <div className={estilos.conteudo}>
-        <div>
-          {criada === "1" && <Mensagem tipo="sucesso">Conta criada. Entre com seu e-mail e sua senha.</Mensagem>}
-          <FormularioEntrarLoja destino={destino} />
-        </div>
-      </div>
-    </div>
+    <CaixaDeAcesso titulo="Entrar na loja" descricao="Use seu e-mail e sua senha para acessar sua conta da loja.">
+      {criada === "1" && <Mensagem tipo="sucesso">Conta criada. Entre com seu e-mail e sua senha.</Mensagem>}
+      <FormularioEntrarLoja destino={destino} />
+    </CaixaDeAcesso>
   );
 }

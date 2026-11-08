@@ -68,17 +68,17 @@
   transition: grid-template-rows var(--grupo-duracao) var(--grupo-curva), visibility 0s;
 }
 
+/* O recorte da animação inclui a folga lateral do anel de foco. */
 .interno {
   min-height: 0;
+  margin-inline: calc(-1 * var(--space-8));
   overflow: hidden;
 }
 
-/* O espaço de baixo fica dentro da parte que recolhe; a folga lateral deixa o
-   anel de foco dos campos inteiro, sem ser cortado. */
+/* O preenchimento lateral mantém os campos alinhados ao título do grupo. */
 .miolo {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   padding: var(--space-8) var(--space-8) var(--space-16);
-  margin-inline: calc(-1 * var(--space-8));
 }

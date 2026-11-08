@@ -20,6 +20,14 @@ export function IconeFechar({ className }: PropsIcone) {
   );
 }
 
+export function IconeMais({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
 export function IconeSeta({ className }: PropsIcone) {
   return (
     <svg {...comuns} className={className}>

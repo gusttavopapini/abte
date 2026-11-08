@@ -11,7 +11,6 @@ import { formatarPreco } from "@/lib/produtos";
 import { liberacaoAtual } from "@/lib/stripe/servidor";
 import { FinalizarCompra } from "../_componentes/FinalizarCompra/FinalizarCompra";
 import { ItensDoCarrinho } from "../_componentes/ItensDoCarrinho/ItensDoCarrinho";
-import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Carrinho", robots: { index: false, follow: false } };
@@ -37,8 +36,6 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
-      {/* Links da loja (08/11/2026), no lugar do menu flutuante. */}
-      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
       {parametros.pagamento === "cancelado" && <Mensagem tipo="sucesso">Pagamento cancelado. Seu carrinho continua guardado.</Mensagem>}
       {pagamentoLigado && liberacao.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}

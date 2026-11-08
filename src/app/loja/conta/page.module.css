@@ -1,48 +1,197 @@
 .secao {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-32);
+  max-width: calc(72rem + 2 * var(--page-margin));
+  padding-top: clamp(var(--space-32), 5vw, var(--space-64));
 }
 
-.titulo {
-  font-weight: var(--font-weight-light);
+.cabecalho,
+.introducao {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-8);
 }
 
-.bloco {
+.cabecalho .voltar {
+  gap: var(--space-8);
+  min-height: var(--control-min-height-mobile);
+  font-size: var(--font-size-small);
+}
+
+.abertura {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16) var(--space-24);
+  width: 100%;
+}
+
+.abertura .sair {
+  min-height: var(--control-min-height-mobile);
+  font-size: var(--font-size-small);
+}
+
+.painel,
+.lateral {
+  display: grid;
+  align-items: start;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .painel {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.52fr);
+  }
+}
+
+.cartao {
+  display: grid;
+  gap: var(--space-20);
+  min-width: 0;
+  padding: clamp(var(--space-16), 3vw, var(--space-24));
+  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.cabecalhoDoCartao {
+  display: flex;
+  align-items: center;
   gap: var(--space-16);
+}
+
+.iconeDaSecao {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
+  color: var(--color-primary);
+}
+
+.iconeDaSecao svg {
+  width: var(--space-24);
+  height: var(--space-24);
 }
 
 .dados {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-8) var(--space-16);
+  gap: var(--space-16);
+  margin: 0;
 }
 
-/* Formulário em meia largura no desktop */
-.conteudo {
+.dados > div {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  width: 100%;
+  gap: calc(var(--space-8) / 2);
 }
 
-@media (min-width: 1024px) {
-  .conteudo {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.dados > div + div {
+  padding-top: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+
+.dados dt,
+.identificacao time {
+  font-size: var(--font-size-small);
+}
+
+.dados dd {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.pedidos {
+  display: grid;
+  gap: var(--space-16);
+}
+
+.pedido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-bg-alt) 40%, var(--color-bg));
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.pedido:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-alt);
+}
+
+.identificacao,
+.resumo {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.identificacao {
+  justify-items: start;
+}
+
+.numero {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.situacao {
+  --cor-situacao: var(--color-text);
+
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--cor-situacao) 12%, var(--color-bg));
+  color: var(--cor-situacao);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.situacao[data-situacao="pago"] {
+  --cor-situacao: var(--color-success);
+}
+
+.situacao[data-situacao="falhou"] {
+  --cor-situacao: var(--color-error);
+}
+
+.resumo {
+  justify-items: end;
+}
+
+.resumo strong {
+  font-size: var(--font-size-text-lg);
+}
+
+.verPedido {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (max-width: 767px) {
+  .resumo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 }
 
-/* Meus pedidos (08/11/2026) */
-.pedidos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.pedidos a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control-min-height-mobile);
+.semPedidos {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-16);
+  padding: var(--space-20);
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
 }

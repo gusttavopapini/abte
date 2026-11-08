@@ -8,7 +8,6 @@ import { enderecoDaLoja, filtrarItens, lerFiltrosDaUrl, montarFiltroDaLoja, orde
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { imagemPrincipal } from "@/lib/produtos";
 import { FiltroDaLoja } from "./_componentes/FiltroDaLoja/FiltroDaLoja";
-import { LinksDaLoja } from "./_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata = { title: "Loja" };
@@ -37,7 +36,6 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
 
       {produtos.length === 0 ? (
         <div className={estilos.vazio}>
-          <LinksDaLoja />
           <p className="tipo-texto">Nenhum produto disponível ainda.</p>
         </div>
       ) : (

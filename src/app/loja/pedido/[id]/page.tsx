@@ -7,7 +7,6 @@ import { COLECAO_PEDIDOS, ROTULOS_DO_STATUS, rotuloDoMetodo, TEXTO_FRETE_COMBINA
 import { lerPedido } from "@/lib/loja/pedidos";
 import { formatarPreco } from "@/lib/produtos";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
-import { LinksDaLoja } from "../../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Pedido", robots: { index: false, follow: false } };
@@ -29,7 +28,6 @@ export default async function PaginaPedido({ params }: { params: Promise<{ id: s
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
-      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Pedido</h1>
       {pedido.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}
 

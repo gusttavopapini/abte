@@ -1,0 +1,69 @@
+.secao {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-8);
+  padding-top: clamp(var(--space-32), 5vw, var(--space-64));
+}
+
+.secao .voltar {
+  gap: var(--space-8);
+  min-height: var(--control-min-height-mobile);
+  font-size: var(--font-size-small);
+}
+
+.caixa {
+  display: grid;
+  gap: var(--space-24);
+  width: 100%;
+  max-width: 34rem;
+  padding: clamp(var(--space-16), 4vw, var(--space-32));
+  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.cabecalho {
+  display: grid;
+  gap: var(--space-8);
+  text-align: center;
+}
+
+.cabecalho h1 {
+  font-weight: var(--font-weight-bold);
+}
+
+.conteudo,
+.conteudo form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.conteudo form > p:first-child {
+  text-align: center;
+}
+
+.conteudo input:where(:not([type]), [type="email"], [type="password"], [type="text"]):not([tabindex="-1"]) {
+  min-height: var(--control-min-height-mobile);
+  padding-inline: var(--space-16);
+  border: 1px solid var(--color-placeholder);
+}
+
+.conteudo input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.conteudo button[type="submit"] {
+  min-height: var(--control-min-height-mobile);
+  font-weight: var(--font-weight-bold);
+}
+
+.conteudo a:global(.realce) {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-min-height-mobile);
+  font-size: var(--font-size-small);
+  text-align: center;
+}

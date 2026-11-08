@@ -11,7 +11,6 @@ import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { quantidadeMaxima } from "@/lib/loja/carrinho";
 import { AdicionarAoCarrinho } from "../../_componentes/AdicionarAoCarrinho/AdicionarAoCarrinho";
-import { LinksDaLoja } from "../../_componentes/LinksDaLoja/LinksDaLoja";
 import { escolherRelacionados, imagemPrincipal } from "@/lib/produtos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
@@ -93,7 +92,6 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             </ol>
           </nav>
         </div>
-        <LinksDaLoja />
       </div>
 
       <article className={estilos.produto} aria-labelledby="titulo-do-produto">
