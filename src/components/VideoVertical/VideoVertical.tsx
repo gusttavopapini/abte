@@ -39,7 +39,9 @@ export function CapaDoVideo({ capa, descricao, aoTocar }: { capa: ImagemNaTela |
 // tocando (YouTube sem cookies com autoplay, ou o arquivo com controles).
 // Antes do clique, nada do YouTube nem do arquivo é carregado. Sem vídeo no
 // painel, o endereço de src/lib/site/video.ts, como antes; sem nenhum,
-// "Vídeo em breve".
+// "Vídeo em breve". Desde 08/11/2026, sem crossOrigin: a legenda vem do
+// próprio site (/api/legenda/{id}), e o vídeo do Storage carrega como
+// qualquer mídia de outro domínio.
 export function VideoVertical({ endereco, titulo, fonte }: { endereco: string; titulo: string; fonte?: FonteDoVideo | null }) {
   const [tocar, setTocar] = useState(false);
   if (fonte) {
@@ -57,7 +59,7 @@ export function VideoVertical({ endereco, titulo, fonte }: { endereco: string; t
             className={estilos.midia}
           />
         ) : (
-          <video controls playsInline autoPlay crossOrigin={fonte.legenda ? "anonymous" : undefined} poster={fonte.poster ?? undefined} aria-label={fonte.descricao} className={estilos.midia}>
+          <video controls playsInline autoPlay poster={fonte.poster ?? undefined} aria-label={fonte.descricao} className={estilos.midia}>
             <source src={fonte.src} type={fonte.contentType} />
             {fonte.legenda && <track kind="captions" src={fonte.legenda} srcLang="pt-BR" label="Português" default />}
             Seu navegador não mostra este vídeo.
