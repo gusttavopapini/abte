@@ -34,9 +34,66 @@
   align-items: center;
 }
 
+/* Pílula do hover nos itens do menu do desktop (08/11/2026): o mesmo
+   respiro nos quatro lados, um pouco maior que o do .realce geral: 12px
+   (1,5 x --space-8) além da caixa da fonte (1em, centrada no link de 44px),
+   em cima, embaixo e dos lados. Com o texto em 20px, a pílula tem a altura
+   do próprio link (44px). Só no menu do desktop; o .realce do resto do site
+   (rodapé, "Voltar" etc.) não muda. */
+.lista .link::before {
+  inset: calc((100% - 1em) / 2 - var(--space-8) * 1.5) calc(var(--space-8) * -1.5);
+}
+
+/* Item com link e seta (Profissionais): a pílula do hover cobre o texto e a
+   seta juntos (08/11/2026). É a mesma pílula do .realce (globals.css), mas
+   desenhada no grupo, não só no link: mesmo fundo, raio e duração, e o
+   mesmo respiro dos outros itens (12px antes do texto e 12px depois do
+   desenho da seta: o botão da seta tem 24px, o ícone 16px e o traço da seta
+   termina 8px antes da borda do botão, por isso a borda direita passa só 4px).
+   Aparece no hover (só mouse), no foco de teclado e com o submenu aberto. */
 .grupo {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
+  font-size: var(--font-size-text);
+}
+
+.grupo::before {
+  content: "";
+  position: absolute;
+  inset: calc((100% - 1em) / 2 - var(--space-8) * 1.5) calc(var(--space-8) / -2) calc((100% - 1em) / 2 - var(--space-8) * 1.5) calc(var(--space-8) * -1.5);
+  z-index: -1;
+  border-radius: var(--radius);
+  background: transparent;
+  pointer-events: none;
+  transition: background-color var(--interacao-duracao) var(--interacao-curva);
+}
+
+/* O link do grupo não desenha a própria pílula, para não haver duas */
+.grupo .link::before {
+  content: none;
+}
+
+.grupo:has(:focus-visible)::before,
+.grupo:has([aria-expanded="true"])::before {
+  background: var(--realce-fundo);
+}
+
+.grupo:has(:focus-visible) .link,
+.grupo:has(:focus-visible) .seta {
+  color: var(--color-primary-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .grupo:hover::before {
+    background: var(--realce-fundo);
+  }
+
+  .grupo:hover .link,
+  .grupo:hover .seta {
+    color: var(--color-primary-hover);
+  }
 }
 
 .seta {
