@@ -41,9 +41,17 @@
   background: var(--color-bg);
 }
 
+/* Número no centro do espaço livre acima do rótulo (08/11/2026): ocupa o
+   que sobra do card e se centraliza nele, com o rótulo fixo embaixo. Peso
+   um pouco maior que o do texto (--font-weight-bold, 400, contra 300). */
 .numero {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
   color: var(--color-number);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
   font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
 }
