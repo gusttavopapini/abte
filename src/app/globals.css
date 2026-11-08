@@ -181,13 +181,6 @@ h3,
   padding-top: var(--section-space);
 }
 
-/* Botões flutuantes da loja (menu da loja e filtros, 29/10/2026): presos ao
-   canto inferior direito da janela, à mesma distância da borda direita e da
-   de baixo (ou à área segura do aparelho, se for maior). */
-:root {
-  --fab-distancia: var(--space-24);
-}
-
 /* ---------- Hover do site e do painel (29/10/2026) ----------
    Nenhum hover sublinha. Só tokens, sem cor nova.
    (a) .realce: links soltos e botões de texto (menu, rodapé, "Voltar",
@@ -318,6 +311,29 @@ h3,
    o design system 3.1 pede 3 colunas): 4 colunas a partir de 1024px, 2 de
    768 a 1023px e 1 até 767px, com --space-24 entre os cards nas duas
    direções. Os cards de uma linha ficam com a mesma altura (stretch). */
+/* Grade de produtos da loja (08/11/2026, pedido do responsável): 4 colunas
+   a partir de 1280px, 3 de 1024 a 1279px e 2 até 1023px (também no
+   celular), com --gutter entre os cards. Lista da /loja e relacionados. O
+   1279px é exceção aos dois breakpoints do design (767 e 1023px). */
+.grade-da-loja {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .grade-da-loja {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .grade-da-loja {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .grade-de-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -3,6 +3,7 @@ import { Botao } from "@/components/Botao/Botao";
 import { exigirSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { encerrarSessaoCliente } from "../acoes-conta";
 import { ExcluirConta } from "../_componentes/ExcluirConta/ExcluirConta";
+import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Minha conta", robots: { index: false, follow: false } };
@@ -12,6 +13,8 @@ export default async function PaginaMinhaConta() {
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
+      {/* Links da loja (08/11/2026), no lugar do menu flutuante. */}
+      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Minha conta</h1>
 
       <section aria-labelledby="titulo-dados" className={estilos.bloco}>

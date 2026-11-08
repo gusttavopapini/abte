@@ -8,6 +8,7 @@ import { enderecoDaLoja, filtrarItens, lerFiltrosDaUrl, montarFiltroDaLoja, orde
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import { imagemPrincipal } from "@/lib/produtos";
 import { FiltroDaLoja } from "./_componentes/FiltroDaLoja/FiltroDaLoja";
+import { LinksDaLoja } from "./_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata = { title: "Loja" };
@@ -35,7 +36,10 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
       <CabecalhoDePagina titulo="Loja da ABTE" descricao="Conheça nossos produtos. Cada compra apoia pacientes com escoliose." espacoAbaixo={false} />
 
       {produtos.length === 0 ? (
-        <p className={`tipo-texto ${estilos.vazio}`}>Nenhum produto disponível ainda.</p>
+        <div className={estilos.vazio}>
+          <LinksDaLoja />
+          <p className="tipo-texto">Nenhum produto disponível ainda.</p>
+        </div>
       ) : (
         <FiltroDaLoja itens={itens} opcoes={opcoes} filtros={filtros} total={exibidos.length}>
           {exibidos.length === 0 ? (
@@ -47,7 +51,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
             </div>
           ) : (
             // A chave muda com os filtros: a grade nova entra em cascata.
-            <ul key={enderecoDaLoja(filtros)} role="list" className={`grade-de-cards ${estilos.grade}`}>
+            <ul key={enderecoDaLoja(filtros)} role="list" className="grade-da-loja">
               {exibidos.map((produto, posicao) => (
                 <li key={produto.id} className={estilos.item} style={{ "--posicao": Math.min(posicao, LIMITE_DA_CASCATA) } as CSSProperties}>
                   <CardProduto

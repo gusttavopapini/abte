@@ -1,13 +1,11 @@
-/* Grupo do filtro da loja (29/10/2026): cartão branco com raio. */
+/* Grupo do filtro da loja (29/10/2026). Desde 08/11/2026 não é mais um
+   cartão: fica dentro do painel branco dos filtros, separado dos outros só
+   por espaço. */
 .grupo {
   /* Movimento (PROPOSTA): abrir e fechar com a altura animada e a seta girando.
      Com movimento reduzido, o globals.css desliga as transições. */
   --grupo-duracao: 250ms;
   --grupo-curva: ease-in-out;
-
-  border-radius: var(--radius);
-  background: var(--color-bg);
-  padding: var(--space-8) var(--card-padding);
 }
 
 .titulo {

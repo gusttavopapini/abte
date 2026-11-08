@@ -1,0 +1,26 @@
+/* Links discretos da loja (08/11/2026): texto pequeno, sem ícone, com a
+   pílula do hover do site (.realce, globals.css) e 44px de toque até 767px. */
+.lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-16);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.link[aria-current="page"] {
+  font-weight: var(--font-weight-bold);
+}
+
+@media (max-width: 767px) {
+  .link {
+    min-height: var(--control-min-height-mobile);
+  }
+}

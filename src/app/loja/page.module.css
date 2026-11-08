@@ -2,6 +2,9 @@
 }
 
 .vazio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
   margin-top: var(--space-32);
 }
 
@@ -9,21 +12,7 @@
   margin-bottom: var(--space-32);
 }
 
-/* Grade da loja: 1 e 2 colunas pela classe global grade-de-cards; a partir
-   de 1024px, com a barra de filtros ao lado, até 4 colunas de no mínimo
-   200px (pelos tokens), por auto-fill: na área estreita (de 1024 a cerca de
-   1240px) cabem 3, sem breakpoint novo (4 colunas no máximo, pedido do
-   responsável de 29/10/2026). O mínimo continua 200px: com
-   menos, o "Ver produto" do card quebrava em duas linhas (decisão do
-   responsável de 29/10/2026). */
-@media (min-width: 1024px) {
-  .grade:global(.grade-de-cards) {
-    --largura-minima-do-card: calc(var(--space-20) * 10);
-    --colunas-maximas: 4;
-
-    grid-template-columns: repeat(auto-fill, minmax(max(var(--largura-minima-do-card), (100% - (var(--colunas-maximas) - 1) * var(--space-24)) / var(--colunas-maximas)), 1fr));
-  }
-}
+/* Grade: classe global grade-da-loja (globals.css, 08/11/2026). */
 
 /* Movimento (PROPOSTA): a grade nova entra em cascata, com opacidade e um
    pequeno deslocamento. Com movimento reduzido, o globals.css desliga. */

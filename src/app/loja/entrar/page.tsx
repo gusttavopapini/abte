@@ -4,6 +4,7 @@ import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { destinoSeguroNaLoja } from "@/lib/auth/destino";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { FormularioEntrarLoja } from "../_componentes/FormularioEntrarLoja/FormularioEntrarLoja";
+import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Entrar na loja", robots: { index: false, follow: false } };
@@ -16,6 +17,8 @@ export default async function PaginaEntrarLoja({ searchParams }: { searchParams:
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
+      {/* Links da loja (08/11/2026), no lugar do menu flutuante. */}
+      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Entrar na loja</h1>
       <p className="tipo-texto">Use a conta de cliente da loja. A conta do painel não serve aqui.</p>
       <div className={estilos.conteudo}>

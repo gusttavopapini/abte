@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeFechar, IconeFiltro, IconeSeta } from "@/components/Icones/Icones";
-import { useAvisarMenuDaLoja } from "../MenuDaLoja/MenuDaLoja";
+import { LinksDaLoja } from "../LinksDaLoja/LinksDaLoja";
 import {
   DISPONIBILIDADES,
   LIMITE_DA_BUSCA,
@@ -80,9 +80,10 @@ function alternarValor<T extends string>(lista: T[], valor: T, marcar: boolean, 
 }
 
 // Filtro da loja (29/10/2026). É um formulário GET que funciona sem
-// JavaScript. Com JavaScript: a partir de 1024px, barra fixa à esquerda que
+// JavaScript. Com JavaScript: a partir de 1024px, coluna fixa à esquerda que
 // aplica na hora (texto e preço com 400ms de pausa), sem recarregar a página;
-// até 1023px, painel (diálogo) aberto pelo botão flutuante, que só aplica com
+// até 1023px, painel (diálogo) aberto pelo botão "Filtros" da barra acima da
+// grade (08/11/2026; antes era um botão flutuante), que só aplica com
 // "Filtrar". As contagens vêm das mesmas funções puras do servidor, sobre o
 // rascunho, para ficarem certas enquanto a pessoa mexe no painel.
 export function FiltroDaLoja({
@@ -119,7 +120,6 @@ export function FiltroDaLoja({
   const urlAplicada = enderecoDaLoja(filtros);
   const [rascunho, setRascunho] = useState(() => paraRascunho(filtros));
   const [painelAberto, setPainelAberto] = useState(false);
-  const avisarMenu = useAvisarMenuDaLoja();
   // Grupos que a pessoa abriu ou fechou; os outros seguem o padrão do modo.
   const [alternados, setAlternados] = useState<Partial<Record<Grupo, boolean>>>({});
 
@@ -203,7 +203,7 @@ export function FiltroDaLoja({
   });
 
   // Painel aberto: a página de trás não rola, o foco entra no título e volta
-  // ao botão flutuante ao fechar.
+  // ao botão "Filtros" ao fechar.
   useEffect(() => {
     if (!painelAberto) return;
     const corpo = document.body;
@@ -221,11 +221,6 @@ export function FiltroDaLoja({
       botao?.focus();
     };
   }, [painelAberto]);
-
-  // O menu da loja fica 16px acima do botão de filtros (até 1023px) e some
-  // com o painel aberto.
-  useEffect(() => avisarMenu({ painelAberto }), [avisarMenu, painelAberto]);
-  useEffect(() => () => avisarMenu(null), [avisarMenu]);
 
   // Tab e Shift+Tab circulam só entre os controles visíveis do painel.
   function prenderFoco(evento: KeyboardEvent<HTMLDivElement>) {
@@ -422,31 +417,57 @@ export function FiltroDaLoja({
       </div>
 
       <div className={estilos.resultados}>
+        {/* Barra acima da grade (08/11/2026): à esquerda, o botão "Filtros"
+            (só até 1023px, com JavaScript) e a quantidade; à direita, os
+            links da loja (carrinho e conta) e a ordem. */}
         <div className={estilos.barra}>
-          <p ref={contagemRef} tabIndex={-1} aria-live="polite" className={estilos.contagem}>
-            {total} {total === 1 ? "produto" : "produtos"}
-          </p>
-          <div className={estilos.ordenar}>
-            <label htmlFor={idOrdem} className={estilos.rotulo}>Ordenar por</label>
-            <span className={estilos.seletor}>
-              <select
-                id={idOrdem}
-                name={PARAMETROS.ordem}
-                form={idFormulario}
-                value={rascunho.ordem}
-                onChange={(evento) => mudarOrdem(evento.target.value as OrdemDaLoja)}
-                className={estilos.selecao}
-              >
-                {ORDENS.map((ordem) => (
-                  <option key={ordem.valor} value={ordem.valor}>{ordem.rotulo}</option>
-                ))}
-              </select>
-              <IconeSeta className={estilos.setaDoSeletor} />
-            </span>
-            {/* Sem JavaScript, a ordem vale ao enviar o formulário. */}
-            <Botao type="submit" form={idFormulario} variante="secundario" className={estilos.soSemJs}>
-              Ordenar
-            </Botao>
+          <div className={estilos.resumo}>
+            <button
+              ref={botaoRef}
+              type="button"
+              className={estilos.botaoFiltros}
+              aria-label={quantidade ? `Abrir filtros, ${quantidade} ${quantidade === 1 ? "filtro ativo" : "filtros ativos"}` : "Abrir filtros"}
+              aria-haspopup="dialog"
+              aria-expanded={painelAberto}
+              inert={painelAberto}
+              onClick={() => setPainelAberto(true)}
+            >
+              <IconeFiltro className={estilos.iconeFiltro} />
+              Filtros
+              {quantidade > 0 && (
+                <span className={estilos.quantidade} aria-hidden="true">
+                  {quantidade}
+                </span>
+              )}
+            </button>
+            <p ref={contagemRef} tabIndex={-1} aria-live="polite" className={estilos.contagem}>
+              {total} {total === 1 ? "produto" : "produtos"}
+            </p>
+          </div>
+          <div className={estilos.acoesDaBarra}>
+            <LinksDaLoja />
+            <div className={estilos.ordenar}>
+              <label htmlFor={idOrdem} className={estilos.rotulo}>Ordenar por</label>
+              <span className={estilos.seletor}>
+                <select
+                  id={idOrdem}
+                  name={PARAMETROS.ordem}
+                  form={idFormulario}
+                  value={rascunho.ordem}
+                  onChange={(evento) => mudarOrdem(evento.target.value as OrdemDaLoja)}
+                  className={estilos.selecao}
+                >
+                  {ORDENS.map((ordem) => (
+                    <option key={ordem.valor} value={ordem.valor}>{ordem.rotulo}</option>
+                  ))}
+                </select>
+                <IconeSeta className={estilos.setaDoSeletor} />
+              </span>
+              {/* Sem JavaScript, a ordem vale ao enviar o formulário. */}
+              <Botao type="submit" form={idFormulario} variante="secundario" className={estilos.soSemJs}>
+                Ordenar
+              </Botao>
+            </div>
           </div>
         </div>
         {ativos.length > 0 && (
@@ -458,25 +479,6 @@ export function FiltroDaLoja({
         )}
         <div className={`${estilos.lista} ${pendente ? estilos.carregando : ""}`} aria-busy={pendente || undefined}>
           {children}
-        </div>
-        <div className={estilos.lugarDoBotao} data-flutuante-de-filtros="">
-          <button
-            ref={botaoRef}
-            type="button"
-            className={estilos.flutuante}
-            aria-label={quantidade ? `Abrir filtros, ${quantidade} ${quantidade === 1 ? "filtro ativo" : "filtros ativos"}` : "Abrir filtros"}
-            aria-haspopup="dialog"
-            aria-expanded={painelAberto}
-            inert={painelAberto}
-            onClick={() => setPainelAberto(true)}
-          >
-            <IconeFiltro className={estilos.iconeFiltro} />
-            {quantidade > 0 && (
-              <span className={estilos.quantidade} aria-hidden="true">
-                {quantidade}
-              </span>
-            )}
-          </button>
         </div>
       </div>
     </div>

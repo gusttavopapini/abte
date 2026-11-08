@@ -6,6 +6,7 @@ import { lerItensDoCarrinho, lerProdutosDoCarrinho } from "@/lib/dados/carrinho"
 import { montarResumoDoCarrinho, quantidadeMaxima } from "@/lib/loja/carrinho";
 import { formatarPreco } from "@/lib/produtos";
 import { ItensDoCarrinho } from "../_componentes/ItensDoCarrinho/ItensDoCarrinho";
+import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Carrinho", robots: { index: false, follow: false } };
@@ -21,6 +22,8 @@ export default async function PaginaCarrinho() {
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
+      {/* Links da loja (08/11/2026), no lugar do menu flutuante. */}
+      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
 
       {linhas.length === 0 ? (
