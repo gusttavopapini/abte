@@ -46,16 +46,46 @@
   font-weight: var(--font-weight-bold);
 }
 
-.seletor {
+/* Seletor de estado com a mesma linguagem das etiquetas de tipo
+   (08/11/2026): contorno de 1px em --color-primary, var(--radius), mesma
+   fonte e o mesmo respiro vertical (6px, como em .tag), para ter a mesma
+   altura; fundo branco dos campos (design-system.md 8.8 e 11). A aparência
+   nativa do navegador sai (Safari desenhava um campo baixo, com setas
+   próprias) e a seta vem do ícone do submenu do header. */
+.caixaDoSeletor {
+  position: relative;
+  display: inline-flex;
   min-width: min(100%, calc(var(--space-96) * 3));
-  min-height: var(--control-min-height-mobile);
-  padding: 0 var(--space-8);
+}
+
+.seletor {
+  width: 100%;
+  appearance: none;
+  padding: 6px calc(var(--space-20) + var(--space-16) + var(--space-8)) 6px var(--space-20);
   border: 1px solid var(--color-primary);
   border-radius: var(--radius);
   background-color: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-primary);
   font: inherit;
   font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+  cursor: pointer;
+}
+
+.seletor:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.setaDoSeletor {
+  position: absolute;
+  top: 50%;
+  right: var(--space-20);
+  width: var(--space-16);
+  height: var(--space-16);
+  color: var(--color-primary);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 /* Quantidade de resultados e caixa de "nenhum resultado" (anunciadas). */
@@ -85,7 +115,8 @@
 
 /* Controles de 44px no celular */
 @media (max-width: 767px) {
-  .tag {
+  .tag,
+  .seletor {
     min-height: var(--control-min-height-mobile);
   }
 }

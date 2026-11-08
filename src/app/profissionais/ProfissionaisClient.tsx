@@ -3,6 +3,7 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CardProfissional } from "@/components/CardProfissional/CardProfissional";
+import { IconeSeta } from "@/components/Icones/Icones";
 import { PopupProfissional } from "@/components/PopupProfissional/PopupProfissional";
 import { TAGS_DE_PROFISSIONAIS, rotuloDoTipo } from "@/config/profissionais";
 import { filtrarProfissionais, opcoesDeRegiao, regiaoDoEndereco, textoDaQuantidade, tipoDoEndereco, TODOS_OS_TIPOS, valorDaRegiao } from "@/lib/filtroDeProfissionais";
@@ -82,13 +83,18 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
         <label htmlFor={idDoEstado} className={estilos.rotuloDoEstado}>
           Estado
         </label>
-        <select ref={seletorRef} id={idDoEstado} className={estilos.seletor} value={valorDaRegiao(regiaoAtiva)} onChange={(evento) => selecionarRegiao(evento.target.value)}>
-          {opcoes.map((opcao) => (
-            <option key={opcao.valor} value={opcao.valor}>
-              {opcao.rotulo}
-            </option>
-          ))}
-        </select>
+        {/* Seletor nativo com a aparência do site (08/11/2026): a seta é o
+            mesmo ícone do submenu do header, por cima do campo e sem clique. */}
+        <div className={estilos.caixaDoSeletor}>
+          <select ref={seletorRef} id={idDoEstado} className={estilos.seletor} value={valorDaRegiao(regiaoAtiva)} onChange={(evento) => selecionarRegiao(evento.target.value)}>
+            {opcoes.map((opcao) => (
+              <option key={opcao.valor} value={opcao.valor}>
+                {opcao.rotulo}
+              </option>
+            ))}
+          </select>
+          <IconeSeta className={estilos.setaDoSeletor} />
+        </div>
       </div>
 
       <div aria-live="polite" className={estilos.resultado}>
