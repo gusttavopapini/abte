@@ -1,18 +1,44 @@
+/* Bloco de preço (08/11/2026): preço antigo riscado e pequeno, preço atual
+   em destaque e o desconto na mesma linha do atual. */
 .preco {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  align-items: baseline;
+  flex-direction: column;
   color: var(--color-text);
-  font-size: var(--font-size-text);
+}
+
+.antigo {
+  color: var(--color-placeholder);
+  font-size: var(--font-size-small);
   line-height: var(--leading-normal);
 }
 
-.grande {
-  font-size: var(--font-size-text-xl);
+.linhaAtual {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-8);
+  align-items: baseline;
 }
 
-/* Preço normal riscado quando há promoção */
-.riscado {
+.atual {
+  color: var(--color-text);
+  font-size: var(--font-size-text-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-compact);
+}
+
+.desconto {
+  color: var(--color-success);
   font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-normal);
+}
+
+/* Bloco de informações da página do produto: preço atual maior */
+.pagina .atual {
+  font-size: var(--font-size-h2);
+  line-height: var(--leading-snug);
+}
+
+.caixa .atual {
+  font-size: var(--font-size-text-xl);
 }

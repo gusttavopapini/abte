@@ -58,6 +58,7 @@ export default async function PaginaLoja({ searchParams }: { searchParams: Promi
                       precoPromocional: produto.precoPromocional,
                       selo: produto.selo,
                       esgotado: produto.status === "esgotado",
+                      digital: produto.tipo === "digital",
                       imagem: imagemPrincipal(produto.imagens, imagens),
                     }}
                   />

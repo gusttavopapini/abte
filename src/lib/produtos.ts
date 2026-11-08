@@ -159,6 +159,16 @@ export function precoAtual(produto: { preco: number; precoPromocional: number | 
   return produto.precoPromocional ?? produto.preco;
 }
 
+// Desconto em porcentagem inteira, calculado dos dois preços gravados
+// (08/11/2026, card e página do produto): só quando o promocional é menor que
+// o preço normal; senão null. Arredonda para o inteiro mais próximo, sem
+// passar de 99 nem ficar em 0 (desconto pequeno vira 1%).
+export function percentualDeDesconto(produto: { preco: number; precoPromocional: number | null }): number | null {
+  const { preco, precoPromocional } = produto;
+  if (precoPromocional === null || preco <= 0 || precoPromocional >= preco) return null;
+  return Math.min(99, Math.max(1, Math.round(((preco - precoPromocional) / preco) * 100)));
+}
+
 // Produtos relacionados: da mesma categoria, sem o próprio produto, na ordem
 // já definida da lista (a lista recebida só deve ter produtos visíveis no site).
 export function escolherRelacionados<T extends { id: string; categoria: string }>(produto: T, visiveis: T[], limite = 3): T[] {

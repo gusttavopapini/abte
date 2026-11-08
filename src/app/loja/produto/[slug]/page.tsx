@@ -67,7 +67,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
         <div className={estilos.detalhes}>
           {produto.selo && <p className={estilos.selo}>{produto.selo}</p>}
           <h1 className={`tipo-h2 ${estilos.titulo}`}>{produto.nome}</h1>
-          <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} grande />
+          <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} tamanho="pagina" />
           <p className={estilos.situacao}>
             {esgotado ? "Esgotado" : "Disponível"} · {produto.tipo === "digital" ? "Produto digital" : "Produto físico"}
           </p>
@@ -103,6 +103,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
                     precoPromocional: outro.precoPromocional,
                     selo: outro.selo,
                     esgotado: outro.status === "esgotado",
+                    digital: outro.tipo === "digital",
                     imagem: imagemPrincipal(outro.imagens, imagens),
                   }}
                 />

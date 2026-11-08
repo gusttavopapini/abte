@@ -63,6 +63,7 @@ async function lerProdutosEmDestaque(): Promise<ProdutoDoCard[]> {
       precoPromocional: produto.precoPromocional,
       selo: produto.selo,
       esgotado: false,
+      digital: produto.tipo === "digital",
       imagem: principal(produto.imagens),
     }));
   } catch (erro) {

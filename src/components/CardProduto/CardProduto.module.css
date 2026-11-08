@@ -1,99 +1,95 @@
-/* Molde do card do blog (CardPost), 28/10/2026: cartão branco com raio,
-   imagem no topo, conteúdo com o mesmo espaçamento e o mesmo hover. */
+/* Card de produto no molde de loja virtual (08/11/2026): cartão branco com
+   raio, sem borda, o card inteiro é o link. */
 .card {
-  /* Proporção da imagem do produto: mude só aqui. */
-  --proporcao-imagem-produto: 3 / 4;
-
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg); /* O fundo da página é bg-alt, os cards são bg para destacar */
-  border-radius: var(--radius);
-  overflow: hidden;
   height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background-color: var(--color-bg); /* O fundo da página é bg-alt; o card, bg */
+  color: var(--color-text);
+  text-decoration: none;
   transition: transform var(--interacao-duracao) var(--interacao-curva), box-shadow var(--interacao-duracao) var(--interacao-curva);
 }
 
-/* Elevação só com mouse ou trackpad (no toque o hover grudava depois do
-   toque) e também com o foco do teclado num link ou botão do card
-   (06/11/2026). */
+/* Elevação de card do site, só com mouse ou trackpad (no toque o hover
+   grudava depois do toque). */
 @media (hover: hover) and (pointer: fine) {
-  .card:hover,
-  .card:has(:focus-visible) {
+  .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
   }
 }
 
-@media (hover: none), (pointer: coarse) {
-  .card:has(:focus-visible) {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
-  }
+/* Foco do teclado: o anel do site em volta do card inteiro */
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-/* Imagem no topo, com o selo sobreposto no canto */
+/* Imagem 1:1 sobre branco, com respiro: o produto aparece inteiro. O
+   overflow tira o tamanho mínimo automático, para a altura da imagem não
+   esticar o quadrado. */
 .imagem {
   position: relative;
-  width: 100%;
-  aspect-ratio: var(--proporcao-imagem-produto);
+  aspect-ratio: 1;
   overflow: hidden;
+  padding: var(--space-16);
+  background-color: var(--color-bg);
 }
 
 /* Seletor com duas classes para valer sobre o height: auto do ImagemDaMidia */
 .imagem .foto {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
+  object-fit: contain;
 }
 
 .selo {
-  border-radius: var(--radius);
   position: absolute;
-  top: var(--space-16);
-  left: var(--space-16);
-  padding: var(--space-8) var(--space-16);
+  top: var(--space-8);
+  left: var(--space-8);
+  max-width: calc(100% - var(--space-16));
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  border-radius: var(--radius);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
+  line-height: var(--leading-compact);
 }
 
+/* Preço, nome e detalhes. O nome vem antes no HTML (leitor de tela) e
+   aparece depois do preço (order). */
 .conteudo {
   display: flex;
-  flex-direction: column;
   flex: 1;
-  padding: var(--card-padding);
-  gap: var(--space-16);
-}
-
-.conteudo .titulo {
-  color: var(--color-primary);
-  font-size: calc(var(--font-size-h3) * 0.85);
-  font-weight: var(--font-weight-light);
-}
-
-/* Preço, aviso de esgotado e botão ancorados no fim do card */
-.rodape {
-  display: flex;
   flex-direction: column;
-  gap: var(--space-16);
-  margin-top: auto;
+  gap: var(--space-8);
+  padding: 0 var(--card-padding) var(--card-padding);
 }
 
-.esgotado {
+.preco {
+  order: -1;
+}
+
+/* Nome em até 2 linhas, com reticências; o texto completo continua no
+   link, para os leitores de tela. */
+.titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-text);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.detalhes {
   color: var(--color-text);
   font-size: var(--font-size-small);
-  font-weight: var(--font-weight-bold);
-}
-
-.botaoVerProduto {
-  align-self: flex-start;
-}
-
-@media (min-width: 1024px) {
-  .conteudo .titulo {
-    font-size: var(--font-size-text-lg);
-  }
+  line-height: var(--leading-normal);
 }

@@ -2,7 +2,7 @@
 // Preços e nomes abaixo são de exemplo, marcados como TESTE.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { LIMITE_DE_IMAGENS_DO_PRODUTO, LIMITE_DE_PRODUTOS_EM_DESTAQUE, escolherProdutosEmDestaque, escolherRelacionados, formatarPreco, idsEmOrdem, imagemPrincipal, lerImagensDoProduto, lerPrecoEmCentavos, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
+import { LIMITE_DE_IMAGENS_DO_PRODUTO, LIMITE_DE_PRODUTOS_EM_DESTAQUE, escolherProdutosEmDestaque, escolherRelacionados, formatarPreco, idsEmOrdem, imagemPrincipal, lerImagensDoProduto, lerPrecoEmCentavos, percentualDeDesconto, precoAtual, precoParaCampo, validarProduto } from "../../src/lib/produtos.ts";
 
 describe("Preço digitado", () => {
   test("formatos brasileiros viram centavos", () => {
@@ -153,5 +153,25 @@ describe("Produtos em destaque na home", () => {
     assert.deepEqual(escolherProdutosEmDestaque([], comImagem), []);
     assert.deepEqual(escolherProdutosEmDestaque([p("a", 1, { status: "esgotado" })], comImagem), []);
     assert.equal(LIMITE_DE_PRODUTOS_EM_DESTAQUE, 4);
+  });
+});
+
+describe("Percentual de desconto (08/11/2026)", () => {
+  test("calculado dos dois preços e arredondado", () => {
+    assert.equal(percentualDeDesconto({ preco: 4999, precoPromocional: 3999 }), 20);
+    assert.equal(percentualDeDesconto({ preco: 10000, precoPromocional: 7400 }), 26);
+    assert.equal(percentualDeDesconto({ preco: 3000, precoPromocional: 1990 }), 34);
+  });
+
+  test("sem promoção, promoção igual ou maior, ou preço zero: nada", () => {
+    assert.equal(percentualDeDesconto({ preco: 4999, precoPromocional: null }), null);
+    assert.equal(percentualDeDesconto({ preco: 4999, precoPromocional: 4999 }), null);
+    assert.equal(percentualDeDesconto({ preco: 4999, precoPromocional: 5999 }), null);
+    assert.equal(percentualDeDesconto({ preco: 0, precoPromocional: 0 }), null);
+  });
+
+  test("fica entre 1% e 99%", () => {
+    assert.equal(percentualDeDesconto({ preco: 100000, precoPromocional: 99999 }), 1);
+    assert.equal(percentualDeDesconto({ preco: 100000, precoPromocional: 1 }), 99);
   });
 });
