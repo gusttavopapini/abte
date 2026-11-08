@@ -1,0 +1,11 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+.botao {
+  width: 100%;
+  justify-content: center;
+}

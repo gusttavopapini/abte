@@ -1,0 +1,80 @@
+/* Página do pedido (08/11/2026), no padrão da loja: painéis brancos. */
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.titulo {
+  font-weight: var(--font-weight-light);
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: calc(var(--space-64) * 11);
+  padding: var(--panel-padding);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.subtitulo {
+  color: var(--color-text);
+  font-size: var(--font-size-text-xl);
+  font-weight: var(--font-weight-light);
+  line-height: var(--leading-compact);
+}
+
+.texto {
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.dados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-size: var(--font-size-small);
+}
+
+.dados > div,
+.itens li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.dados dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-size: var(--font-size-text);
+}
+
+.total {
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-surface-soft);
+  font-size: var(--font-size-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.modoDeTeste {
+  align-self: flex-start;
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.pequeno {
+  font-size: var(--font-size-small);
+}

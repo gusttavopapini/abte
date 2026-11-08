@@ -499,11 +499,11 @@ Situação real: ver "Estado atual" logo abaixo e "Divergências conhecidas e pe
 
 ## Decisões tomadas sobre pagamento
 
-- Pagamento online **desativado**.
-- Gateway definido para quando for ativado: **Stripe**.
+- **Desde 08/11/2026 (pedido explícito do responsável, Gustavo), pagamento da loja pela Stripe em MODO DE TESTE (D3):** Stripe Checkout hospedado (redirecionamento), pt-BR, BRL, cartão, Pix e boleto (Pix e boleto assíncronos: o pedido fica "aguardando pagamento" até o webhook confirmar); nenhum dado de cartão no site. Liga e desliga por `PAGAMENTO_HABILITADO=sim` (desligado, o site fica como antes, com "Em breve"); com chave `sk_test_` aparece "Modo de teste: nenhum valor é cobrado"; com `sk_live_` o servidor recusa criar pagamentos sem `PAGAMENTO_PRODUCAO_CONFIRMADO=sim`. Pacote `stripe` 23.0.1 só em `src/lib/stripe/servidor.ts` (server-only). Coleções `pedidos` e `eventosStripe` (idempotência do webhook), negadas ao navegador. Webhook `/api/stripe/webhook` (assinatura conferida; único caminho que marca pago). Frete fixo por pedido só com produto físico, em `configuracoes/loja.freteFixo` (centavos, só o administrador edita em `/admin/loja/frete`); sem valor, frete 0 e "Frete combinado pela ABTE após a compra". Produtos digitais: entrega manual pela ABTE. Painel `/admin/pedidos` só para o administrador. Venda real só com nova decisão do responsável (chave de produção, confirmação e webhook de produção).
+- Antes de 08/11/2026: pagamento online desativado; gateway definido para quando fosse ativado: **Stripe**.
 - Loja com **carrinho e conta de cliente restritos à área da loja** (D1, 10/10/2026), sem pagamento e sem finalização de compra. Substitui a regra anterior "loja só vitrine".
 - Desde 30/10/2026, **Pix estático preenchido pelo administrador em `/admin/configuracoes`** (`configuracoes/site.pix`), mostrado na `/doe` com "Copiar chave", sem QR Code, sem gateway e sem registro de doações; a chave ainda não foi recebida. Antes: doação por **Pix estático** (QR code e código copia e cola, valores sugeridos de R$25, R$50, R$100 e valor livre, sem registro automático das doações), **a confirmar**.
-- **Nunca** instalar gateway, SDK de pagamento, finalização de compra (checkout) ou webhook sem pedido explícito. Sem coleções `pedidos`, `pedidoItens`, `doacoes` ou `cupons`.
+- Fora do pedido de 08/11/2026 continuam sem pedido explícito: outro gateway, doação com pagamento online, cupons e as coleções `pedidoItens`, `doacoes` e `cupons` (a coleção `pedidos` existe desde 08/11/2026, com os itens dentro do próprio pedido).
 
 ## Decisões registradas
 
@@ -526,7 +526,7 @@ Forma de doação (P1; `/doe` mostra só "Em breve" enquanto o painel não tiver
 - **Idioma:** tudo em português do Brasil, inclusive textos do sistema, rótulos acessíveis, mensagens de validação e de erro do Firebase (nunca exibir a mensagem técnica em inglês). Em textos visíveis, não use travessão (o sinal longo de pontuação); use vírgula, dois-pontos ou ponto.
 - **Membros e parceiros (06/11/2026, áudio da Patrícia de 31/10/2026):** membros da ABTE são só médicos e fisioterapeutas (estatuto). Ortesistas e psicólogos aparecem como parceiros. Rótulo visível via `rotuloDoTipo` (`src/config/profissionais.ts`: "Ortesistas parceiros" e "Psicólogos parceiros"; "Outros" igual, decisão em aberto); valor gravado em `profissional.tipo` e o `?tag=` não mudam.
 - **Dados:** nunca inventar profissionais, registros, preços, números, depoimentos, parcerias, CNPJ ou chave Pix. Use placeholders claramente marcados como exemplo.
-- **Pagamento:** desativado. Não instalar Stripe nem qualquer outro gateway ou SDK de pagamento, não criar finalização de compra (checkout), rotas de webhook, variáveis de ambiente de pagamento nem coleções de pedidos, doações ou cupons até pedido explícito. Carrinho e conta de cliente são permitidos só dentro da loja (D1).
+- **Pagamento:** desde 08/11/2026, só a loja, pela Stripe, em modo de teste (D3, ver "Decisões tomadas sobre pagamento"). Chave de produção, venda real, doação online, outro gateway, cupons e coleções de doações ou cupons continuam exigindo pedido explícito. Nunca exibir, registrar ou commitar chaves; nenhum dado de cartão no site. Carrinho e conta de cliente só dentro da loja (D1).
 - **Imagens:** nunca linkar static.wixstatic.com nem outro CDN do Wix.
 - **Firebase:** acesso aos dados sempre pelo servidor com Admin SDK, com checagem de sessão e papel; regras negam todo acesso direto do navegador por padrão; toda exceção precisa de regra específica e teste; o Admin SDK nunca vai para o navegador.
 - **Segurança:** segredos só no .env.local, nunca no código, nunca em commit, nunca exibidos no terminal. Painel com noindex. Cookies de sessão httpOnly e sameSite strict.

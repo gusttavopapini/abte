@@ -50,8 +50,11 @@ const GRUPOS: GrupoDoPainel[] = [
   {
     titulo: "Loja",
     itens: [
-      { href: "/admin/loja", rotulo: "Produtos", icone: IconeCaixa, fora: ["/admin/loja/categorias"] },
+      { href: "/admin/loja", rotulo: "Produtos", icone: IconeCaixa, fora: ["/admin/loja/categorias", "/admin/loja/frete"] },
       { href: "/admin/loja/categorias", rotulo: "Categorias da loja", sub: true },
+      // Pedidos e frete (08/11/2026): só administrador.
+      { href: "/admin/pedidos", rotulo: "Pedidos", icone: IconeCaixa, soAdministrador: true },
+      { href: "/admin/loja/frete", rotulo: "Frete da loja", sub: true, soAdministrador: true },
     ],
   },
   { titulo: null, itens: [{ href: "/admin/midia", rotulo: "Mídia", icone: IconeImagem }] },

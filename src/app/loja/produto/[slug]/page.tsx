@@ -16,6 +16,8 @@ import { escolherRelacionados, imagemPrincipal } from "@/lib/produtos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { paragrafosDoTexto } from "@/lib/texto";
+import { TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
+import { liberacaoAtual } from "@/lib/stripe/servidor";
 import estilos from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +52,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const imagens = await imagensAtivasPorId([produto, ...relacionados].flatMap((item) => item.imagens.map((imagem) => imagem.midiaId)));
   const galeria = produto.imagens.map((imagem) => imagens.get(imagem.midiaId)).filter((imagem): imagem is ImagemNaTela => imagem !== undefined);
   const esgotado = produto.status === "esgotado";
+  const pagamentoLigado = liberacaoAtual().ok;
   const situacao = `${esgotado ? "Esgotado" : "Disponível"} · ${produto.tipo === "digital" ? "Produto digital" : "Produto físico"}`;
   // Categoria visível na trilha (link para a lista filtrada por ?categoria=).
   const categoriaNaTrilha = categoria && !categoria.excluidoEm && categoria.slug ? { nome: categoria.nome, slug: categoria.slug } : null;
@@ -126,8 +129,9 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
               <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`}>Entre na sua conta da loja</Link> para adicionar ao carrinho.
             </p>
           )}
+          {/* Com o pagamento ligado (08/11/2026), o aviso "Em breve" dá lugar à forma de pagamento. */}
           <div className={estilos.aviso} role="note">
-            <p>Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho.</p>
+            <p>{pagamentoLigado ? `${TEXTO_PAGAMENTO_SEGURO}.` : "Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho."}</p>
           </div>
         </aside>
       </article>

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Saída privada dos scripts de migração e de entrega (fora do Git, 08/11/2026).
+    "tmp-migracao/**",
   ]),
 ]);
 

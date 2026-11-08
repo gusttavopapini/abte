@@ -32,3 +32,45 @@
   padding: var(--card-padding);
   background: var(--color-surface-soft);
 }
+
+/* Pagamento (08/11/2026): valores do resumo, aviso de modo de teste em caixa
+   branca e textos pequenos. */
+.valores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.valores > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.valores dd {
+  margin: 0;
+  text-align: right;
+}
+
+.total {
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-text-lg);
+}
+
+.modoDeTeste {
+  align-self: flex-start;
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.pequeno {
+  font-size: var(--font-size-small);
+}

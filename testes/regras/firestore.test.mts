@@ -37,6 +37,9 @@ const COLECOES = [
   "logAlteracoes",
   "clientes",
   "carrinhos",
+  // Pagamento pela Stripe (08/11/2026): pedidos e eventos já processados.
+  "pedidos",
+  "eventosStripe",
   "qualquerColecao",
 ];
 
