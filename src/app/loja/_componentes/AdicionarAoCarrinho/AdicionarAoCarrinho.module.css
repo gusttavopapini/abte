@@ -1,13 +1,10 @@
+/* Na caixa de compra da página do produto (08/11/2026): quantidade e botão
+   um embaixo do outro, o botão na largura da caixa. */
 .formulario {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-16);
-  align-items: flex-end;
   width: 100%;
-}
-
-.formulario > [role] {
-  flex-basis: 100%;
 }
 
 .quantidade {
@@ -20,13 +17,25 @@
   font-size: var(--font-size-small);
 }
 
+/* Contorno de 1px em --color-primary sobre a caixa branca, como os outros
+   seletores da loja. */
 .selecao {
   min-width: var(--button-height);
-  min-height: var(--button-height);
+  min-height: var(--control-min-height-mobile);
   padding: 0 var(--space-8);
-  border: 0;
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius);
   background: var(--color-bg);
   color: var(--color-text);
   font-size: var(--font-size-text);
+}
+
+.selecao:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.botao {
+  width: 100%;
+  justify-content: center;
 }

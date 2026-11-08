@@ -1,69 +1,188 @@
+/* Página do produto no molde de loja virtual (08/11/2026). Mesma ordem em
+   todas as larguras: galeria, informações, caixa de compra, descrição e
+   relacionados; só muda o número de colunas. */
 .secao {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--space-32);
 }
 
-/* Imagem e detalhes lado a lado a partir do tablet; empilhados no celular */
+/* ---------- Topo: voltar, trilha e links da loja ---------- */
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-24);
+}
+
+.navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-24);
+  min-width: 0;
+}
+
+.trilha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-8);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* Separador ">" entre os itens, só visual: o texto alternativo vazio
+   (depois da barra) faz o leitor de tela ignorá-lo; quem lê a lista já
+   ouve os itens em ordem. */
+.trilha li + li::before {
+  content: ">" / "";
+  margin-right: var(--space-8);
+}
+
+.linkDaTrilha {
+  color: var(--color-text);
+}
+
+.atualDaTrilha {
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---------- Painel principal ---------- */
 .produto {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-32);
   width: 100%;
+  padding: var(--panel-padding);
+  border-radius: var(--radius);
+  background: var(--color-bg);
 }
 
-@media (min-width: 768px) {
+/* Tablet: galeria à esquerda; informações e, abaixo delas, a caixa de compra */
+@media (min-width: 768px) and (max-width: 1023px) {
   .produto {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .produto > :first-child {
+    grid-row: span 2;
   }
 }
 
-.detalhes {
+/* Desktop: três colunas, cerca de 45%, 30% e 25% */
+@media (min-width: 1024px) {
+  .produto {
+    grid-template-columns: minmax(0, 45fr) minmax(0, 30fr) minmax(0, 25fr);
+    align-items: start;
+  }
+}
+
+.informacoes {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-16);
+  min-width: 0;
 }
 
 .selo {
+  padding: calc(var(--space-8) / 2) var(--space-8);
   border-radius: var(--radius);
-  padding: var(--space-8) var(--space-16);
   background: var(--color-primary);
   color: var(--color-on-primary);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-compact);
+}
+
+/* H1 da página no tamanho do H3 (não no tamanho de capa) */
+.titulo {
+  color: var(--color-text);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-light);
+  line-height: var(--leading-compact);
+  letter-spacing: var(--tracking-h3);
+}
+
+.situacao {
+  color: var(--color-text);
   font-size: var(--font-size-small);
   line-height: var(--leading-normal);
 }
 
-.titulo {
-  font-weight: var(--font-weight-light);
-}
-
-.situacao {
-  font-size: var(--font-size-small);
-}
-
-/* Aviso "Em breve" (design-system.md): caixa com texto --font-size-text.
-   Branca porque o fundo da página já é --color-bg-alt. */
-.aviso {
-  border-radius: var(--radius);
-  width: 100%;
-  padding: var(--card-padding);
-  background: var(--color-bg);
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
   color: var(--color-text);
   font-size: var(--font-size-text);
   line-height: var(--leading-normal);
 }
 
-.descricao {
-  white-space: pre-wrap;
+.verDescricao {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
 }
 
+/* ---------- Caixa de compra ---------- */
+.caixaDeCompra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  padding: var(--card-padding);
+  border: 1px solid var(--color-surface-soft);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.entrar {
+  color: var(--color-text);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+/* Aviso "Em breve" em versão compacta, em caixa branca (texto sem mudança) */
+.aviso {
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-surface-soft);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+/* ---------- Descrição e relacionados ---------- */
+.descricao,
 .relacionados {
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
   width: 100%;
+  scroll-margin-top: calc(var(--altura-do-header-visivel, 0px) + var(--space-24));
 }
 
-/* Colunas: 1 no celular, 2 no tablet, 3 no desktop */
+.tituloDeSecao {
+  color: var(--color-text);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-light);
+  line-height: var(--leading-compact);
+  letter-spacing: var(--tracking-h3);
+}
+
+/* Largura de leitura confortável: cerca de 70 caracteres (704px, pelos
+   tokens; não há token em ch). */
+.textoDaDescricao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: calc(var(--space-64) * 11);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}

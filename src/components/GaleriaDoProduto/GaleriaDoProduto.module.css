@@ -1,16 +1,22 @@
+/* Galeria do produto (08/11/2026): imagem principal 1:1, inteira, sobre
+   branco; miniaturas em linha abaixo (até 1023px) ou em coluna à esquerda
+   (a partir de 1024px). */
 .galeria {
+  /* Lado da miniatura: 64px, pelos tokens. */
+  --lado-da-miniatura: var(--space-64);
+
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
   min-width: 0;
 }
 
-/* Proporção 3:4 do produto (design-system.md), com a imagem cortada para caber */
+/* O overflow tira o tamanho mínimo automático: a imagem não estica o quadrado. */
 .destaque {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--radius);
-  background: var(--color-bg-alt);
+  background: var(--color-bg);
 }
 
 /* Seletores com duas classes para valer sobre o height: auto do ImagemDaMidia */
@@ -19,30 +25,56 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-/* Miniaturas: quantas couberem por linha, quadradas */
 .miniaturas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--space-64), 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-8);
 }
 
 .miniatura {
   display: block;
-  width: 100%;
+  width: var(--lado-da-miniatura);
   aspect-ratio: 1;
-  padding: 0;
-  border: 0;
+  padding: calc(var(--space-8) / 2);
+  border: 2px solid var(--color-bg-alt);
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--color-bg-alt);
+  background: var(--color-bg);
   cursor: pointer;
 }
 
-/* Imagem em destaque: moldura na cor primária, por dentro da miniatura */
-.miniatura[aria-pressed="true"] {
-  outline: calc(var(--space-8) / 2) solid var(--color-primary);
-  outline-offset: calc(var(--space-8) / -2);
+/* Imagem atual: o contorno passa à cor primária (a borda tem sempre 2px,
+   para nada se mover). */
+.miniatura[aria-current="true"] {
+  border-color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .miniatura:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+/* A partir de 1024px: miniaturas em coluna, à esquerda da principal */
+@media (min-width: 1024px) {
+  .comMiniaturas {
+    display: grid;
+    grid-template-columns: var(--lado-da-miniatura) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .comMiniaturas .destaque {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .comMiniaturas .miniaturas {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
 }

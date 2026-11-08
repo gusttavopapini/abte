@@ -25,7 +25,7 @@ export function AdicionarAoCarrinho({ produtoId, maximo }: { produtoId: string; 
       ) : (
         <input type="hidden" name="quantidade" value="1" />
       )}
-      <Botao type="submit" disabled={adicionando}>{adicionando ? "Adicionando…" : "Adicionar ao carrinho"}</Botao>
+      <Botao type="submit" disabled={adicionando} className={estilos.botao}>{adicionando ? "Adicionando…" : "Adicionar ao carrinho"}</Botao>
       {resposta && (
         <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>
           {resposta.mensagem} {resposta.ok && <Link href="/loja/carrinho">Ver carrinho</Link>}

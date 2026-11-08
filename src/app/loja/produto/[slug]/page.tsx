@@ -11,12 +11,17 @@ import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { quantidadeMaxima } from "@/lib/loja/carrinho";
 import { AdicionarAoCarrinho } from "../../_componentes/AdicionarAoCarrinho/AdicionarAoCarrinho";
+import { LinksDaLoja } from "../../_componentes/LinksDaLoja/LinksDaLoja";
 import { escolherRelacionados, imagemPrincipal } from "@/lib/produtos";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
+import { paragrafosDoTexto } from "@/lib/texto";
 import estilos from "./page.module.css";
 
 export const dynamic = "force-dynamic";
+
+// Parágrafos da descrição mostrados no resumo, ao lado da imagem.
+const PARAGRAFOS_DO_RESUMO = 2;
 
 // Produto visível (publicado e fora da lixeira) pelo slug, com a lista usada
 // nos relacionados. O cache evita ler duas vezes (metadata e página).
@@ -45,6 +50,12 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const imagens = await imagensAtivasPorId([produto, ...relacionados].flatMap((item) => item.imagens.map((imagem) => imagem.midiaId)));
   const galeria = produto.imagens.map((imagem) => imagens.get(imagem.midiaId)).filter((imagem): imagem is ImagemNaTela => imagem !== undefined);
   const esgotado = produto.status === "esgotado";
+  const situacao = `${esgotado ? "Esgotado" : "Disponível"} · ${produto.tipo === "digital" ? "Produto digital" : "Produto físico"}`;
+  // Categoria visível na trilha (link para a lista filtrada por ?categoria=).
+  const categoriaNaTrilha = categoria && !categoria.excluidoEm && categoria.slug ? { nome: categoria.nome, slug: categoria.slug } : null;
+  // Resumo: os primeiros parágrafos da descrição cadastrada (nada inventado).
+  const paragrafos = paragrafosDoTexto(produto.descricao);
+  const resumo = paragrafos.slice(0, PARAGRAFOS_DO_RESUMO);
 
   // Dados estruturados de produto SEM oferta de compra (sem "offers"): não há
   // venda online. Sem "offers", o Google não mostra preço nem disponibilidade.
@@ -57,41 +68,85 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
     brand: { "@type": "Organization", name: "ABTE, Associação Brasileira de Tratamento da Escoliose" },
   };
 
+  // Página do produto no molde de loja virtual (08/11/2026): topo com
+  // "Voltar", a trilha e os links da loja; painel branco com galeria,
+  // informações e a caixa de compra (3 colunas a partir de 1024px, 2 no
+  // tablet e 1 no celular, sempre nesta ordem); descrição completa e
+  // relacionados abaixo.
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
-      <Botao href="/loja" variante="link"><span className="seta-para-tras" aria-hidden="true">&larr;</span>&nbsp;Voltar para a loja</Botao>
+      <div className={estilos.topo}>
+        <div className={estilos.navegacao}>
+          <Botao href="/loja" variante="link"><span className="seta-para-tras" aria-hidden="true">&larr;</span>&nbsp;Voltar para a loja</Botao>
+          <nav aria-label="Trilha">
+            <ol role="list" className={estilos.trilha}>
+              <li><Link href="/loja" className={`realce ${estilos.linkDaTrilha}`}>Loja</Link></li>
+              {categoriaNaTrilha && (
+                <li>
+                  <Link href={`/loja?categoria=${encodeURIComponent(categoriaNaTrilha.slug)}`} className={`realce ${estilos.linkDaTrilha}`}>{categoriaNaTrilha.nome}</Link>
+                </li>
+              )}
+              <li aria-current="page" className={estilos.atualDaTrilha}>{produto.nome}</li>
+            </ol>
+          </nav>
+        </div>
+        <LinksDaLoja />
+      </div>
 
-      <article className={estilos.produto}>
+      <article className={estilos.produto} aria-labelledby="titulo-do-produto">
         <GaleriaDoProduto imagens={galeria} />
 
-        <div className={estilos.detalhes}>
+        <div className={estilos.informacoes}>
           {produto.selo && <p className={estilos.selo}>{produto.selo}</p>}
-          <h1 className={`tipo-h2 ${estilos.titulo}`}>{produto.nome}</h1>
+          <h1 id="titulo-do-produto" className={estilos.titulo}>{produto.nome}</h1>
+          <p className={estilos.situacao}>{situacao}</p>
           <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} tamanho="pagina" />
-          <p className={estilos.situacao}>
-            {esgotado ? "Esgotado" : "Disponível"} · {produto.tipo === "digital" ? "Produto digital" : "Produto físico"}
-          </p>
+          {resumo.length > 0 && (
+            <div className={estilos.resumo}>
+              {resumo.map((paragrafo, indice) => (
+                <p key={indice}>{paragrafo}</p>
+              ))}
+            </div>
+          )}
+          {paragrafos.length > resumo.length && (
+            <a href="#descricao" className={`realce ${estilos.verDescricao}`}>Ver descrição completa</a>
+          )}
+        </div>
+
+        <aside className={estilos.caixaDeCompra} aria-label="Compra">
+          <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} tamanho="caixa" />
+          <p className={estilos.situacao}>{situacao}</p>
           {/* Carrinho só com conta de cliente (decisão D1); a compra online ainda não existe. */}
           {esgotado ? (
             <p className={estilos.situacao}>Produto esgotado: não dá para adicionar ao carrinho.</p>
           ) : cliente ? (
             <AdicionarAoCarrinho produtoId={produto.id} maximo={quantidadeMaxima(produto.tipo)} />
           ) : (
-            <p>
+            <p className={estilos.entrar}>
               <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`}>Entre na sua conta da loja</Link> para adicionar ao carrinho.
             </p>
           )}
           <div className={estilos.aviso} role="note">
             <p>Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho.</p>
           </div>
-          {produto.descricao && <div className={`tipo-texto ${estilos.descricao}`}>{produto.descricao}</div>}
-        </div>
+        </aside>
       </article>
+
+      {paragrafos.length > 0 && (
+        <section id="descricao" aria-labelledby="titulo-descricao" className={estilos.descricao}>
+          <h2 id="titulo-descricao" className={estilos.tituloDeSecao}>Descrição</h2>
+          <div className={`tipo-texto ${estilos.textoDaDescricao}`}>
+            {paragrafos.map((paragrafo, indice) => (
+              <p key={indice}>{paragrafo}</p>
+            ))}
+          </div>
+        </section>
+      )}
 
       {relacionados.length > 0 && (
         <section aria-labelledby="titulo-relacionados" {...revelar(estilos.relacionados)}>
-          <h2 id="titulo-relacionados" className="tipo-h3">Produtos relacionados</h2>
-          <ul role="list" className="grade-de-cards">
+          <h2 id="titulo-relacionados" className={estilos.tituloDeSecao}>Produtos relacionados</h2>
+          <ul role="list" className="grade-da-loja">
             {relacionados.map((outro) => (
               <li key={outro.id}>
                 <CardProduto
