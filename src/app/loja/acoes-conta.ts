@@ -9,6 +9,8 @@ import { authAdmin } from "@/lib/firebase/admin-auth";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { CAMINHO_COOKIE_CLIENTE, NOME_COOKIE_CLIENTE, VALIDADE_SESSAO_CLIENTE_MS } from "@/lib/auth/constantes";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
+import { apagarCarrinhoDoVisitante, lerItensDoVisitante, lerProdutosDoCarrinho } from "@/lib/dados/carrinho";
+import { mesclarNoCarrinhoDaConta } from "@/lib/loja/mesclagem";
 import { validarCadastroDeCliente, type CampoDoCadastro } from "@/lib/loja/cadastro";
 import { criarContaDeCliente, ehClienteDaLoja, excluirContaDeCliente } from "@/lib/loja/contas";
 
@@ -69,10 +71,21 @@ export async function criarSessaoCliente(idToken: string): Promise<ResultadoDoLo
       path: CAMINHO_COOKIE_CLIENTE,
       maxAge: VALIDADE_SESSAO_CLIENTE_MS / 1000,
     });
-    return { ok: true };
   } catch {
     return { ok: false, motivo: "erro" };
   }
+  // Carrinho de visitante (08/11/2026): somado ao da conta e apagado. Uma
+  // falha aqui não impede o login; o cookie fica para a próxima vez.
+  try {
+    const doVisitante = await lerItensDoVisitante();
+    if (doVisitante.length > 0) {
+      await mesclarNoCarrinhoDaConta(firestoreAdmin(), token.uid, doVisitante, lerProdutosDoCarrinho);
+      await apagarCarrinhoDoVisitante();
+    }
+  } catch (erro) {
+    console.error("Carrinho de visitante: falha ao somar à conta.", erro instanceof Error ? erro.message : "erro");
+  }
+  return { ok: true };
 }
 
 // "Sair": revoga a sessão no Firebase e apaga o cookie da loja.

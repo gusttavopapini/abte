@@ -143,8 +143,20 @@
 
 .entrar {
   color: var(--color-text);
-  font-size: var(--font-size-text);
+  font-size: var(--font-size-small);
   line-height: var(--leading-normal);
+}
+
+/* Link com 44px de toque no celular */
+.entrar a {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .entrar a {
+    min-height: var(--control-min-height-mobile);
+  }
 }
 
 /* Aviso "Em breve" em versão compacta, em caixa branca (texto sem mudança) */

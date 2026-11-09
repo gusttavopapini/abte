@@ -20,9 +20,18 @@ import {
 
 export type EnderecoDoPedido = { nome: string; linha1: string; linha2: string; bairro: string; cidade: string; estado: string; cep: string; pais: string };
 
+// clienteUid null: pedido de visitante (sem conta, desde 08/11/2026).
+// tokenHash: hash do token da volta da Stripe (o token nunca é guardado).
+// origem: "carrinho" (finalizar compra) ou "comprar-agora" (um produto só,
+// sem mexer no carrinho).
+export type OrigemDoPedido = "carrinho" | "comprar-agora";
+
 export type Pedido = {
   id: string;
-  clienteUid: string;
+  clienteUid: string | null;
+  tokenHash: string | null;
+  origem: OrigemDoPedido;
+  nome: string | null;
   itens: ItemDoPedido[];
   subtotal: number;
   frete: number;
@@ -54,7 +63,10 @@ export function lerPedido(id: string, dados: Record<string, unknown> | undefined
   const situacao = envio.situacao === "enviado" || envio.situacao === "entregue" ? envio.situacao : "pendente";
   return {
     id,
-    clienteUid: texto(dados.clienteUid),
+    clienteUid: texto(dados.clienteUid) || null,
+    tokenHash: texto(dados.tokenHash) || null,
+    origem: dados.origem === "comprar-agora" ? "comprar-agora" : "carrinho",
+    nome: texto(dados.nome) || null,
     itens,
     subtotal: Number(dados.subtotal) || 0,
     frete: Number(dados.frete) || 0,
@@ -79,11 +91,25 @@ export function lerPedido(id: string, dados: Record<string, unknown> | undefined
 // Cria o pedido "aguardando_pagamento" com o retrato dos itens e dos valores.
 export async function criarPedido(
   db: Firestore,
-  dados: { clienteUid: string; email: string; itens: ItemDoPedido[]; subtotal: number; frete: number; freteCombinado: boolean; total: number; modo: "teste" | "producao" },
+  dados: {
+    clienteUid: string | null;
+    email: string;
+    itens: ItemDoPedido[];
+    subtotal: number;
+    frete: number;
+    freteCombinado: boolean;
+    total: number;
+    modo: "teste" | "producao";
+    tokenHash?: string | null;
+    origem?: OrigemDoPedido;
+  },
 ): Promise<string> {
   const referencia = db.collection(COLECAO_PEDIDOS).doc();
   await referencia.set({
     clienteUid: dados.clienteUid,
+    tokenHash: dados.tokenHash ?? null,
+    origem: dados.origem ?? "carrinho",
+    nome: null,
     itens: dados.itens,
     subtotal: dados.subtotal,
     frete: dados.frete,
@@ -188,6 +214,7 @@ export async function aplicarEventoDaStripe(db: Firestore, evento: EventoDaStrip
       const contato = objeto(obj.customer_details);
       if (texto(contato.email)) mudancas.email = texto(contato.email);
       if (texto(contato.phone)) mudancas.telefone = texto(contato.phone);
+      if (texto(contato.name)) mudancas.nome = texto(contato.name).slice(0, 120);
       const endereco = enderecoDaSessao(obj);
       if (endereco) mudancas.endereco = endereco;
       if (metodoDoPagamento) mudancas.metodo = metodoDoPagamento;
@@ -197,8 +224,10 @@ export async function aplicarEventoDaStripe(db: Firestore, evento: EventoDaStrip
       mudancas.status = novo;
       if (novo === "pago") {
         mudancas.pagoEm = FieldValue.serverTimestamp();
-        // Pago: o carrinho do cliente é esvaziado.
-        if (pedido.clienteUid) transacao.set(db.collection(COLECAO_CARRINHOS).doc(pedido.clienteUid), { itens: [], atualizadoEm: new Date() });
+        // Pago: o carrinho do cliente é esvaziado (só quando o pedido veio
+        // do carrinho; "Comprar agora" não mexe nele). O carrinho de visitante
+        // fica num cookie e é limpo pela página do pedido.
+        if (pedido.clienteUid && pedido.origem === "carrinho") transacao.set(db.collection(COLECAO_CARRINHOS).doc(pedido.clienteUid), { itens: [], atualizadoEm: new Date() });
       }
     }
     transacao.update(refPedido, mudancas);

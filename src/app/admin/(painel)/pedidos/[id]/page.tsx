@@ -63,6 +63,8 @@ export default async function PaginaPedido({ params }: { params: Promise<{ id: s
           <div><dt>Forma:</dt><dd>{rotuloDoMetodo(pedido.metodo)}</dd></div>
           {pedido.criadoEm && <div><dt>Criado em:</dt><dd>{DATA.format(pedido.criadoEm)}</dd></div>}
           {pedido.pagoEm && <div><dt>Pago em:</dt><dd>{DATA.format(pedido.pagoEm)}</dd></div>}
+          <div><dt>Cliente:</dt><dd>{pedido.clienteUid ? "Conta da loja" : "Visitante (compra sem conta)"}</dd></div>
+          {pedido.nome && <div><dt>Nome:</dt><dd>{pedido.nome}</dd></div>}
           <div><dt>E-mail:</dt><dd>{pedido.email}</dd></div>
           {pedido.telefone && <div><dt>Telefone:</dt><dd>{pedido.telefone}</dd></div>}
           {endereco && (

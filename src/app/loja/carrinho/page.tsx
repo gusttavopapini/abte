@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Botao } from "@/components/Botao/Botao";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { exigirSessaoCliente } from "@/lib/auth/sessao-cliente";
-import { lerItensDoCarrinho, lerProdutosDoCarrinho } from "@/lib/dados/carrinho";
+import { lerCarrinhoAtual, lerProdutosDoCarrinho } from "@/lib/dados/carrinho";
+import { lerPaginasEmCache } from "@/lib/dados/paginas";
+import { paginaNoSite } from "@/lib/site/paginas";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { montarResumoDoCarrinho, quantidadeMaxima } from "@/lib/loja/carrinho";
 import { DOCUMENTO_DA_LOJA, lerFreteFixo, TEXTO_FRETE_COMBINADO, TEXTO_MODO_DE_TESTE, TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
@@ -15,14 +16,14 @@ import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Carrinho", robots: { index: false, follow: false } };
 
-// Carrinho do cliente (exige conta). Preços e situação lidos agora do
-// Firestore. Desde 08/11/2026, com PAGAMENTO_HABILITADO=sim, o resumo mostra
-// subtotal, frete e total e o botão "Finalizar compra" (Stripe Checkout);
-// desligado, continua o "em breve" de antes.
+// Carrinho. Preços e situação lidos agora do Firestore. Desde 08/11/2026,
+// com PAGAMENTO_HABILITADO=sim, o resumo mostra subtotal, frete e total e o
+// botão "Finalizar compra" (Stripe Checkout); desligado, continua o "em
+// breve" de antes. Também desde 08/11/2026 vale sem conta (carrinho de
+// visitante, no cookie); entrar fica opcional.
 export default async function PaginaCarrinho({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const cliente = await exigirSessaoCliente("/loja/carrinho");
+  const { cliente, itens } = await lerCarrinhoAtual();
   const parametros = await searchParams;
-  const itens = await lerItensDoCarrinho(cliente.uid);
   const produtos = await lerProdutosDoCarrinho(itens.map((item) => item.produtoId));
   const resumo = montarResumoDoCarrinho(itens, produtos);
   const linhas = resumo.linhas.map((linha) => ({ ...linha, maximo: quantidadeMaxima(produtos.get(linha.produtoId)?.tipo ?? "fisico") }));
@@ -33,12 +34,19 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
   const temFisico = resumo.linhas.some((linha) => linha.situacao === "ok" && produtos.get(linha.produtoId)?.tipo === "fisico");
   const freteFixo = pagamentoLigado && temFisico ? lerFreteFixo((await firestoreAdmin().collection("configuracoes").doc(DOCUMENTO_DA_LOJA).get()).get("freteFixo")) : null;
   const frete = temFisico ? (freteFixo ?? 0) : 0;
+  // O link da política só aparece com a página publicada (senão daria 404).
+  const politicaPublicada = pagamentoLigado && linhas.length > 0 ? paginaNoSite((await lerPaginasEmCache()).get("politica-de-privacidade")) : false;
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
       {parametros.pagamento === "cancelado" && <Mensagem tipo="sucesso">Pagamento cancelado. Seu carrinho continua guardado.</Mensagem>}
       {pagamentoLigado && liberacao.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}
+      {!cliente && (
+        <p className={`${estilos.pequeno} ${estilos.entrar}`}>
+          Não é preciso ter conta para comprar. <Link href="/loja/entrar?voltar=%2Floja%2Fconta" className="realce">Entre para ver seus pedidos</Link>
+        </p>
+      )}
 
       {linhas.length === 0 ? (
         <p className="tipo-texto">
@@ -68,13 +76,17 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
                 {resumo.temProblema && <p>Remova os itens esgotados ou fora da loja para finalizar a compra.</p>}
                 <FinalizarCompra desabilitado={resumo.temProblema || resumo.unidades === 0} />
                 <p className={estilos.pequeno}>{TEXTO_PAGAMENTO_SEGURO}</p>
+                <p className={estilos.pequeno}>
+                  Seus dados de entrega e contato são usados só para processar o pedido. Detalhes na{" "}
+                  {politicaPublicada ? <Link href="/politica-de-privacidade">Política de privacidade</Link> : "Política de privacidade"}.
+                </p>
               </>
             ) : (
               <>
                 <p>Total ({resumo.unidades} {resumo.unidades === 1 ? "unidade" : "unidades"}): <strong>{formatarPreco(resumo.total)}</strong></p>
                 {resumo.temProblema && <p>Itens esgotados ou fora da loja não entram no total.</p>}
                 <Botao type="button" aria-disabled="true" aria-describedby="finalizar-em-breve">Finalizar compra: em breve</Botao>
-                <p id="finalizar-em-breve">A compra online ainda não está disponível. Seu carrinho fica guardado na sua conta.</p>
+                <p id="finalizar-em-breve">A compra online ainda não está disponível. {cliente ? "Seu carrinho fica guardado na sua conta." : "Seu carrinho fica guardado neste navegador."}</p>
               </>
             )}
           </section>

@@ -26,6 +26,10 @@ const FORMAS: Stripe.Checkout.SessionCreateParams.AllowedPaymentMethodType[] = [
 
 // Cria a sessão do Stripe Checkout hospedado para um pedido já gravado.
 // Nenhum dado de cartão passa pelo site.
+// Visitante (sem conta, desde 08/11/2026): a própria Stripe coleta e-mail,
+// nome, telefone e endereço; customer_email só quando há conta. O token do
+// pedido vai só na volta (success_url), para a página do pedido abrir sem
+// sessão (o cookie da loja, sameSite strict, não vem na volta de outro site).
 export async function criarSessaoDeCheckout({
   pedidoId,
   email,
@@ -34,6 +38,8 @@ export async function criarSessaoDeCheckout({
   freteCombinado,
   temFisico,
   origem,
+  token,
+  visitante,
 }: {
   pedidoId: string;
   email: string;
@@ -42,6 +48,8 @@ export async function criarSessaoDeCheckout({
   freteCombinado: boolean;
   temFisico: boolean;
   origem: string;
+  token: string;
+  visitante: boolean;
 }): Promise<{ id: string; url: string }> {
   const stripe = clienteStripe();
   const base: Stripe.Checkout.SessionCreateParams = {
@@ -60,7 +68,8 @@ export async function criarSessaoDeCheckout({
         },
       },
     })),
-    customer_email: email || undefined,
+    customer_email: !visitante && email ? email : undefined,
+    ...(visitante ? { billing_address_collection: "required" as const, phone_number_collection: { enabled: true } } : {}),
     client_reference_id: pedidoId,
     metadata: { pedidoId },
     payment_intent_data: { metadata: { pedidoId } },
@@ -79,7 +88,7 @@ export async function criarSessaoDeCheckout({
           ],
         }
       : {}),
-    success_url: `${origem}/loja/pedido/${pedidoId}?retorno=sucesso`,
+    success_url: `${origem}/loja/pedido/${pedidoId}?t=${encodeURIComponent(token)}&retorno=sucesso`,
     cancel_url: `${origem}/loja/carrinho?pagamento=cancelado`,
   };
   const sessao = await stripe.checkout.sessions.create(base, { idempotencyKey: `pedido-${pedidoId}` });

@@ -11,6 +11,9 @@ import { COLECAO_LOG } from "../../src/lib/log/alteracoes.ts";
 import { COLECAO_EVENTOS_STRIPE, COLECAO_PEDIDOS } from "../../src/lib/loja/pagamento.ts";
 import { criarPedido, gravarFreteFixo, lerPedido, marcarEnvioDoPedido } from "../../src/lib/loja/pedidos.ts";
 import { processarWebhook } from "../../src/lib/loja/webhook.ts";
+import { decidirAcessoAoPedido, gerarTokenDoPedido } from "../../src/lib/loja/carrinhoVisitante.ts";
+import { mesclarNoCarrinhoDaConta } from "../../src/lib/loja/mesclagem.ts";
+import type { ProdutoDoCarrinho } from "../../src/lib/loja/carrinho.ts";
 
 const PROJETO = "demo-abte-pedidos";
 const SEGREDO = "whsec_TESTE_pedidos";
@@ -158,5 +161,68 @@ describe("webhook da Stripe e pedidos", () => {
     assert.equal((await db.doc("configuracoes/loja").get()).get("freteFixo"), null);
     const registros = await db.collection(COLECAO_LOG).where("documentoId", "==", "loja").get();
     assert.equal(registros.size, 2);
+  });
+
+  // ---------- Compra sem conta (08/11/2026) ----------
+
+  test("pedido de visitante: clienteUid null, só o hash do token, pago pelo webhook com nome e contato", async () => {
+    const { token, hash } = gerarTokenDoPedido();
+    const id = await criarPedido(db, {
+      clienteUid: null,
+      email: "",
+      itens: [{ produtoId: "p1", nome: "TESTE Cartilha", tipo: "fisico", precoUnitario: 3000, quantidade: 2 }],
+      subtotal: 6000,
+      frete: 0,
+      freteCombinado: true,
+      total: 6000,
+      modo: "teste",
+      tokenHash: hash,
+      origem: "carrinho",
+    });
+    const bruto = (await db.collection(COLECAO_PEDIDOS).doc(id).get()).data()!;
+    assert.equal(bruto.clienteUid, null);
+    assert.equal(bruto.tokenHash, hash);
+    assert.ok(!JSON.stringify(bruto).includes(token), "o token não é guardado");
+    const resposta = await enviar("checkout.session.completed", sessao(id, { payment_status: "paid", customer_details: { email: "visitante@exemplo.invalid", phone: "+5511900000001", name: "TESTE Visitante" } }));
+    assert.equal(resposta.status, 200);
+    const pedido = await ler(id);
+    assert.equal(pedido.status, "pago");
+    assert.equal(pedido.clienteUid, null);
+    assert.equal(pedido.email, "visitante@exemplo.invalid");
+    assert.equal(pedido.nome, "TESTE Visitante");
+    // Página do pedido: token certo abre, errado não, ausente manda entrar.
+    assert.equal(decidirAcessoAoPedido({ pedido, clienteUid: null, token }), "ver");
+    assert.equal(decidirAcessoAoPedido({ pedido, clienteUid: null, token: gerarTokenDoPedido().token }), "nao-encontrado");
+    assert.equal(decidirAcessoAoPedido({ pedido, clienteUid: null, token: undefined }), "entrar");
+  });
+
+  test("Comprar agora logado: pago não esvazia o carrinho da conta", async () => {
+    await db.doc("carrinhos/cliente-comprar-agora").set({ itens: [{ produtoId: "p2", quantidade: 3 }] });
+    const id = await criarPedido(db, {
+      clienteUid: "cliente-comprar-agora",
+      email: "cliente@exemplo.invalid",
+      itens: [{ produtoId: "p1", nome: "TESTE Cartilha", tipo: "fisico", precoUnitario: 3000, quantidade: 1 }],
+      subtotal: 3000,
+      frete: 0,
+      freteCombinado: true,
+      total: 3000,
+      modo: "teste",
+      origem: "comprar-agora",
+    });
+    await enviar("checkout.session.completed", sessao(id, { payment_status: "paid" }));
+    assert.equal((await ler(id)).status, "pago");
+    assert.equal((await db.doc("carrinhos/cliente-comprar-agora").get()).get("itens").length, 1);
+  });
+
+  test("mesclagem do carrinho de visitante na conta, com os produtos conferidos", async () => {
+    await db.doc("carrinhos/cliente-mesclar").set({ itens: [{ produtoId: "p1", quantidade: 9 }] });
+    const produtos = new Map<string, ProdutoDoCarrinho>([
+      ["p1", { id: "p1", nome: "TESTE p1", slug: "p1", preco: 1000, precoPromocional: null, tipo: "fisico", status: "disponivel", publicado: true, excluido: false }],
+      ["p2", { id: "p2", nome: "TESTE p2", slug: "p2", preco: 1000, precoPromocional: null, tipo: "digital", status: "disponivel", publicado: true, excluido: false }],
+      ["p3", { id: "p3", nome: "TESTE p3", slug: "p3", preco: 1000, precoPromocional: null, tipo: "fisico", status: "disponivel", publicado: false, excluido: false }],
+    ]);
+    const itens = await mesclarNoCarrinhoDaConta(db, "cliente-mesclar", [{ produtoId: "p1", quantidade: 4 }, { produtoId: "p2", quantidade: 1 }, { produtoId: "p3", quantidade: 2 }], async () => produtos);
+    assert.deepEqual(itens, [{ produtoId: "p1", quantidade: 10 }, { produtoId: "p2", quantidade: 1 }]);
+    assert.deepEqual((await db.doc("carrinhos/cliente-mesclar").get()).get("itens"), itens);
   });
 });

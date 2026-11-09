@@ -117,14 +117,15 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
         <aside className={estilos.caixaDeCompra} aria-label="Compra">
           <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} tamanho="caixa" />
           <p className={estilos.situacao}>{situacao}</p>
-          {/* Carrinho só com conta de cliente (decisão D1); a compra online ainda não existe. */}
+          {/* Desde 08/11/2026, carrinho e "Comprar agora" para todos, com ou sem conta. */}
           {esgotado ? (
             <p className={estilos.situacao}>Produto esgotado: não dá para adicionar ao carrinho.</p>
-          ) : cliente ? (
-            <AdicionarAoCarrinho produtoId={produto.id} maximo={quantidadeMaxima(produto.tipo)} />
           ) : (
+            <AdicionarAoCarrinho produtoId={produto.id} maximo={quantidadeMaxima(produto.tipo)} comprarAgoraLigado={pagamentoLigado} />
+          )}
+          {!cliente && (
             <p className={estilos.entrar}>
-              <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`}>Entre na sua conta da loja</Link> para adicionar ao carrinho.
+              <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`} className="realce">Entre para ver seus pedidos</Link>
             </p>
           )}
           {/* Com o pagamento ligado (08/11/2026), o aviso "Em breve" dá lugar à forma de pagamento. */}

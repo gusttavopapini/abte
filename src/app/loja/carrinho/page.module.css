@@ -74,3 +74,16 @@
 .pequeno {
   font-size: var(--font-size-small);
 }
+
+/* Linha "Entre para ver seus pedidos" (visitante, 08/11/2026): link com 44px
+   de toque no celular. */
+.entrar a {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .entrar a {
+    min-height: var(--control-min-height-mobile);
+  }
+}

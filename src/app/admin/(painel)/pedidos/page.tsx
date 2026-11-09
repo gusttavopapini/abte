@@ -42,13 +42,14 @@ export default async function PaginaPedidos({ searchParams }: { searchParams: Pr
           <table className={estilos.tabela}>
             <caption className="somente-leitor">Pedidos, do mais recente para o mais antigo</caption>
             <thead>
-              <tr><th scope="col">Data</th><th scope="col">Pedido</th><th scope="col">E-mail</th><th scope="col">Total</th><th scope="col">Situação</th><th scope="col">Envio</th></tr>
+              <tr><th scope="col">Data</th><th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">E-mail</th><th scope="col">Total</th><th scope="col">Situação</th><th scope="col">Envio</th></tr>
             </thead>
             <tbody>
               {pedidos.map((pedido) => (
                 <tr key={pedido.id}>
                   <td data-rotulo="Data">{pedido.criadoEm ? DATA.format(pedido.criadoEm) : ""}</td>
                   <td data-rotulo="Pedido"><Link href={`/admin/pedidos/${pedido.id}`}>{pedido.id.slice(0, 8)}</Link>{pedido.modo === "teste" ? " (teste)" : ""}</td>
+                  <td data-rotulo="Cliente">{pedido.clienteUid ? "Conta" : "Visitante"}</td>
                   <td data-rotulo="E-mail">{pedido.email}</td>
                   <td data-rotulo="Total">{formatarPreco(pedido.total)}</td>
                   <td data-rotulo="Situação">{ROTULOS_DO_STATUS[pedido.status]}</td>
