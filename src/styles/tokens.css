@@ -110,6 +110,11 @@
      elemento com caixa visível, nunca pelo reset universal. */
   --radius: 10px;
   --shadow: none; /* observado */
+  /* Sombra sutil (08/11/2026): EXCEÇÃO consciente à regra "sem sombra",
+     pedida pelo responsável e pendente de confirmação da designer. Só para
+     a caixa branca do menu do desktop e o painel do submenu, para separar
+     branco de branco. Feita do --color-primary (#00449F) a 6%. */
+  --shadow-sutil: 0 1px 2px color-mix(in srgb, var(--color-primary) 6%, transparent), 0 4px 16px color-mix(in srgb, var(--color-primary) 6%, transparent);
 
   /* Fora dos tokens:
      Blog: NÃO VERIFICADO (prints não recebidos)

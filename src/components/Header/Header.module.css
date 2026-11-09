@@ -96,6 +96,8 @@
   background: var(--color-bg);
   padding: var(--space-8) var(--space-24);
   border-radius: var(--radius);
+  /* Exceção de 08/11/2026: sombra sutil para separar o branco do branco. */
+  box-shadow: var(--shadow-sutil);
 }
 
 .doe {

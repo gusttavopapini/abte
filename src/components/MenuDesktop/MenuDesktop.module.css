@@ -137,6 +137,8 @@
   padding: var(--space-8); /* Padding reduzido para a caixa abraçar melhor as opções */
   background: var(--color-bg);
   border-radius: var(--radius);
+  /* Exceção de 08/11/2026: sombra sutil para separar o branco do branco. */
+  box-shadow: var(--shadow-sutil);
 }
 
 /* Ponte invisível para evitar que o dropdown feche quando o mouse passa pelo gap */
