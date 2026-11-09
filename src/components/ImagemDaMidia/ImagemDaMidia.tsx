@@ -1,7 +1,7 @@
 "use client";
 
 import Image, { type ImageLoaderProps } from "next/image";
-import { preload } from "react-dom";
+import { preconnect, preload } from "react-dom";
 import { escolherVariante } from "@/lib/midia/regras";
 import { fontesPorFaixa } from "@/lib/midia/versoes";
 import type { ImagemNaTela, VarianteNaTela } from "@/lib/midia/tela";
@@ -54,6 +54,8 @@ function variantesDoComputador(variantes: VarianteNaTela[]): VarianteNaTela[] {
 export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, prioridade, className, celular, sizesCelular = "100vw", tablet }: Props) {
   const maior = escolherVariante(variantes, Number.POSITIVE_INFINITY);
   if (!maior || largura <= 0 || altura <= 0) return null;
+  // Imagem principal: abre já a conexão com o servidor das imagens (08/11/2026).
+  if (prioridade && /^https:\/\//.test(maior.url)) preconnect(new URL(maior.url).origin);
   const { celular: paraCelular, tablet: paraTablet } = fontesPorFaixa({ celular, tablet });
   if (paraCelular || paraTablet) {
     const doComputador = variantesDoComputador(variantes);
