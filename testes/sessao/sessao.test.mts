@@ -96,7 +96,7 @@ describe("Acesso ao painel", () => {
 describe("Conta de cliente", () => {
   test("e-mail repetido não cria outra conta", async () => {
     const resultado = await criarContaDeCliente({ auth, db }, { nome: "TESTE", email: "teste-cliente@exemplo.invalid", senha: "senha-de-teste" });
-    assert.deepEqual(resultado, { ok: false, motivo: "email-em-uso" });
+    assert.deepEqual(resultado, { ok: false, motivo: "email-em-uso", codigo: "auth/email-already-exists" });
   });
 
   test("dados mínimos no Firestore, sem senha", async () => {

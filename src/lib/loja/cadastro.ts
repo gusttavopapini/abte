@@ -21,9 +21,14 @@ function texto(dados: FormData, campo: string): string {
   return typeof valor === "string" ? valor : "";
 }
 
+// Campo-armadilha (escondido de pessoas). Desde 08/11/2026 tem um nome sem
+// significado: com "site", o preenchimento automático do Safari podia
+// preenchê-lo e a conta de uma pessoa era recusada como robô.
+export const CAMPO_ARMADILHA = "campo_extra_abte";
+
 export function validarCadastroDeCliente(dados: FormData): ResultadoDoCadastro {
   // Campo escondido de pessoas: se vier preenchido, quase sempre é um robô.
-  if (texto(dados, "site")) return { ok: false, erros: {}, robo: true };
+  if (texto(dados, CAMPO_ARMADILHA).trim()) return { ok: false, erros: {}, robo: true };
 
   const erros: Partial<Record<CampoDoCadastro, string>> = {};
   const nome = texto(dados, "nome").trim();

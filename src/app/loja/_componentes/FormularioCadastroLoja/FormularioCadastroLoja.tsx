@@ -8,7 +8,7 @@ import { cadastrarCliente, criarSessaoCliente, type RespostaDoCadastro } from "@
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
-import { SENHA_MINIMA } from "@/lib/loja/cadastro";
+import { CAMPO_ARMADILHA, SENHA_MINIMA } from "@/lib/loja/cadastro";
 import { obterAuthCliente } from "@/lib/firebase/cliente";
 import estilos from "./FormularioCadastroLoja.module.css";
 
@@ -59,10 +59,12 @@ export function FormularioCadastroLoja({ destino, politicaPublicada = true }: { 
       <Campo id="cadastro-senha" name="senha" type="password" rotulo={`Senha (pelo menos ${SENHA_MINIMA} caracteres)`} obrigatorio autoComplete="new-password" erro={erros.senha} />
       <Campo id="cadastro-confirmacao" name="confirmacao" type="password" rotulo="Repita a senha" obrigatorio autoComplete="new-password" erro={erros.confirmacao} />
 
-      {/* Campo escondido de pessoas, para barrar robôs simples. */}
+      {/* Campo escondido de pessoas, para barrar robôs simples. Nome sem
+          significado e autoComplete="off", para o preenchimento automático
+          do navegador (Safari) não o preencher. */}
       <div className={estilos.escondido} aria-hidden="true">
-        <label htmlFor="cadastro-site">Não preencha</label>
-        <input id="cadastro-site" name="site" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor="cadastro-extra">Não preencha</label>
+        <input id="cadastro-extra" name={CAMPO_ARMADILHA} type="text" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" defaultValue="" />
       </div>
 
       <div className={estilos.consentimento}>

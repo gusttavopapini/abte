@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { DESTINO_PADRAO_DA_LOJA, destinoSeguroNaLoja } from "../../src/lib/auth/destino.ts";
-import { validarCadastroDeCliente } from "../../src/lib/loja/cadastro.ts";
+import { CAMPO_ARMADILHA, validarCadastroDeCliente } from "../../src/lib/loja/cadastro.ts";
 
 describe("Destino depois do login da loja", () => {
   test("aceita caminhos da loja", () => {
@@ -39,9 +39,15 @@ describe("Cadastro de cliente", () => {
   });
 
   test("campo escondido preenchido indica robô", () => {
-    const resultado = validarCadastroDeCliente(formulario({ ...BASE, site: "https://spam.invalid" }));
+    const resultado = validarCadastroDeCliente(formulario({ ...BASE, [CAMPO_ARMADILHA]: "https://spam.invalid" }));
     assert.equal(resultado.ok, false);
     if (!resultado.ok) assert.equal(resultado.robo, true);
+  });
+
+  test("campo 'site' (preenchimento automático do Safari) não barra mais a conta", () => {
+    assert.equal(CAMPO_ARMADILHA, "campo_extra_abte");
+    const resultado = validarCadastroDeCliente(formulario({ ...BASE, site: "https://www.exemplo.invalid" }));
+    assert.equal(resultado.ok, true);
   });
 
   test("e-mail inválido e nome vazio", () => {

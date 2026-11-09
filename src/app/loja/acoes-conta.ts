@@ -21,11 +21,17 @@ const SERVICOS = () => ({ auth: authAdmin(), db: firestoreAdmin() });
 export async function cadastrarCliente(dados: FormData): Promise<RespostaDoCadastro> {
   const resultado = validarCadastroDeCliente(dados);
   if (!resultado.ok) {
-    if (resultado.robo) return { ok: false, mensagem: "Não foi possível criar a conta agora. Tente de novo em instantes." };
+    // No log, só o motivo e os nomes dos campos; nunca nome, e-mail ou senha.
+    if (resultado.robo) {
+      console.warn("Cadastro da loja recusado: motivo=campo-armadilha.");
+      return { ok: false, mensagem: "Não foi possível criar a conta agora. Tente de novo em instantes." };
+    }
+    console.info(`Cadastro da loja recusado: motivo=validacao campos=${Object.keys(resultado.erros).join(",")}.`);
     return { ok: false, mensagem: "Confira os campos marcados.", erros: resultado.erros };
   }
   const criacao = await criarContaDeCliente(SERVICOS(), resultado.dados);
   if (!criacao.ok) {
+    console.warn(`Cadastro da loja recusado: motivo=${criacao.motivo} codigo=${criacao.codigo}.`);
     if (criacao.motivo === "email-em-uso") {
       return { ok: false, mensagem: "Confira os campos marcados.", erros: { email: "Já existe uma conta com este e-mail. Entre ou use \"Esqueci minha senha\"." } };
     }

@@ -16,7 +16,9 @@ export const VERSAO_DO_CONSENTIMENTO = "provisorio-2026-10-10";
 
 type Servicos = { auth: Auth; db: Firestore };
 
-export type ResultadoDaCriacao = { ok: true; uid: string } | { ok: false; motivo: "email-em-uso" | "erro" };
+// codigo: só o código do erro (ex.: "auth/invalid-password"), para o log do
+// servidor; nunca nome, e-mail ou senha.
+export type ResultadoDaCriacao = { ok: true; uid: string } | { ok: false; motivo: "email-em-uso" | "erro"; codigo: string };
 
 // Cria o usuário no Authentication (sem claims) e o documento do cliente com
 // os dados mínimos. Se o Firestore falhar, desfaz o usuário criado.
@@ -27,7 +29,7 @@ export async function criarContaDeCliente({ auth, db }: Servicos, dados: DadosDo
     uid = usuario.uid;
   } catch (erro) {
     const codigo = typeof erro === "object" && erro !== null && "code" in erro ? String(erro.code) : "";
-    return { ok: false, motivo: codigo === "auth/email-already-exists" ? "email-em-uso" : "erro" };
+    return { ok: false, motivo: codigo === "auth/email-already-exists" ? "email-em-uso" : "erro", codigo: codigo || "auth/desconhecido" };
   }
   try {
     const agora = new Date();
@@ -39,9 +41,10 @@ export async function criarContaDeCliente({ auth, db }: Servicos, dados: DadosDo
       criadoEm: agora,
     });
     return { ok: true, uid };
-  } catch {
+  } catch (erro) {
     await auth.deleteUser(uid).catch(() => undefined);
-    return { ok: false, motivo: "erro" };
+    const codigo = typeof erro === "object" && erro !== null && "code" in erro ? String(erro.code) : "firestore/desconhecido";
+    return { ok: false, motivo: "erro", codigo };
   }
 }
 

@@ -1,6 +1,7 @@
 /* Fora da tela e do leitor de tela: só robôs preenchem */
 .escondido {
   position: absolute;
+  left: -100vw;
   width: 1px;
   height: 1px;
   overflow: hidden;
