@@ -11,10 +11,16 @@
   min-width: 0;
 }
 
-/* O overflow tira o tamanho mínimo automático: a imagem não estica o quadrado. */
+/* O overflow tira o tamanho mínimo automático: a imagem não estica o quadrado.
+   Desde 08/11/2026 (noite), quadro 1:1 com o mesmo contorno e raio das
+   miniaturas não selecionadas, fundo branco e respiro de --space-16: o
+   espaço vazio dos lados vira parte do quadro. box-sizing border-box
+   (reset) mantém o quadrado com a borda e o respiro. */
 .destaque {
   aspect-ratio: 1;
   overflow: hidden;
+  padding: var(--space-16);
+  border: 2px solid var(--color-bg-alt);
   border-radius: var(--radius);
   background: var(--color-bg);
 }
