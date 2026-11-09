@@ -51,10 +51,11 @@
   gap: var(--space-16);
 }
 
+/* Título em negrito (08/11/2026, pedido do responsável), sem mudar o tamanho. */
 .conteudo .titulo {
   color: var(--color-primary);
   font-size: calc(var(--font-size-h3) * 0.85);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-semibold);
 }
 
 .resumo {

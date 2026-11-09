@@ -56,6 +56,9 @@
   --font-weight-light: 300;
   --font-weight-regular: 300; /* atualizado para 300 para visual mais delicado */
   --font-weight-bold: 400; /* Atualizado para 400 para manter a delicadeza geral */
+  /* 600, o mesmo do item ativo do menu (fonte já carregada em 600). Título
+     dos cards de post desde 08/11/2026. */
+  --font-weight-semibold: 600;
   --font-size-display: clamp(3.5rem, 0.878rem + 10.758vw, 12.375rem); /* max medido em 1710px; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h1: clamp(2.5rem, 1.521rem + 4.015vw, 5.8125rem); /* max medido; min AJUSTE APROVADO PELA DESIGNER */
   --font-size-h1-previa: clamp(2.5rem, 1.521rem + 4.015cqw, 5.8125rem);
