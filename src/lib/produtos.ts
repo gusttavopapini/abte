@@ -198,3 +198,29 @@ export function escolherProdutosEmDestaque<T extends ProdutoParaDestaque>(produt
     .sort((a, b) => Number(!a.selo.trim()) - Number(!b.selo.trim()) || ordemDaLoja(a, b))
     .slice(0, limite);
 }
+
+// ---------- Resumo da descrição na página do produto (08/11/2026) ----------
+
+export const ITENS_MAXIMOS_NO_RESUMO = 5;
+const TAMANHO_MAXIMO_DO_ITEM = 120;
+
+export type ResumoDaDescricao = { paragrafos: string[]; lista: string[]; temMais: boolean };
+
+// Os primeiros parágrafos da descrição, sem terminar num parágrafo com ":"
+// (ex.: "Contém:"). Nesse caso entra a lista logo abaixo (os parágrafos
+// curtos seguintes, até 5); sem lista, o resumo para no parágrafo anterior.
+// temMais: a descrição tem texto além do resumo ("Ver descrição completa").
+export function resumoDaDescricao(paragrafos: string[], quantidade: number): ResumoDaDescricao {
+  const resumo = paragrafos.slice(0, quantidade);
+  const lista: string[] = [];
+  if (resumo.length > 0 && resumo[resumo.length - 1].trimEnd().endsWith(":")) {
+    for (const paragrafo of paragrafos.slice(resumo.length)) {
+      if (lista.length >= ITENS_MAXIMOS_NO_RESUMO || paragrafo.length > TAMANHO_MAXIMO_DO_ITEM || paragrafo.trimEnd().endsWith(":")) break;
+      lista.push(paragrafo);
+    }
+    if (lista.length === 0) resumo.pop();
+  }
+  // Ainda terminando em ":" (parágrafo anterior também com dois-pontos): tira.
+  while (lista.length === 0 && resumo.length > 0 && resumo[resumo.length - 1].trimEnd().endsWith(":")) resumo.pop();
+  return { paragrafos: resumo, lista, temMais: paragrafos.length > resumo.length + lista.length };
+}

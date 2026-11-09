@@ -12,6 +12,7 @@ import { formatarPreco } from "@/lib/produtos";
 import { liberacaoAtual } from "@/lib/stripe/servidor";
 import { FinalizarCompra } from "../_componentes/FinalizarCompra/FinalizarCompra";
 import { ItensDoCarrinho } from "../_componentes/ItensDoCarrinho/ItensDoCarrinho";
+import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Carrinho", robots: { index: false, follow: false } };
@@ -39,18 +40,19 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
+      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
       {parametros.pagamento === "cancelado" && <Mensagem tipo="sucesso">Pagamento cancelado. Seu carrinho continua guardado.</Mensagem>}
       {pagamentoLigado && liberacao.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}
       {!cliente && (
         <p className={`${estilos.pequeno} ${estilos.entrar}`}>
-          Não é preciso ter conta para comprar. <Link href="/loja/entrar?voltar=%2Floja%2Fconta" className="realce">Entre para ver seus pedidos</Link>
+          Não é preciso ter conta para comprar. <Link href="/loja/entrar?voltar=%2Floja%2Fconta" className="link-de-texto">Entre para ver seus pedidos</Link>
         </p>
       )}
 
       {linhas.length === 0 ? (
         <p className="tipo-texto">
-          Seu carrinho está vazio. <Link href="/loja">Ver produtos</Link>
+          Seu carrinho está vazio. <Link href="/loja" className="link-de-texto">Ver produtos</Link>
         </p>
       ) : (
         <div className={estilos.conteudo}>
@@ -78,7 +80,7 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
                 <p className={estilos.pequeno}>{TEXTO_PAGAMENTO_SEGURO}</p>
                 <p className={estilos.pequeno}>
                   Seus dados de entrega e contato são usados só para processar o pedido. Detalhes na{" "}
-                  {politicaPublicada ? <Link href="/politica-de-privacidade">Política de privacidade</Link> : "Política de privacidade"}.
+                  {politicaPublicada ? <Link href="/politica-de-privacidade" className="link-de-texto">Política de privacidade</Link> : "Política de privacidade"}.
                 </p>
               </>
             ) : (

@@ -9,6 +9,7 @@ import { lerPedido, type Pedido } from "@/lib/loja/pedidos";
 import { formatarPreco } from "@/lib/produtos";
 import { encerrarSessaoCliente } from "../acoes-conta";
 import { ExcluirConta } from "../_componentes/ExcluirConta/ExcluirConta";
+import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Minha conta", robots: { index: false, follow: false } };
@@ -31,6 +32,7 @@ export default async function PaginaMinhaConta() {
           <span className="seta-para-tras" aria-hidden="true">&larr;</span>
           Voltar para a loja
         </Botao>
+        <LinksDaLoja />
         <div className={estilos.abertura}>
           <div className={estilos.introducao}>
             <h1 className="tipo-h2">Minha conta</h1>

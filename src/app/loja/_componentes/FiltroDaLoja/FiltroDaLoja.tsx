@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Botao } from "@/components/Botao/Botao";
 import { IconeFechar, IconeFiltro, IconeSeta } from "@/components/Icones/Icones";
+import { LinksDaLoja } from "../LinksDaLoja/LinksDaLoja";
 import {
   DISPONIBILIDADES,
   LIMITE_DA_BUSCA,
@@ -441,27 +442,32 @@ export function FiltroDaLoja({
               {total} {total === 1 ? "produto" : "produtos"}
             </p>
           </div>
-          <div className={estilos.ordenar}>
-            <label htmlFor={idOrdem} className={estilos.rotulo}>Ordenar por</label>
-            <span className={estilos.seletor}>
-              <select
-                id={idOrdem}
-                name={PARAMETROS.ordem}
-                form={idFormulario}
-                value={rascunho.ordem}
-                onChange={(evento) => mudarOrdem(evento.target.value as OrdemDaLoja)}
-                className={estilos.selecao}
-              >
-                {ORDENS.map((ordem) => (
-                  <option key={ordem.valor} value={ordem.valor}>{ordem.rotulo}</option>
-                ))}
-              </select>
-              <IconeSeta className={estilos.setaDoSeletor} />
-            </span>
-            {/* Sem JavaScript, a ordem vale ao enviar o formulário. */}
-            <Botao type="submit" form={idFormulario} variante="secundario" className={estilos.soSemJs}>
-              Ordenar
-            </Botao>
+          {/* Links da loja (carrinho e conta) ao lado da ordem, desde 08/11/2026 à
+              noite, no lugar do botão flutuante "+". */}
+          <div className={estilos.acoesDaBarra}>
+            <LinksDaLoja />
+            <div className={estilos.ordenar}>
+              <label htmlFor={idOrdem} className={estilos.rotulo}>Ordenar por</label>
+              <span className={estilos.seletor}>
+                <select
+                  id={idOrdem}
+                  name={PARAMETROS.ordem}
+                  form={idFormulario}
+                  value={rascunho.ordem}
+                  onChange={(evento) => mudarOrdem(evento.target.value as OrdemDaLoja)}
+                  className={estilos.selecao}
+                >
+                  {ORDENS.map((ordem) => (
+                    <option key={ordem.valor} value={ordem.valor}>{ordem.rotulo}</option>
+                  ))}
+                </select>
+                <IconeSeta className={estilos.setaDoSeletor} />
+              </span>
+              {/* Sem JavaScript, a ordem vale ao enviar o formulário. */}
+              <Botao type="submit" form={idFormulario} variante="secundario" className={estilos.soSemJs}>
+                Ordenar
+              </Botao>
+            </div>
           </div>
         </div>
         {ativos.length > 0 && (

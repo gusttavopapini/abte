@@ -35,10 +35,12 @@ describe("Hover sem sublinhado", () => {
     assert.deepEqual(achados, []);
   });
 
-  test("o único sublinhado em repouso é o dos links de texto corrido", () => {
+  // Desde 08/11/2026 também o .link-de-texto (links soltos da caixa de compra
+  // e do carrinho, com o mesmo sublinhado fino do texto corrido).
+  test("o único sublinhado em repouso é o dos links de texto corrido e o .link-de-texto", () => {
     const achados = arquivos("src", [".css"]).flatMap((arquivo) =>
       regras(readFileSync(arquivo, "utf8"))
-        .filter(({ seletor, corpo }) => SUBLINHADO.test(corpo) && seletor !== ".texto-corrido a")
+        .filter(({ seletor, corpo }) => SUBLINHADO.test(corpo) && seletor !== ".texto-corrido a" && seletor !== ".link-de-texto")
         .map(({ seletor }) => `${arquivo}: ${seletor}`),
     );
     assert.deepEqual(achados, []);

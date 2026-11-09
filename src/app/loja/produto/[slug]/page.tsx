@@ -11,11 +11,13 @@ import { lerTopicos, listarProdutosVisiveis } from "@/lib/dados/colecoes";
 import { lerSessaoCliente } from "@/lib/auth/sessao-cliente";
 import { quantidadeMaxima } from "@/lib/loja/carrinho";
 import { AdicionarAoCarrinho } from "../../_componentes/AdicionarAoCarrinho/AdicionarAoCarrinho";
-import { escolherRelacionados, imagemPrincipal } from "@/lib/produtos";
+import { LinksDaLoja } from "../../_componentes/LinksDaLoja/LinksDaLoja";
+import { escolherRelacionados, imagemPrincipal, precoAtual, resumoDaDescricao } from "@/lib/produtos";
+import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { imagensAtivasPorId } from "@/lib/midia/exibicao";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import { paragrafosDoTexto } from "@/lib/texto";
-import { TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
+import { DOCUMENTO_DA_LOJA, lerFreteFixo, TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
 import { liberacaoAtual } from "@/lib/stripe/servidor";
 import estilos from "./page.module.css";
 
@@ -52,12 +54,17 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const galeria = produto.imagens.map((imagem) => imagens.get(imagem.midiaId)).filter((imagem): imagem is ImagemNaTela => imagem !== undefined);
   const esgotado = produto.status === "esgotado";
   const pagamentoLigado = liberacaoAtual().ok;
+  // Frete fixo da loja (configuracoes/loja), só para produto físico; sem
+  // valor ou se a leitura falhar, "Frete combinado após a compra".
+  const freteFixo = produto.tipo === "fisico" && !esgotado
+    ? await firestoreAdmin().collection("configuracoes").doc(DOCUMENTO_DA_LOJA).get().then((documento) => lerFreteFixo(documento.get("freteFixo"))).catch(() => null)
+    : null;
   const situacao = `${esgotado ? "Esgotado" : "Disponível"} · ${produto.tipo === "digital" ? "Produto digital" : "Produto físico"}`;
   // Categoria visível na trilha (link para a lista filtrada por ?categoria=).
   const categoriaNaTrilha = categoria && !categoria.excluidoEm && categoria.slug ? { nome: categoria.nome, slug: categoria.slug } : null;
   // Resumo: os primeiros parágrafos da descrição cadastrada (nada inventado).
   const paragrafos = paragrafosDoTexto(produto.descricao);
-  const resumo = paragrafos.slice(0, PARAGRAFOS_DO_RESUMO);
+  const resumo = resumoDaDescricao(paragrafos, PARAGRAFOS_DO_RESUMO);
 
   // Dados estruturados de produto SEM oferta de compra (sem "offers"): não há
   // venda online. Sem "offers", o Google não mostra preço nem disponibilidade.
@@ -92,6 +99,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             </ol>
           </nav>
         </div>
+        <LinksDaLoja />
       </div>
 
       <article className={estilos.produto} aria-labelledby="titulo-do-produto">
@@ -102,14 +110,21 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
           <h1 id="titulo-do-produto" className={estilos.titulo}>{produto.nome}</h1>
           <p className={estilos.situacao}>{situacao}</p>
           <PrecoProduto preco={produto.preco} precoPromocional={produto.precoPromocional} tamanho="pagina" />
-          {resumo.length > 0 && (
+          {(resumo.paragrafos.length > 0 || resumo.lista.length > 0) && (
             <div className={estilos.resumo}>
-              {resumo.map((paragrafo, indice) => (
+              {resumo.paragrafos.map((paragrafo, indice) => (
                 <p key={indice}>{paragrafo}</p>
               ))}
+              {resumo.lista.length > 0 && (
+                <ul className={estilos.listaDoResumo}>
+                  {resumo.lista.map((item, indice) => (
+                    <li key={indice}>{item}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
-          {paragrafos.length > resumo.length && (
+          {resumo.temMais && (
             <a href="#descricao" className={`realce ${estilos.verDescricao}`}>Ver descrição completa</a>
           )}
         </div>
@@ -121,17 +136,29 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
           {esgotado ? (
             <p className={estilos.situacao}>Produto esgotado: não dá para adicionar ao carrinho.</p>
           ) : (
-            <AdicionarAoCarrinho produtoId={produto.id} maximo={quantidadeMaxima(produto.tipo)} comprarAgoraLigado={pagamentoLigado} />
+            <AdicionarAoCarrinho
+              produtoId={produto.id}
+              maximo={quantidadeMaxima(produto.tipo)}
+              comprarAgoraLigado={pagamentoLigado}
+              precoUnitario={precoAtual(produto)}
+              tipo={produto.tipo}
+              freteFixo={freteFixo}
+            />
           )}
           {!cliente && (
             <p className={estilos.entrar}>
-              <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`} className="realce">Entre para ver seus pedidos</Link>
+              <Link href={`/loja/entrar?voltar=${encodeURIComponent(`/loja/produto/${produto.slug}`)}`} className="link-de-texto">Entre para ver seus pedidos</Link>
             </p>
           )}
-          {/* Com o pagamento ligado (08/11/2026), o aviso "Em breve" dá lugar à forma de pagamento. */}
-          <div className={estilos.aviso} role="note">
-            <p>{pagamentoLigado ? `${TEXTO_PAGAMENTO_SEGURO}.` : "Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho."}</p>
-          </div>
+          {/* O aviso "Em breve" só com o pagamento desligado (PAGAMENTO_HABILITADO);
+              ligado, só a linha da forma de pagamento, sem caixa. */}
+          {pagamentoLigado ? (
+            <p className={estilos.pagamentoSeguro}>{TEXTO_PAGAMENTO_SEGURO}.</p>
+          ) : (
+            <div className={estilos.aviso} role="note">
+              <p>Em breve: a finalização da compra online ainda não está disponível. Você pode guardar os produtos no carrinho.</p>
+            </div>
+          )}
         </aside>
       </article>
 

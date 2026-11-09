@@ -215,6 +215,15 @@
   line-height: var(--leading-normal);
 }
 
+/* Links da loja e a ordem, à direita da barra (08/11/2026). */
+.acoesDaBarra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-8) var(--space-16);
+}
+
 .ordenar {
   display: flex;
   flex-wrap: wrap;

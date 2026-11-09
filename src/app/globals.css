@@ -265,7 +265,30 @@ h3,
   text-decoration-color: transparent;
 }
 
+/* (f) .link-de-texto (08/11/2026): link de texto solto em colunas estreitas
+   (caixa de compra e carrinho da loja), sem a pílula do .realce, que saía da
+   coluna. Sublinhado fino em repouso, como o .texto-corrido a; no hover e no
+   foco só muda a cor (o foco ganha também o --focus-ring). */
+.link-de-texto {
+  color: var(--color-text);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color var(--interacao-duracao) var(--interacao-curva);
+}
+
+.link-de-texto:focus-visible {
+  border-radius: calc(var(--radius) / 2);
+  box-shadow: var(--focus-ring);
+  outline: none;
+  color: var(--color-primary-hover);
+}
+
 @media (hover: hover) and (pointer: fine) {
+  .link-de-texto:hover {
+    color: var(--color-primary-hover);
+  }
+
   .realce:hover {
     color: var(--color-primary-hover);
   }

@@ -11,6 +11,7 @@ import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { Rotulo } from "@/components/Rotulo/Rotulo";
 import { AmostrasCores } from "./_demonstracao/AmostrasCores/AmostrasCores";
 import { EscalaTipografica } from "./_demonstracao/EscalaTipografica/EscalaTipografica";
+import { ResumoDaCompra } from "@/app/loja/_componentes/ResumoDaCompra/ResumoDaCompra";
 import estilos from "./componentes.module.css";
 
 // Página de revisão visual. Fora de qualquer menu e fora dos buscadores.
@@ -158,6 +159,25 @@ export default function PaginaComponentes() {
           <BlocoContato />
           <BlocoContato estadoInicial="erro" />
           <BlocoContato estadoInicial="sucesso" />
+        </div>
+      </Secao>
+
+      {/* Resumo da caixa de compra (08/11/2026) com valores de exemplo, para
+          conferir o caso com frete sem gravar frete nos dados. */}
+      <Secao titulo="Resumo da caixa de compra: exemplos">
+        <div className={estilos.tresColunas}>
+          <div data-exemplo="frete-1">
+            <p className="tipo-pequeno">[exemplo] R$ 35,00, 1 item, frete R$ 25,00</p>
+            <ResumoDaCompra precoUnitario={3500} quantidade={1} tipo="fisico" freteFixo={2500} />
+          </div>
+          <div data-exemplo="frete-4">
+            <p className="tipo-pequeno">[exemplo] R$ 39,99 em promoção, 4 itens, frete R$ 25,00</p>
+            <ResumoDaCompra precoUnitario={3999} quantidade={4} tipo="fisico" freteFixo={2500} />
+          </div>
+          <div data-exemplo="digital">
+            <p className="tipo-pequeno">[exemplo] produto digital de R$ 9,90</p>
+            <ResumoDaCompra precoUnitario={990} quantidade={1} tipo="digital" freteFixo={2500} />
+          </div>
         </div>
       </Secao>
     </LayoutPublico>

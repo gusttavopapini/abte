@@ -10,6 +10,7 @@ import { lerPedido } from "@/lib/loja/pedidos";
 import { formatarPreco } from "@/lib/produtos";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
 import { LimparCarrinhoPago } from "./LimparCarrinhoPago";
+import { LinksDaLoja } from "../../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
 
 // no-referrer: o endereço pode ter o token do pedido (?t=), que não deve ir
@@ -39,6 +40,7 @@ export default async function PaginaPedido({ params, searchParams }: { params: P
 
   return (
     <div className={`container pagina-interna ${estilos.secao}`}>
+      <LinksDaLoja />
       <h1 className={`tipo-h2 ${estilos.titulo}`}>Pedido</h1>
       {pedido.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}
       {/* Visitante que pagou: esvazia o carrinho do cookie (o servidor confere o token). */}

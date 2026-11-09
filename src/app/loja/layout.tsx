@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { LayoutPublico } from "@/components/LayoutPublico/LayoutPublico";
 import { lerCarrinhoAtual } from "@/lib/dados/carrinho";
-import { MenuDaLoja } from "./_componentes/MenuDaLoja/MenuDaLoja";
+import { ProvedorDaLoja } from "./_componentes/LinksDaLoja/LinksDaLoja";
 
 // Os atalhos de carrinho e conta são compartilhados pelas páginas da loja.
 export default async function LayoutLoja({ children }: { children: ReactNode }) {
@@ -11,8 +11,11 @@ export default async function LayoutLoja({ children }: { children: ReactNode }) 
   const unidades = itens.reduce((soma, item) => soma + item.quantidade, 0);
   return (
     <LayoutPublico header="solida">
-      <MenuDaLoja logado={cliente !== null} unidades={unidades} />
-      {children}
+      {/* Links da loja no topo de cada página (08/11/2026), no lugar do botão
+          flutuante "+", que cobria a caixa de compra e textos. */}
+      <ProvedorDaLoja logado={cliente !== null} unidades={unidades}>
+        {children}
+      </ProvedorDaLoja>
     </LayoutPublico>
   );
 }

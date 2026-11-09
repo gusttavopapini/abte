@@ -30,7 +30,7 @@ export function ItensDoCarrinho({ linhas }: { linhas: Linha[] }) {
           <li key={linha.produtoId} className={estilos.item}>
             <div className={estilos.descricao}>
               <h2 className={estilos.nome}>
-                {linha.slug ? <Link href={`/loja/produto/${linha.slug}`}>{linha.nome}</Link> : linha.nome}
+                {linha.slug ? <Link href={`/loja/produto/${linha.slug}`} className="link-de-texto">{linha.nome}</Link> : linha.nome}
               </h2>
               {linha.precoUnitario !== null && <p>{formatarPreco(linha.precoUnitario)} cada</p>}
               {AVISOS[linha.situacao] && <p className={estilos.aviso}>{AVISOS[linha.situacao]}</p>}
