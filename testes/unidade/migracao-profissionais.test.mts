@@ -95,6 +95,11 @@ describe("Conversão para o modelo atual", () => {
       instagram: "perfil.exemplo",
       facebook: "https://www.facebook.com/pagina.exemplo",
       email: "contato@exemplo.invalid",
+      // Desde 08/11/2026 o endereço e o site do arquivo entram, validados.
+      endereco: "Endereço que não entra no modelo",
+      site: "https://exemplo.invalid/",
+      outrosPerfis: [],
+      emailsExtras: [],
       bio: "Apresentação de exemplo.",
       ativo: false,
       ordem: 7,
@@ -144,7 +149,7 @@ describe("Conversão para o modelo atual", () => {
   });
 
   test("acima dos limites do painel: campo vazio e marcado (nada é cortado)", () => {
-    const { dados, problemas } = converterProfissional(registro({ bio: "x".repeat(1001), registro: "Crefito ".concat("r".repeat(60)), ordem: 1000 }));
+    const { dados, problemas } = converterProfissional(registro({ bio: "x".repeat(3001), registro: "Crefito ".concat("r".repeat(60)), ordem: 1000 }));
     assert.deepEqual([dados.bio, dados.registro, dados.ordem], ["", "", 0]);
     for (const problema of ["bioLonga", "registroLongo", "ordemInvalida"]) assert.ok(problemas.includes(problema as never), problema);
   });
