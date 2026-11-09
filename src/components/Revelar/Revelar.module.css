@@ -3,16 +3,19 @@
    design system). Os valores ficam aqui, como propriedades locais, sem token.
 
    O conteúdo só fica escondido quando o script do <head> (app/layout.tsx)
-   marcou o <html> com .movimento: JavaScript ativo e sem preferência por
-   movimento reduzido. Sem isso, tudo aparece normalmente. Só opacidade e
-   transform: nada muda de tamanho nem empurra o resto da página. */
+   marcou o <html> com .movimento (JavaScript ativo e sem preferência por
+   movimento reduzido) E o observador já carregou (data-revelacao-pronta).
+   Desde 08/11/2026 (fluidez): o que já está na tela ao carregar aparece na
+   hora, sem animação (marcado antes pelo ObservadorDeRevelacao); só os
+   blocos abaixo da dobra entram ao rolar. Só opacidade e transform: nada
+   muda de tamanho nem empurra o resto da página. */
 .revelar {
-  /* Duração da entrada */
-  --revelar-duracao: 600ms;
-  /* Distância que o bloco sobe: um passo de espaçamento */
-  --revelar-distancia: var(--space-16);
-  /* Intervalo entre blocos em sequência (data-ordem 1 a 3) */
-  --revelar-passo: 120ms;
+  /* Duração da entrada (600ms até 08/11/2026) */
+  --revelar-duracao: 400ms;
+  /* Distância que o bloco sobe: meio passo de espaçamento (era --space-16) */
+  --revelar-distancia: var(--space-8);
+  /* Intervalo entre blocos em sequência (data-ordem 1 a 3, no máximo 3) */
+  --revelar-passo: 80ms;
   /* Curva: começa rápido e assenta devagar */
   --revelar-curva: cubic-bezier(0.25, 0.1, 0.25, 1);
   --revelar-ordem: 0;
@@ -30,7 +33,7 @@
   --revelar-ordem: 3;
 }
 
-:global(html.movimento) .revelar {
+:global(html.movimento[data-revelacao-pronta]) .revelar:not([data-imediato]) {
   transition:
     opacity var(--revelar-duracao) var(--revelar-curva),
     transform var(--revelar-duracao) var(--revelar-curva);
@@ -39,7 +42,7 @@
 
 /* Na impressão, tudo aparece */
 @media screen {
-  :global(html.movimento) .revelar:not([data-visivel]) {
+  :global(html.movimento[data-revelacao-pronta]) .revelar:not([data-visivel]) {
     opacity: 0;
     transform: translateY(var(--revelar-distancia));
   }

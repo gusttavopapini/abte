@@ -82,7 +82,7 @@ export function VideoVertical({ endereco, titulo, fonte }: { endereco: string; t
           className={estilos.midia}
         />
       ) : video?.tipo === "arquivo" ? (
-        <video src={video.endereco} title={titulo} controls playsInline preload="metadata" className={estilos.midia}>
+        <video src={video.endereco} title={titulo} controls playsInline preload="none" className={estilos.midia}>
           Seu navegador não mostra este vídeo.
         </video>
       ) : (

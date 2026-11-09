@@ -1,6 +1,7 @@
 "use client";
 
 import Image, { type ImageLoaderProps } from "next/image";
+import { preload } from "react-dom";
 import { escolherVariante } from "@/lib/midia/regras";
 import { fontesPorFaixa } from "@/lib/midia/versoes";
 import type { ImagemNaTela, VarianteNaTela } from "@/lib/midia/tela";
@@ -56,12 +57,23 @@ export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, priorida
   const { celular: paraCelular, tablet: paraTablet } = fontesPorFaixa({ celular, tablet });
   if (paraCelular || paraTablet) {
     const doComputador = variantesDoComputador(variantes);
+    const doCelular = paraCelular ? variantesDoCelular(paraCelular.variantes) : null;
+    // Imagem principal (primeiro banner, 08/11/2026): pré-carregada no <head>,
+    // uma vez por faixa de tela, com a mesma media do <source>, para o
+    // navegador baixar só a versão que vai mostrar.
+    if (prioridade) {
+      const opcoes = (lista: VarianteNaTela[], tamanhos: string, media: string) =>
+        preload(lista[0].url, { as: "image", imageSrcSet: listaDoSrcset(lista), imageSizes: tamanhos, fetchPriority: "high", media });
+      if (doCelular) opcoes(doCelular, sizesCelular, MIDIA_DO_CELULAR);
+      if (paraTablet) opcoes(paraTablet.variantes, sizesCelular, doCelular ? "(min-width: 768px) and (max-width: 1023px)" : MIDIA_DO_TABLET);
+      opcoes(doComputador, sizes, paraTablet ? "(min-width: 1024px)" : "(min-width: 768px)");
+    }
     // Os <source> vêm do mais estreito para o mais largo: o navegador escolhe
     // uma fonte só e baixa um arquivo só. width e height de cada fonte
     // reservam o espaço.
     return (
       <picture className={estilos.moldura}>
-        {paraCelular && <source media={MIDIA_DO_CELULAR} srcSet={listaDoSrcset(variantesDoCelular(paraCelular.variantes))} sizes={sizesCelular} width={paraCelular.largura} height={paraCelular.altura} />}
+        {paraCelular && doCelular && <source media={MIDIA_DO_CELULAR} srcSet={listaDoSrcset(doCelular)} sizes={sizesCelular} width={paraCelular.largura} height={paraCelular.altura} />}
         {paraTablet && <source media={MIDIA_DO_TABLET} srcSet={listaDoSrcset(paraTablet.variantes)} sizes={sizesCelular} width={paraTablet.largura} height={paraTablet.altura} />}
         <img
           src={(escolherVariante(doComputador, LIMITE_DAS_VERSOES) ?? maior).url}
@@ -88,9 +100,11 @@ export function ImagemDaMidia({ variantes, alt, largura, altura, sizes, priorida
       height={altura}
       sizes={sizes}
       // "priority" foi descontinuado no Next.js 16; para a imagem principal da
-      // página, a documentação indica carregar já e com prioridade alta.
-      loading={prioridade ? "eager" : undefined}
+      // página, a documentação indica carregar já e com prioridade alta. Fora
+      // dela, carrega só perto da tela e decodifica sem travar (08/11/2026).
+      loading={prioridade ? "eager" : "lazy"}
       fetchPriority={prioridade ? "high" : undefined}
+      decoding="async"
       className={`${estilos.imagem} ${className ?? ""}`}
     />
   );
