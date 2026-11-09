@@ -24,9 +24,18 @@
   padding-bottom: var(--space-32);
 }
 
-.titulo {
+/* H1 do post no tamanho do H2 (08/11/2026): títulos longos ficavam enormes.
+   Continua sendo o H1 da página. Entrelinha de título do site, quebra
+   equilibrada e largura de leitura de cerca de 26 caracteres: 14 vezes o
+   tamanho da fonte (o "ch" da Public Sans mede cerca de 0,54 em), de 448px
+   (fonte de 32px) a 672px (fonte de 48px). */
+.cabecalho .titulo {
+  max-width: calc(var(--font-size-h2) * 14);
   color: var(--color-primary);
+  font-size: var(--font-size-h2);
   font-weight: var(--font-weight-light);
+  line-height: var(--leading-snug);
+  text-wrap: balance;
 }
 
 .meta {
