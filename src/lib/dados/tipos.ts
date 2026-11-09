@@ -76,6 +76,11 @@ export type Profissional = {
   instagram: string;
   facebook: string;
   email: string;
+  // Campos extras (08/11/2026); ausentes valem "" ou lista vazia.
+  endereco: string;
+  site: string;
+  outrosPerfis: { rotulo: string; url: string }[];
+  emailsExtras: string[];
   bio: string;
   ativo: boolean;
   ordem: number;

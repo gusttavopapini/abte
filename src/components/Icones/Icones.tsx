@@ -78,6 +78,17 @@ export function IconeEmail({ className }: PropsIcone) {
   );
 }
 
+// Globo (site do profissional, 08/11/2026).
+export function IconeSite({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" />
+    </svg>
+  );
+}
+
 // Ícones sociais preenchidos, com nome acessível fornecido pelo link.
 export function IconeInstagram({ className }: PropsIcone) {
   return (

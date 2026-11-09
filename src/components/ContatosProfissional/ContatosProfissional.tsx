@@ -1,4 +1,4 @@
-import { IconeEmail, IconeInstagram, IconeTelefone, IconeWhatsapp } from "@/components/Icones/Icones";
+import { IconeEmail, IconeInstagram, IconeSite, IconeTelefone, IconeWhatsapp } from "@/components/Icones/Icones";
 import { telefoneParaLeitura } from "@/lib/contatos";
 import estilos from "./ContatosProfissional.module.css";
 
@@ -8,6 +8,9 @@ type Props = {
   telefones: string[];
   instagram: string;
   email: string;
+  // Desde 08/11/2026: site e outros perfis (o card mostra só o site; o popup, os dois).
+  site?: string;
+  outrosPerfis?: { rotulo: string; url: string }[];
 };
 
 // Botões de contato do profissional (card e popup), com os mesmos destinos,
@@ -16,8 +19,8 @@ type Props = {
 // site em 04/11/2026 (o dado continua no cadastro do painel). O telefone abre
 // a ligação (tel:); o número vai no nome acessível e, com mais de um, o
 // rótulo visível ganha a ordem ("Telefone 2").
-export function ContatosProfissional({ nomeCompleto, whatsapp, telefones, instagram, email }: Props) {
-  if (!whatsapp && telefones.length === 0 && !instagram && !email) return null;
+export function ContatosProfissional({ nomeCompleto, whatsapp, telefones, instagram, email, site = "", outrosPerfis = [] }: Props) {
+  if (!whatsapp && telefones.length === 0 && !instagram && !email && !site && outrosPerfis.length === 0) return null;
   const novaAba = { target: "_blank", rel: "noopener noreferrer" } as const;
 
   return (
@@ -55,6 +58,23 @@ export function ContatosProfissional({ nomeCompleto, whatsapp, telefones, instag
           </a>
         </li>
       )}
+      {site && (
+        <li>
+          <a href={site} {...novaAba} className={`${estilos.contato} ${estilos.telefone}`}>
+            <IconeSite className={estilos.iconeContato} />
+            Site<span className="somente-leitor"> (abre em nova aba)</span>
+          </a>
+        </li>
+      )}
+      {outrosPerfis.map((perfil) => (
+        <li key={perfil.url}>
+          <a href={perfil.url} {...novaAba} className={`${estilos.contato} ${/instagram\.com/i.test(perfil.url) ? estilos.instagram : estilos.telefone}`}>
+            {/instagram\.com/i.test(perfil.url) ? <IconeInstagram className={estilos.iconeContato} /> : <IconeSite className={estilos.iconeContato} />}
+            {perfil.rotulo}
+            <span className="somente-leitor"> (outro perfil, abre em nova aba)</span>
+          </a>
+        </li>
+      ))}
     </ul>
   );
 }

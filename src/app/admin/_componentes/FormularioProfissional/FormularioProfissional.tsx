@@ -8,7 +8,7 @@ import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSal
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
-import { LIMITE_DE_TELEFONES } from "@/lib/contatos";
+import { LIMITE_DE_TELEFONES, outrosPerfisComoTexto } from "@/lib/contatos";
 import type { Profissional } from "@/lib/dados/tipos";
 import type { ImagemNaTela } from "@/lib/midia/tela";
 import estilos from "./FormularioProfissional.module.css";
@@ -144,7 +144,25 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoM
         </div>
       </fieldset>
 
-      <Campo id={`${id}-bio`} name="bio" rotulo="Apresentação (até 1.000 caracteres)" multilinha maxLength={1000} defaultValue={p?.bio} erro={erros.bio} />
+      <fieldset className={estilos.grupoSemMoldura}>
+        <legend className={estilos.rotulo}>Mais informações (opcional)</legend>
+        <div className={estilos.contatos}>
+          <Campo id={`${id}-endereco`} name="endereco" rotulo="Endereço do consultório" maxLength={200} autoComplete="off" defaultValue={p?.endereco} erro={erros.endereco} />
+          <Campo id={`${id}-site`} name="site" rotulo="Site (ex.: https://www.clinica.com.br)" inputMode="url" autoComplete="off" defaultValue={p?.site} erro={erros.site} />
+          <Campo
+            id={`${id}-outros-perfis`}
+            name="outrosPerfis"
+            rotulo="Outros perfis (até 5, um por linha: Rótulo | link, ou @usuario do Instagram)"
+            multilinha
+            autoComplete="off"
+            defaultValue={p ? outrosPerfisComoTexto(p.outrosPerfis) : ""}
+            erro={erros.outrosPerfis}
+          />
+          <Campo id={`${id}-emails-extras`} name="emailsExtras" rotulo="E-mails extras (até 3, separe por vírgula; não aparecem no site)" multilinha autoComplete="off" defaultValue={p?.emailsExtras.join(", ")} erro={erros.emailsExtras} />
+        </div>
+      </fieldset>
+
+      <Campo id={`${id}-bio`} name="bio" rotulo="Apresentação (até 3.000 caracteres)" multilinha maxLength={3000} defaultValue={p?.bio} erro={erros.bio} />
 
       <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem no site (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
 

@@ -28,6 +28,13 @@ export type ProfissionalPublico = {
   // Sem Facebook desde 04/11/2026: o dado continua no cadastro do painel,
   // mas não vai ao site.
   email: string;
+  // Campos extras (08/11/2026): endereço do consultório, site, outros perfis
+  // e a lista de cidades (o local acima junta cidades e UF). Os e-mails
+  // extras ficam só no painel.
+  endereco: string;
+  site: string;
+  outrosPerfis: { rotulo: string; url: string }[];
+  cidades: string[];
   // Apresentação completa (o card mostra a versão curta; o popup, toda).
   bio: string;
   // Foto da biblioteca de mídia; null sem foto ou com a imagem na lixeira.
@@ -37,7 +44,7 @@ export type ProfissionalPublico = {
 // Lista fechada dos campos que vão ao navegador (conferida nos testes).
 export const CAMPOS_PUBLICOS_DO_PROFISSIONAL = [
   "id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao",
-  "whatsapp", "telefones", "instagram", "email", "bio", "foto",
+  "whatsapp", "telefones", "instagram", "email", "endereco", "site", "outrosPerfis", "cidades", "bio", "foto",
 ] as const satisfies readonly (keyof ProfissionalPublico)[];
 
 // "Cidade Um, Cidade Dois / SP" no Brasil; nos outros países, o nome do país.
@@ -65,6 +72,11 @@ export function paraProfissionalPublico(profissional: Profissional, foto: Imagem
     telefones: [...profissional.telefones],
     instagram: profissional.instagram,
     email: profissional.email,
+    endereco: profissional.endereco,
+    // Só links http(s) chegam ao navegador (conferido de novo aqui).
+    site: /^https?:\/\//i.test(profissional.site) ? profissional.site : "",
+    outrosPerfis: profissional.outrosPerfis.filter((perfil) => /^https?:\/\//i.test(perfil.url)).map(({ rotulo, url }) => ({ rotulo, url })),
+    cidades: [...profissional.cidades],
     bio: profissional.bio,
     foto: foto ? { alt: foto.alt, largura: foto.largura, altura: foto.altura, variantes: foto.variantes.map(({ largura, url }) => ({ largura, url })) } : null,
   };

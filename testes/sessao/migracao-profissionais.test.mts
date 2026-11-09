@@ -137,7 +137,9 @@ describe("Migração dos profissionais (emulador)", () => {
     assert.equal(um.ordem, 1);
     assert.deepEqual(um.origem, { sistema: "wix", chave: "pessoa-ficticia-1", execucao });
     assert.deepEqual(um.telefones, [], "telefones aguardam o importador dedicado");
-    for (const campo of ["conselho", "endereco", "revisar", "grupo", "fotoOrigemWixId", "nomeBusca", "site"]) assert.equal(um[campo], undefined, campo);
+    for (const campo of ["conselho", "revisar", "grupo", "fotoOrigemWixId", "nomeBusca", "whatsappLink"]) assert.equal(um[campo], undefined, campo);
+    // Desde 08/11/2026, endereço e site entram (validados), vazios sem dado no arquivo.
+    for (const campo of ["endereco", "site"]) assert.equal(typeof um[campo], "string", campo);
     // Duas fotos: liga a primeira e marca revisão.
     assert.equal(porChave.get("pessoa-ficticia-2")?.fotoMidiaId, "fotoDois");
     assert.equal(porChave.get("pessoa-ficticia-2")?.revisarMigracao, true);
@@ -188,7 +190,7 @@ describe("Migração dos profissionais (emulador)", () => {
     const campos: DadosDoProfissional = {
       tipo: dados.tipo, tratamento: dados.tratamento, nome: dados.nome, registro: dados.registro, metodos: dados.metodos, pais: dados.pais, uf: dados.uf,
       cidades: dados.cidades, telerreabilitacao: dados.telerreabilitacao, whatsapp: dados.whatsapp, telefones: [], instagram: dados.instagram, facebook: dados.facebook,
-      email: dados.email, bio: "Apresentação revisada por uma pessoa.", ativo: false, ordem: dados.ordem, fotoMidiaId: dados.fotoMidiaId,
+      email: dados.email, endereco: "", site: "", outrosPerfis: [], emailsExtras: [], bio: "Apresentação revisada por uma pessoa.", ativo: false, ordem: dados.ordem, fotoMidiaId: dados.fotoMidiaId,
     };
     assert.ok((await gravarProfissional(db, editado.id, campos, PESSOA)).ok);
     await db.collection("diretoria").doc("cargo-ficticio").set({ cargo: "presidente", profissionalId: naDiretoria.id });

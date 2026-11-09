@@ -94,6 +94,14 @@ const conversorProfissional = conversorDeLeitura<Profissional>((id, campos) => (
   instagram: texto(campos.instagram),
   facebook: texto(campos.facebook),
   email: texto(campos.email),
+  endereco: texto(campos.endereco),
+  site: texto(campos.site),
+  outrosPerfis: Array.isArray(campos.outrosPerfis)
+    ? (campos.outrosPerfis as unknown[])
+        .filter((item): item is { rotulo: string; url: string } => typeof item === "object" && item !== null && typeof (item as { rotulo?: unknown }).rotulo === "string" && typeof (item as { url?: unknown }).url === "string" && /^https?:\/\//i.test((item as { url: string }).url))
+        .map(({ rotulo, url }) => ({ rotulo, url }))
+    : [],
+  emailsExtras: listaDeTextos(campos.emailsExtras),
   bio: texto(campos.bio),
   ativo: campos.ativo === true,
   ordem: numero(campos.ordem),

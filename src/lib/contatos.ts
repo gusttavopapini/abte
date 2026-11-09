@@ -216,3 +216,88 @@ export function validarEmailDeContato(entrada: string): ResultadoDoContato {
   if (valor.length > LIMITE_EMAIL || !ehEmailValido(valor)) return invalido("E-mail inválido. Use o formato nome@dominio.com.br.");
   return valido(valor.toLowerCase());
 }
+
+// ---------- Campos extras dos profissionais (08/11/2026) ----------
+
+export const LIMITE_DO_SITE = 300;
+export const LIMITE_DE_OUTROS_PERFIS = 5;
+export const LIMITE_DO_ROTULO_DO_PERFIL = 40;
+export const LIMITE_DE_EMAILS_EXTRAS = 3;
+
+export type PerfilExtra = { rotulo: string; url: string };
+
+// Endereço http(s) com domínio (sem usuário e senha). Sem o protocolo, vale
+// https. Devolve o endereço padronizado ou null.
+function enderecoWeb(valor: string): string | null {
+  let endereco: URL;
+  try {
+    endereco = new URL(/^[a-z][a-z0-9+.-]*:/i.test(valor) ? valor : `https://${valor}`);
+  } catch {
+    return null;
+  }
+  if (endereco.protocol !== "https:" && endereco.protocol !== "http:") return null;
+  if (endereco.username || endereco.password) return null;
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(endereco.hostname)) return null;
+  return endereco.href;
+}
+
+// Site do profissional ou da clínica: link http(s) com domínio, até 300
+// caracteres. Instagram, Facebook e WhatsApp têm campos próprios.
+export function validarSite(entrada: string): ResultadoDoContato {
+  const valor = entrada.trim();
+  if (!valor) return valido("");
+  if (LINK_INSTAGRAM.test(valor) || LINK_FACEBOOK.test(valor) || LINK_WHATSAPP.test(valor) || PARECE_EMAIL.test(valor)) {
+    return invalido("Isto parece um contato (Instagram, Facebook, WhatsApp ou e-mail). Use o campo próprio dele.");
+  }
+  const endereco = enderecoWeb(valor);
+  if (!endereco || endereco.length > LIMITE_DO_SITE) return invalido("Site inválido. Use o endereço completo, como https://www.exemplo.com.br.");
+  return valido(endereco);
+}
+
+// Outros perfis: um por linha, "Rótulo | link" ou só o link. @usuario ou
+// um nome de usuário solto valem como Instagram. Até 5.
+export function validarOutrosPerfis(entrada: string): { ok: true; valor: PerfilExtra[] } | { ok: false; erro: string } {
+  const linhas = entrada.split(/\n/).map((linha) => linha.trim()).filter(Boolean);
+  if (linhas.length > LIMITE_DE_OUTROS_PERFIS) return { ok: false, erro: `Informe no máximo ${LIMITE_DE_OUTROS_PERFIS} perfis.` };
+  const perfis: PerfilExtra[] = [];
+  for (const linha of linhas) {
+    const separador = linha.indexOf("|");
+    const rotuloDado = separador >= 0 ? linha.slice(0, separador).trim() : "";
+    const valor = separador >= 0 ? linha.slice(separador + 1).trim() : linha;
+    if (rotuloDado.length > LIMITE_DO_ROTULO_DO_PERFIL) return { ok: false, erro: `Cada rótulo aceita no máximo ${LIMITE_DO_ROTULO_DO_PERFIL} caracteres.` };
+    let perfil: PerfilExtra;
+    if (LINK_INSTAGRAM.test(valor) || /^@?[A-Za-z0-9._]{1,30}$/.test(valor)) {
+      const instagram = validarInstagram(valor);
+      if (!instagram.ok || !instagram.valor) return { ok: false, erro: `Perfil inválido: ${valor.slice(0, 60)}. Use o link completo ou @usuario do Instagram.` };
+      perfil = { rotulo: rotuloDado || "Instagram", url: `https://www.instagram.com/${instagram.valor}/` };
+    } else if (LINK_FACEBOOK.test(valor)) {
+      const facebook = validarFacebook(valor);
+      if (!facebook.ok || !facebook.valor) return { ok: false, erro: facebook.ok ? "Link do Facebook inválido." : facebook.erro };
+      perfil = { rotulo: rotuloDado || "Facebook", url: facebook.valor };
+    } else {
+      const endereco = enderecoWeb(valor);
+      if (!endereco || endereco.length > LIMITE_DO_SITE || PARECE_EMAIL.test(valor)) return { ok: false, erro: `Perfil inválido: ${valor.slice(0, 60)}. Use o link completo, como https://...` };
+      perfil = { rotulo: rotuloDado || new URL(endereco).hostname.replace(/^www\./, ""), url: endereco };
+    }
+    if (!perfis.some((item) => item.url === perfil.url)) perfis.push(perfil);
+  }
+  return { ok: true, valor: perfis };
+}
+
+// Texto do campo do painel a partir dos perfis gravados.
+export function outrosPerfisComoTexto(perfis: readonly PerfilExtra[]): string {
+  return perfis.map((perfil) => `${perfil.rotulo} | ${perfil.url}`).join("\n");
+}
+
+// E-mails extras: separados por vírgula, ponto e vírgula ou linha; até 3.
+export function validarEmailsExtras(entrada: string): { ok: true; valor: string[] } | { ok: false; erro: string } {
+  const partes = entrada.split(/[,;\n]/).map((parte) => parte.trim()).filter(Boolean);
+  if (partes.length > LIMITE_DE_EMAILS_EXTRAS) return { ok: false, erro: `Informe no máximo ${LIMITE_DE_EMAILS_EXTRAS} e-mails extras.` };
+  const emails: string[] = [];
+  for (const parte of partes) {
+    const resultado = validarEmailDeContato(parte);
+    if (!resultado.ok) return { ok: false, erro: `E-mail extra inválido: ${parte.slice(0, 60)}. Use o formato nome@dominio.com.br.` };
+    if (!emails.includes(resultado.valor)) emails.push(resultado.valor);
+  }
+  return { ok: true, valor: emails };
+}

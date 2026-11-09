@@ -28,7 +28,7 @@ export function nomeCompletoDoProfissional({ tratamento, nome }: Pick<Profission
 // (texto alternativo cadastrado nela); sem foto, o ícone de usuário. "Ver mais"
 // (e o clique em qualquer ponto do card fora de links e botões) abre o popup.
 export function CardProfissional({ profissional, aoVerMais }: { profissional: ProfissionalDoCard; aoVerMais: () => void }) {
-  const { registro, metodos, local, telerreabilitacao, whatsapp, telefones, instagram, email, bio, foto } = profissional;
+  const { registro, metodos, local, telerreabilitacao, whatsapp, telefones, instagram, email, site, bio, foto } = profissional;
   const nomeCompleto = nomeCompletoDoProfissional(profissional);
   const verMaisRef = useRef<HTMLButtonElement>(null);
 
@@ -68,7 +68,8 @@ export function CardProfissional({ profissional, aoVerMais }: { profissional: Pr
         {telerreabilitacao && <p className={estilos.texto}>Atende por telerreabilitação</p>}
         <MetodosProfissional metodos={metodos} />
         {bio && <p className={estilos.texto}>{resumirTexto(bio, LIMITE_DA_APRESENTACAO_NO_CARD)}</p>}
-        <ContatosProfissional nomeCompleto={nomeCompleto} whatsapp={whatsapp} telefones={telefones} instagram={instagram} email={email} />
+        {/* Card resumido (08/11/2026): cidades no local e o site; endereço e outros perfis ficam no popup. */}
+        <ContatosProfissional nomeCompleto={nomeCompleto} whatsapp={whatsapp} telefones={telefones} instagram={instagram} email={email} site={site} />
         <div className={estilos.rodape}>
           <Botao ref={verMaisRef} variante="secundario" onClick={abrir} aria-haspopup="dialog">
             Ver mais<span className="somente-leitor"> sobre {nomeCompleto}</span>

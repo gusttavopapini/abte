@@ -2,7 +2,18 @@
 // devolve os dados prontos para gravar ou os erros de cada campo, em português.
 // Usada pela ação de servidor e pelos testes de unidade.
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, type CodigoDePais, type TipoDeProfissional } from "../config/profissionais.ts";
-import { validarEmailDeContato, validarFacebook, validarInstagram, validarTelefones, validarWhatsapp, type ResultadoDoContato } from "./contatos.ts";
+import {
+  validarEmailDeContato,
+  validarEmailsExtras,
+  validarFacebook,
+  validarInstagram,
+  validarOutrosPerfis,
+  validarSite,
+  validarTelefones,
+  validarWhatsapp,
+  type PerfilExtra,
+  type ResultadoDoContato,
+} from "./contatos.ts";
 import { ehIdDeDocumentoValido } from "./validacao.ts";
 
 export type DadosDoProfissional = {
@@ -22,6 +33,13 @@ export type DadosDoProfissional = {
   instagram: string;
   facebook: string;
   email: string;
+  // Campos extras (08/11/2026), todos opcionais: endereço do consultório
+  // (texto), site (link http(s)), outros perfis (rótulo e link) e e-mails
+  // extras. Vazios: "" ou lista vazia.
+  endereco: string;
+  site: string;
+  outrosPerfis: PerfilExtra[];
+  emailsExtras: string[];
   bio: string;
   ativo: boolean;
   ordem: number;
@@ -36,7 +54,9 @@ export type ResultadoDoProfissional =
   | { ok: true; dados: DadosDoProfissional }
   | { ok: false; erros: Partial<Record<CampoDoProfissional, string>> };
 
-const LIMITES = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 1000, contato: 300 } as const;
+// Apresentação até 3.000 caracteres desde 08/11/2026 (antes, 1.000).
+export const LIMITES_DO_PROFISSIONAL = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 3000, contato: 300, endereco: 200 } as const;
+const LIMITES = LIMITES_DO_PROFISSIONAL;
 const ORDEM_MAXIMA = 999;
 
 function texto(dados: FormData, campo: string): string {
@@ -106,6 +126,15 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
     erros.contatos = "Informe pelo menos um contato: WhatsApp, telefone, Instagram, Facebook ou e-mail.";
   }
 
+  const endereco = texto(dados, "endereco").replace(/\s+/g, " ");
+  if (endereco.length > LIMITES.endereco) erros.endereco = `O endereço aceita no máximo ${LIMITES.endereco} caracteres.`;
+  const site = validarSite(texto(dados, "site").slice(0, LIMITES.contato + 1));
+  if (!site.ok) erros.site = site.erro;
+  const outrosPerfis = validarOutrosPerfis(texto(dados, "outrosPerfis").slice(0, 2000));
+  if (!outrosPerfis.ok) erros.outrosPerfis = outrosPerfis.erro;
+  const emailsExtras = validarEmailsExtras(texto(dados, "emailsExtras").slice(0, 1000));
+  if (!emailsExtras.ok) erros.emailsExtras = emailsExtras.erro;
+
   const bio = texto(dados, "bio");
   if (bio.length > LIMITES.bio) erros.bio = `A apresentação aceita no máximo ${LIMITES.bio} caracteres.`;
 
@@ -135,6 +164,10 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
       instagram: valores.instagram,
       facebook: valores.facebook,
       email: valores.email,
+      endereco,
+      site: site.ok ? site.valor : "",
+      outrosPerfis: outrosPerfis.ok ? outrosPerfis.valor : [],
+      emailsExtras: emailsExtras.ok ? emailsExtras.valor : [],
       bio,
       ativo: marcado(dados, "ativo"),
       ordem,

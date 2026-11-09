@@ -4,8 +4,11 @@
 // no site antes da revisão. Nada é inventado nem corrigido por inferência: o
 // que não passa na mesma validação do painel fica vazio e o registro vai para
 // revisão. Os campos do arquivo fora do modelo (conselho, telefones,
-// whatsappLink, outrosPerfis, emailsExtras, endereco, site e afins) e o texto
-// dos pontos de revisão NÃO vão para o Firestore (decisões 5 e 8 de 21/10/2026).
+// whatsappLink e afins) e o texto dos pontos de revisão NÃO vão para o
+// Firestore (decisões 5 e 8 de 21/10/2026). Desde 08/11/2026 (nova decisão do
+// responsável), endereço, site, outros perfis e e-mails extras entram, pela
+// mesma validação do painel (extrasDoRegistro, em camposExtras.ts); para os
+// profissionais já importados, pelo importador migracao:campos-profissionais.
 //
 // Idempotente por origem.chave (o id do registro no arquivo). A foto é ligada
 // pela imagem já importada na etapa das imagens (origem.midiaId); sem ela, o
@@ -26,6 +29,7 @@ import { ehIdDeDocumentoValido } from "../validacao.ts";
 import { AUTOR_DA_MIGRACAO, type Modo } from "./execucao.ts";
 import { ehIdDeMidiaWix } from "./imagensOrigem.ts";
 import { SISTEMA_DE_ORIGEM } from "./imagens.ts";
+import { extrasDoRegistro } from "./camposExtras.ts";
 
 // Tipo do arquivo para o tipo do modelo (que é também o filtro do site).
 export const TIPOS_DO_ARQUIVO: Record<string, TipoDeProfissional> = {
@@ -57,7 +61,8 @@ export const CONSELHOS_DO_ARQUIVO: Record<string, string> = { CREFITO: "Crefito"
 export type RegistroGravadoComo = "semRegistro" | "comoVeio" | "prefixado" | "semConselho" | "conselhoAssumido" | "longo";
 
 // Mesmos limites do formulário do painel (lib/profissionais.ts).
-const LIMITES = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 1000, contato: 300, ordem: 999 } as const;
+// Apresentação até 3.000 caracteres desde 08/11/2026 (como no painel).
+const LIMITES = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 3000, contato: 300, ordem: 999 } as const;
 
 // Problemas que a conversão pode achar. Só os nomes vão para o relatório.
 export const PROBLEMAS = [
@@ -221,6 +226,7 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
   }
 
   if (registro.fotos.length > 1) problemas.add("fotoDupla");
+  const extras = extrasDoRegistro(r).valores;
 
   return {
     dados: {
@@ -239,6 +245,10 @@ export function converterProfissional(registro: RegistroDeOrigem): { dados: Dado
       instagram,
       facebook,
       email,
+      endereco: (extras.endereco as string | undefined) ?? "",
+      site: (extras.site as string | undefined) ?? "",
+      outrosPerfis: (extras.outrosPerfis as DadosDoProfissional["outrosPerfis"] | undefined) ?? [],
+      emailsExtras: (extras.emailsExtras as string[] | undefined) ?? [],
       bio,
       ativo: false,
       ordem,

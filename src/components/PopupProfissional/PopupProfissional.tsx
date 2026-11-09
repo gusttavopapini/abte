@@ -18,7 +18,7 @@ const LARGURA_DA_FOTO = "(max-width: 767px) 100vw, 320px";
 // Modal (Esc, foco preso e devolvido, fundo sem rolar); o título é o nome.
 export function PopupProfissional({ profissional, aoFechar }: { profissional: ProfissionalDoCard | null; aoFechar: () => void }) {
   if (!profissional) return null;
-  const { registro, metodos, local, telerreabilitacao, whatsapp, telefones, instagram, email, bio, foto } = profissional;
+  const { registro, metodos, local, telerreabilitacao, whatsapp, telefones, instagram, email, endereco, site, outrosPerfis, bio, foto } = profissional;
   const nomeCompleto = nomeCompletoDoProfissional(profissional);
   const paragrafos = paragrafosDoTexto(bio);
 
@@ -35,6 +35,7 @@ export function PopupProfissional({ profissional, aoFechar }: { profissional: Pr
         <div className={estilos.dados}>
           {registro && <p className={estilos.texto}>{registro}</p>}
           {local && <p className={estilos.texto}>{local}</p>}
+          {endereco && <p className={estilos.texto}>Endereço: {endereco}</p>}
           {telerreabilitacao && <p className={estilos.texto}>Atende por telerreabilitação</p>}
           <MetodosProfissional metodos={metodos} />
           {paragrafos.length > 0 && (
@@ -42,7 +43,7 @@ export function PopupProfissional({ profissional, aoFechar }: { profissional: Pr
               {paragrafos.map((paragrafo, indice) => <p key={indice}>{paragrafo}</p>)}
             </div>
           )}
-          <ContatosProfissional nomeCompleto={nomeCompleto} whatsapp={whatsapp} telefones={telefones} instagram={instagram} email={email} />
+          <ContatosProfissional nomeCompleto={nomeCompleto} whatsapp={whatsapp} telefones={telefones} instagram={instagram} email={email} site={site} outrosPerfis={outrosPerfis} />
         </div>
       </div>
       <div className={estilos.rodape}>

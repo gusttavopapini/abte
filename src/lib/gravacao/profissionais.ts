@@ -47,10 +47,15 @@ export async function gravarProfissional(
   const agora = new Date();
   const lote = db.batch();
   if (atual) {
-    // Documento de antes do campo telefones (06/11/2026): a lista vazia não é
-    // gravada, para a edição não registrar uma mudança que não houve.
-    const { telefones, ...semTelefones } = dados;
-    const gravar = telefones.length === 0 && atual.get("telefones") === undefined ? semTelefones : dados;
+    // Documento de antes dos campos telefones (06/11/2026) e dos extras
+    // (08/11/2026): o campo vazio não é gravado, para a edição não registrar
+    // uma mudança que não houve.
+    const gravar: Record<string, unknown> = { ...dados };
+    for (const campo of ["telefones", "endereco", "site", "outrosPerfis", "emailsExtras"] as const) {
+      const valor = dados[campo];
+      const vazio = Array.isArray(valor) ? valor.length === 0 : valor === "";
+      if (vazio && atual.get(campo) === undefined) delete gravar[campo];
+    }
     lote.update(referencia, { ...gravar, ...extras, atualizadoEm: agora });
     registrarNoLote(db, lote, autor, {
       colecao: COLECAO_PROFISSIONAIS,

@@ -89,6 +89,10 @@ const documento = {
   instagram: "perfil.exemplo",
   facebook: "https://www.facebook.com/exemplo",
   email: "contato@exemplo.invalid",
+  endereco: "Rua Exemplo, 1, sala 2",
+  site: "https://www.exemplo.invalid/",
+  outrosPerfis: [{ rotulo: "Instagram", url: "https://www.instagram.com/outro.exemplo/" }, { rotulo: "Perigoso", url: "javascript:alert(1)" }],
+  emailsExtras: ["extra-privado@exemplo.invalid"],
   bio: "Linha um.\nLinha dois.",
   ativo: true,
   ordem: 3,
@@ -108,7 +112,7 @@ test("navegador recebe só os campos públicos, nunca os internos, de revisão o
   const publico = paraProfissionalPublico(documento, foto);
   assert.deepEqual(Object.keys(publico).sort(), [...CAMPOS_PUBLICOS_DO_PROFISSIONAL].sort());
   const serializado = JSON.stringify(publico);
-  for (const proibido of ["revisarMigracao", "pontosDeRevisao", "origem", "chave-privada", "conferenciaDeMenor", "indicaMenor", "ativo", "ordem", "fotoMidiaId", "criadoEm", "atualizadoEm", "excluidoEm", "midia1", "facebook"]) {
+  for (const proibido of ["revisarMigracao", "pontosDeRevisao", "origem", "chave-privada", "conferenciaDeMenor", "indicaMenor", "ativo", "ordem", "fotoMidiaId", "criadoEm", "atualizadoEm", "excluidoEm", "midia1", "facebook", "emailsExtras", "extra-privado", "javascript:"]) {
     assert.ok(!serializado.includes(proibido), `vazou: ${proibido}`);
   }
   assert.deepEqual(Object.keys(publico.foto ?? {}).sort(), ["altura", "alt", "largura", "variantes"].sort());
@@ -123,6 +127,11 @@ test("campos públicos chegam com os mesmos valores do documento", () => {
   assert.equal(publico.whatsapp, "5500000000000");
   assert.deepEqual(publico.telefones, ["551100000000"]);
   assert.equal(publico.foto, null);
+  // Campos extras (08/11/2026): endereço, site, outros perfis (só http/https) e cidades.
+  assert.equal(publico.endereco, "Rua Exemplo, 1, sala 2");
+  assert.equal(publico.site, "https://www.exemplo.invalid/");
+  assert.deepEqual(publico.outrosPerfis, [{ rotulo: "Instagram", url: "https://www.instagram.com/outro.exemplo/" }]);
+  assert.deepEqual(publico.cidades, ["Cidade Um", "Cidade Dois"]);
 });
 
 test("tipo fora da lista vira a tag sem classificação; país estrangeiro mostra o nome", () => {
@@ -131,8 +140,8 @@ test("tipo fora da lista vira a tag sem classificação; país estrangeiro mostr
   assert.equal(localDoProfissional({ cidades: [], pais: "PY", uf: "" }), "Paraguai");
 });
 
-test("lista fechada (04/11/2026, telefones desde 06/11/2026): com país e UF, sem Facebook", () => {
-  assert.deepEqual([...CAMPOS_PUBLICOS_DO_PROFISSIONAL], ["id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao", "whatsapp", "telefones", "instagram", "email", "bio", "foto"]);
+test("lista fechada (04/11/2026, telefones desde 06/11/2026, extras desde 08/11/2026): com país e UF, sem Facebook nem e-mails extras", () => {
+  assert.deepEqual([...CAMPOS_PUBLICOS_DO_PROFISSIONAL], ["id", "tipo", "tratamento", "nome", "registro", "metodos", "local", "pais", "uf", "telerreabilitacao", "whatsapp", "telefones", "instagram", "email", "endereco", "site", "outrosPerfis", "cidades", "bio", "foto"]);
   const publico = paraProfissionalPublico(documento, null);
   assert.equal(publico.pais, "BR");
   assert.equal(publico.uf, "SP");
