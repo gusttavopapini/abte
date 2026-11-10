@@ -35,6 +35,7 @@ export default async function PaginaEditarPost({ params }: { params: Promise<{ i
         rotuloPublicar="Salvar e publicar"
         rotuloRascunho="Salvar como rascunho"
         naLixeira={Boolean(post.excluidoEm)}
+        situacao={post.status === "publicado" ? "Publicado" : "Rascunho"}
       />
     </div>
   );

@@ -11,20 +11,23 @@ type PropsCampo = {
   // navegador: para campos dentro de outro formulário que não devem travar o
   // envio dele (ex.: envio de imagem no seletor de mídia).
   semValidacaoDoNavegador?: boolean;
+  // Id de um texto que também descreve o campo (ex.: contador de caracteres
+  // do painel), somado ao da mensagem de erro no aria-describedby.
+  descritoPor?: string;
   // Só para campos de uma linha (usado para levar o foco ao campo com erro).
   ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<"input">, "id" | "required">;
 
 // Campo de formulário com rótulo visível e mensagem de erro ligada ao campo
 // por aria-describedby (design-system.md seção 8.8).
-export function Campo({ id, rotulo, obrigatorio, erro, multilinha, semValidacaoDoNavegador, ref, className, ...atributos }: PropsCampo) {
+export function Campo({ id, rotulo, obrigatorio, erro, multilinha, semValidacaoDoNavegador, descritoPor, ref, className, ...atributos }: PropsCampo) {
   const idErro = `${id}-erro`;
   const comuns = {
     id,
     required: obrigatorio && !semValidacaoDoNavegador,
     "aria-required": obrigatorio && semValidacaoDoNavegador ? true : undefined,
     "aria-invalid": erro ? true : undefined,
-    "aria-describedby": erro ? idErro : undefined,
+    "aria-describedby": [erro ? idErro : "", descritoPor ?? ""].filter(Boolean).join(" ") || undefined,
     className: `${estilos.entrada} ${multilinha ? estilos.areaTexto : ""} ${erro ? estilos.comErro : ""}`,
   };
 

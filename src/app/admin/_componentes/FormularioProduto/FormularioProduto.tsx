@@ -114,9 +114,6 @@ export function FormularioProduto({ produto, categorias, naLixeira = false }: Pr
         <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem na loja (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
       </div>
 
-      <p className={estilos.situacaoAtual}>
-        Situação atual: {p ? (p.publicado ? "na loja (publicado)" : "fora da loja (rascunho)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da página.
-      </p>
       </SecaoDoFormulario>
       <SecaoDoFormulario titulo="Imagens" descricao="Envie cada imagem com o texto alternativo dela. A primeira é a principal.">
 
@@ -131,7 +128,9 @@ export function FormularioProduto({ produto, categorias, naLixeira = false }: Pr
       />
       </SecaoDoFormulario>
 
-      <BarraDeSalvar aviso={naLixeira ? "Na lixeira: só é possível salvar fora da loja. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o produto na loja; rascunho o deixa fora dela."}>
+      <BarraDeSalvar
+        situacao={naLixeira ? "Na lixeira" : p ? (p.publicado ? "Publicado na loja" : "Rascunho") : "Ainda não salvo"}
+        aviso={naLixeira ? "Na lixeira: só é possível salvar fora da loja. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o produto na loja; rascunho o deixa fora dela."}>
         <Botao href="/admin/loja" variante="link">Cancelar</Botao>
         <Botao type="submit" variante="secundario" disabled={salvando}>Salvar como rascunho</Botao>
         <Botao type="submit" name="publicado" value="sim" disabled={salvando || naLixeira}>{salvando ? "Salvando..." : "Salvar e publicar"}</Botao>

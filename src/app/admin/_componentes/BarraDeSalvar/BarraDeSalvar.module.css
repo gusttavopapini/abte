@@ -1,11 +1,12 @@
+/* Barra de salvar (10/11/2026): numa linha, textos à esquerda e botões à
+   direita, sem quebrar os botões; até 767px, botões empilhados. */
 .barra {
   border-radius: var(--radius);
   position: sticky;
   bottom: 0;
   z-index: 20;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-16);
+  gap: var(--space-16) var(--space-24);
   align-items: center;
   justify-content: space-between;
   padding: var(--space-16) var(--panel-padding);
@@ -13,24 +14,62 @@
   background: var(--color-bg);
 }
 
+.textos {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: calc(var(--space-8) / 2);
+  min-width: 0;
+}
+
+.situacao,
 .aviso {
   color: var(--color-text);
   font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
+}
+
+.situacao strong {
+  font-weight: var(--font-weight-bold);
 }
 
 .botoes {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
   gap: var(--space-16);
+  align-items: center;
   margin-left: auto;
 }
 
+.botoes > * {
+  white-space: nowrap;
+}
+
+/* Dentro da janela de formulário: rodapé da janela, na largura toda, sem
+   raio, encostado no pé (o corpo da janela rola por cima dele). */
+:global([data-janela-formulario]) .barra {
+  border-radius: 0;
+  margin: 0 calc(-1 * var(--janela-respiro));
+  padding: var(--space-16) var(--janela-respiro);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+
 @media (max-width: 767px) {
+  .barra {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .botoes {
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
+    margin-left: 0;
   }
 
   .botoes > * {
-    flex: 1 1 auto;
+    justify-content: center;
+    width: 100%;
+    white-space: normal;
   }
 }

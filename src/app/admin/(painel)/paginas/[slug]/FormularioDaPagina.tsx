@@ -86,15 +86,16 @@ export function FormularioDaPagina({ pagina }: { pagina: PaginaInstitucional }) 
       <section className={estilos.secao} aria-labelledby={`${id}-publicacao`}>
         <h2 id={`${id}-publicacao`} className="tipo-texto-lg">Publicação</h2>
         <p className={estilos.ajuda}>
-          Situação atual: <strong>{base.publicada ? "publicada" : "rascunho"}</strong>. Para mudar, use os botões de salvar no pé da página.
-        </p>
-        <p className={estilos.ajuda}>Publicada, a página abre no site e aparece no rodapé. Em rascunho, a página responde &quot;Página não encontrada&quot; e sai do rodapé.</p>
+          Publicada, a página abre no site e aparece no rodapé. Em rascunho, a página responde &quot;Página não encontrada&quot; e sai do rodapé.</p>
       </section>
 
       <div tabIndex={-1} ref={resultadoRef} aria-live="polite">
         {resposta && <Mensagem tipo={resposta.ok ? "sucesso" : "erro"}>{resposta.mensagem}</Mensagem>}
       </div>
-      <BarraDeSalvar aviso={alterado ? "Há alterações não salvas." : "Publicar mostra a página no site e no rodapé; rascunho a tira do site."}>
+      <BarraDeSalvar situacao={base.publicada ? "Publicada" : "Rascunho"} aviso={alterado ? "Há alterações não salvas." : "Publicar mostra a página no site e no rodapé; rascunho a tira do site."}>
+        <Botao href="/admin/paginas" variante="link">
+          Cancelar
+        </Botao>
         <Botao type="submit" variante="secundario" disabled={salvando}>
           Salvar como rascunho
         </Botao>

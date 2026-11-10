@@ -36,3 +36,16 @@
 .secao :global(textarea:not([data-caixa-clara] *)) {
   background: var(--color-bg-alt);
 }
+
+/* Na janela de formulário (branca), a seção ganha contorno no lugar do fundo
+   (10/11/2026), como as caixas da janela do banner. */
+:global([data-janela-formulario]) .secao {
+  padding: var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+
+@media (min-width: 768px) {
+  :global([data-janela-formulario]) .secao {
+    padding: var(--space-24);
+  }
+}

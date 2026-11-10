@@ -15,7 +15,6 @@ type Props = {
   aberto: boolean;
   aoFechar: () => void;
   titulo: string;
-  largura?: "padrao" | "larga";
   children: (controle: ControleDaJanela) => ReactNode;
 };
 
@@ -26,7 +25,9 @@ type Props = {
 // aviso do navegador (AvisoDeAlteracoes), como nas páginas de formulário.
 // A alteração é percebida por qualquer digitação ou troca nos campos (input e
 // change sobem até aqui) e pelo marcarAlteracao.
-export function JanelaDeFormulario({ aberto, aoFechar, titulo, largura, children }: Props) {
+// Desde 10/11/2026, sempre larga (até 1040px), com o corpo rolando e a barra
+// de salvar no pé (Modal largura="formulario").
+export function JanelaDeFormulario({ aberto, aoFechar, titulo, children }: Props) {
   const [alterado, setAlterado] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   // Cada vez que a janela abre ou fecha (inclusive depois de salvar), começa
@@ -52,7 +53,7 @@ export function JanelaDeFormulario({ aberto, aoFechar, titulo, largura, children
   const marcarAlteracao = useCallback(() => setAlterado(true), []);
 
   return (
-    <Modal aberto={aberto} aoFechar={fecharComAviso} titulo={titulo} largura={largura}>
+    <Modal aberto={aberto} aoFechar={fecharComAviso} titulo={titulo} largura="formulario">
       <div className={estilos.corpo} onInput={marcarAlteracao} onChange={marcarAlteracao}>
         <AvisoDeAlteracoes alterado={aberto && alterado} />
         {children({ fecharComAviso, marcarAlteracao })}

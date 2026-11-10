@@ -31,11 +31,13 @@ type PropsFormularioPost = {
   rotuloRascunho: string;
   // Item na lixeira (04/11/2026): só salva como rascunho; publicar exige restaurar.
   naLixeira?: boolean;
+  // Situação atual na barra de salvar ("Publicado", "Rascunho"); sem ela, "Ainda não salvo".
+  situacao?: string;
 };
 
 // Formulário de post do blog, usado em "Adicionar Novo Post" e em "Editar Post".
 // Erros voltam da ação em português, sem perder o que foi digitado.
-export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPublicar, rotuloRascunho, naLixeira = false }: PropsFormularioPost) {
+export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPublicar, rotuloRascunho, naLixeira = false, situacao }: PropsFormularioPost) {
   const [resposta, enviar, salvando] = useActionState(acao, null);
   const resumoRef = useRef<HTMLDivElement>(null);
   // Com uma capa da biblioteca escolhida, o aviso da capa antiga sai da tela.
@@ -197,7 +199,11 @@ export function FormularioPost({ acao, post, capa, categorias, tags, rotuloPubli
         </fieldset>
       </SecaoDoFormulario>
 
-      <BarraDeSalvar aviso={naLixeira ? "Na lixeira: só é possível salvar como rascunho. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o post no blog; rascunho o deixa só no painel."}>
+      <BarraDeSalvar
+        situacao={naLixeira ? "Na lixeira" : situacao ?? "Ainda não salvo"}
+        aviso={naLixeira ? "Na lixeira: só é possível salvar como rascunho. Restaure para publicar." : alterado ? "Há alterações não salvas." : "Publicar mostra o post no blog; rascunho o deixa só no painel."}
+      >
+        <Botao href="/admin/blog" variante="link">Cancelar</Botao>
         <Botao type="submit" name="acao" value="rascunho" variante="secundario" disabled={salvando}>{rotuloRascunho}</Botao>
         <Botao type="submit" name="acao" value="publicar" variante="primario" disabled={salvando || naLixeira}>{salvando ? "Salvando..." : rotuloPublicar}</Botao>
       </BarraDeSalvar>

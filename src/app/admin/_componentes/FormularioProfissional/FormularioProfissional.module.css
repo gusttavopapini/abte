@@ -1,24 +1,11 @@
-/* Fundo claro para os campos brancos aparecerem dentro do modal */
+/* Seções com contorno dentro da janela de formulário (10/11/2026) */
 .formulario {
-  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  padding: var(--space-16);
-  background: var(--color-bg-alt);
 }
 
-.linha {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-16);
-}
 
-@media (min-width: 768px) {
-  .linha {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 
 .grupo {
   display: flex;
@@ -71,17 +58,7 @@
   font-size: var(--font-size-small);
 }
 
-.situacaoAtual {
-  color: var(--color-text);
-  font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
-}
 
-.contatos {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-16);
-}
 
 .erro {
   border-radius: var(--radius);

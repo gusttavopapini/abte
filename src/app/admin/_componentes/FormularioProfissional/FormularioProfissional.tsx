@@ -4,7 +4,9 @@ import { startTransition, useActionState, useEffect, useId, useRef, type FormEve
 import { Botao } from "@/components/Botao/Botao";
 import { Campo } from "@/components/Campo/Campo";
 import { Mensagem } from "@/components/Mensagem/Mensagem";
+import { ContadorDeCaracteres } from "@/app/admin/_componentes/ContadorDeCaracteres/ContadorDeCaracteres";
 import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
+import { SecaoDoFormulario } from "@/app/admin/_componentes/SecaoDoFormulario/SecaoDoFormulario";
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
@@ -71,35 +73,47 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoM
         </Mensagem>
       )}
 
-      <div className={estilos.grupo}>
-        <label htmlFor={`${id}-tipo`} className={estilos.rotulo}>Tipo <span aria-hidden="true">*</span></label>
-        <select id={`${id}-tipo`} name="tipo" required defaultValue={p?.tipo || TAGS_DE_PROFISSIONAIS[0]} className={estilos.selecao} aria-invalid={erros.tipo ? true : undefined} aria-describedby={descrito("tipo", !!erros.tipo)}>
-          {TAGS_DE_PROFISSIONAIS.map((tipo) => <option key={tipo} value={tipo}>{rotuloDoTipo(tipo)}</option>)}
-        </select>
-        <ErroDoCampo id={`${id}-tipo-erro`} erro={erros.tipo} />
-      </div>
+      {/* Ordem antiga (10/11/2026): o site passou a ordenar por tipo e nome; o
+          valor gravado continua o mesmo, sem campo na tela. */}
+      <input type="hidden" name="ordem" value={p?.ordem ?? 0} />
 
-      <div className={estilos.linha}>
-        <Campo id={`${id}-tratamento`} name="tratamento" rotulo="Tratamento (ex.: Dra., Dr., Ft.)" maxLength={20} defaultValue={p?.tratamento} erro={erros.tratamento} />
-        <Campo id={`${id}-nome`} name="nome" rotulo="Nome" obrigatorio maxLength={120} defaultValue={p?.nome} erro={erros.nome} />
-      </div>
+      <p className={estilos.rotulo}>Campos com * são obrigatórios.</p>
 
-      <Campo id={`${id}-registro`} name="registro" rotulo="Registro profissional (ex.: Crefito, CRM, CRP)" maxLength={60} defaultValue={p?.registro} erro={erros.registro} />
-
-      <fieldset className={estilos.grupoSemMoldura} aria-describedby={descrito("metodos", !!erros.metodos)}>
-        <legend className={estilos.rotulo}>Métodos</legend>
-        <div className={estilos.opcoes}>
-          {METODOS.map((metodo) => (
-            <label key={metodo} className={estilos.opcao}>
-              <input type="checkbox" name="metodos" value={metodo} defaultChecked={p?.metodos.includes(metodo)} />
-              {metodo}
-            </label>
-          ))}
+      <SecaoDoFormulario titulo="Identificação" nivel={3} grade>
+        <div className={estilos.grupo}>
+          <label htmlFor={`${id}-tipo`} className={estilos.rotulo}>Tipo <span aria-hidden="true">*</span></label>
+          <select id={`${id}-tipo`} name="tipo" required defaultValue={p?.tipo || TAGS_DE_PROFISSIONAIS[0]} className={estilos.selecao} aria-invalid={erros.tipo ? true : undefined} aria-describedby={descrito("tipo", !!erros.tipo)}>
+            {TAGS_DE_PROFISSIONAIS.map((tipo) => <option key={tipo} value={tipo}>{rotuloDoTipo(tipo)}</option>)}
+          </select>
+          <ErroDoCampo id={`${id}-tipo-erro`} erro={erros.tipo} />
         </div>
-        <ErroDoCampo id={`${id}-metodos-erro`} erro={erros.metodos} />
-      </fieldset>
+        <div>
+          <Campo id={`${id}-registro`} descritoPor={`${id}-registro-contador`} name="registro" rotulo="Registro profissional (ex.: Crefito, CRM, CRP)" maxLength={60} defaultValue={p?.registro} erro={erros.registro} />
+          <ContadorDeCaracteres alvo={`${id}-registro`} limite={60} />
+        </div>
+        <div>
+          <Campo id={`${id}-tratamento`} descritoPor={`${id}-tratamento-contador`} name="tratamento" rotulo="Tratamento (ex.: Dra., Dr., Ft.)" maxLength={20} defaultValue={p?.tratamento} erro={erros.tratamento} />
+          <ContadorDeCaracteres alvo={`${id}-tratamento`} limite={20} />
+        </div>
+        <div>
+          <Campo id={`${id}-nome`} descritoPor={`${id}-nome-contador`} name="nome" rotulo="Nome" obrigatorio maxLength={120} defaultValue={p?.nome} erro={erros.nome} />
+          <ContadorDeCaracteres alvo={`${id}-nome`} limite={120} />
+        </div>
+      </SecaoDoFormulario>
 
-      <div className={estilos.linha}>
+      <SecaoDoFormulario titulo="Atuação" nivel={3} grade>
+        <fieldset className={`${estilos.grupoSemMoldura} painel-inteira`} aria-describedby={descrito("metodos", !!erros.metodos)}>
+          <legend className={estilos.rotulo}>Métodos</legend>
+          <div className={estilos.opcoes}>
+            {METODOS.map((metodo) => (
+              <label key={metodo} className={estilos.opcao}>
+                <input type="checkbox" name="metodos" value={metodo} defaultChecked={p?.metodos.includes(metodo)} />
+                {metodo}
+              </label>
+            ))}
+          </div>
+          <ErroDoCampo id={`${id}-metodos-erro`} erro={erros.metodos} />
+        </fieldset>
         <div className={estilos.grupo}>
           <label htmlFor={`${id}-pais`} className={estilos.rotulo}>País <span aria-hidden="true">*</span></label>
           <select id={`${id}-pais`} name="pais" required defaultValue={p?.pais || "BR"} className={estilos.selecao} aria-invalid={erros.pais ? true : undefined} aria-describedby={descrito("pais", !!erros.pais)}>
@@ -115,72 +129,73 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoM
           </select>
           <ErroDoCampo id={`${id}-uf-erro`} erro={erros.uf} />
         </div>
-      </div>
-
-      <Campo id={`${id}-cidades`} name="cidades" rotulo="Cidades de atendimento (separe por vírgula)" multilinha defaultValue={p?.cidades.join(", ")} erro={erros.cidades ?? erros.local} />
-
-      <label className={estilos.opcao}>
-        <input type="checkbox" name="telerreabilitacao" value="sim" defaultChecked={p?.telerreabilitacao} />
-        Atende por telerreabilitação
-      </label>
-
-      <fieldset className={estilos.grupoSemMoldura}>
-        <legend className={estilos.rotulo}>Contatos (pelo menos um)</legend>
-        <div className={estilos.contatos}>
-          <Campo id={`${id}-whatsapp`} name="whatsapp" rotulo="WhatsApp, com DDD" inputMode="tel" autoComplete="off" defaultValue={p?.whatsapp ? `+${p.whatsapp}` : ""} erro={erros.whatsapp} />
-          <Campo
-            id={`${id}-telefones`}
-            name="telefones"
-            rotulo={`Telefones, com DDD (até ${LIMITE_DE_TELEFONES}, um por linha)`}
-            multilinha
-            inputMode="tel"
-            autoComplete="off"
-            defaultValue={p?.telefones.map((telefone) => `+${telefone}`).join("\n")}
-            erro={erros.telefones}
-          />
-          <Campo id={`${id}-instagram`} name="instagram" rotulo="Instagram (@usuario ou link do perfil)" autoComplete="off" defaultValue={p?.instagram ? `@${p.instagram}` : ""} erro={erros.instagram} />
-          <Campo id={`${id}-facebook`} name="facebook" rotulo="Facebook (link do perfil ou da página)" inputMode="url" autoComplete="off" defaultValue={p?.facebook} erro={erros.facebook} />
-          <Campo id={`${id}-email`} name="email" type="email" rotulo="E-mail" autoComplete="off" defaultValue={p?.email} erro={erros.email} />
+        <div className="painel-inteira">
+          <Campo id={`${id}-cidades`} name="cidades" rotulo="Cidades de atendimento (separe por vírgula)" multilinha defaultValue={p?.cidades.join(", ")} erro={erros.cidades ?? erros.local} />
         </div>
-      </fieldset>
+        <div className="painel-inteira">
+          <div>
+            <Campo id={`${id}-endereco`} descritoPor={`${id}-endereco-contador`} name="endereco" rotulo="Endereço do consultório (opcional)" maxLength={200} autoComplete="off" defaultValue={p?.endereco} erro={erros.endereco} />
+            <ContadorDeCaracteres alvo={`${id}-endereco`} limite={200} />
+          </div>
+        </div>
+        <label className={`${estilos.opcao} painel-inteira`}>
+          <input type="checkbox" name="telerreabilitacao" value="sim" defaultChecked={p?.telerreabilitacao} />
+          Atende por telerreabilitação
+        </label>
+      </SecaoDoFormulario>
 
-      <fieldset className={estilos.grupoSemMoldura}>
-        <legend className={estilos.rotulo}>Mais informações (opcional)</legend>
-        <div className={estilos.contatos}>
-          <Campo id={`${id}-endereco`} name="endereco" rotulo="Endereço do consultório" maxLength={200} autoComplete="off" defaultValue={p?.endereco} erro={erros.endereco} />
-          <Campo id={`${id}-site`} name="site" rotulo="Site (ex.: https://www.clinica.com.br)" inputMode="url" autoComplete="off" defaultValue={p?.site} erro={erros.site} />
+      <SecaoDoFormulario titulo="Contatos" descricao="Preencha pelo menos um entre WhatsApp, telefone, Instagram, Facebook e e-mail." nivel={3} grade>
+        <Campo id={`${id}-whatsapp`} name="whatsapp" rotulo="WhatsApp, com DDD" inputMode="tel" autoComplete="off" defaultValue={p?.whatsapp ? `+${p.whatsapp}` : ""} erro={erros.whatsapp} />
+        <Campo
+          id={`${id}-telefones`}
+          name="telefones"
+          rotulo={`Telefones, com DDD (até ${LIMITE_DE_TELEFONES}, um por linha)`}
+          multilinha
+          inputMode="tel"
+          autoComplete="off"
+          defaultValue={p?.telefones.map((telefone) => `+${telefone}`).join("\n")}
+          erro={erros.telefones}
+        />
+        <Campo id={`${id}-instagram`} name="instagram" rotulo="Instagram (@usuario ou link do perfil)" autoComplete="off" defaultValue={p?.instagram ? `@${p.instagram}` : ""} erro={erros.instagram} />
+        <Campo id={`${id}-facebook`} name="facebook" rotulo="Facebook (link do perfil ou da página)" inputMode="url" autoComplete="off" defaultValue={p?.facebook} erro={erros.facebook} />
+        <Campo id={`${id}-email`} name="email" type="email" rotulo="E-mail" autoComplete="off" defaultValue={p?.email} erro={erros.email} />
+        <Campo id={`${id}-site`} name="site" rotulo="Site (opcional, ex.: https://www.clinica.com.br)" inputMode="url" autoComplete="off" defaultValue={p?.site} erro={erros.site} />
+        <div className="painel-inteira">
           <Campo
             id={`${id}-outros-perfis`}
             name="outrosPerfis"
-            rotulo="Outros perfis (até 5, um por linha: Rótulo | link, ou @usuario do Instagram)"
+            rotulo="Outros perfis (opcional, até 5, um por linha: Rótulo | link, ou @usuario do Instagram)"
             multilinha
             autoComplete="off"
             defaultValue={p ? outrosPerfisComoTexto(p.outrosPerfis) : ""}
             erro={erros.outrosPerfis}
           />
-          <Campo id={`${id}-emails-extras`} name="emailsExtras" rotulo="E-mails extras (até 3, separe por vírgula; não aparecem no site)" multilinha autoComplete="off" defaultValue={p?.emailsExtras.join(", ")} erro={erros.emailsExtras} />
         </div>
-      </fieldset>
+        <div className="painel-inteira">
+          <Campo id={`${id}-emails-extras`} name="emailsExtras" rotulo="E-mails extras (opcional, até 3, separe por vírgula; não aparecem no site)" multilinha autoComplete="off" defaultValue={p?.emailsExtras.join(", ")} erro={erros.emailsExtras} />
+        </div>
+      </SecaoDoFormulario>
 
-      <Campo id={`${id}-bio`} name="bio" rotulo="Apresentação (até 3.000 caracteres)" multilinha maxLength={3000} defaultValue={p?.bio} erro={erros.bio} />
+      <SecaoDoFormulario titulo="Apresentação" nivel={3}>
+        <div>
+          <Campo id={`${id}-bio`} descritoPor={`${id}-bio-contador`} name="bio" rotulo="Apresentação (até 3.000 caracteres)" multilinha maxLength={3000} defaultValue={p?.bio} erro={erros.bio} />
+          <ContadorDeCaracteres alvo={`${id}-bio`} limite={3000} />
+        </div>
+      </SecaoDoFormulario>
 
-      <Campo id={`${id}-ordem`} name="ordem" type="number" min={0} max={999} rotulo="Ordem no site (menor aparece antes)" defaultValue={p?.ordem ?? 0} erro={erros.ordem} />
+      <SecaoDoFormulario titulo="Foto" nivel={3}>
+        <ImagemDoItem
+          nome="fotoMidiaId"
+          rotulo="Foto (aparece no card do site)"
+          inicial={p?.fotoMidiaId ? { id: p.fotoMidiaId, imagem: p.foto } : null}
+          dono={{ tipo: "profissional", id: p?.id ?? null, campo: "foto" }}
+          proporcao="1:1, quadrada (o card mostra a foto alinhada ao alto)"
+          erro={erros.fotoMidiaId}
+          aoMudar={aoMudarFoto}
+        />
+      </SecaoDoFormulario>
 
-      <ImagemDoItem
-        nome="fotoMidiaId"
-        rotulo="Foto (aparece no card do site)"
-        inicial={p?.fotoMidiaId ? { id: p.fotoMidiaId, imagem: p.foto } : null}
-        dono={{ tipo: "profissional", id: p?.id ?? null, campo: "foto" }}
-        proporcao="1:1, quadrada (o card mostra a foto alinhada ao alto)"
-        erro={erros.fotoMidiaId}
-        aoMudar={aoMudarFoto}
-      />
-
-      <p className={estilos.situacaoAtual}>
-        Situação atual: {p ? (p.ativo ? "ativo (aparece no site)" : "oculto (fora do site)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da janela.
-      </p>
-
-      <BarraDeSalvar aviso="Ativar mostra o profissional no site; oculto o deixa fora dele.">
+      <BarraDeSalvar situacao={p ? (p.ativo ? "Ativo no site" : "Oculto") : "Ainda não salvo"} aviso="Ativar mostra o profissional no site; oculto o deixa fora dele.">
         <Botao type="button" variante="link" onClick={aoCancelar}>Cancelar</Botao>
         <Botao type="submit" variante="secundario" disabled={salvando}>Salvar como oculto</Botao>
         <Botao type="submit" name="ativo" value="sim" disabled={salvando}>{salvando ? "Salvando..." : "Salvar e ativar"}</Botao>

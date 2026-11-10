@@ -10,7 +10,10 @@ type PropsModal = {
   titulo: string;
   children: ReactNode;
   // "larga" para conteúdo maior (popup dos profissionais); o padrão é 500px.
-  largura?: "padrao" | "larga";
+  // "formulario" (10/11/2026, janelas de formulário do painel): até 1040px,
+  // altura da tela menos a margem, só o corpo rola e a barra de salvar fica
+  // no pé da janela.
+  largura?: "padrao" | "larga" | "formulario";
   // Onde o foco entra ao abrir: no primeiro campo do conteúdo (padrão) ou no
   // botão de fechar, quando o conteúdo é longo e começa com texto.
   focoInicial?: "conteudo" | "fechar";
@@ -111,7 +114,7 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
         role="dialog"
         aria-modal="true"
         aria-labelledby={idTitulo}
-        className={`${estilos.modal} ${largura === "larga" ? estilos.larga : ""}`}
+        className={`${estilos.modal} ${largura === "larga" ? estilos.larga : ""} ${largura === "formulario" ? estilos.formulario : ""}`}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={prenderFoco}
       >
@@ -121,7 +124,7 @@ export function Modal({ aberto, aoFechar, titulo, children, largura = "padrao", 
             &times;
           </button>
         </header>
-        <div className={estilos.conteudo}>
+        <div className={estilos.conteudo} data-janela-formulario={largura === "formulario" ? "" : undefined}>
           {children}
         </div>
       </div>

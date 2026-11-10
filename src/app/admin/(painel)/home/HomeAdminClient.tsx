@@ -691,8 +691,9 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-texto`}>
         <h3 id={`${id}-texto`} className={estilos.tituloDaCaixa}>Texto</h3>
         <p className={estilos.ajuda}>Opcional. Sem título, subtítulo e botão, o banner mostra só a imagem, como antes.</p>
+        <div className="painel-grade">
         <CampoDeTexto id={`${id}-titulo`} rotulo="Título" nome="titulo" valor={titulo} aoMudar={ao("titulo", setTitulo)} limite={LIMITE_DO_TITULO_DO_BANNER} erro={erros.titulo} />
-        {titulo.split(/\s+/).some((palavra) => palavra.length > LIMITE_DA_PALAVRA_DO_TITULO) && <CaixaDoPainel tipo="atencao">Palavra muito longa: o título será reduzido para caber.</CaixaDoPainel>}
+        {titulo.split(/\s+/).some((palavra) => palavra.length > LIMITE_DA_PALAVRA_DO_TITULO) && <div className="painel-inteira"><CaixaDoPainel tipo="atencao">Palavra muito longa: o título será reduzido para caber.</CaixaDoPainel></div>}
         <CampoDeTexto
           id={`${id}-destaque`}
           rotulo="Trecho em destaque"
@@ -703,11 +704,15 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           erro={erros.trechoEmDestaque}
           ajuda="Uma parte do título, escrita exatamente igual, que aparece em negrito e na cor de destaque."
         />
-        <CampoDeTexto id={`${id}-subtitulo`} rotulo="Subtítulo" nome="subtitulo" valor={subtitulo} aoMudar={ao("subtitulo", setSubtitulo)} limite={LIMITE_DO_SUBTITULO_DO_BANNER} erro={erros.subtitulo} multilinha />
+        <div className="painel-inteira">
+          <CampoDeTexto id={`${id}-subtitulo`} rotulo="Subtítulo" nome="subtitulo" valor={subtitulo} aoMudar={ao("subtitulo", setSubtitulo)} limite={LIMITE_DO_SUBTITULO_DO_BANNER} erro={erros.subtitulo} multilinha />
+        </div>
+        </div>
       </section>
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-link`}>
         <h3 id={`${id}-link`} className={estilos.tituloDaCaixa}>Botão e link</h3>
+        <div className="painel-grade">
         <CampoDeTexto
           id={`${id}-botao`}
           rotulo="Texto do botão"
@@ -721,6 +726,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
           ajuda="Uma frase curta. Com texto, o botão leva ao link de destino abaixo (e o banner inteiro continua clicável); sem texto, o banner inteiro é o link."
         />
         <CampoDoLink id={`${id}-href`} valor={href} aoMudar={setHref} erro={erros.href} aoErro={(mensagem) => definirErro("href", mensagem)} artigosAtivo={artigosAtivo} />
+        </div>
         {!artigosAtivo && ehCaminhoDosArtigos(href.trim()) && (
           <CaixaDoPainel tipo="atencao">Os Artigos estão fora do site (em Configurações). Enquanto isso, este banner aparece sem link.</CaixaDoPainel>
         )}
@@ -768,16 +774,11 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
       </section>
 
       <section className={estilos.caixaDoModal} aria-labelledby={`${id}-publicacao`}>
-        <h3 id={`${id}-publicacao`} className={estilos.tituloDaCaixa}>Publicação</h3>
-        {/* A situação sai do botão usado no pé da janela (06/11/2026): "Salvar e
-            ativar" manda ativo=sim, "Salvar como inativo" não manda o campo,
-            como a caixa "Ativo" de antes. */}
-        <p className={estilos.ajuda}>
-          Situação atual: {banner ? (banner.ativo ? "ativo (aparece no carrossel da home)" : "inativo (fora da home)") : "ainda não salvo"}. Para mudar, use os botões de salvar no pé da janela.
-        </p>
-
+        <h3 id={`${id}-publicacao`} className={estilos.tituloDaCaixa}>Posição no carrossel</h3>
+        {/* A situação sai do botão usado no pé da janela (06/11/2026) e aparece
+            na barra de salvar (10/11/2026). */}
         <fieldset className={estilos.grupoSemMoldura} aria-describedby={erros.posicao ? `${id}-posicao-erro` : undefined}>
-          <legend className={estilos.rotulo}>Posição no carrossel</legend>
+          <legend className="somente-leitor">Posição no carrossel</legend>
           <div className={estilos.posicao}>
             <Botao type="button" variante="secundario" onClick={() => moverPara(posicao - 1)} disabled={posicao <= 1} aria-label={`Subir uma posição (agora ${posicao} de ${maximo})`}>
               Subir
@@ -804,7 +805,7 @@ function FormularioDoBanner({ banner, total, artigosAtivo, aoTerminar, aoCancela
         </fieldset>
       </section>
 
-      <BarraDeSalvar aviso="Ativar mostra o banner no carrossel da home, se ele tiver imagem; inativo o deixa fora dela.">
+      <BarraDeSalvar situacao={banner ? (banner.ativo ? "Ativo na home" : "Inativo") : "Ainda não salvo"} aviso="Ativar mostra o banner no carrossel da home, se ele tiver imagem; inativo o deixa fora dela.">
         <Botao type="button" variante="link" onClick={aoCancelar} disabled={salvando}>
           Cancelar
         </Botao>
@@ -864,14 +865,14 @@ function FormularioDoEspaco({ espaco, aoTerminar, aoCancelar, aoAlterar }: { esp
         aoMudar={aoMudarImagem}
       />
       <CampoDoAlt id={`${id}-alt`} valor={alt} aoMudar={setAlt} erro={erros.alt} obrigatorio={temImagem} />
-      <div className={estilos.botoes}>
-        <Botao type="button" variante="secundario" onClick={aoCancelar} disabled={salvando}>
+      <BarraDeSalvar aviso="Sem imagem, a home mostra o espaço de imagem padrão nesta seção.">
+        <Botao type="button" variante="link" onClick={aoCancelar} disabled={salvando}>
           Cancelar
         </Botao>
         <Botao type="submit" disabled={salvando}>
           {salvando ? "Salvando..." : "Salvar"}
         </Botao>
-      </div>
+      </BarraDeSalvar>
     </form>
   );
 }
@@ -1062,12 +1063,12 @@ function TelaDaHome({ banners, espacos, artigosAtivo = true, video = null, capaD
       <VideoQuemSomosAdmin video={video} capa={capaDoVideo} aoTerminar={concluir} />
 
       {/* Com alteração não salva, fechar a janela pede confirmação (06/11/2026). */}
-      <JanelaDeFormulario aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"} largura="larga">
+      <JanelaDeFormulario aberto={janela?.tipo === "banner"} aoFechar={fechar} titulo={janela?.tipo === "banner" ? (janela.banner ? `Editar o ${janela.banner.nome.toLowerCase()}` : "Adicionar banner") : "Banner"}>
         {({ fecharComAviso, marcarAlteracao }) =>
           janela?.tipo === "banner" && <FormularioDoBanner banner={janela.banner} total={vivos.length} artigosAtivo={artigosAtivo} aoTerminar={concluir} aoCancelar={fecharComAviso} aoAlterar={marcarAlteracao} />
         }
       </JanelaDeFormulario>
-      <JanelaDeFormulario aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"} largura="larga">
+      <JanelaDeFormulario aberto={janela?.tipo === "espaco"} aoFechar={fechar} titulo={janela?.tipo === "espaco" ? `Imagem de "${janela.espaco.nome}"` : "Imagem da seção"}>
         {({ fecharComAviso, marcarAlteracao }) =>
           janela?.tipo === "espaco" && <FormularioDoEspaco espaco={janela.espaco} aoTerminar={concluir} aoCancelar={fecharComAviso} aoAlterar={marcarAlteracao} />
         }

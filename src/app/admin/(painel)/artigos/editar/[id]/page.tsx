@@ -35,6 +35,7 @@ export default async function PaginaEditarArtigo({ params }: { params: Promise<{
         rotuloPublicar="Salvar e publicar"
         rotuloRascunho="Salvar como rascunho"
         naLixeira={Boolean(artigo.excluidoEm)}
+        situacao={artigo.status === "publicado" ? "Publicado" : "Rascunho"}
       />
     </div>
   );
