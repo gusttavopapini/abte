@@ -32,12 +32,16 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* A folga de 4px dos lados (com a margem negativa) deixa o anel de foco
+   inteiro dentro da área que rola (10/11/2026). */
 .menu {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: var(--space-16);
   min-height: 0;
+  margin-inline: calc(var(--space-8) / -2);
+  padding-inline: calc(var(--space-8) / 2);
   overflow-y: auto;
 }
 
@@ -103,6 +107,95 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: var(--font-weight-bold);
+}
+
+/* ---------- Grupos recolhíveis (10/11/2026, estilo WordPress) ---------- */
+.grupoDoMenu {
+  display: flex;
+  flex-direction: column;
+}
+
+.linhaDoGrupo {
+  display: flex;
+  gap: calc(var(--space-8) / 2);
+  align-items: stretch;
+}
+
+.linkMenu.linkDoGrupo {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Rótulo do grupo da seção atual: em negrito e na cor da marca (o item
+   atual, com o fundo azul, é o subitem). */
+.linkMenu.secaoAtual {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.setaDoGrupo {
+  border-radius: var(--radius);
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-min-height-mobile);
+  min-height: var(--control-min-height-mobile);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color var(--realce-duracao) ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .setaDoGrupo:hover {
+    background: var(--realce-fundo);
+    color: var(--color-primary-hover);
+  }
+}
+
+.iconeDaSeta {
+  width: var(--space-20);
+  height: var(--space-20);
+  transition: transform var(--realce-duracao) ease-out;
+}
+
+.grupoAberto .iconeDaSeta {
+  transform: rotate(180deg);
+}
+
+.subitens {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-8) / 2);
+}
+
+.subitens[hidden] {
+  display: none;
+}
+
+.subitensNoLugar {
+  margin-top: calc(var(--space-8) / 2);
+}
+
+/* Painel flutuante ao lado da barra (só a partir de 1024px): preso à janela,
+   na altura da linha do grupo, sem empurrar o menu. Borda em vez de sombra. */
+.subitensFlutuantes {
+  border-radius: var(--radius);
+  position: fixed;
+  left: var(--largura-do-menu);
+  z-index: 50;
+  min-width: calc(var(--space-96) * 2 + var(--space-32));
+  padding: var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  background: var(--color-bg);
+}
+
+.subitensFlutuantes .linkMenu.subitem {
+  padding-left: var(--space-16);
+  white-space: nowrap;
 }
 
 .usuario {

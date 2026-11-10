@@ -8,6 +8,8 @@ import { Logo } from "@/components/Logo/Logo";
 import { BotaoDasConfiguracoes, type ConfiguracoesDoSiteNaTela } from "../ConfiguracoesDoSite/ConfiguracoesDoSite";
 import { IconeAjustes, IconeCaixa, IconeCasa, IconeImagem, IconeLivro, IconePaginas, IconePessoas, IconeTexto, IconeVisaoGeral } from "./IconesDoPainel";
 import { IconeEnvelope } from "./IconesDoPainel";
+import { GrupoDoMenu } from "./GrupoDoMenu";
+import { itemAtual, type ItemDoPainel } from "./itensDoMenu";
 import estilos from "./LayoutPainel.module.css";
 
 type PropsLayoutPainel = {
@@ -20,29 +22,35 @@ type PropsLayoutPainel = {
 };
 
 // Menu agrupado (etapa 3, 04/11/2026): Visão geral; Conteúdo; Pessoas;
-// Loja; Mídia; Configurações. Os subitens (categorias e tags) ficam recuados
-// abaixo do item a que pertencem, sem ícone.
-type ItemDoPainel = {
-  href: string;
-  rotulo: string;
-  icone?: (props: { className?: string }) => ReactNode;
-  sub?: boolean;
-  exato?: boolean;
-  fora?: string[];
-  soAdministrador?: boolean;
-};
-type GrupoDoPainel = { titulo: string | null; itens: ItemDoPainel[] };
+// Loja; Mídia; Configurações. Desde 10/11/2026, os itens com subpáginas
+// (Blog, Artigos, Produtos, Pedidos) são grupos recolhíveis, como no
+// WordPress: ver GrupoDoMenu.
+type SecaoDoPainel = { titulo: string | null; itens: ItemDoPainel[] };
 
-const GRUPOS: GrupoDoPainel[] = [
+const SECOES: SecaoDoPainel[] = [
   { titulo: null, itens: [{ href: "/admin", rotulo: "Visão geral", icone: IconeVisaoGeral, exato: true }] },
   {
     titulo: "Conteúdo",
     itens: [
       { href: "/admin/home", rotulo: "Home", icone: IconeCasa },
-      { href: "/admin/blog", rotulo: "Blog", icone: IconeTexto, fora: ["/admin/blog/topicos"] },
-      { href: "/admin/blog/topicos", rotulo: "Categorias e tags do blog", sub: true },
-      { href: "/admin/artigos", rotulo: "Artigos", icone: IconeLivro, fora: ["/admin/artigos/topicos"] },
-      { href: "/admin/artigos/topicos", rotulo: "Categorias e tags dos artigos", sub: true },
+      {
+        href: "/admin/blog",
+        rotulo: "Blog",
+        icone: IconeTexto,
+        sub: [
+          { href: "/admin/blog", rotulo: "Posts", fora: ["/admin/blog/topicos"] },
+          { href: "/admin/blog/topicos", rotulo: "Categorias e tags" },
+        ],
+      },
+      {
+        href: "/admin/artigos",
+        rotulo: "Artigos",
+        icone: IconeLivro,
+        sub: [
+          { href: "/admin/artigos", rotulo: "Artigos", fora: ["/admin/artigos/topicos"] },
+          { href: "/admin/artigos/topicos", rotulo: "Categorias e tags" },
+        ],
+      },
       // Só administrador (30/10/2026); para o editor, o item não aparece.
       { href: "/admin/paginas", rotulo: "Páginas", icone: IconePaginas, soAdministrador: true },
     ],
@@ -51,11 +59,26 @@ const GRUPOS: GrupoDoPainel[] = [
   {
     titulo: "Loja",
     itens: [
-      { href: "/admin/loja", rotulo: "Produtos", icone: IconeCaixa, fora: ["/admin/loja/categorias", "/admin/loja/frete"] },
-      { href: "/admin/loja/categorias", rotulo: "Categorias da loja", sub: true },
+      {
+        href: "/admin/loja",
+        rotulo: "Produtos",
+        icone: IconeCaixa,
+        sub: [
+          { href: "/admin/loja", rotulo: "Produtos", fora: ["/admin/loja/categorias", "/admin/loja/frete"] },
+          { href: "/admin/loja/categorias", rotulo: "Categorias da loja" },
+        ],
+      },
       // Pedidos e frete (08/11/2026): só administrador.
-      { href: "/admin/pedidos", rotulo: "Pedidos", icone: IconeCaixa, soAdministrador: true },
-      { href: "/admin/loja/frete", rotulo: "Frete da loja", sub: true, soAdministrador: true },
+      {
+        href: "/admin/pedidos",
+        rotulo: "Pedidos",
+        icone: IconeCaixa,
+        soAdministrador: true,
+        sub: [
+          { href: "/admin/pedidos", rotulo: "Pedidos" },
+          { href: "/admin/loja/frete", rotulo: "Frete da loja" },
+        ],
+      },
     ],
   },
   { titulo: null, itens: [{ href: "/admin/midia", rotulo: "Mídia", icone: IconeImagem }] },
@@ -63,12 +86,6 @@ const GRUPOS: GrupoDoPainel[] = [
   { titulo: null, itens: [{ href: "/admin/mensagens", rotulo: "Mensagens", icone: IconeEnvelope, soAdministrador: true }] },
   { titulo: null, itens: [{ href: "/admin/configuracoes", rotulo: "Configurações", icone: IconeAjustes, soAdministrador: true }] },
 ];
-
-function itemAtual(caminho: string, item: ItemDoPainel): boolean {
-  if (item.exato) return caminho === item.href;
-  if (item.fora?.some((outro) => caminho.startsWith(outro))) return false;
-  return caminho === item.href || caminho.startsWith(`${item.href}/`);
-}
 
 const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -127,24 +144,28 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
   const ehAdministrador = usuario?.papel === "administrador";
   const menu = (lugar: "lateral" | "gaveta") => (
     <nav aria-label="Menu do painel" className={estilos.menu}>
-      {GRUPOS.map((grupo, indiceDoGrupo) => {
-        const itens = grupo.itens.filter((item) => !item.soAdministrador || ehAdministrador);
+      {SECOES.map((secao, indiceDaSecao) => {
+        const itens = secao.itens.filter((item) => !item.soAdministrador || ehAdministrador);
         if (itens.length === 0) return null;
-        const idDoTitulo = `${idGaveta}-${lugar}-grupo-${indiceDoGrupo}`;
+        const idDoTitulo = `${idGaveta}-${lugar}-grupo-${indiceDaSecao}`;
         return (
-          <div key={indiceDoGrupo} className={estilos.grupo}>
-            {grupo.titulo && (
+          <div key={indiceDaSecao} className={estilos.grupo}>
+            {secao.titulo && (
               <p id={idDoTitulo} className={estilos.tituloDoGrupo}>
-                {grupo.titulo}
+                {secao.titulo}
               </p>
             )}
-            <ul role="list" className={estilos.listaMenu} aria-labelledby={grupo.titulo ? idDoTitulo : undefined}>
+            <ul role="list" className={estilos.listaMenu} aria-labelledby={secao.titulo ? idDoTitulo : undefined}>
               {itens.map((item) => {
+                if (item.sub) {
+                  const sub = item.sub.filter((subitem) => !subitem.soAdministrador || ehAdministrador);
+                  return <GrupoDoMenu key={`${item.href}-${caminho}`} item={item} sub={sub} caminho={caminho} modo={lugar} idBase={`${idGaveta}-${lugar}`} />;
+                }
                 const atual = itemAtual(caminho, item);
                 const Icone = item.icone;
                 return (
                   <li key={item.href}>
-                    <Link href={item.href} className={`${estilos.linkMenu} ${item.sub ? estilos.subitem : ""} ${atual ? estilos.atual : ""}`} aria-current={atual ? "page" : undefined}>
+                    <Link href={item.href} className={`${estilos.linkMenu} ${atual ? estilos.atual : ""}`} aria-current={atual ? "page" : undefined}>
                       {Icone && <Icone className={estilos.iconeDoMenu} />}
                       {item.rotulo}
                     </Link>
