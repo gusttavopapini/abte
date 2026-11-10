@@ -16,6 +16,8 @@ O responsável pediu novo mapeamento e retomada neste chat do Codex. Leia primei
 
 **Rodapé centralizado só até 1023px (07/11/2026, ajustado em 08/11/2026):** pedido de Gustavo: até 1023px (celular e tablet), títulos, links, e-mail e "Siga nosso Instagram" das colunas do rodapé centralizados; a partir de 1024px (desktop), os textos voltam à esquerda dentro de cada coluna, como no pedido de 10/10/2026 (`src/components/Rodape/Rodape.module.css`, bloco `@media (max-width: 1023px)`). Logo e frase de direitos continuam centralizados em todas as larguras. Mesma exceção consciente da centralização de 06/11/2026, pendente de confirmação da Bianca.
 
+**Profissionais e painel (10/11/2026):** ordem pública por tipo (ordem do menu) e nome sem tratamento e sem acento (só o nome com filtro); o campo `ordem` fica no banco, fora da tela. Auditoria da classificação (`npm run auditoria:profissionais`, só lê por padrão): 104 conferem, 0 correções. Menu do painel com grupos recolhíveis (Blog, Artigos, Produtos, Pedidos; flyout a partir de 1024px, acordeão na gaveta), janelas de formulário com até 1040px e barra de salvar numa linha, variante `perigo` no `Botao` para ações destrutivas. Detalhes no registro de 10/11/2026 do mapa.
+
 **Proporções recomendadas do banner (31/10/2026):** celular 4:5 (1080 x 1350 px), tablet 4:3 (1536 x 1152 px) e computador 16:9 (1920 x 1080 px), sem mudança.
 
 Código local `1a19af4`; GitHub conferido: `main` em `dfe8d8d`, branch remota em `f9b1650`, produção `7449312744` com sucesso. Cinco commits de implementação posteriores ainda são locais; a `main` local continua antiga. Este remapeamento não promoveu código nem alterou dados reais.
