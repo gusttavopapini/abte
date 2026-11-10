@@ -19,6 +19,7 @@
     "migracao:profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-profissionais.mts",
     "migracao:telefones": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/importar-telefones.mts",
     "migracao:campos-profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/importar-campos-profissionais.mts",
+    "auditoria:profissionais": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/auditar-classificacao-profissionais.mts",
     "cadastro:profissionais-lote": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/cadastrar-profissionais-lote.mts",
     "migracao:coletar-produtos": "node scripts/coletar-produtos.mts",
     "migracao:loja": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrar-loja.mts",

@@ -8,7 +8,9 @@ import { FormularioProfissional, type ProfissionalNaTela } from "@/app/admin/_co
 import { MensagensDoPainel, useAvisarNoPainel } from "@/app/admin/_componentes/MensagensDoPainel/MensagensDoPainel";
 import { SeloStatus } from "@/app/admin/_componentes/SeloStatus/SeloStatus";
 import { ListaDoPainel, type ItemDaLista, type OrdenacaoDaLista } from "@/app/admin/_componentes/ListaDoPainel/ListaDoPainel";
+import { rotuloDoTipo } from "@/config/profissionais";
 import { Botao } from "@/components/Botao/Botao";
+import { nomeParaOrdenar } from "@/lib/ordemDosProfissionais";
 import { JanelaDeFormulario } from "@/app/admin/_componentes/JanelaDeFormulario/JanelaDeFormulario";
 
 type Props = {
@@ -25,10 +27,9 @@ const PERDAS = [
 ];
 
 const ORDENACOES: OrdenacaoDaLista[] = [
-  { valor: "site", rotulo: "Ordem do site", chave: "ordem", direcao: "asc" },
+  { valor: "site", rotulo: "Tipo e nome, como no site", chave: "ordem", direcao: "asc" },
   { valor: "nome", rotulo: "Nome, de A a Z", chave: "nome", direcao: "asc" },
   { valor: "nome-inverso", rotulo: "Nome, de Z a A", chave: "nome", direcao: "desc" },
-  { valor: "tipo", rotulo: "Tipo", chave: "tipo", direcao: "asc" },
 ];
 
 function local(profissional: ProfissionalNaTela): string {
@@ -81,11 +82,12 @@ function ListaDeProfissionais({ ativos, excluidos, podeExcluirDeVez }: Props) {
       nome: nomeCompleto(profissional),
       busca: `${profissional.tipo} ${local(profissional)}`,
       situacao,
-      // A ordem que chega do servidor já é a do site (Ordem e, no empate, o nome).
-      chaves: { ordem: indice, nome: profissional.nome, tipo: profissional.tipo },
+      // A ordem que chega do servidor já é a do site (tipo na ordem do menu e
+      // nome sem tratamento e sem acento); "nome" usa a mesma regra do nome.
+      chaves: { ordem: indice, nome: nomeParaOrdenar(profissional.nome) },
       celulas: [
         nomeCompleto(profissional),
-        profissional.tipo,
+        rotuloDoTipo(profissional.tipo),
         local(profissional) || "Sem local",
         <SeloStatus key="situacao" status={naLixeira ? "lixeira" : profissional.ativo ? "ativo" : "oculto"} />,
       ],

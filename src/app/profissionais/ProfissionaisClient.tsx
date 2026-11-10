@@ -7,6 +7,7 @@ import { IconeSeta } from "@/components/Icones/Icones";
 import { PopupProfissional } from "@/components/PopupProfissional/PopupProfissional";
 import { TAGS_DE_PROFISSIONAIS, rotuloDoTipo } from "@/config/profissionais";
 import { filtrarProfissionais, opcoesDeRegiao, regiaoDoEndereco, textoDaQuantidade, tipoDoEndereco, TODOS_OS_TIPOS, valorDaRegiao } from "@/lib/filtroDeProfissionais";
+import { ordenarParaOsFiltros } from "@/lib/ordemDosProfissionais";
 import type { ProfissionalPublico } from "@/lib/profissionaisPublicos";
 import estilos from "./page.module.css";
 import { revelar } from "@/components/Revelar/revelar";
@@ -29,7 +30,8 @@ export function ProfissionaisClient({ profissionais }: { profissionais: Profissi
   const opcoes = useMemo(() => opcoesDeRegiao(profissionais), [profissionais]);
   const tipoAtivo = tipoDoEndereco(parametros);
   const regiaoAtiva = regiaoDoEndereco(parametros, opcoes);
-  const filtrados = filtrarProfissionais(profissionais, tipoAtivo, regiaoAtiva);
+  // Sem filtro, agrupados na ordem do menu; com filtro, só pelo nome (10/11/2026).
+  const filtrados = ordenarParaOsFiltros(filtrarProfissionais(profissionais, tipoAtivo, regiaoAtiva), tipoAtivo !== TODOS_OS_TIPOS || regiaoAtiva.tipo !== "todos");
 
   function irPara(mudar: (novos: URLSearchParams) => void) {
     const novos = new URLSearchParams(parametros.toString());

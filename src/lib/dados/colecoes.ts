@@ -5,6 +5,7 @@ import type { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot } from
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { donoDoDocumento } from "@/lib/midia/dono";
 import { lerAtiva } from "@/lib/topicos";
+import { ordenarPorTipoENome } from "../ordemDosProfissionais";
 import type { Artigo, ConferenciaDeMenor, MembroDaDiretoria, Midia, OrigemDaMidia, Post, Produto, Profissional, TipoDeTopico, Topico, VarianteDeMidia } from "./tipos";
 
 // Qualquer valor que não seja texto vira texto vazio.
@@ -265,9 +266,11 @@ export function ordenarPosts(posts: Post[]): Post[] {
   return [...posts].sort((a, b) => (dataDoPost(b)?.getTime() ?? 0) - (dataDoPost(a)?.getTime() ?? 0));
 }
 
-// Ordem do diretório: pela ordem definida no painel e, no empate, pelo nome.
+// Ordem do diretório (10/11/2026): agrupados na ordem do menu e, em cada
+// grupo, pelo nome sem tratamento e sem acento (lib/ordemDosProfissionais.ts).
+// O campo "ordem" fica gravado, mas não manda mais na lista.
 export function ordenarProfissionais(profissionais: Profissional[]): Profissional[] {
-  return [...profissionais].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
+  return ordenarPorTipoENome(profissionais);
 }
 
 export function lerProdutos() {
