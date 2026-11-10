@@ -1,4 +1,5 @@
-/* Categorias e tags: --space-64 entre as duas seções, mas não depois do
+/* Categorias e tags (10/11/2026: --space-24 entre as seções, como nas
+   outras telas do painel; antes, --space-64), mas não depois do
    cabeçalho, que fica a --space-24 do primeiro bloco (a margem dele), como nas
    listas e nos formulários do painel (06/11/2026; antes, 88px). */
 .pagina {
@@ -8,7 +9,7 @@
 }
 
 .pagina > * + * {
-  margin-top: var(--space-64);
+  margin-top: var(--space-24);
 }
 
 .pagina > header + * {

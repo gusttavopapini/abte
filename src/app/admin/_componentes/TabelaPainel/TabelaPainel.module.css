@@ -30,6 +30,7 @@
 
 .tabela th {
   padding: 0 var(--space-16) var(--space-16) 0;
+  white-space: nowrap;
   border-bottom: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
@@ -39,7 +40,30 @@
   padding: var(--space-16) var(--space-16) var(--space-16) 0;
   border-bottom: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   vertical-align: middle;
+  /* "break-word" (e não "anywhere"): a coluna não fica mais estreita que a
+     maior palavra, então datas e o botão "Ações" não quebram no meio
+     (10/11/2026). */
+  overflow-wrap: break-word;
+}
+
+.tabela td.quebrar {
   overflow-wrap: anywhere;
+}
+
+/* Nome longo: até duas linhas, com reticências; o texto completo fica no
+   title e no rótulo da seleção. */
+.nomeLongo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* As ações ficam juntas, na última coluna, do tamanho do conteúdo. */
+.tabela td.acoes {
+  width: 1%;
+  white-space: nowrap;
 }
 
 .tabela tr[hidden] {
@@ -115,6 +139,8 @@
   }
 
   .tabela td.acoes {
+    width: 100%;
+    white-space: normal;
     grid-template-columns: minmax(0, 1fr);
   }
 

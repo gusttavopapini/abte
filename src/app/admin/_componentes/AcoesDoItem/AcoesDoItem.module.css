@@ -16,6 +16,7 @@
   background: var(--color-bg);
   color: var(--color-primary);
   font-size: var(--font-size-small);
+  white-space: nowrap;
   cursor: pointer;
   transition: background-color var(--realce-duracao) ease-out;
 }
@@ -84,6 +85,11 @@
   white-space: nowrap;
   cursor: pointer;
   transition: background-color var(--realce-duracao) ease-out;
+}
+
+/* Ações destrutivas na cor de erro (10/11/2026). */
+.itemPerigo {
+  color: var(--color-error);
 }
 
 .item:focus-visible {

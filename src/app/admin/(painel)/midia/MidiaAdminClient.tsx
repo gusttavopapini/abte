@@ -117,7 +117,7 @@ function ConfirmarExclusao({ midia, aoTerminar, aoCancelar }: { midia: MidiaNaTe
       )}
       <div className={estilos.botoes}>
         <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
-        <Botao type="submit" disabled={excluindo}>{excluindo ? "Excluindo..." : emUso ? "Excluir mesmo assim" : "Excluir"}</Botao>
+        <Botao type="submit" variante="perigo" disabled={excluindo}>{excluindo ? "Excluindo..." : emUso ? "Excluir mesmo assim" : "Excluir"}</Botao>
       </div>
     </form>
   );
@@ -137,7 +137,7 @@ function ConfirmarExclusaoDeVez({ midia, aoTerminar, aoCancelar }: { midia: Midi
       {resposta?.ok === false && <Mensagem tipo="erro">{resposta.mensagem}</Mensagem>}
       <div className={estilos.botoes}>
         <Botao type="button" variante="secundario" onClick={aoCancelar}>Cancelar</Botao>
-        <Botao type="submit" disabled={excluindo}>{excluindo ? "Excluindo..." : "Excluir de vez"}</Botao>
+        <Botao type="submit" variante="perigo" disabled={excluindo}>{excluindo ? "Excluindo..." : "Excluir de vez"}</Botao>
       </div>
     </form>
   );
@@ -180,14 +180,17 @@ export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez
         acao={<Botao onClick={() => abrir({ tipo: "enviar" })}>Enviar imagem</Botao>}
       />
 
-      <div aria-live="polite">{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
+      {/* Região anunciada sempre presente; sem aviso, não ocupa espaço (10/11/2026). */}
+      <div aria-live="polite" className={aviso ? undefined : estilos.semAviso}>{aviso && <Mensagem tipo="sucesso">{aviso}</Mensagem>}</div>
 
-      <div className={estilos.busca}>
-        <label htmlFor={idBusca} className={estilos.rotulo}>Buscar pelo texto alternativo</label>
-        <input id={idBusca} type="search" value={busca} onChange={(evento) => setBusca(evento.target.value)} className={estilos.campoBusca} autoComplete="off" />
-      </div>
-
-      <div className={estilos.busca}>
+      {/* Busca e filtro numa caixa só, lado a lado a partir de 1024px, como
+          nas outras listas do painel (10/11/2026). */}
+      <div className={estilos.busca} role="search">
+        <div className={estilos.campoDaBusca}>
+          <label htmlFor={idBusca} className={estilos.rotulo}>Buscar pelo texto alternativo</label>
+          <input id={idBusca} type="search" value={busca} onChange={(evento) => setBusca(evento.target.value)} className={estilos.campoBusca} autoComplete="off" />
+        </div>
+        <div className={estilos.campoDaBusca}>
         <label htmlFor={idFiltro} className={estilos.rotulo}>Enviada por</label>
         <select id={idFiltro} value={filtroDoDono} onChange={(evento) => setFiltroDoDono(evento.target.value as FiltroDoDono)} className={estilos.campoBusca}>
           <option value="todos">Todos os itens</option>
@@ -196,6 +199,7 @@ export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez
           ))}
           <option value="semDono">Biblioteca ou site antigo (sem item)</option>
         </select>
+        </div>
       </div>
 
       <p className="tipo-pequeno" aria-live="polite">
@@ -203,7 +207,14 @@ export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez
       </p>
 
       {visiveis.length === 0 ? (
-        <p className="tipo-texto">{ativas.length === 0 ? "Nenhuma imagem enviada ainda." : "Nenhuma imagem encontrada."}</p>
+        <div className={estilos.vazio}>
+          <p className="tipo-texto">{ativas.length === 0 ? "Nenhuma imagem enviada ainda. As imagens enviadas aqui ou nos formulários aparecem nesta lista." : "Nenhuma imagem encontrada com essa busca ou filtro."}</p>
+          {ativas.length === 0 && (
+            <Botao variante="secundario" onClick={() => abrir({ tipo: "enviar" })}>
+              Enviar a primeira imagem
+            </Botao>
+          )}
+        </div>
       ) : (
         <ul role="list" className={estilos.grade}>
           {visiveis.map((midia) => (
@@ -221,7 +232,7 @@ export function MidiaAdminClient({ ativas, excluidas, detalhes, podeExcluirDeVez
                 <button type="button" className={`realce ${estilos.acao}`} onClick={() => abrir({ tipo: "editar", midia })} aria-label={`Editar o texto alternativo de ${midia.alt}`}>
                   Editar texto
                 </button>
-                <button type="button" className={`realce ${estilos.acao}`} onClick={() => abrir({ tipo: "excluir", midia })} aria-label={`Excluir ${midia.alt}`}>
+                <button type="button" className={`realce ${estilos.acao} ${estilos.acaoPerigo}`} onClick={() => abrir({ tipo: "excluir", midia })} aria-label={`Excluir ${midia.alt}`}>
                   Excluir
                 </button>
               </div>

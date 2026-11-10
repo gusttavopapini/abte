@@ -267,7 +267,7 @@ export function AcoesDoItem({ colecao, operacoes, textos, id, nome, situacao, hr
               </li>
             )}
             <li>
-              <button type="button" className={estilos.item} onClick={() => abrirJanela("lixeira")}>Mover para a lixeira</button>
+              <button type="button" className={`${estilos.item} ${estilos.itemPerigo}`} onClick={() => abrirJanela("lixeira")}>Mover para a lixeira</button>
             </li>
           </>
         )}
@@ -279,7 +279,7 @@ export function AcoesDoItem({ colecao, operacoes, textos, id, nome, situacao, hr
             {abrirNaLixeira && itemDeEditar("Abrir")}
             {podeExcluirDeVez && (
               <li>
-                <button type="button" className={estilos.item} onClick={() => abrirJanela("excluirDeVez")}>Excluir de vez</button>
+                <button type="button" className={`${estilos.item} ${estilos.itemPerigo}`} onClick={() => abrirJanela("excluirDeVez")}>Excluir de vez</button>
               </li>
             )}
           </>
@@ -291,6 +291,7 @@ export function AcoesDoItem({ colecao, operacoes, textos, id, nome, situacao, hr
         aoFechar={() => setJanela(null)}
         titulo={`Mover para a lixeira: "${nome}"`}
         rotuloDoBotao="Mover para a lixeira"
+        perigo
         aoConfirmar={async () => {
           const resposta = await ops.moverParaLixeira();
           if (resposta.ok) concluir(resposta, true);

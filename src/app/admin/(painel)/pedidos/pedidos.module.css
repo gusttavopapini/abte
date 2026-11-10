@@ -8,10 +8,25 @@
   background: var(--color-bg);
 }
 
+/* Formulário do frete: a mesma largura máxima dos outros formulários. */
+.caixaDoFormulario {
+  max-width: var(--largura-do-formulario);
+}
+
+/* Segunda linha da célula (data, e-mail, envio), menor (10/11/2026). */
+.detalheDaCelula {
+  display: block;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Filtros da situação: sem sublinhado (como os filtros das outras listas)
+   e a --space-24 da tabela (10/11/2026). */
 .filtros {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
+  margin-bottom: var(--space-24);
 }
 
 .filtro {
@@ -23,6 +38,7 @@
   border-radius: var(--radius);
   color: var(--color-primary);
   font-size: var(--font-size-small);
+  text-decoration: none;
 }
 
 .filtro[aria-current="page"] {

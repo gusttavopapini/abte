@@ -254,7 +254,7 @@ export function ListaDoPainel({ colecao, itens, colunas, ordenacoes, rotulos, ro
                 </label>
               </CelulaDoPainel>
               {item.celulas.map((celula, indice) => (
-                <CelulaDoPainel key={colunas[indice]} rotulo={colunas[indice]} destaque={indice === 0}>
+                <CelulaDoPainel key={colunas[indice]} rotulo={colunas[indice]} destaque={indice === 0} titulo={indice === 0 ? item.nome : undefined}>
                   {celula}
                 </CelulaDoPainel>
               ))}
@@ -279,6 +279,7 @@ export function ListaDoPainel({ colecao, itens, colunas, ordenacoes, rotulos, ro
         aoFechar={() => setLote(null)}
         titulo={`${rotuloDoLote}: ${nomeDaQuantidade(selecaoValida.size)}`}
         rotuloDoBotao={rotuloDoLote}
+        perigo={lote === "lixeira"}
         aoConfirmar={async () => {
           if (!lote) return { ok: false, mensagem: "Nada selecionado." };
           const resposta = await aplicarAcaoEmLote(colecao, [...selecaoValida], lote);

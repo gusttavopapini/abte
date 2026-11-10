@@ -23,13 +23,15 @@ type Props = {
   // Confirmação reforçada ("Excluir de vez", 04/11/2026): o que será perdido
   // e o nome do item, que vale como confirmação, além da palavra EXCLUIR.
   reforcada?: { nome: string; perdas: string[] };
+  // Ação destrutiva (10/11/2026): o botão de confirmar fica na cor de erro.
+  perigo?: boolean;
 };
 
 // Janela de confirmação do painel (04/11/2026), no lugar do window.confirm:
 // usa o Modal (foco preso, Esc fecha, foco volta a quem abriu). A
 // confirmação reforçada só libera o botão com EXCLUIR ou o nome digitado; o
 // servidor confere de novo.
-export function ConfirmacaoDoPainel({ aberto, aoFechar, titulo, children, rotuloDoBotao, aoConfirmar, reforcada }: Props) {
+export function ConfirmacaoDoPainel({ aberto, aoFechar, titulo, children, rotuloDoBotao, aoConfirmar, reforcada, perigo }: Props) {
   const idCampo = useId();
   const [digitado, setDigitado] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -88,11 +90,12 @@ export function ConfirmacaoDoPainel({ aberto, aoFechar, titulo, children, rotulo
           </CaixaDoPainel>
         )}
         <div className={estilos.botoes}>
-          <Botao type="submit" disabled={!liberado || enviando}>
-            {enviando ? "Aguarde..." : rotuloDoBotao}
-          </Botao>
+          {/* Mesma ordem da barra de salvar (10/11/2026): Cancelar e, à direita, a ação. */}
           <Botao type="button" variante="secundario" onClick={fechar} disabled={enviando}>
             Cancelar
+          </Botao>
+          <Botao type="submit" variante={perigo || reforcada ? "perigo" : "primario"} disabled={!liberado || enviando}>
+            {enviando ? "Aguarde..." : rotuloDoBotao}
           </Botao>
         </div>
       </form>

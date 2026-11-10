@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { ComponentPropsWithRef, ComponentPropsWithoutRef } from "react";
 import estilos from "./Botao.module.css";
 
-export type VarianteBotao = "primario" | "secundario" | "link" | "envio";
+// "perigo" (10/11/2026, painel): ações destrutivas, na cor de erro.
+export type VarianteBotao = "primario" | "secundario" | "link" | "envio" | "perigo";
 
 // Usado só na página /componentes para mostrar os estados lado a lado.
 export type EstadoDemonstracao = "hover" | "foco";

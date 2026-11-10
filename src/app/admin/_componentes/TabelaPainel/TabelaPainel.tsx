@@ -35,10 +35,13 @@ export function TabelaPainel({ id, legenda, colunas, vazia, estadoVazio, childre
   );
 }
 
-export function CelulaDoPainel({ rotulo, destaque, acoes, children }: { rotulo: string; destaque?: boolean; acoes?: boolean; children: ReactNode }) {
+// Célula da tabela (10/11/2026): a de destaque (nome) fica em até duas
+// linhas, com reticências e o texto completo no title; "quebrar" deixa um
+// texto sem espaços (e-mail) quebrar em qualquer ponto.
+export function CelulaDoPainel({ rotulo, destaque, acoes, quebrar, titulo, children }: { rotulo: string; destaque?: boolean; acoes?: boolean; quebrar?: boolean; titulo?: string; children: ReactNode }) {
   return (
-    <td data-rotulo={rotulo} className={`${destaque ? estilos.destaque : ""} ${acoes ? estilos.acoes : ""}`}>
-      {acoes ? <div className={estilos.botoesDaLinha}>{children}</div> : children}
+    <td data-rotulo={rotulo} className={`${destaque ? estilos.destaque : ""} ${acoes ? estilos.acoes : ""} ${quebrar ? estilos.quebrar : ""}`}>
+      {acoes ? <div className={estilos.botoesDaLinha}>{children}</div> : destaque ? <span className={estilos.nomeLongo} title={titulo}>{children}</span> : children}
     </td>
   );
 }

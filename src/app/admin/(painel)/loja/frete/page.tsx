@@ -16,8 +16,8 @@ export default async function PaginaFrete() {
   const frete = lerFreteFixo((await firestoreAdmin().collection("configuracoes").doc(DOCUMENTO_DA_LOJA).get()).get("freteFixo"));
   return (
     <>
-      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Frete da loja" }]} titulo="Frete da loja" descricao="Valor fixo cobrado uma vez por pedido com produto físico. Só o administrador altera." />
-      <div className={estilos.caixa}>
+      <CabecalhoDoPainel trilha={[{ rotulo: "Visão geral", href: "/admin" }, { rotulo: "Pedidos", href: "/admin/pedidos" }, { rotulo: "Frete da loja" }]} titulo="Frete da loja" descricao="Valor fixo cobrado uma vez por pedido com produto físico. Só o administrador altera." />
+      <div className={`${estilos.caixa} ${estilos.caixaDoFormulario}`}>
         <FormularioDoFrete valorAtual={precoParaCampo(frete)} />
       </div>
     </>

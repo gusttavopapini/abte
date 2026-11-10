@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Botao } from "@/components/Botao/Botao";
+import { CelulaDoPainel, TabelaPainel } from "@/app/admin/_componentes/TabelaPainel/TabelaPainel";
 import { CabecalhoDoPainel } from "@/app/admin/_componentes/CabecalhoDoPainel/CabecalhoDoPainel";
-import { CaixaDoPainel } from "@/app/admin/_componentes/CaixaDoPainel/CaixaDoPainel";
 import { exigirPapelDoPainel } from "@/lib/auth/sessao";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { COLECAO_PEDIDOS, ROTULOS_DO_ENVIO, ROTULOS_DO_STATUS, STATUS_DO_PEDIDO, ehStatusDoPedido } from "@/lib/loja/pagamento";
@@ -35,31 +36,39 @@ export default async function PaginaPedidos({ searchParams }: { searchParams: Pr
           </Link>
         ))}
       </nav>
-      <div className={estilos.caixa}>
-        {pedidos.length === 0 ? (
-          <CaixaDoPainel>Nenhum pedido {filtro ? "nesta situação" : "ainda"}.</CaixaDoPainel>
-        ) : (
-          <table className={estilos.tabela}>
-            <caption className="somente-leitor">Pedidos, do mais recente para o mais antigo</caption>
-            <thead>
-              <tr><th scope="col">Data</th><th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">E-mail</th><th scope="col">Total</th><th scope="col">Situação</th><th scope="col">Envio</th></tr>
-            </thead>
-            <tbody>
-              {pedidos.map((pedido) => (
-                <tr key={pedido.id}>
-                  <td data-rotulo="Data">{pedido.criadoEm ? DATA.format(pedido.criadoEm) : ""}</td>
-                  <td data-rotulo="Pedido"><Link href={`/admin/pedidos/${pedido.id}`}>{pedido.id.slice(0, 8)}</Link>{pedido.modo === "teste" ? " (teste)" : ""}</td>
-                  <td data-rotulo="Cliente">{pedido.clienteUid ? "Conta" : "Visitante"}</td>
-                  <td data-rotulo="E-mail">{pedido.email}</td>
-                  <td data-rotulo="Total">{formatarPreco(pedido.total)}</td>
-                  <td data-rotulo="Situação">{ROTULOS_DO_STATUS[pedido.status]}</td>
-                  <td data-rotulo="Envio">{pedido.status === "pago" ? ROTULOS_DO_ENVIO[pedido.envio.situacao] : ""}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* Mesma tabela das outras listas (10/11/2026): ações na última coluna,
+          cartões até 767px e o estado vazio numa caixa branca. */}
+      <TabelaPainel
+        legenda="Pedidos, do mais recente para o mais antigo."
+        colunas={["Pedido", "Cliente", "Total", "Situação", "Ações"]}
+        vazia={pedidos.length === 0}
+        estadoVazio={<p className="tipo-texto">Nenhum pedido {filtro ? "nesta situação" : "ainda"}.</p>}
+      >
+        {/* Cinco colunas (10/11/2026): com oito, a tabela não cabia de 768 a 1024px. */}
+        {pedidos.map((pedido) => (
+          <tr key={pedido.id}>
+            <CelulaDoPainel rotulo="Pedido">
+              {pedido.id.slice(0, 8)}
+              {pedido.modo === "teste" ? " (teste)" : ""}
+              <span className={estilos.detalheDaCelula}>{pedido.criadoEm ? DATA.format(pedido.criadoEm) : ""}</span>
+            </CelulaDoPainel>
+            <CelulaDoPainel rotulo="Cliente" quebrar>
+              {pedido.clienteUid ? "Conta" : "Visitante"}
+              <span className={estilos.detalheDaCelula}>{pedido.email}</span>
+            </CelulaDoPainel>
+            <CelulaDoPainel rotulo="Total">{formatarPreco(pedido.total)}</CelulaDoPainel>
+            <CelulaDoPainel rotulo="Situação">
+              {ROTULOS_DO_STATUS[pedido.status]}
+              {pedido.status === "pago" && <span className={estilos.detalheDaCelula}>{ROTULOS_DO_ENVIO[pedido.envio.situacao]}</span>}
+            </CelulaDoPainel>
+            <CelulaDoPainel rotulo="Ações" acoes>
+              <Botao href={`/admin/pedidos/${pedido.id}`} variante="secundario" aria-label={`Ver o pedido ${pedido.id.slice(0, 8)}`}>
+                Ver pedido
+              </Botao>
+            </CelulaDoPainel>
+          </tr>
+        ))}
+      </TabelaPainel>
     </>
   );
 }

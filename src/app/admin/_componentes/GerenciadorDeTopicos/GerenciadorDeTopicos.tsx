@@ -93,7 +93,7 @@ function NovoTopico({ tipo, comOrdem, comImagem }: { tipo: TipoDeTopico; comOrde
       <input type="hidden" name="tipo" value={tipo} />
       <div className={estilos.campos}>
         <Campo id={`${id}-nome`} name="nome" rotulo={tipo === "tag" || tipo === "tagDePost" ? "Nova tag" : "Nova categoria"} obrigatorio maxLength={60} />
-        {comOrdem && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} />}
+        {comOrdem && <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={0} className="painel-estreito" />}
       </div>
       {comImagem && <p className={estilos.endereco}>A imagem pode ser escolhida depois de criar a categoria, na lista abaixo.</p>}
       <div className={estilos.botoes}>
@@ -131,7 +131,7 @@ function ItemAtivo({ tipo, topico, comOrdem, comImagem, comAtiva, ondeAparece, p
         <div className={estilos.campos}>
           <Campo id={`${id}-nome`} name="nome" rotulo="Nome" obrigatorio maxLength={60} defaultValue={topico.nome} />
           {comOrdem && (
-            <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={topico.ordem} />
+            <Campo id={`${id}-ordem`} name="ordem" type="number" rotulo="Ordem" min={0} max={999} defaultValue={topico.ordem} className="painel-estreito" />
           )}
         </div>
         {prefixoDoEndereco && <p className={estilos.endereco}>Endereço: {prefixoDoEndereco}{topico.slug}</p>}
@@ -161,7 +161,7 @@ function ItemAtivo({ tipo, topico, comOrdem, comImagem, comAtiva, ondeAparece, p
       </form>
       {/* Salvar pertence ao formulário acima (atributo form); as outras ações ficam no menu. */}
       <div className={estilos.botoes}>
-        <Botao type="submit" form={`${id}-salvar`} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
+        <Botao type="submit" variante="secundario" form={`${id}-salvar`} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Botao>
         <MenuDoTopico tipo={tipo} topico={topico} naLixeira={false} comAtiva={comAtiva} prefixoDoEndereco={prefixoDoEndereco} podeExcluirDeVez={podeExcluirDeVez} />
       </div>
       <Resposta resposta={respostaSalvar} />
@@ -188,7 +188,7 @@ export function GerenciadorDeTopicos({ tipo, comOrdem = false, comImagem = false
   const nomeDoTipo = ehTag(tipo) ? "tags" : "categorias";
   return (
     <section aria-labelledby={idTitulo} className={estilos.secao}>
-      <h2 id={idTitulo} className="tipo-h3">{titulo}</h2>
+      <h2 id={idTitulo} className={estilos.tituloDaSecao}>{titulo}</h2>
       <p className="tipo-texto">{descricao}</p>
 
       <MensagensDoPainel>

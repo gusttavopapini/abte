@@ -108,4 +108,11 @@
   .dados {
     grid-template-columns: 1fr;
   }
+
+  /* Link do e-mail com a área de toque de 44px (10/11/2026). */
+  .dados a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height-mobile);
+  }
 }
