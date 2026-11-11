@@ -109,19 +109,27 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* ---------- Grupos recolhíveis (10/11/2026, estilo WordPress) ---------- */
+/* ---------- Grupos recolhíveis (10/11/2026): acordeão em todas as
+   larguras. A linha inteira (ícone, rótulo e seta) é um só botão, com o
+   destaque de hover e de foco do .linkMenu. ---------- */
 .grupoDoMenu {
   display: flex;
   flex-direction: column;
-}
-
-.linhaDoGrupo {
-  display: flex;
   gap: calc(var(--space-8) / 2);
-  align-items: stretch;
 }
 
-.linkMenu.linkDoGrupo {
+.linkMenu.botaoDoGrupo {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rotuloDoGrupo {
   flex: 1;
   min-width: 0;
 }
@@ -133,30 +141,8 @@
   font-weight: var(--font-weight-bold);
 }
 
-.setaDoGrupo {
-  border-radius: var(--radius);
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--control-min-height-mobile);
-  min-height: var(--control-min-height-mobile);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: background-color var(--realce-duracao) ease-out;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .setaDoGrupo:hover {
-    background: var(--realce-fundo);
-    color: var(--color-primary-hover);
-  }
-}
-
 .iconeDaSeta {
+  flex: none;
   width: var(--space-20);
   height: var(--space-20);
   transition: transform var(--realce-duracao) ease-out;
@@ -174,28 +160,6 @@
 
 .subitens[hidden] {
   display: none;
-}
-
-.subitensNoLugar {
-  margin-top: calc(var(--space-8) / 2);
-}
-
-/* Painel flutuante ao lado da barra (só a partir de 1024px): preso à janela,
-   na altura da linha do grupo, sem empurrar o menu. Borda em vez de sombra. */
-.subitensFlutuantes {
-  border-radius: var(--radius);
-  position: fixed;
-  left: var(--largura-do-menu);
-  z-index: 50;
-  min-width: calc(var(--space-96) * 2 + var(--space-32));
-  padding: var(--space-8);
-  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
-  background: var(--color-bg);
-}
-
-.subitensFlutuantes .linkMenu.subitem {
-  padding-left: var(--space-16);
-  white-space: nowrap;
 }
 
 .usuario {

@@ -159,7 +159,7 @@ export function LayoutPainel({ children, usuario, sair, configuracoes }: PropsLa
               {itens.map((item) => {
                 if (item.sub) {
                   const sub = item.sub.filter((subitem) => !subitem.soAdministrador || ehAdministrador);
-                  return <GrupoDoMenu key={`${item.href}-${caminho}`} item={item} sub={sub} caminho={caminho} modo={lugar} idBase={`${idGaveta}-${lugar}`} />;
+                  return <GrupoDoMenu key={`${item.href}-${caminho}`} item={item} sub={sub} caminho={caminho} idBase={`${idGaveta}-${lugar}`} />;
                 }
                 const atual = itemAtual(caminho, item);
                 const Icone = item.icone;
