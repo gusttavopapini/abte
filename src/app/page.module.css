@@ -295,3 +295,16 @@
   outline: none;
   box-shadow: none;
 }
+
+/* Bloco de Quem Somos como alvo da âncora (11/11/2026): o script centraliza
+   o bloco; a margem só vale sem JavaScript. O foco vem só da âncora
+   (tabindex -1), sem anel, porque o bloco não é controle. */
+.ancoraCentralizada {
+  scroll-margin-top: calc(var(--altura-do-header, 0px) + var(--space-24));
+}
+
+.ancoraCentralizada:focus,
+.ancoraCentralizada:focus-visible {
+  outline: none;
+  box-shadow: none;
+}

@@ -13,10 +13,16 @@ describe("Âncoras da home", () => {
     assert.equal(ehAncoraDaHome("contato"), false);
   });
 
-  test("cada âncora existe na home, numa seção com o título focável", () => {
+  test("cada âncora existe na home: seção com o título focável, ou o bloco de Quem Somos", () => {
     const codigo = readFileSync("src/app/page.tsx", "utf8");
-    for (const { id } of ANCORAS_DA_HOME) assert.match(codigo, new RegExp(`<section id="${id}"`), id);
-    assert.equal((codigo.match(/<h2[^>]*tabIndex=\{-1\}/g) ?? []).length, ANCORAS_DA_HOME.length);
+    const secoes = ANCORAS_DA_HOME.filter(({ id }) => id !== "quem-somos");
+    for (const { id } of secoes) assert.match(codigo, new RegExp(`<section id="${id}"`), id);
+    assert.equal((codigo.match(/<h2[^>]*tabIndex=\{-1\}/g) ?? []).length, secoes.length);
+    // Quem Somos (11/11/2026): a âncora é o bloco dos cards e do vídeo,
+    // focável, nomeado pelo H2 e marcado para ser centralizado.
+    assert.match(codigo, /<div id="quem-somos" tabIndex=\{-1\} role="group" aria-labelledby="titulo-quem-somos" data-ancora-centralizada=""/);
+    assert.match(codigo, /<h2 id="titulo-quem-somos"/);
+    assert.doesNotMatch(codigo, /<section id="quem-somos"/);
   });
 
   test("validador: #âncora só da lista; recusa javascript:, data:, // e inválidos", () => {

@@ -7,6 +7,7 @@ import { IconeMenu } from "@/components/Icones/Icones";
 import { Logo } from "@/components/Logo/Logo";
 import { MenuDesktop } from "@/components/MenuDesktop/MenuDesktop";
 import { MenuTelaCheia } from "@/components/MenuTelaCheia/MenuTelaCheia";
+import { LIMITE_DE_ROLAGEM_PX, TOLERANCIA_DE_ROLAGEM_PX } from "@/lib/site/enquadramento";
 import estilos from "./Header.module.css";
 
 export type VarianteHeader = "transparente" | "solida";
@@ -21,12 +22,8 @@ type PropsHeader = {
   menu?: ItemDoMenu[];
 };
 
-// Rolagem (em px) a partir da qual o header pode se esconder e ganha fundo
-// sólido; acima dela, o header fica como no topo da página.
-const LIMITE_DE_ROLAGEM_PX = 80;
-// Movimentos menores que isto são ignorados, para o header não piscar com
-// pequenas oscilações da rolagem (trackpad).
-const TOLERANCIA_DE_ROLAGEM_PX = 8;
+// Limite e tolerância da rolagem do header: em src/lib/site/enquadramento.ts
+// desde 11/11/2026, porque a rolagem até as âncoras prevê o header com eles.
 
 // Header do site (design-system.md seção 8.1).
 // Fixo no topo (PROPOSTA). Esconde ao rolar para baixo e volta ao rolar para

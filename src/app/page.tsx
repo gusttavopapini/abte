@@ -208,14 +208,17 @@ export default async function PaginaInicial() {
         {/* 4. Quem somos (29/10/2026): missão, visão e valores empilhados numa
             coluna e, ao lado, o vídeo vertical, na mesma altura dos blocos.
             Até 1023px, os blocos primeiro e o vídeo abaixo, centralizado. */}
-        <section id="quem-somos" className={`container ${estilos.secao} ${estilos.secaoComAncora}`} aria-labelledby="titulo-quem-somos">
+        {/* A âncora #quem-somos (11/11/2026) é o bloco dos cards e do vídeo, e
+            não a seção: NavegacaoPorAncora centraliza esse bloco na área
+            visível (data-ancora-centralizada) e põe o foco nele. */}
+        <section className={`container ${estilos.secao}`} aria-labelledby="titulo-quem-somos">
           <div className={estilos.blocoCentralizado}>
             <div {...revelar()}>
-              <h2 id="titulo-quem-somos" tabIndex={-1} className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
+              <h2 id="titulo-quem-somos" className={`${estilos.tituloSecao} ${estilos.tituloCompacto} ${estilos.centralizado}`}>Quem Somos</h2>
             </div>
           </div>
 
-          <div className={estilos.quemSomos}>
+          <div id="quem-somos" tabIndex={-1} role="group" aria-labelledby="titulo-quem-somos" data-ancora-centralizada="" className={`${estilos.quemSomos} ${estilos.ancoraCentralizada}`}>
             <div className={estilos.valores}>
               {VALORES.map((valor, indice) => (
                 <div key={valor.titulo} {...revelar(estilos.itemDoValor, (indice + 1) as 1 | 2 | 3)}>
