@@ -283,10 +283,12 @@
 }
 
 /* Seções com âncora (30/10/2026, src/lib/site/ancoras.ts): ao chegar por
-   "#âncora", o topo da seção fica abaixo do header fixo. O título recebe o
-   foco (tabindex -1) sem anel, porque não é controle. */
+   "#âncora", o topo da seção fica abaixo do header fixo. Desde 11/11/2026,
+   pela altura inteira do header (--altura-do-header), e não pela visível:
+   ao rolar para cima o header escondido volta e cobriria o título. O título
+   recebe o foco (tabindex -1) sem anel, porque não é controle. */
 .secaoComAncora {
-  scroll-margin-top: calc(var(--altura-do-header-visivel, 0px) + var(--space-24));
+  scroll-margin-top: calc(var(--altura-do-header, 0px) + var(--space-24));
 }
 
 .secaoComAncora h2:focus {

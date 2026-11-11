@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Header, type VarianteHeader } from "@/components/Header/Header";
+import { NavegacaoPorAncora } from "@/components/NavegacaoPorAncora/NavegacaoPorAncora";
 import { PularParaConteudo } from "@/components/PularParaConteudo/PularParaConteudo";
 import { ObservadorDeRevelacao } from "@/components/Revelar/ObservadorDeRevelacao";
 import { Rodape } from "@/components/Rodape/Rodape";
@@ -32,6 +33,7 @@ export async function LayoutPublico({
   return (
     <>
       <ObservadorDeRevelacao />
+      <NavegacaoPorAncora />
       <PularParaConteudo />
       <Header variante={header} menu={itensDoMenu(MENU_PRINCIPAL, configuracao)} />
       <main id="conteudo" tabIndex={-1} className={estilos.principal}>

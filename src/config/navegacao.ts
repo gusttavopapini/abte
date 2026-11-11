@@ -15,7 +15,11 @@ export type ItemDoMenu = {
   submenu?: LinkDeNavegacao[];
 };
 
+// "Quem Somos" (11/11/2026): âncora da seção da home, não uma página. O
+// clique é tratado por NavegacaoPorAncora (rola na home; de outra página,
+// vai para a home e rola até a seção).
 export const MENU_PRINCIPAL: ItemDoMenu[] = [
+  { rotulo: "Quem Somos", href: "/#quem-somos" },
   {
     rotulo: "Profissionais",
     href: "/profissionais",
@@ -27,10 +31,12 @@ export const MENU_PRINCIPAL: ItemDoMenu[] = [
   { rotulo: "Contato", href: "/contato" },
 ];
 
-// Um link fica ativo na própria página e nas páginas abaixo dela.
+// Um link fica ativo na própria página e nas páginas abaixo dela. Link para
+// uma seção ("/#âncora") nunca fica ativo: estar na home não é estar na seção.
 // Atenção: o pathname não inclui "?tag=...", então os links do submenu de
 // Profissionais nunca ficam ativos (comportamento atual, pendência no CLAUDE.md).
 export function linkEstaAtivo(pathname: string, href: string): boolean {
+  if (href.includes("#")) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -46,6 +52,7 @@ export const CHAMADA_DOACAO: LinkDeNavegacao = { rotulo: "Doe para a ABTE", href
 
 // Rodapé
 export const RODAPE_MENU: LinkDeNavegacao[] = [
+  { rotulo: "Quem Somos", href: "/#quem-somos" },
   { rotulo: "Profissionais", href: "/profissionais" },
   { rotulo: "Blog", href: "/blog" },
   { rotulo: "Artigos", href: "/artigos" },
