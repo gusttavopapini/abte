@@ -7,6 +7,7 @@ import { linkDoSlide, type SlideDoBanner } from "@/lib/site/banners";
 import { partesDoTitulo } from "@/lib/site/home";
 import estilos from "./Hero.module.css";
 import { TituloAjustavel } from "./TituloAjustavel";
+import { IconeSetaDireita, IconeSetaEsquerda } from "@/components/Icones/Icones";
 
 export type FormatoDaPrevia = "computador" | "tablet" | "celular";
 
@@ -112,13 +113,13 @@ export function ConteudoDoSlide({ slide, prioridade, formato }: { slide: SlideDo
       {/* Tablet e celular: a linha de setas e pontos do site, só como desenho. */}
       {(formato === "tablet" || formato === "celular") && (
         <div className={estilos.navDaPrevia}>
-          <span className={estilos.setaDaPrevia}>&#10094;</span>
+          <span className={estilos.setaDaPrevia}><IconeSetaEsquerda className={estilos.iconeDaSeta} /></span>
           <span className={estilos.pontosDaPrevia}>
             <span className={estilos.pontoAtivoDaPrevia} />
             <span />
             <span />
           </span>
-          <span className={estilos.setaDaPrevia}>&#10095;</span>
+          <span className={estilos.setaDaPrevia}><IconeSetaDireita className={estilos.iconeDaSeta} /></span>
         </div>
       )}
     </>

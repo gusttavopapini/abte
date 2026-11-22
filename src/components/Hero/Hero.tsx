@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { SlideDoBanner } from "@/lib/site/banners";
 import { ConteudoDoSlide } from "./ConteudoDoSlide";
 import estilos from "./Hero.module.css";
+import { IconeSetaDireita, IconeSetaEsquerda } from "@/components/Icones/Icones";
 
 type PropsHero = {
   // Slides configurados em src/lib/site/banners.ts; com destino, o slide
@@ -93,7 +94,7 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
         {/* No computador, setas nas laterais e indicadores na base; até
             1023px, uma linha própria no painel branco (seta, pontos, seta). */}
         <button type="button" className={`${estilos.seta} ${estilos.setaEsquerda}`} onClick={anterior} aria-label="Slide anterior">
-          &#10094;
+          <IconeSetaEsquerda className={estilos.iconeDaSeta} />
         </button>
         <div className={estilos.controles}>
           <div className={estilos.dotsContainer}>
@@ -111,7 +112,7 @@ export function Hero({ slides, sobHeaderFixo }: PropsHero) {
           </div>
         </div>
         <button type="button" className={`${estilos.seta} ${estilos.setaDireita}`} onClick={proximo} aria-label="Próximo slide">
-          &#10095;
+          <IconeSetaDireita className={estilos.iconeDaSeta} />
         </button>
       </div>
     </section>

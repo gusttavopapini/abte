@@ -66,6 +66,15 @@
   background: var(--color-primary-hover);
 }
 
+/* Seta desenhada em SVG (21/11/2026), no lugar dos caracteres ❮ ❯, que a
+   fonte deixava fora do centro: o ícone ocupa metade do botão e fica no
+   centro exato pelo place-items do botão. */
+.iconeDaSeta {
+  display: block;
+  width: 50%;
+  height: 50%;
+}
+
 .setaEsquerda {
   left: max(var(--space-20), env(safe-area-inset-left, 0px));
 }

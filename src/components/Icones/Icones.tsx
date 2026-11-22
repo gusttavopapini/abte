@@ -36,6 +36,24 @@ export function IconeSeta({ className }: PropsIcone) {
   );
 }
 
+// Setas do banner (21/11/2026): desenho simétrico, com o centro exato no
+// meio do quadro (x de 8,5 a 15,5 e y de 5 a 19), para ficar centrado no botão.
+export function IconeSetaEsquerda({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M15.5 5L8.5 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconeSetaDireita({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M8.5 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // Funil do botão de filtros da loja (29/10/2026).
 export function IconeFiltro({ className }: PropsIcone) {
   return (
