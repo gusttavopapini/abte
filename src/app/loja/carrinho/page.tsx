@@ -7,7 +7,7 @@ import { lerPaginasEmCache } from "@/lib/dados/paginas";
 import { paginaNoSite } from "@/lib/site/paginas";
 import { firestoreAdmin } from "@/lib/firebase/servidor";
 import { montarResumoDoCarrinho, quantidadeMaxima } from "@/lib/loja/carrinho";
-import { DOCUMENTO_DA_LOJA, lerFreteFixo, TEXTO_FRETE_COMBINADO, TEXTO_MODO_DE_TESTE, TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
+import { DOCUMENTO_DA_LOJA, lerFreteFixo, TEXTO_FRETE_COMBINADO, TEXTO_PAGAMENTO_SEGURO } from "@/lib/loja/pagamento";
 import { formatarPreco } from "@/lib/produtos";
 import { liberacaoAtual } from "@/lib/stripe/servidor";
 import { FinalizarCompra } from "../_componentes/FinalizarCompra/FinalizarCompra";
@@ -15,7 +15,8 @@ import { CampoDeCupom } from "../_componentes/CampoDeCupom/CampoDeCupom";
 import { lerCodigoDoCupom, lerCupomAtivo } from "@/lib/dados/cupons";
 import { calcularDesconto } from "@/lib/loja/cupons";
 import { ItensDoCarrinho } from "../_componentes/ItensDoCarrinho/ItensDoCarrinho";
-import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
+import { CartaoDaLoja, PaginaDaLoja } from "../_componentes/PaginaDaLoja/PaginaDaLoja";
+import { IconeCadeado, IconeRecibo, IconeSacola } from "@/components/Icones/Icones";
 import estilos from "./page.module.css";
 
 export const metadata: Metadata = { title: "Carrinho", robots: { index: false, follow: false } };
@@ -45,36 +46,49 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
   // O link da política só aparece com a página publicada (senão daria 404).
   const politicaPublicada = pagamentoLigado && linhas.length > 0 ? paginaNoSite((await lerPaginasEmCache()).get("politica-de-privacidade")) : false;
 
+  const total = resumo.total - desconto + frete;
+  const unidades = `${resumo.unidades} ${resumo.unidades === 1 ? "item" : "itens"}`;
+
   return (
-    <div className={`container pagina-interna ${estilos.secao}`}>
-      <LinksDaLoja />
-      <h1 className={`tipo-h2 ${estilos.titulo}`}>Carrinho</h1>
+    <PaginaDaLoja
+      titulo="Carrinho"
+      descricao={
+        <>
+          {linhas.length > 0 && <p>{unidades} no carrinho.</p>}
+          {!cliente && (
+            <p className={estilos.pequeno}>
+              Não é preciso ter conta para comprar. <Link href="/loja/entrar?voltar=%2Floja%2Fconta" className="link-de-texto">Entre para ver seus pedidos</Link>
+            </p>
+          )}
+        </>
+      }
+    >
       {parametros.pagamento === "cancelado" && <Mensagem tipo="sucesso">Pagamento cancelado. Seu carrinho continua guardado.</Mensagem>}
-      {pagamentoLigado && liberacao.modo === "teste" && <p className={estilos.modoDeTeste} role="note">{TEXTO_MODO_DE_TESTE}</p>}
-      {!cliente && (
-        <p className={`${estilos.pequeno} ${estilos.entrar}`}>
-          Não é preciso ter conta para comprar. <Link href="/loja/entrar?voltar=%2Floja%2Fconta" className="link-de-texto">Entre para ver seus pedidos</Link>
-        </p>
-      )}
 
       {linhas.length === 0 ? (
-        <p className="tipo-texto">
-          Seu carrinho está vazio. <Link href="/loja" className="link-de-texto">Ver produtos</Link>
-        </p>
+        <section aria-labelledby="titulo-vazio" className={estilos.vazio}>
+          <span className={estilos.iconeGrande}><IconeSacola /></span>
+          <h2 id="titulo-vazio" className={estilos.tituloVazio}>Seu carrinho está vazio</h2>
+          <p>Veja as cartilhas e os materiais da ABTE e escolha o que quer levar.</p>
+          <Botao href="/loja">Ver produtos</Botao>
+        </section>
       ) : (
         <div className={estilos.conteudo}>
-          <ItensDoCarrinho linhas={linhas} />
-          <section aria-labelledby="titulo-resumo" className={estilos.resumo}>
-            <h2 id="titulo-resumo" className="tipo-texto-lg">Resumo</h2>
+          <CartaoDaLoja id="titulo-itens" titulo="Itens" icone={<IconeSacola />}>
+            <ItensDoCarrinho linhas={linhas} />
+            <Link href="/loja" className={`link-de-texto ${estilos.continuar}`}>Continuar comprando</Link>
+          </CartaoDaLoja>
+
+          <CartaoDaLoja id="titulo-resumo" titulo="Resumo" icone={<IconeRecibo />} className={estilos.resumo}>
             {pagamentoLigado ? (
               <>
                 <dl className={estilos.valores}>
                   <div>
-                    <dt>Subtotal ({resumo.unidades} {resumo.unidades === 1 ? "unidade" : "unidades"})</dt>
+                    <dt>Subtotal ({unidades})</dt>
                     <dd>{formatarPreco(resumo.total)}</dd>
                   </div>
                   {cupom && desconto > 0 && (
-                    <div>
+                    <div className={estilos.desconto}>
                       <dt>Cupom {cupom.codigo} ({cupom.percentual}%)</dt>
                       <dd>- {formatarPreco(desconto)}</dd>
                     </div>
@@ -85,13 +99,16 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
                   </div>
                   <div className={estilos.total}>
                     <dt>Total</dt>
-                    <dd>{formatarPreco(resumo.total - desconto + frete)}</dd>
+                    <dd>{formatarPreco(total)}</dd>
                   </div>
                 </dl>
                 <CampoDeCupom aplicado={cupom ? cupom.codigo : null} invalido={codigoDoCupom && !cupom ? codigoDoCupom : null} />
-                {resumo.temProblema && <p>Remova os itens esgotados ou fora da loja para finalizar a compra.</p>}
+                {resumo.temProblema && <p className={estilos.alerta}>Remova os itens esgotados ou fora da loja para finalizar a compra.</p>}
                 <FinalizarCompra desabilitado={resumo.temProblema || resumo.unidades === 0} />
-                <p className={estilos.pequeno}>{TEXTO_PAGAMENTO_SEGURO}</p>
+                <p className={estilos.seguro}>
+                  <IconeCadeado />
+                  <span>{TEXTO_PAGAMENTO_SEGURO}</span>
+                </p>
                 <p className={estilos.pequeno}>
                   Seus dados de entrega e contato são usados só para processar o pedido. Detalhes na{" "}
                   {politicaPublicada ? <Link href="/politica-de-privacidade" className="link-de-texto">Política de privacidade</Link> : "Política de privacidade"}.
@@ -99,15 +116,20 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
               </>
             ) : (
               <>
-                <p>Total ({resumo.unidades} {resumo.unidades === 1 ? "unidade" : "unidades"}): <strong>{formatarPreco(resumo.total)}</strong></p>
-                {resumo.temProblema && <p>Itens esgotados ou fora da loja não entram no total.</p>}
+                <dl className={estilos.valores}>
+                  <div className={estilos.total}>
+                    <dt>Total ({unidades})</dt>
+                    <dd>{formatarPreco(resumo.total)}</dd>
+                  </div>
+                </dl>
+                {resumo.temProblema && <p className={estilos.alerta}>Itens esgotados ou fora da loja não entram no total.</p>}
                 <Botao type="button" aria-disabled="true" aria-describedby="finalizar-em-breve">Finalizar compra: em breve</Botao>
-                <p id="finalizar-em-breve">A compra online ainda não está disponível. {cliente ? "Seu carrinho fica guardado na sua conta." : "Seu carrinho fica guardado neste navegador."}</p>
+                <p id="finalizar-em-breve" className={estilos.pequeno}>A compra online ainda não está disponível. {cliente ? "Seu carrinho fica guardado na sua conta." : "Seu carrinho fica guardado neste navegador."}</p>
               </>
             )}
-          </section>
+          </CartaoDaLoja>
         </div>
       )}
-    </div>
+    </PaginaDaLoja>
   );
 }

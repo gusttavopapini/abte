@@ -15,7 +15,7 @@ export default async function PaginaCadastroLoja({ searchParams }: { searchParam
   const politicaPublicada = paginaNoSite((await lerPaginasEmCache()).get("politica-de-privacidade"));
 
   return (
-    <CaixaDeAcesso titulo="Criar conta na loja" descricao="A conta serve para guardar seu carrinho. A compra online ainda não está disponível.">
+    <CaixaDeAcesso titulo="Criar conta na loja" descricao="Com a conta, seu carrinho fica guardado e você acompanha seus pedidos.">
       <FormularioCadastroLoja destino={destino} politicaPublicada={politicaPublicada} />
     </CaixaDeAcesso>
   );

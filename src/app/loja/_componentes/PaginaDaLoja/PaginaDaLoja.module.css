@@ -1,0 +1,75 @@
+/* Páginas internas da loja (21/11/2026): carrinho e pedido no visual da
+   "Minha conta". Só tokens. */
+.secao {
+  display: grid;
+  gap: var(--space-32);
+  max-width: calc(72rem + 2 * var(--page-margin));
+  padding-top: clamp(var(--space-32), 5vw, var(--space-64));
+}
+
+.cabecalho {
+  display: grid;
+  gap: var(--space-16);
+}
+
+.abertura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16) var(--space-24);
+}
+
+.introducao {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.descricao {
+  display: grid;
+  gap: calc(var(--space-8) / 2);
+  font-size: var(--font-size-text);
+  line-height: var(--leading-normal);
+}
+
+.cartao {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-20);
+  min-width: 0;
+  padding: clamp(var(--space-16), 3vw, var(--space-24));
+  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.cabecalhoDoCartao {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.tituloDoCartao {
+  color: var(--color-text);
+  font-size: var(--font-size-text-xl);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-compact);
+}
+
+.icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-min-height-mobile);
+  height: var(--control-min-height-mobile);
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
+  color: var(--color-primary);
+}
+
+.icone svg {
+  width: var(--space-24);
+  height: var(--space-24);
+}

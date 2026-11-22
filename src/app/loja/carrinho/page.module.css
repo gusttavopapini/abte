@@ -1,45 +1,32 @@
-.secao {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-}
-
-.titulo {
-  font-weight: var(--font-weight-light);
-}
-
-/* Itens e resumo lado a lado no desktop, empilhados nas outras telas */
+/* Carrinho (21/11/2026): cartões brancos no visual da "Minha conta"; itens
+   e resumo lado a lado a partir de 1024px, com o resumo preso ao rolar. */
 .conteudo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-32);
+  gap: var(--space-24);
   align-items: start;
 }
 
 @media (min-width: 1024px) {
   .conteudo {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.55fr);
+  }
+
+  .resumo {
+    position: sticky;
+    top: calc(var(--altura-do-header-visivel, 0px) + var(--space-24));
   }
 }
 
-/* Resumo em #ADD8E6 (design-system.md: resumo do carrinho) */
-.resumo {
-  border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-16);
-  padding: var(--card-padding);
-  background: var(--color-surface-soft);
+.continuar {
+  justify-self: start;
+  font-size: var(--font-size-small);
 }
 
-/* Pagamento (08/11/2026): valores do resumo, aviso de modo de teste em caixa
-   branca e textos pequenos. */
 .valores {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-8);
-  width: 100%;
+  margin: 0;
 }
 
 .valores > div {
@@ -47,6 +34,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-8);
+  font-size: var(--font-size-small);
 }
 
 .valores dd {
@@ -54,36 +42,88 @@
   text-align: right;
 }
 
-.total {
-  padding-top: var(--space-8);
-  border-top: 1px solid var(--color-primary);
+.desconto {
+  color: var(--color-success);
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-text-lg);
 }
 
-.modoDeTeste {
-  align-self: flex-start;
+.valores > .total {
+  margin-top: var(--space-8);
+  padding-top: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  font-size: var(--font-size-text-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.alerta {
   padding: var(--space-8) var(--space-16);
   border-radius: var(--radius);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--color-feedback-bg);
+  color: var(--color-error);
   font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
+}
+
+.seguro {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-small);
+}
+
+.seguro svg {
+  flex: none;
+  width: var(--space-20);
+  height: var(--space-20);
+  color: var(--color-primary);
 }
 
 .pequeno {
   font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
 }
 
-/* Linha "Entre para ver seus pedidos" (visitante, 08/11/2026): link com 44px
-   de toque no celular. */
-.entrar a {
-  display: inline-flex;
-  align-items: center;
+/* Carrinho vazio: um cartão central com ícone, texto e botão. */
+.vazio {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-16);
+  max-width: 36rem;
+  width: 100%;
+  margin-inline: auto;
+  padding: clamp(var(--space-24), 5vw, var(--space-64));
+  border: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  text-align: center;
 }
 
+.iconeGrande {
+  display: grid;
+  place-items: center;
+  width: var(--space-64);
+  height: var(--space-64);
+  border-radius: 50%;
+  background: var(--color-bg-alt);
+  color: var(--color-primary);
+}
+
+.iconeGrande svg {
+  width: var(--space-32);
+  height: var(--space-32);
+}
+
+.tituloVazio {
+  color: var(--color-text);
+  font-size: var(--font-size-text-xl);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Link de entrar com 44px de toque no celular. */
 @media (max-width: 767px) {
-  .entrar a {
+  .pequeno a,
+  .continuar {
+    display: inline-flex;
+    align-items: center;
     min-height: var(--control-min-height-mobile);
   }
 }

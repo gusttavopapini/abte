@@ -4,27 +4,34 @@
   gap: var(--space-16);
 }
 
+/* Itens em linhas separadas por um fio, dentro do cartão do carrinho
+   (21/11/2026). */
 .lista {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
 }
 
 .item {
-  border-radius: var(--radius);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-16);
+  align-items: center;
   justify-content: space-between;
-  padding: var(--card-padding);
-  background: var(--color-bg);
+  padding-block: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+
+.item:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .descricao {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
-  font-size: var(--font-size-text);
+  gap: calc(var(--space-8) / 2);
+  min-width: 0;
+  font-size: var(--font-size-small);
 }
 
 .nome {

@@ -1,29 +1,47 @@
-/* Página do pedido (08/11/2026), no padrão da loja: painéis brancos. */
-.secao {
-  display: flex;
-  flex-direction: column;
+/* Página do pedido (21/11/2026): cartões brancos no visual da "Minha conta". */
+.conteudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-24);
+  align-items: start;
 }
 
-.titulo {
-  font-weight: var(--font-weight-light);
+@media (min-width: 1024px) {
+  .conteudo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
-.painel {
+.coluna {
+  display: grid;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+.linhaDaSituacao {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  max-width: calc(var(--space-64) * 11);
-  padding: var(--panel-padding);
-  border-radius: var(--radius);
-  background: var(--color-bg);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-16);
+  font-size: var(--font-size-small);
 }
 
-.subtitulo {
-  color: var(--color-text);
-  font-size: var(--font-size-text-xl);
-  font-weight: var(--font-weight-light);
-  line-height: var(--leading-compact);
+.situacao {
+  --cor-situacao: var(--color-text);
+
+  padding: calc(var(--space-8) / 2) var(--space-8);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--cor-situacao) 12%, var(--color-bg));
+  color: var(--cor-situacao);
+  font-weight: var(--font-weight-bold);
+}
+
+.situacao[data-situacao="pago"] {
+  --cor-situacao: var(--color-success);
+}
+
+.situacao[data-situacao="falhou"] {
+  --cor-situacao: var(--color-error);
 }
 
 .texto {
@@ -31,50 +49,101 @@
   line-height: var(--leading-normal);
 }
 
-.dados {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  font-size: var(--font-size-small);
+.botao {
+  justify-self: start;
 }
 
-.dados > div,
-.itens li {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-8);
+.dados {
+  display: grid;
+  gap: var(--space-16);
+  margin: 0;
+}
+
+.dados > div {
+  display: grid;
+  gap: calc(var(--space-8) / 2);
+}
+
+.dados > div + div {
+  padding-top: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+
+.dados dt {
+  font-size: var(--font-size-small);
 }
 
 .dados dd {
   margin: 0;
+  font-weight: var(--font-weight-bold);
   overflow-wrap: anywhere;
-  text-align: right;
 }
 
 .itens {
+  display: grid;
+}
+
+.itens li {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding-block: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
   font-size: var(--font-size-text);
 }
 
-.total {
-  padding-top: var(--space-8);
-  border-top: 1px solid var(--color-surface-soft);
-  font-size: var(--font-size-text);
+.itens li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.nomeDoItem {
+  display: grid;
+  gap: calc(var(--space-8) / 2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detalhe {
+  font-size: var(--font-size-small);
+}
+
+.valores {
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+}
+
+.valores > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-8);
+  font-size: var(--font-size-small);
+}
+
+.valores dd {
+  margin: 0;
+  text-align: right;
+}
+
+.valores > .desconto {
+  color: var(--color-success);
   font-weight: var(--font-weight-bold);
 }
 
-.modoDeTeste {
-  align-self: flex-start;
-  padding: var(--space-8) var(--space-16);
-  border-radius: var(--radius);
-  background: var(--color-bg);
-  font-size: var(--font-size-small);
-  line-height: var(--leading-normal);
+.valores > .total {
+  margin-top: var(--space-8);
+  padding-top: var(--space-16);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 16%, transparent);
+  font-size: var(--font-size-text-lg);
+  font-weight: var(--font-weight-bold);
 }
 
-.pequeno {
+.aviso {
+  padding: var(--space-16);
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
   font-size: var(--font-size-small);
+  line-height: var(--leading-normal);
 }

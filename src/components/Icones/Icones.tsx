@@ -172,6 +172,26 @@ export function IconeSacola({ className }: PropsIcone) {
   );
 }
 
+// Cadeado: "Pagamento seguro" no resumo do carrinho (21/11/2026).
+export function IconeCadeado({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Recibo: resumo da compra e do pedido (21/11/2026).
+export function IconeRecibo({ className }: PropsIcone) {
+  return (
+    <svg {...comuns} className={className}>
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // Pessoa: "Entrar" e "Minha conta" no menu da loja.
 export function IconePessoa({ className }: PropsIcone) {
   return (
