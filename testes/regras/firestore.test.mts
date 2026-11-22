@@ -40,6 +40,8 @@ const COLECOES = [
   // Pagamento pela Stripe (08/11/2026): pedidos e eventos já processados.
   "pedidos",
   "eventosStripe",
+  // Cupons de desconto (21/11/2026).
+  "cupons",
   "qualquerColecao",
 ];
 

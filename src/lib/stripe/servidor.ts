@@ -40,6 +40,8 @@ export async function criarSessaoDeCheckout({
   origem,
   token,
   visitante,
+  cupom = null,
+  desconto = 0,
 }: {
   pedidoId: string;
   email: string;
@@ -50,8 +52,21 @@ export async function criarSessaoDeCheckout({
   origem: string;
   token: string;
   visitante: boolean;
+  cupom?: { codigo: string; percentual: number } | null;
+  desconto?: number;
 }): Promise<{ id: string; url: string }> {
   const stripe = clienteStripe();
+  // Cupom do site (21/11/2026): vira um desconto de valor fixo na Stripe,
+  // calculado no servidor, de uso único e só deste pedido. Vale sobre os
+  // produtos; o frete não entra.
+  let descontoNaStripe: string | null = null;
+  if (cupom && desconto > 0) {
+    const criado = await stripe.coupons.create(
+      { amount_off: desconto, currency: "brl", duration: "once", max_redemptions: 1, name: `Cupom ${cupom.codigo} (${cupom.percentual}%)`.slice(0, 40), metadata: { pedidoId, cupom: cupom.codigo } },
+      { idempotencyKey: `cupom-pedido-${pedidoId}` },
+    );
+    descontoNaStripe = criado.id;
+  }
   const base: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     locale: "pt-BR",
@@ -70,6 +85,7 @@ export async function criarSessaoDeCheckout({
     })),
     customer_email: !visitante && email ? email : undefined,
     ...(visitante ? { billing_address_collection: "required" as const, phone_number_collection: { enabled: true } } : {}),
+    ...(descontoNaStripe ? { discounts: [{ coupon: descontoNaStripe }] } : {}),
     client_reference_id: pedidoId,
     metadata: { pedidoId },
     payment_intent_data: { metadata: { pedidoId } },

@@ -4,6 +4,7 @@
 import { FieldValue, type Firestore, type Timestamp } from "firebase-admin/firestore";
 import { registrarNaTransacao, type AutorDaAlteracao } from "../log/alteracoes.ts";
 import { COLECAO_CARRINHOS } from "./contas.ts";
+import { COLECAO_CUPONS } from "./cupons.ts";
 import {
   COLECAO_EVENTOS_STRIPE,
   COLECAO_PEDIDOS,
@@ -34,6 +35,9 @@ export type Pedido = {
   nome: string | null;
   itens: ItemDoPedido[];
   subtotal: number;
+  // Cupom (21/11/2026): código e percentual no momento da compra.
+  cupom: { codigo: string; percentual: number } | null;
+  desconto: number;
   frete: number;
   freteCombinado: boolean;
   total: number;
@@ -54,6 +58,12 @@ export type Pedido = {
 
 const data = (valor: unknown): Date | null => (valor && typeof (valor as Timestamp).toDate === "function" ? (valor as Timestamp).toDate() : null);
 const texto = (valor: unknown): string => (typeof valor === "string" ? valor : "");
+const objeto = (valor: unknown): Record<string, unknown> => (valor && typeof valor === "object" ? (valor as Record<string, unknown>) : {});
+
+function lerCupomDoPedido(valor: unknown): { codigo: string; percentual: number } | null {
+  const cupom = objeto(valor);
+  return typeof cupom.codigo === "string" && typeof cupom.percentual === "number" ? { codigo: cupom.codigo, percentual: cupom.percentual } : null;
+}
 
 // Leitura tolerante de um documento de pedido.
 export function lerPedido(id: string, dados: Record<string, unknown> | undefined): Pedido | null {
@@ -69,6 +79,8 @@ export function lerPedido(id: string, dados: Record<string, unknown> | undefined
     nome: texto(dados.nome) || null,
     itens,
     subtotal: Number(dados.subtotal) || 0,
+    cupom: lerCupomDoPedido(dados.cupom),
+    desconto: Number(dados.desconto) || 0,
     frete: Number(dados.frete) || 0,
     freteCombinado: dados.freteCombinado === true,
     total: Number(dados.total) || 0,
@@ -96,6 +108,8 @@ export async function criarPedido(
     email: string;
     itens: ItemDoPedido[];
     subtotal: number;
+    cupom?: { codigo: string; percentual: number } | null;
+    desconto?: number;
     frete: number;
     freteCombinado: boolean;
     total: number;
@@ -112,6 +126,8 @@ export async function criarPedido(
     nome: null,
     itens: dados.itens,
     subtotal: dados.subtotal,
+    cupom: dados.cupom ?? null,
+    desconto: dados.desconto ?? 0,
     frete: dados.frete,
     freteCombinado: dados.freteCombinado,
     total: dados.total,
@@ -152,7 +168,6 @@ export type EventoDaStripe = {
 
 export type ResultadoDoEvento = "processado" | "repetido" | "ignorado" | "sem-pedido" | "sem-mudanca";
 
-const objeto = (valor: unknown): Record<string, unknown> => (valor && typeof valor === "object" ? (valor as Record<string, unknown>) : {});
 
 // Endereço de entrega e contato informados no Checkout (formato atual,
 // collected_information.shipping_details, e o antigo, shipping_details).
@@ -206,6 +221,11 @@ export async function aplicarEventoDaStripe(db: Firestore, evento: EventoDaStrip
     const pedido = lerPedido(pedidoId, (await transacao.get(refPedido)).data());
     if (!pedido) return marcar("sem-pedido", pedidoId);
 
+    // Cupom do pedido: lido antes das gravações (regra das transações) para
+    // contar o uso quando o pedido passa a pago.
+    const refCupom = pedido.cupom ? db.collection(COLECAO_CUPONS).doc(pedido.cupom.codigo) : null;
+    const cupomExiste = refCupom ? (await transacao.get(refCupom)).exists : false;
+
     const mudancas: Record<string, unknown> = { atualizadoEm: FieldValue.serverTimestamp() };
     if (evento.type.startsWith("checkout.session.")) {
       const intencao = texto(obj.payment_intent);
@@ -224,6 +244,7 @@ export async function aplicarEventoDaStripe(db: Firestore, evento: EventoDaStrip
       mudancas.status = novo;
       if (novo === "pago") {
         mudancas.pagoEm = FieldValue.serverTimestamp();
+        if (refCupom && cupomExiste) transacao.update(refCupom, { usos: FieldValue.increment(1) });
         // Pago: o carrinho do cliente é esvaziado (só quando o pedido veio
         // do carrinho; "Comprar agora" não mexe nele). O carrinho de visitante
         // fica num cookie e é limpo pela página do pedido.

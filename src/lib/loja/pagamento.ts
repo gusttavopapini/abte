@@ -4,6 +4,7 @@
 // Valores sempre em centavos; preço, nome e situação vêm do Firestore no
 // servidor, nunca do navegador.
 import { precoAtual } from "../produtos.ts";
+import { calcularDesconto } from "./cupons.ts";
 import { quantidadeMaxima, situacaoDoProduto, type ItemDoCarrinho, type ProdutoDoCarrinho } from "./carrinho.ts";
 
 export const COLECAO_PEDIDOS = "pedidos";
@@ -69,6 +70,9 @@ export type CalculoDoPedido =
       ok: true;
       itens: ItemDoPedido[];
       subtotal: number;
+      // Cupom aplicado (21/11/2026): desconto em centavos sobre o subtotal.
+      cupom: { codigo: string; percentual: number } | null;
+      desconto: number;
       frete: number;
       total: number;
       temFisico: boolean;
@@ -80,7 +84,14 @@ export type CalculoDoPedido =
 // Monta o pedido a partir do carrinho e dos produtos lidos agora no servidor.
 // Recusa o carrinho vazio e qualquer item fora da loja ou esgotado (a pessoa
 // precisa tirar o item antes de pagar). Frete só com produto físico.
-export function calcularPedido(itens: ItemDoCarrinho[], produtos: Map<string, ProdutoDoCarrinho>, freteFixo: number | null): CalculoDoPedido {
+// cupom: o cupom ativo já conferido no Firestore (ou null); o desconto vale
+// só sobre os produtos, nunca sobre o frete.
+export function calcularPedido(
+  itens: ItemDoCarrinho[],
+  produtos: Map<string, ProdutoDoCarrinho>,
+  freteFixo: number | null,
+  cupom: { codigo: string; percentual: number } | null = null,
+): CalculoDoPedido {
   if (itens.length === 0) return { ok: false, erro: "Seu carrinho está vazio." };
   const linhas: ItemDoPedido[] = [];
   for (const item of itens) {
@@ -97,7 +108,18 @@ export function calcularPedido(itens: ItemDoCarrinho[], produtos: Map<string, Pr
   const subtotal = linhas.reduce((soma, linha) => soma + linha.precoUnitario * linha.quantidade, 0);
   const temFisico = linhas.some((linha) => linha.tipo === "fisico");
   const frete = temFisico ? (freteFixo ?? 0) : 0;
-  return { ok: true, itens: linhas, subtotal, frete, total: subtotal + frete, temFisico, freteCombinado: temFisico && freteFixo === null };
+  const desconto = cupom ? calcularDesconto(subtotal, cupom.percentual) : 0;
+  return {
+    ok: true,
+    itens: linhas,
+    subtotal,
+    cupom: cupom && desconto > 0 ? { codigo: cupom.codigo, percentual: cupom.percentual } : null,
+    desconto,
+    frete,
+    total: subtotal - desconto + frete,
+    temFisico,
+    freteCombinado: temFisico && freteFixo === null,
+  };
 }
 
 // ---------- Situação do pedido ----------

@@ -1,0 +1,21 @@
+/* Cupons no painel (21/11/2026): complementos da página de pedidos. */
+.codigo {
+  text-transform: uppercase;
+}
+
+.opcao {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--control-min-height-mobile);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+
+.erro {
+  border-radius: var(--radius);
+  color: var(--color-error);
+  background: var(--color-feedback-bg);
+  padding: var(--space-8);
+  font-size: var(--font-size-small);
+}

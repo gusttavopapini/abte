@@ -77,6 +77,8 @@ const SECOES: SecaoDoPainel[] = [
         sub: [
           { href: "/admin/pedidos", rotulo: "Pedidos" },
           { href: "/admin/loja/frete", rotulo: "Frete da loja" },
+          // Cupons de desconto (21/11/2026): só administrador.
+          { href: "/admin/cupons", rotulo: "Cupons" },
         ],
       },
     ],

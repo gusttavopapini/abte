@@ -11,6 +11,9 @@ import { DOCUMENTO_DA_LOJA, lerFreteFixo, TEXTO_FRETE_COMBINADO, TEXTO_MODO_DE_T
 import { formatarPreco } from "@/lib/produtos";
 import { liberacaoAtual } from "@/lib/stripe/servidor";
 import { FinalizarCompra } from "../_componentes/FinalizarCompra/FinalizarCompra";
+import { CampoDeCupom } from "../_componentes/CampoDeCupom/CampoDeCupom";
+import { lerCodigoDoCupom, lerCupomAtivo } from "@/lib/dados/cupons";
+import { calcularDesconto } from "@/lib/loja/cupons";
 import { ItensDoCarrinho } from "../_componentes/ItensDoCarrinho/ItensDoCarrinho";
 import { LinksDaLoja } from "../_componentes/LinksDaLoja/LinksDaLoja";
 import estilos from "./page.module.css";
@@ -35,6 +38,10 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
   const temFisico = resumo.linhas.some((linha) => linha.situacao === "ok" && produtos.get(linha.produtoId)?.tipo === "fisico");
   const freteFixo = pagamentoLigado && temFisico ? lerFreteFixo((await firestoreAdmin().collection("configuracoes").doc(DOCUMENTO_DA_LOJA).get()).get("freteFixo")) : null;
   const frete = temFisico ? (freteFixo ?? 0) : 0;
+  // Cupom aplicado (cookie), conferido de novo no Firestore (21/11/2026).
+  const codigoDoCupom = pagamentoLigado ? await lerCodigoDoCupom() : null;
+  const cupom = codigoDoCupom ? await lerCupomAtivo(codigoDoCupom) : null;
+  const desconto = cupom ? calcularDesconto(resumo.total, cupom.percentual) : 0;
   // O link da política só aparece com a página publicada (senão daria 404).
   const politicaPublicada = pagamentoLigado && linhas.length > 0 ? paginaNoSite((await lerPaginasEmCache()).get("politica-de-privacidade")) : false;
 
@@ -66,15 +73,22 @@ export default async function PaginaCarrinho({ searchParams }: { searchParams: P
                     <dt>Subtotal ({resumo.unidades} {resumo.unidades === 1 ? "unidade" : "unidades"})</dt>
                     <dd>{formatarPreco(resumo.total)}</dd>
                   </div>
+                  {cupom && desconto > 0 && (
+                    <div>
+                      <dt>Cupom {cupom.codigo} ({cupom.percentual}%)</dt>
+                      <dd>- {formatarPreco(desconto)}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Frete</dt>
                     <dd>{!temFisico ? "Sem frete (produto digital)" : freteFixo === null ? TEXTO_FRETE_COMBINADO : formatarPreco(frete)}</dd>
                   </div>
                   <div className={estilos.total}>
                     <dt>Total</dt>
-                    <dd>{formatarPreco(resumo.total + frete)}</dd>
+                    <dd>{formatarPreco(resumo.total - desconto + frete)}</dd>
                   </div>
                 </dl>
+                <CampoDeCupom aplicado={cupom ? cupom.codigo : null} invalido={codigoDoCupom && !cupom ? codigoDoCupom : null} />
                 {resumo.temProblema && <p>Remova os itens esgotados ou fora da loja para finalizar a compra.</p>}
                 <FinalizarCompra desabilitado={resumo.temProblema || resumo.unidades === 0} />
                 <p className={estilos.pequeno}>{TEXTO_PAGAMENTO_SEGURO}</p>

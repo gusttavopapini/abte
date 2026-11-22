@@ -76,6 +76,7 @@ export default async function PaginaPedido({ params, searchParams }: { params: P
         </ul>
         <dl className={estilos.dados}>
           <div><dt>Subtotal</dt><dd>{formatarPreco(pedido.subtotal)}</dd></div>
+          {pedido.desconto > 0 && <div><dt>Cupom {pedido.cupom?.codigo} ({pedido.cupom?.percentual}%)</dt><dd>- {formatarPreco(pedido.desconto)}</dd></div>}
           {temFisico && <div><dt>Frete</dt><dd>{pedido.freteCombinado ? TEXTO_FRETE_COMBINADO : formatarPreco(pedido.frete)}</dd></div>}
           <div className={estilos.total}><dt>Total</dt><dd>{formatarPreco(pedido.total)}</dd></div>
         </dl>

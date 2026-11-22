@@ -19,6 +19,7 @@ import { calcularPedido, COLECAO_PEDIDOS, DOCUMENTO_DA_LOJA, lerFreteFixo, mensa
 import { criarPedido, lerPedido, marcarPedidoSemSessao, registrarSessaoDoPedido, type OrigemDoPedido } from "@/lib/loja/pedidos";
 import { criarSessaoDeCheckout, liberacaoAtual } from "@/lib/stripe/servidor";
 import { ehIdDeDocumentoValido } from "@/lib/validacao";
+import { lerCodigoDoCupom, lerCupomAtivo } from "@/lib/dados/cupons";
 
 export type RespostaDaCompra = { ok: false; mensagem: string } | null;
 
@@ -50,7 +51,15 @@ async function iniciarCheckout(itens: ItemDoCarrinho[], cliente: ClienteDaSessao
   const db = firestoreAdmin();
   try {
     const [produtos, loja] = await Promise.all([lerProdutosDoCarrinho(itens.map((item) => item.produtoId)), db.collection("configuracoes").doc(DOCUMENTO_DA_LOJA).get()]);
-    const calculo = calcularPedido(itens, produtos, lerFreteFixo(loja.get("freteFixo")));
+    // Cupom aplicado no carrinho (cookie): conferido de novo agora.
+    const codigo = await lerCodigoDoCupom();
+    let cupom: { codigo: string; percentual: number } | null = null;
+    if (codigo) {
+      const achado = await lerCupomAtivo(codigo);
+      if (!achado) return { erro: `O cupom ${codigo} não é mais válido. Remova o cupom no carrinho para continuar.` };
+      cupom = achado;
+    }
+    const calculo = calcularPedido(itens, produtos, lerFreteFixo(loja.get("freteFixo")), cupom);
     if (!calculo.ok) return { erro: calculo.erro };
 
     const { token, hash } = gerarTokenDoPedido();
@@ -59,6 +68,8 @@ async function iniciarCheckout(itens: ItemDoCarrinho[], cliente: ClienteDaSessao
       email: cliente?.email ?? "",
       itens: calculo.itens,
       subtotal: calculo.subtotal,
+      cupom: calculo.cupom,
+      desconto: calculo.desconto,
       frete: calculo.frete,
       freteCombinado: calculo.freteCombinado,
       total: calculo.total,
@@ -77,6 +88,8 @@ async function iniciarCheckout(itens: ItemDoCarrinho[], cliente: ClienteDaSessao
         origem,
         token,
         visitante: !cliente,
+        cupom: calculo.cupom,
+        desconto: calculo.desconto,
       });
       await registrarSessaoDoPedido(db, pedidoId, sessao.id);
       return { url: sessao.url };
