@@ -54,6 +54,35 @@ export type ResultadoDoProfissional =
   | { ok: true; dados: DadosDoProfissional }
   | { ok: false; erros: Partial<Record<CampoDoProfissional, string>> };
 
+// Tags do profissional (21/11/2026): texto livre digitado no painel, gravado
+// no campo metodos (o card e o popup mostram as etiquetas). Espaços extras
+// saem; repetidas (sem diferença de maiúsculas) contam uma vez; um método da
+// lista METODOS volta com a grafia oficial (mantém a cor da etiqueta).
+export const LIMITES_DAS_TAGS = { quantidade: 15, tamanho: 40 } as const;
+
+export function normalizarTag(valor: string): string {
+  const limpa = valor.replace(/\s+/g, " ").trim();
+  const oficial = METODOS.find((metodo) => metodo.toLocaleLowerCase("pt-BR") === limpa.toLocaleLowerCase("pt-BR"));
+  return oficial ?? limpa;
+}
+
+export function lerTagsDoProfissional(valores: unknown[]): { ok: true; tags: string[] } | { ok: false; erro: string } {
+  const tags: string[] = [];
+  const vistas = new Set<string>();
+  for (const valor of valores) {
+    if (typeof valor !== "string") continue;
+    const tag = normalizarTag(valor);
+    if (!tag) continue;
+    if (tag.length > LIMITES_DAS_TAGS.tamanho) return { ok: false, erro: `Cada tag pode ter no máximo ${LIMITES_DAS_TAGS.tamanho} caracteres.` };
+    const chave = tag.toLocaleLowerCase("pt-BR");
+    if (vistas.has(chave)) continue;
+    vistas.add(chave);
+    tags.push(tag);
+  }
+  if (tags.length > LIMITES_DAS_TAGS.quantidade) return { ok: false, erro: `Use no máximo ${LIMITES_DAS_TAGS.quantidade} tags.` };
+  return { ok: true, tags };
+}
+
 // Apresentação até 3.000 caracteres desde 08/11/2026 (antes, 1.000).
 export const LIMITES_DO_PROFISSIONAL = { tratamento: 20, nome: 120, registro: 60, cidade: 60, cidades: 10, bio: 3000, contato: 300, endereco: 200 } as const;
 const LIMITES = LIMITES_DO_PROFISSIONAL;
@@ -84,8 +113,9 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
   const registro = texto(dados, "registro");
   if (registro.length > LIMITES.registro) erros.registro = `Use no máximo ${LIMITES.registro} caracteres.`;
 
-  const metodos = [...new Set(dados.getAll("metodos").filter((valor): valor is string => typeof valor === "string"))];
-  if (metodos.some((metodo) => !(METODOS as readonly string[]).includes(metodo))) erros.metodos = "Método desconhecido.";
+  const tagsLidas = lerTagsDoProfissional(dados.getAll("metodos"));
+  if (!tagsLidas.ok) erros.metodos = tagsLidas.erro;
+  const metodos = tagsLidas.ok ? tagsLidas.tags : [];
 
   const pais = texto(dados, "pais");
   const paisValido = PAISES.some((item) => item.codigo === pais);
@@ -154,7 +184,7 @@ export function validarProfissional(dados: FormData): ResultadoDoProfissional {
       tratamento,
       nome,
       registro,
-      metodos: METODOS.filter((metodo) => metodos.includes(metodo)),
+      metodos,
       pais: pais as CodigoDePais,
       uf,
       cidades,

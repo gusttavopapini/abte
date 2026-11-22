@@ -7,6 +7,7 @@ import { Mensagem } from "@/components/Mensagem/Mensagem";
 import { ContadorDeCaracteres } from "@/app/admin/_componentes/ContadorDeCaracteres/ContadorDeCaracteres";
 import { BarraDeSalvar } from "@/app/admin/_componentes/BarraDeSalvar/BarraDeSalvar";
 import { SecaoDoFormulario } from "@/app/admin/_componentes/SecaoDoFormulario/SecaoDoFormulario";
+import { CampoDeTags } from "@/app/admin/_componentes/CampoDeTags/CampoDeTags";
 import { ImagemDoItem } from "@/app/admin/_componentes/ImagemDoItem/ImagemDoItem";
 import { salvarProfissional, type RespostaDoProfissional } from "@/app/admin/acoes-profissionais";
 import { METODOS, PAISES, TAGS_DE_PROFISSIONAIS, UFS, rotuloDoTipo } from "@/config/profissionais";
@@ -24,7 +25,7 @@ type Props = {
   profissional: ProfissionalNaTela | null;
   aoSalvar: (mensagem: string) => void;
   aoCancelar: () => void;
-  // Avisa a janela que a foto mudou (escolha não passa por campo digitado).
+  // Avisa a janela que a foto ou as tags mudaram (não passam por campo digitado).
   aoMudarFoto?: () => void;
 };
 
@@ -102,18 +103,17 @@ export function FormularioProfissional({ profissional, aoSalvar, aoCancelar, aoM
       </SecaoDoFormulario>
 
       <SecaoDoFormulario titulo="Atuação" nivel={3} grade>
-        <fieldset className={`${estilos.grupoSemMoldura} painel-inteira`} aria-describedby={descrito("metodos", !!erros.metodos)}>
-          <legend className={estilos.rotulo}>Métodos</legend>
-          <div className={estilos.opcoes}>
-            {METODOS.map((metodo) => (
-              <label key={metodo} className={estilos.opcao}>
-                <input type="checkbox" name="metodos" value={metodo} defaultChecked={p?.metodos.includes(metodo)} />
-                {metodo}
-              </label>
-            ))}
-          </div>
-          <ErroDoCampo id={`${id}-metodos-erro`} erro={erros.metodos} />
-        </fieldset>
+        <div className="painel-inteira">
+          <CampoDeTags
+            name="metodos"
+            rotulo="Métodos e tags"
+            ajuda="Digite uma tag e aperte Enter ou Adicionar. As tags aparecem no card do profissional."
+            valoresIniciais={p?.metodos ?? []}
+            sugestoes={METODOS}
+            erro={erros.metodos}
+            aoMudar={aoMudarFoto}
+          />
+        </div>
         <div className={estilos.grupo}>
           <label htmlFor={`${id}-pais`} className={estilos.rotulo}>País <span aria-hidden="true">*</span></label>
           <select id={`${id}-pais`} name="pais" required defaultValue={p?.pais || "BR"} className={estilos.selecao} aria-invalid={erros.pais ? true : undefined} aria-describedby={descrito("pais", !!erros.pais)}>

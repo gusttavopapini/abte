@@ -32,7 +32,7 @@ describe("Cadastro de profissional", () => {
     const resultado = validarProfissional(formulario(BASE));
     assert.equal(resultado.ok, true);
     if (!resultado.ok) return;
-    assert.deepEqual(resultado.dados.metodos, ["Schroth ISST", "SEAS"]);
+    assert.deepEqual(resultado.dados.metodos, ["SEAS", "Schroth ISST"]); // ordem digitada (21/11/2026)
     assert.equal(resultado.dados.uf, "SP");
     assert.deepEqual(resultado.dados.cidades, ["Cidade Um", "Cidade Dois"]);
     assert.equal(resultado.dados.whatsapp, "5511912345678");
@@ -50,11 +50,26 @@ describe("Cadastro de profissional", () => {
     if (paraguai.ok) assert.equal(paraguai.dados.uf, "");
   });
 
-  test("exige nome, tipo e país válidos e recusa método desconhecido", () => {
-    const resultado = validarProfissional(formulario({ ...BASE, nome: " ", tipo: "Astronautas", pais: "AR", metodos: ["Inventado"] }));
+  test("exige nome, tipo e país válidos", () => {
+    const resultado = validarProfissional(formulario({ ...BASE, nome: " ", tipo: "Astronautas", pais: "AR" }));
     assert.equal(resultado.ok, false);
     if (resultado.ok) return;
-    assert.ok(resultado.erros.nome && resultado.erros.tipo && resultado.erros.pais && resultado.erros.metodos);
+    assert.ok(resultado.erros.nome && resultado.erros.tipo && resultado.erros.pais);
+  });
+
+  test("tags livres: aceita texto novo, junta repetidas e usa a grafia oficial dos métodos", () => {
+    const resultado = validarProfissional(formulario({ ...BASE, metodos: ["  Pilates   clínico ", "schroth isst", "Pilates clínico", ""] }));
+    assert.equal(resultado.ok, true);
+    if (resultado.ok) assert.deepEqual(resultado.dados.metodos, ["Pilates clínico", "Schroth ISST"]);
+  });
+
+  test("tags: recusa tag longa demais e mais de 15", () => {
+    const longa = validarProfissional(formulario({ ...BASE, metodos: ["x".repeat(41)] }));
+    assert.equal(longa.ok, false);
+    if (!longa.ok) assert.match(longa.erros.metodos ?? "", /40 caracteres/);
+    const muitas = validarProfissional(formulario({ ...BASE, metodos: Array.from({ length: 16 }, (_, i) => `Tag ${i}`) }));
+    assert.equal(muitas.ok, false);
+    if (!muitas.ok) assert.match(muitas.erros.metodos ?? "", /15 tags/);
   });
 
   test("exige pelo menos um contato e uma cidade (ou telerreabilitação)", () => {
